@@ -1,0 +1,83 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+    <div class="ui grid">
+      <div class="row">
+        <div class="column" id="sidebar">
+          <div class="ui secondary vertical fluid menu">
+            <a class="active item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
+            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
+            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
+            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
+            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
+            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Namespaces</a>
+
+            <div class="ui hidden divider"></div>
+            </div>
+        </div>
+        <div class="column" id="content">
+          <div class="ui grid">
+            <div class="row">
+              <h1 class="ui huge header">
+                Dashboard
+              </h1>
+            </div>
+            <div class="ui divider"></div>
+            <div class="four column center aligned row">
+              <div class="column">
+                <h1 class="ui huge header">
+                  {{.RunningTasks}}
+                </h1>
+                <div class="ui hidden divider"></div>
+                <div class="ui large green label">
+                  Running
+                </div>
+                <p>
+                  Tasks being run
+                </p>
+              </div>
+              <div class="column">
+                <h1 class="ui huge header">
+                {{.TotalTasks}}
+                </h1>
+                <div class="ui hidden divider"></div>
+                <div class="ui large blue label">
+                  Total
+                </div>
+                <p>
+                  Total tasks
+                </p>
+              </div>
+              <div class="column">
+                <h1 class="ui huge header">
+                {{.WaitingTasks}}
+                </h1>
+                <div class="ui hidden divider"></div>
+                <div class="ui large pink label">
+                  Waiting
+                </div>
+                <p>
+                  In waiting to be processed
+                </p>
+              </div>
+              <div class="column">
+                <h1 class="ui huge header">
+                {{.ErroredTasks}}
+                </h1>
+                <div class="ui hidden divider"></div>
+                <div class="ui large red label">
+                  Errors
+                </div>
+                <p>
+                  Tasks that didn't ended as expected
+                </p>
+              </div>
+            </div>
+            <div class="ui hidden section divider"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+		{{template "base/footer" .}}

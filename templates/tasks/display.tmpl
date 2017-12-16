@@ -1,0 +1,186 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+<script src="{{AppSubURL}}/js/jquery.terminal.min.js"></script>
+<link rel="stylesheet" href="{{AppSubURL}}/css/jquery.terminal.min.css">
+<style>
+@keyframes blink {
+    50% {
+        color: #000;
+        background: #0c0;
+        -webkit-box-shadow: 0 0 5px rgba(0,100,0,50);
+        box-shadow: 0 0 5px rgba(0,100,0,50);
+    }
+}
+@-webkit-keyframes blink {
+    50% {
+        color: #000;
+        background: #0c0;
+        -webkit-box-shadow: 0 0 5px rgba(0,100,0,50);
+        box-shadow: 0 0 5px rgba(0,100,0,50);
+    }
+}
+@-ms-keyframes blink {
+    50% {
+        color: #000;
+        background: #0c0;
+        -webkit-box-shadow: 0 0 5px rgba(0,100,0,50);
+        box-shadow: 0 0 5px rgba(0,100,0,50);
+    }
+}
+@-moz-keyframes blink {
+    50% {
+        color: #000;
+        background: #0c0;
+        -webkit-box-shadow: 0 0 5px rgba(0,100,0,50);
+        box-shadow: 0 0 5px rgba(0,100,0,50);
+    }
+}
+.terminal {
+    --background: #000;
+    --color: #0c0;
+    text-shadow: 0 0 3px rgba(0,100,0,50);
+}
+.cmd .cursor.blink {
+    -webkit-animation: 1s blink infinite;
+    animation: 1s blink infinite;
+    -webkit-box-shadow: 0 0 0 rgba(0,100,0,50);
+    box-shadow: 0 0 0 rgba(0,100,0,50);
+    border: none;
+    margin: 0;
+}
+</style>
+<script type='text/javascript'>
+	  $(document).ready(function() {
+      var pos = 0;
+      var build_data;
+      var save_state = [];
+      var task_status = "{{.Task.Status}}";
+
+      var term = $('#terminal').terminal(function(command, term) {},{
+          greetings: '',
+          name: 'build',
+          height: 600,
+      });
+      term.pause();
+      save_state.push(term.export_view()); // save initial state
+      $(window).on('popstate', function(e) {
+          if (save_state.length) {
+              term.import_view(save_state[history.state || 0]);
+          }
+      });
+      getData();
+      if (task_status != "done" && task_status != "error" && task_status != "stop") {
+            setInterval(getData, 6000);
+      }
+
+      function getData() {
+
+        $.ajax({
+            url: "/api/tasks/{{.Task.ID}}",
+            beforeSend: function( xhr ) {
+              xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+            }
+          })
+          .done(function( data ) {
+               var task = JSON.parse(data);
+               if (task.status != task_status) {
+                  location.reload();
+               }
+          });
+
+        $.ajax({
+            url: "/api/tasks/stream_output/{{.Task.ID}}/"+pos,
+            beforeSend: function( xhr ) {
+              xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+            }
+          })
+          .done(function( data ) {
+               build_data += data;
+               if (data.length > 0) {
+                  pos += data.length;
+                  term.echo(" "+data.trim());
+               }
+          });
+        }
+		});
+</script>
+
+
+    <div class="ui grid">
+      <div class="row">
+        <div class="column" id="sidebar">
+          <div class="ui secondary vertical fluid menu">
+            <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
+            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
+            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
+            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
+            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
+            <div class="ui hidden divider"></div>
+            </div>
+        </div>
+        <div class="column" id="content">
+          <div class="ui hidden clearing divider"></div>
+          <div class="ui hidden clearing divider"></div>
+
+          <div class="ui two column grid">
+            <div class="row">
+                <h1 class="ui huge header">
+                  Task detail for '{{.Task.ID}}'
+                </h1>
+            </div>
+            <div class="ui divider"></div>
+            <div class="row">
+
+            <div class="ui  segment ">
+              <a class="ui ribbon label">Actions</a>
+              <a href="/tasks/delete/{{.Task.ID}}">
+                <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
+              </a>
+              <a href="/tasks/stop/{{.Task.ID}}">
+                <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
+              </a>
+              <a href="/tasks/start/{{.Task.ID}}">
+                <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
+              </a>
+              <a href="/api/tasks/{{.Task.ID}}" target="_blank">
+                <div class="ui secondary button"><i class="fa fa-code" aria-hidden="true"></i>&nbsp;See JSON</div>
+              </a>
+            </div>
+          </div>
+            <div class="row">
+
+              <div class="ui  segment ">
+                <a class="ui ribbon label">Status: {{.Task.Status}}</a>
+
+                  <p>Source: {{.Task.Source}}</p>
+                  <p>Namespace: {{.Task.Namespace}}</p>
+                  <p>Script: {{.Task.Script}}
+                    <br>
+                  Directory:  {{.Task.Directory}}
+                </p>
+                <p>Yaml: {{.Task.Yaml}}</p>
+                <p>Image: {{.Task.Image}}</p>
+              </div>
+
+            </div>
+            <div class="ui hidden clearing divider"></div>
+
+                <div class="ui active row segment one column grid">
+                  <div class="ui top attached label">
+                    Task: {{.Task.TaskName}}
+                  </div>
+
+                  <div class="ui column" id="terminal">
+                  </div>
+                  <div class="ui bottom attached label">
+                      Result: {{.Task.Result}} - Exit Status: {{.Task.ExitStatus}}
+                  </div>
+                </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+		{{template "base/footer" .}}

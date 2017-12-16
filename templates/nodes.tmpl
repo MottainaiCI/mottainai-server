@@ -1,0 +1,78 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+    <div class="ui grid">
+      <div class="row">
+        <div class="column" id="sidebar">
+          <div class="ui secondary vertical fluid menu">
+            <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
+            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
+            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
+            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
+            <a class="active item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
+            <div class="ui hidden divider"></div>
+            </div>
+        </div>
+        <div class="column" id="content">
+          <div class="ui two column grid">
+            <div class="row">
+              <div class="column">
+                <h1 class="ui huge header">
+                  Nodes List
+                </h1>
+              </div>
+              <div class="column">
+                <a href="/nodes/add"> <div class="ui right floated secondary button"><i class="fa fa-plus-square" aria-hidden="true"></i></div> </a>
+              </div>
+            </div>
+            <div class="ui divider"></div>
+            <div class="row">
+              <table class="ui single line striped selectable table">
+                <thead>
+                  <tr>
+                    <th>
+                      Action
+                    </th>
+                    <th>
+                      UUID
+                    </th>
+                    <th>
+                      NodeID
+                    </th>
+                    <th>
+                      Key
+                    </th>
+                    <th>
+                      User
+                    </th>
+                    <th>
+                      Pass
+                    </th>
+                    <th>
+                      State
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                {{range .Nodes}}
+                <tr>
+                  <td><a href="/nodes/delete/{{.ID}}"> <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div> </a></td>
+                  <td>{{.ID}}</td>
+                  <td>{{.NodeID}}</td>
+                  <td>{{.Key}}</td>
+                  <td>{{.User}}</td>
+                  <td>{{.Pass}}</td>
+
+                  <td></td>
+                </tr>
+                {{end}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+		{{template "base/footer" .}}

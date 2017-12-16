@@ -1,0 +1,45 @@
+package: .
+import:
+- package: github.com/HouzuoGuo/tiedot
+  subpackages:
+  - db
+- package: github.com/MottainaiCI/mottainai-server
+  subpackages:
+  - cmd
+  - pkg/agentconn
+  - pkg/client
+  - pkg/context
+  - pkg/db
+  - pkg/markup
+  - pkg/nodes
+  - pkg/settings
+  - pkg/tasks
+  - pkg/template
+  - pkg/utils
+  - routes
+  - routes/nodes
+  - routes/tasks
+- package: github.com/RichardKnop/machinery
+  version: v1.0.0
+  subpackages:
+  - v1
+  - v1/backends
+  - v1/config
+  - v1/log
+  - v1/tasks
+- package: github.com/Unknwon/com
+- package: github.com/Unknwon/i18n
+- package: github.com/go-macaron/binding
+- package: github.com/gogits/chardet
+- package: github.com/jaypipes/ghw
+- package: github.com/michaelklishin/rabbit-hole
+- package: github.com/microcosm-cc/bluemonday
+- package: github.com/urfave/cli
+- package: golang.org/x/net
+  subpackages:
+  - html/charset
+- package: golang.org/x/text
+  subpackages:
+  - transform
+- package: gopkg.in/clog.v1
+- package: gopkg.in/macaron.v1

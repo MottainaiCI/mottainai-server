@@ -1,0 +1,74 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+    <div class="ui grid">
+      <div class="row">
+        <div class="column" id="sidebar">
+          <div class="ui secondary vertical fluid menu">
+            <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
+            <a class="active item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
+            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
+            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
+            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
+            <div class="ui hidden divider"></div>
+            </div>
+        </div>
+        <div class="column" id="content">
+          <div class="ui grid">
+            <div class="row">
+              <h1 class="ui huge header">
+                Task List
+              </h1>
+            </div>
+            <div class="ui divider"></div>
+            <div class="row">
+              <table class="ui single line striped selectable table">
+                <thead>
+                  <tr>
+                    <th>
+                      Action
+                    </th>
+                    <th>
+                      ID
+                    </th>
+                    <th>
+                      Task
+                    </th>
+                    <th>
+                      State
+                    </th>
+                    <th>
+                      Result
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                {{range .Tasks}}
+                <tr>
+                  <td>
+                    <a href="/tasks/delete/{{.ID}}">
+                      <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
+                    </a>
+                    <a href="/tasks/stop/{{.ID}}">
+                      <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
+                    </a>
+                    <a href="/tasks/start/{{.ID}}">
+                      <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
+                    </a>
+                  </td>
+                  <td><a href="/tasks/display/{{.ID}}">{{.ID}}</a></td>
+                  <td>{{.TaskName}}</td>
+                  <td>{{.Status}}</td>
+                  <td>{{.Result}}</td>
+                </tr>
+                {{end}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+		{{template "base/footer" .}}

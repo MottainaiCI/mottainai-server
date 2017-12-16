@@ -1,0 +1,78 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+    <div class="ui grid">
+      <div class="row">
+        <div class="column" id="sidebar">
+          <div class="ui secondary vertical fluid menu">
+            <a class="active item" href="/">Overview</a><a class="item" href="/tasks">Running Tasks</a><a class="item">Scheduled Tasks</a><a class="item">Nodes</a>
+            <div class="ui hidden divider"></div>
+            </div>
+        </div>
+        <div class="content" id="content">
+          <div class="ui grid">
+            <div class="row">
+              <h1 class="ui huge header">
+                Add task
+              </h1>
+            </div>
+            <form class="ui form" method=POST action="/tasks">
+              <div class="ui form segment">
+                <div class="two fields">
+                      <div class="field">
+                        <label>Source repository</label>
+                        <input name="source" placeholder="Source Repository" type="text">
+                      </div>
+                      <div class="field">
+                        <label>Directory</label>
+                        <input name="directory" placeholder="Directory inside repository" type="text">
+                      </div>
+              </div>
+              </div>
+              <div class="field">
+                <label>Custom yaml file (if any)</label>
+                <input name="yaml" placeholder="Yaml file" type="text">
+              </div>
+              <div class="field">
+                <label>Entrypoint script (if any)</label>
+                <input name="script" placeholder="Entrypoint script" type="text">
+              </div>
+              <div class="ui form segment">
+                <div class="two fields">
+              <div class="field">
+                <label>Task</label>
+                <select class="ui dropdown" name="task">
+                  {{range .AvailableTasks}}
+                  <option value="{{.}}">{{.}}</option>
+                  {{end}}
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Docker image</label>
+                <input name="image" placeholder="e.g. MyBeautifulPony" type="text">
+              </div>
+</div>
+</div>
+              <div class="ui form segment">
+                <div class="two fields">
+              <div class="field">
+                <label>Namespace</label>
+                <input name="namespace" placeholder="e.g. MyBeautifulPony" type="text">
+              </div>
+              <div class="field">
+                <label>Commit</label>
+                <input name="commit" placeholder="e.g. 123a321" type="text">
+              </div>
+            </div>
+          </div>
+
+              <button class="ui button" type="submit">Submit</button>
+            </form>
+          </div>
+      </div>
+    </div>
+  </div>
+
+
+		{{template "base/footer" .}}
