@@ -1,0 +1,16 @@
+language: go
+go:
+  - 1.9
+env:
+  - "GO15VENDOREXPERIMENT=1"
+before_install:
+  - make deps
+script:
+  - make
+#script:
+#  - go test -v -covermode=count -coverprofile=coverage.out ./...
+#  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
+after_success:
+  - git config --global user.name "Deployer" && git config --global user.email foo@bar.com
+  - go get github.com/tcnksm/ghr
+  - ghr -u MottainaiCI -r mottainai-server --replace --debug $TRAVIS_TAG release/
