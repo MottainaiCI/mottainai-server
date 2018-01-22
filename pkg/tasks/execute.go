@@ -102,9 +102,9 @@ func Execute(docID string) (int, error) {
 
 	var containerconfig = &docker.Config{
 		Image: task_info.Image,
-		Cmd:   []string{"-c", "ls -liah;" + execute_script},
+		Cmd:   []string{"-c", "pwd;ls -liah;" + execute_script},
 		//	Env:        config.Env,
-		WorkingDir: "/build" + task_info.Directory,
+		WorkingDir: "/build/" + task_info.Directory,
 		Entrypoint: []string{"/bin/sh"},
 		//Entrypoint:  //[]string{execute_script},
 	}
