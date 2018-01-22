@@ -94,9 +94,15 @@ func Execute(docID string) (int, error) {
 	//ContainerVolumes = append(ContainerVolumes, git_repo_dir+":/build")
 	ContainerBinds = append(ContainerBinds, git_repo_dir+":/build")
 
+	createContHostConfig := docker.HostConfig{
+		Privileged: setting.Configuration.DockerPriviledged,
+		Binds:      ContainerBinds,
+		//	LogConfig:  docker.LogConfig{Type: "json-file"}
+	}
+
 	var containerconfig = &docker.Config{
 		Image: task_info.Image,
-		Cmd:   []string{"-c", "pwd; ls -liah; ls -liah /build; ls -liah /build/test  ; cd /build/test;pwd; ls -liah;" + execute_script},
+		Cmd:   []string{"-c", "ls -liah;" + execute_script},
 		//	Env:        config.Env,
 		WorkingDir: "/build" + task_info.Directory,
 		Entrypoint: []string{"/bin/sh"},
@@ -111,7 +117,8 @@ func Execute(docID string) (int, error) {
 	fetcher.AppendTaskOutput("Container working dir: " + "/build/" + task_info.Directory)
 
 	container, err := docker_client.CreateContainer(docker.CreateContainerOptions{
-		Config: containerconfig,
+		Config:     containerconfig,
+		HostConfig: &createContHostConfig,
 	})
 
 	if err != nil {
@@ -128,11 +135,7 @@ func Execute(docID string) (int, error) {
 
 	fetcher.AppendTaskOutput("Created container ID: " + container.ID)
 
-	err = docker_client.StartContainer(container.ID, &docker.HostConfig{
-		Privileged: setting.Configuration.DockerPriviledged,
-		Binds:      ContainerBinds,
-		//	LogConfig:  docker.LogConfig{Type: "json-file"}
-	})
+	err = docker_client.StartContainer(container.ID, &createContHostConfig)
 	if err != nil {
 		panic(err)
 	}
