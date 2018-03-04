@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -20,31 +20,46 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package namespacesapi
+package storage
 
-import (
-	"os"
-	"path/filepath"
+import "encoding/json"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-)
+type Storage struct {
+	ID int `json:"ID"`
+	//Key  string `form:"key" json:"key"`
+	Name string `form:"name" json:"name"`
+	Path string `json:"path" form:"path"`
+	//TaskID string `json:"taskid" form:"taskid"`
+}
 
-func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
-	name := ctx.Params(":name")
-	name, _ = utils.Strip(name)
+func NewFromJson(data []byte) Storage {
+	var t Storage
+	json.Unmarshal(data, &t)
+	return t
+}
 
-	// docID, _ := db.CreateNamespace(map[string]interface{}{
-	// 	"name": name,
-	// 	"path": name,
-	// })
+func NewFromMap(t map[string]interface{}) Storage {
 
-	err := os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, name), os.ModePerm)
-	if err != nil {
-		return ":(", err
+	var (
+		name string
+		path string
+	//	key  string
+	)
+
+	//if str, ok := t["key"].(string); ok {
+	//	key = str
+	//}
+	if str, ok := t["name"].(string); ok {
+		name = str
+	}
+	if str, ok := t["path"].(string); ok {
+		path = str
 	}
 
-	return "OK", nil
+	Storage := Storage{
+		Name: name,
+		Path: path,
+		//	Key:  key,
+	}
+	return Storage
 }

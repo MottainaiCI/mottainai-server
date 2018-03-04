@@ -33,13 +33,15 @@ type Config struct {
 	AppURL    string `yaml:"application_url" envconfig:"APPLICATION_URL"`
 	SecretKey string `yaml:"secret_key" envconfig:"SECRET_KEY"`
 
-	StaticRootPath  string `yaml:"root_path" envconfig:"ROOT_PATH"`
-	CustomPath      string `yaml:"custom_path" envconfig:"CUSTOM_PATH"`
-	DBEngine        string `yaml:"db_engine" envconfig:"DB_ENGINE"`
-	DBPath          string `yaml:"db_path" envconfig:"DB_PATH"`
-	ArtefactPath    string `yaml:"artefact_path" envconfig:"ARTEFACT_PATH"`
-	NamespacePath   string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
-	ResultsExpireIn int    `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
+	StaticRootPath string `yaml:"root_path" envconfig:"ROOT_PATH"`
+	CustomPath     string `yaml:"custom_path" envconfig:"CUSTOM_PATH"`
+	DBEngine       string `yaml:"db_engine" envconfig:"DB_ENGINE"`
+	DBPath         string `yaml:"db_path" envconfig:"DB_PATH"`
+	ArtefactPath   string `yaml:"artefact_path" envconfig:"ARTEFACT_PATH"`
+	NamespacePath  string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
+	StoragePath    string `yaml:"storage_path" envconfig:"STORAGE_PATH"`
+
+	ResultsExpireIn int `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
 
 	/* AMQP Settings */
 
@@ -83,9 +85,11 @@ var (
 	StaticRootPath             string
 	ArtefactPath               string
 	NamespacePath              string
-	CustomPath                 string
-	DBEngine                   string
-	DBPath                     string
+	StoragePath                string
+
+	CustomPath string
+	DBEngine   string
+	DBPath     string
 
 	/* AMQP Settings */
 
@@ -123,6 +127,7 @@ func GenDefault() {
 	Configuration.StaticRootPath = "./"
 	Configuration.ArtefactPath = "./artefact"
 	Configuration.NamespacePath = "./namespace"
+	Configuration.StoragePath = "./storage"
 
 	Configuration.CustomPath = "./"
 	Configuration.AppSubURL = "http://127.0.0.1:9090/"

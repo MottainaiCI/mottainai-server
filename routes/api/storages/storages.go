@@ -20,31 +20,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package namespacesapi
+package storagesapi
 
 import (
-	"os"
-	"path/filepath"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+	"github.com/go-macaron/binding"
+	macaron "gopkg.in/macaron.v1"
 )
 
-func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
-	name := ctx.Params(":name")
-	name, _ = utils.Strip(name)
+func Setup(m *macaron.Macaron) {
+	//bind := binding.Bind
+	m.Get("/api/storage/list", StorageList)
+	m.Get("/api/storage/:id/list", StorageListArtefacts)
 
-	// docID, _ := db.CreateNamespace(map[string]interface{}{
-	// 	"name": name,
-	// 	"path": name,
-	// })
+	m.Get("/api/storage/:name/create", StorageCreate)
+	m.Get("/api/storage/:id/delete", StorageDelete)
+	m.Get("/api/storage/:id/show", StorageShow)
 
-	err := os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, name), os.ModePerm)
-	if err != nil {
-		return ":(", err
-	}
+	m.Post("/api/storage/upload", binding.MultipartForm(StorageForm{}), StorageUpload)
 
-	return "OK", nil
 }

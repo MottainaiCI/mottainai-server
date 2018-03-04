@@ -70,6 +70,16 @@ func (d *Database) Init() {
 		d.AddIndex(ArtefactColl, []string{"task"})
 		d.AddIndex(ArtefactColl, []string{"namespace"})
 	}
+
+	if !utils.ArrayContainsString(colls, StorageColl) {
+
+		if err := d.DB().Create(StorageColl); err != nil {
+			return
+		}
+		d.AddIndex(StorageColl, []string{"name"})
+		d.AddIndex(StorageColl, []string{"path"})
+	}
+
 	d.AddIndex("Tasks", []string{"status"})
 	d.AddIndex("Tasks", []string{"result"})
 	d.AddIndex("Tasks", []string{"result", "status"})
@@ -79,6 +89,8 @@ func (d *Database) Init() {
 	d.AddIndex(NamespaceColl, []string{"path"})
 	d.AddIndex(ArtefactColl, []string{"task"})
 	d.AddIndex(ArtefactColl, []string{"namespace"})
+	d.AddIndex(StorageColl, []string{"name"})
+	d.AddIndex(StorageColl, []string{"path"})
 }
 
 var MyDbInstance *db.DB

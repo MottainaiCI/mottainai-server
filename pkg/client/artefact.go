@@ -23,11 +23,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package client
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	storageci "github.com/MottainaiCI/mottainai-server/pkg/storage"
 )
 
 func (d *Fetcher) NamespaceFileList(namespace string) []string {
@@ -38,6 +41,55 @@ func (d *Fetcher) NamespaceFileList(namespace string) []string {
 	}
 
 	return fileList
+}
+
+func (d *Fetcher) StorageFileList(storage string) []string {
+	var fileList []string
+	err := d.GetJSONOptions("/api/storage/"+storage+"/list", map[string]string{}, &fileList)
+	if err != nil {
+		return []string{}
+	}
+
+	return fileList
+}
+
+func (d *Fetcher) DownloadArtefactsFromStorage(storage, target string) {
+	list := d.StorageFileList(storage)
+
+	var storage_data storageci.Storage
+	err := d.GetJSONOptions("/api/storage/"+storage+"/show", map[string]string{}, &storage_data)
+	if err != nil {
+		d.AppendTaskOutput("Downloading failed during retrieveing storage data : " + err.Error())
+		return
+	}
+
+	os.MkdirAll(target, os.ModePerm)
+	d.AppendTaskOutput("Downloading artefacts from " + storage_data.Name)
+	for _, file := range list {
+		trials := 5
+		done := true
+
+		reldir, _ := filepath.Split(file)
+		for done {
+
+			if trials < 0 {
+				done = false
+			}
+			os.MkdirAll(filepath.Join(target, reldir), os.ModePerm)
+			d.AppendTaskOutput("Downloading  " + d.BaseURL + "/storage/" + storage_data.Path + "/" + file + " to " + filepath.Join(target, file))
+			if ok, err := d.Download(d.BaseURL+"/storage/"+storage_data.Path+"/"+file, filepath.Join(target, file)); !ok {
+				d.AppendTaskOutput("Downloading failed : " + err.Error())
+				trials--
+			} else {
+				done = false
+				d.AppendTaskOutput("Downloading succeeded ")
+
+			}
+
+		}
+
+	}
+
 }
 
 func (d *Fetcher) DownloadArtefactsFromNamespace(namespace, target string) {
@@ -91,6 +143,35 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) error {
+	_, file := filepath.Split(fullpath)
+
+	opts := map[string]string{
+		"name":      file,
+		"path":      relativepath,
+		"storageid": storageid,
+		//	"namespace": dir,
+	}
+
+	request, err := f.Upload("/api/storage/upload", opts, "file", fullpath)
+
+	if err != nil {
+		panic(err)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		panic(err)
+	} else {
+		var bodyContent []byte
+		fmt.Println(strconv.Itoa(resp.StatusCode))
+		resp.Body.Read(bodyContent)
+		resp.Body.Close()
+		fmt.Println(string(bodyContent))
+	}
+	return nil
 }
 
 func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {

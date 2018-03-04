@@ -20,11 +20,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package namespacesapi
+package storagesapi
 
 import (
+	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -32,19 +35,48 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
+func StorageCreate(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
 
-	// docID, _ := db.CreateNamespace(map[string]interface{}{
-	// 	"name": name,
-	// 	"path": name,
-	// })
-
-	err := os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, name), os.ModePerm)
+	docID, err := db.CreateStorage(map[string]interface{}{
+		"name": name,
+		"path": name,
+	})
+	//
+	if err != nil {
+		return "", err
+	}
+	err = os.MkdirAll(filepath.Join(setting.Configuration.StoragePath, name), os.ModePerm)
 	if err != nil {
 		return ":(", err
 	}
 
-	return "OK", nil
+	return strconv.Itoa(docID), nil
+}
+
+type StorageForm struct {
+	ID         int                   `form:"storageid" binding:"Required"`
+	Name       string                `form:"name"`
+	Path       string                `form:"path"`
+	FileUpload *multipart.FileHeader `form:"file"`
+}
+
+func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) string {
+
+	file, err := uf.FileUpload.Open()
+
+	storage, err := db.GetStorage(uf.ID)
+	defer file.Close()
+	if err != nil {
+		return err.Error()
+	}
+
+	os.MkdirAll(filepath.Join(setting.Configuration.StoragePath, storage.Path, uf.Path), os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(setting.Configuration.StoragePath, storage.Path, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+
+	defer f.Close()
+	io.Copy(f, file)
+
+	return "OK"
 }

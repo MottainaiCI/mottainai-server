@@ -20,53 +20,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tasksapi
+package storagesapi
 
 import (
-	"strconv"
+	"os"
+	"path/filepath"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
-	machinery "github.com/RichardKnop/machinery/v1"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
-// TODO: Add dup.
+func StorageDelete(ctx *context.Context, db *database.Database) (string, error) {
+	id := ctx.ParamsInt(":id")
+	//name, _ = utils.Strip(name)
 
-func APICreate(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
-	docID, err := Create(ctx, rabbit, db, opts)
+	storage, err := db.GetStorage(id)
 	if err != nil {
-		ctx.NotFound()
-		return ""
+		return ":(", err
 	}
-	return docID
-}
 
-func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
-
-	docID, err := db.CreateTask(map[string]interface{}{
-		"source":    opts.Source,
-		"script":    opts.Script,
-		"yaml":      opts.Yaml,
-		"directory": opts.Directory,
-		"task":      opts.TaskName,
-		"storage":   opts.Storage,
-		"status":    "waiting",
-		"output":    "",
-		"namespace": opts.Namespace,
-		"commit":    opts.Commit,
-		"result":    "none",
-		"image":     opts.Image,
-	})
-
+	err = db.DeleteStorage(id)
 	if err != nil {
-		return "", err
+		return ":(", err
 	}
-	SendTask(db, rabbit, docID)
-
-	//ctx.Redirect("/tasks")
-	//ctx.Redirect("/tasks/display/" + strconv.Itoa(docID))
-	//ShowAll(ctx, db)
-	return strconv.Itoa(docID), nil
+	err = os.RemoveAll(filepath.Join(setting.Configuration.StoragePath, storage.Path))
+	if err != nil {
+		return ":(", err
+	}
+	return "OK", nil
 }

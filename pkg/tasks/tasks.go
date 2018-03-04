@@ -57,6 +57,7 @@ type Task struct {
 	Owner      int    `json:"ownerid" form:"ownerid"`
 	Image      string `json:"image" form:"image"`
 	ExitStatus string `json:"exit_status" form:"exit_status"`
+	Storage    string `json:"storage" form:"storage"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`

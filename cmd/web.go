@@ -58,16 +58,22 @@ func newMacaron() *macaron.Macaron {
 	m := macaron.Classic()
 
 	m.Use(macaron.Static(
-		path.Join(setting.Configuration.StaticRootPath, "artefact"),
+		path.Join(setting.Configuration.ArtefactPath),
 		macaron.StaticOptions{
 			Prefix: "artefact",
 		},
 	))
 
 	m.Use(macaron.Static(
-		path.Join(setting.Configuration.StaticRootPath, "namespace"),
+		path.Join(setting.Configuration.NamespacePath),
 		macaron.StaticOptions{
 			Prefix: "namespace",
+		},
+	))
+	m.Use(macaron.Static(
+		path.Join(setting.Configuration.StoragePath),
+		macaron.StaticOptions{
+			Prefix: "storage",
 		},
 	))
 	//	m.Use(toolbox.Toolboxer(m))

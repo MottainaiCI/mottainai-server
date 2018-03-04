@@ -54,6 +54,11 @@ func DockerExecute(docID string) (int, error) {
 		panic(err)
 	}
 
+	storagetmp, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "storage")
+	if err != nil {
+		panic(err)
+	}
+
 	defer os.RemoveAll(dir)
 
 	fetcher.AppendTaskOutput("Cloning git repo: " + task_info.Source)
@@ -93,28 +98,40 @@ func DockerExecute(docID string) (int, error) {
 	//var args []string
 	var git_root_path = path.Join("/", "build", strconv.Itoa(task_info.ID))
 	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
+	var storage_root_path = path.Join(git_build_root_path, "storage")
 
 	var ContainerBinds []string
 
 	var artefactdir string
+	var storagedir string
 
 	if setting.Configuration.DockerInDocker {
 		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
 		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
 		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artefacts")+":"+path.Join(git_build_root_path, "artefacts"))
 		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artifacts")+":"+path.Join(git_build_root_path, "artifacts"))
-		artefactdir = path.Join(git_build_root_path, "artefacts")
+		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
+
 		if len(task_info.Namespace) > 0 {
 			fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, path.Join(git_build_root_path, "artifacts"))
 		}
+		artefactdir = path.Join(git_build_root_path, "artefacts")
+		storagedir = storage_root_path
 	} else {
 		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artefacts"))
 		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artifacts"))
+		ContainerBinds = append(ContainerBinds, storagetmp+":"+storage_root_path)
+
 		artefactdir = artdir
+		storagedir = storagetmp
 	}
 
 	if len(task_info.Namespace) > 0 {
 		fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, artefactdir)
+	}
+
+	if len(task_info.Storage) > 0 {
+		fetcher.DownloadArtefactsFromStorage(task_info.Storage, storagedir)
 	}
 
 	//ContainerVolumes = append(ContainerVolumes, git_repo_dir+":/build")
