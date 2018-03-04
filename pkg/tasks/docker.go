@@ -113,16 +113,15 @@ func DockerExecute(docID string) (int, error) {
 		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
 		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artefacts")+":"+path.Join(git_build_root_path, "artefacts"))
 		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
-
-		// ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artifacts")+":"+path.Join(git_build_root_path, "artifacts"))
-		// if len(task_info.Namespace) > 0 {
-		// 	fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, path.Join(git_build_root_path, "artifacts"))
-		// }
+		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artifacts")+":"+path.Join(git_build_root_path, "artifacts"))
+		if len(task_info.Namespace) > 0 {
+			fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, path.Join(git_build_root_path, "artifacts"))
+		}
 		artefactdir = path.Join(git_build_root_path, "artefacts")
 		storagedir = storage_root_path
 	} else {
 		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artefacts"))
-		// ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artifacts"))
+		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artifacts"))
 		ContainerBinds = append(ContainerBinds, storagetmp+":"+storage_root_path)
 
 		artefactdir = artdir
