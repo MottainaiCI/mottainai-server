@@ -97,6 +97,7 @@ func DockerExecute(docID string) (int, error) {
 	}
 	//var args []string
 	var git_root_path = path.Join("/", "build", strconv.Itoa(task_info.ID))
+	defer os.RemoveAll(git_repo_dir)
 	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
 	var storage_root_path = path.Join(git_build_root_path, "storage")
 
