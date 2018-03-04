@@ -86,7 +86,7 @@ func GenID() string {
 	// 		io.WriteString(id, core.String())
 	// 	}
 	// }
-	sha := fmt.Sprintf("%x", id.Sum(nil))
+	sha := fmt.Sprintf("XX%x", id.Sum(nil))
 
 	return sha
 }

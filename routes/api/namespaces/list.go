@@ -20,67 +20,56 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tasksapi
+package namespacesapi
 
 import (
 	"os"
-	"path"
-	"strconv"
+	"path/filepath"
+	"strings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
-func GetTaskJson(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
-	task, err := db.GetTask(id)
-	if err != nil {
-		ctx.NotFound()
-		return
-	}
-	ctx.JSON(200, task)
+func NamespaceList(ctx *context.Context, db *database.Database) {
+	ns := db.AllNamespaces()
+
+	ctx.JSON(200, ns)
 }
 
-func StreamOutputTask(ctx *context.Context, db *database.Database) string {
-	id := ctx.ParamsInt(":id")
-	pos := ctx.ParamsInt(":pos")
+func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
+	name := ctx.Params(":name")
 
-	task, err := db.GetTask(id)
-	if err != nil {
-		ctx.NotFound()
-		return ""
-	}
-
-	file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID), "build.log"))
-	if err != nil {
-		ctx.NotFound()
-		return ""
-	}
-	_, err = file.Seek(int64(pos), 0)
-	if err != nil {
-		return ""
-	}
-	fi, err := file.Stat()
-	if err != nil {
-		return ""
-	}
-
-	b3 := make([]byte, fi.Size()-int64(pos))
-	_, err = file.Read(b3)
-	if err != nil {
-		return ""
-	}
-
-	// if pos > len([]rune(task.Output)) {
-	// 	return ""
+	var artefacts []string
+	// ns, err := db.SearchNamespace(name)
+	// if err != nil {
+	// 	ctx.JSON(200, ns)
 	// }
-	//	return string([]rune(task.Output)[pos:])
-	return string(b3)
-}
+	source := filepath.Join(setting.Configuration.NamespacePath, name)
 
-func ShowAll(ctx *context.Context, db *database.Database) {
-	tasks_info := db.AllTasks()
+	filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
+		_, file := filepath.Split(path)
+		rel := strings.Replace(path, source, "", 1)
+		rel = strings.Replace(rel, file, "", 1)
 
-	ctx.JSON(200, tasks_info)
+		fi, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// do directory stuff
+			return err
+		case mode.IsRegular():
+			artefacts = append(artefacts, filepath.Join(rel, file))
+		}
+		return nil
+	})
+
+	// artefacts, err := db.GetNamespaceArtefacts(ns.ID)
+	// if err != nil {
+	// 	ctx.JSON(200, artefacts)
+	// }
+	ctx.JSON(200, artefacts)
 }

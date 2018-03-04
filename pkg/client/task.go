@@ -51,6 +51,14 @@ func (f *Fetcher) GetTask() ([]byte, error) {
 	return doc, err
 }
 
+func (f *Fetcher) AllTasks() ([]byte, error) {
+	doc, err := f.GetOptions("/api/tasks", map[string]string{})
+	if err != nil {
+		return []byte{}, err
+	}
+	return doc, err
+}
+
 func (f *Fetcher) SetTaskResult(result string) ([]byte, error) {
 	return f.GetOptions("/api/tasks/update", map[string]string{
 		"id":     f.docID,

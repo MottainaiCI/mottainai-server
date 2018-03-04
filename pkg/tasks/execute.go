@@ -26,6 +26,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -39,10 +40,16 @@ import (
 func Execute(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetTaskStatus("running")
-	fetcher.SetTaskOutput("Build started!\n")
+	fetcher.AppendTaskOutput("Build started!\n")
 
-	task_info := FetchTask(fetcher, docID)
+	task_info := FetchTask(fetcher)
+
 	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, task_info.Namespace)
+	if err != nil {
+		panic(err)
+	}
+
+	artdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "artefact")
 	if err != nil {
 		panic(err)
 	}
@@ -84,15 +91,35 @@ func Execute(docID string) (int, error) {
 		fetcher.AppendTaskOutput("Pulling image: DONE!")
 	}
 	//var args []string
+	var git_root_path = path.Join("/", "build", strconv.Itoa(task_info.ID))
+	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
 
 	var ContainerBinds []string
+
+	var artefactdir string
 
 	if setting.Configuration.DockerInDocker {
 		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
 		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
+		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artefacts")+":"+path.Join(git_build_root_path, "artefacts"))
+		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artifacts")+":"+path.Join(git_build_root_path, "artifacts"))
+		artefactdir = path.Join(git_build_root_path, "artefacts")
+		if len(task_info.Namespace) > 0 {
+			fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, path.Join(git_build_root_path, "artifacts"))
+		}
+	} else {
+		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artefacts"))
+		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artifacts"))
+		artefactdir = artdir
 	}
+
+	if len(task_info.Namespace) > 0 {
+		fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, artefactdir)
+	}
+
 	//ContainerVolumes = append(ContainerVolumes, git_repo_dir+":/build")
-	ContainerBinds = append(ContainerBinds, git_repo_dir+":/build")
+
+	ContainerBinds = append(ContainerBinds, git_repo_dir+":"+git_root_path)
 
 	createContHostConfig := docker.HostConfig{
 		Privileged: setting.Configuration.DockerPriviledged,
@@ -104,7 +131,7 @@ func Execute(docID string) (int, error) {
 		Image: task_info.Image,
 		Cmd:   []string{"-c", "pwd;ls -liah;" + execute_script},
 		//	Env:        config.Env,
-		WorkingDir: "/build/" + task_info.Directory,
+		WorkingDir: git_build_root_path,
 		Entrypoint: []string{"/bin/sh"},
 		//Entrypoint:  //[]string{execute_script},
 	}
@@ -114,7 +141,7 @@ func Execute(docID string) (int, error) {
 		fetcher.AppendTaskOutput("- " + v)
 	}
 
-	fetcher.AppendTaskOutput("Container working dir: " + "/build/" + task_info.Directory)
+	fetcher.AppendTaskOutput("Container working dir: " + git_build_root_path)
 
 	container, err := docker_client.CreateContainer(docker.CreateContainerOptions{
 		Config:     containerconfig,
@@ -128,7 +155,7 @@ func Execute(docID string) (int, error) {
 	utils.ContainerOutputAttach(func(s string) {
 		fetcher.AppendTaskOutput(s)
 	}, docker_client, container)
-	//defer CleanUpContainer(docker_client, container.ID)
+	defer CleanUpContainer(docker_client, container.ID)
 	if setting.Configuration.DockerKeepImg == false {
 		defer docker_client.RemoveImage(task_info.Image)
 	}
@@ -143,7 +170,7 @@ func Execute(docID string) (int, error) {
 
 	for {
 		time.Sleep(1 * time.Second)
-		task_info = FetchTask(fetcher, docID)
+		task_info = FetchTask(fetcher)
 		if task_info.Status == "stop" {
 			fetcher.AppendTaskOutput("Asked to stop")
 			docker_client.StopContainer(container.ID, uint(20))
@@ -153,20 +180,45 @@ func Execute(docID string) (int, error) {
 		}
 		c_data, err := docker_client.InspectContainer(container.ID) // update our container information
 		if err != nil {
-			panic(err)
+			//fetcher.SetTaskResult("error")
+			//fetcher.SetTaskStatus("done")
+			fetcher.AppendTaskOutput(err.Error())
+			return 0, nil
 		}
 		if c_data.State.Running == false {
+
+			var err error
+			if setting.Configuration.DockerInDocker {
+				var art = path.Join(git_root_path, task_info.Directory, "artifacts")
+				var art2 = path.Join(git_root_path, task_info.Directory, "artefacts")
+
+				err = filepath.Walk(art, func(path string, f os.FileInfo, err error) error {
+					return UploadArtefact(fetcher, path, art)
+
+				})
+				if err != nil {
+					fetcher.AppendTaskOutput(err.Error())
+				}
+				err = filepath.Walk(art2, func(path string, f os.FileInfo, err error) error {
+
+					return UploadArtefact(fetcher, path, art2)
+				})
+			} else {
+				err = filepath.Walk(artdir, func(path string, f os.FileInfo, err error) error {
+					return UploadArtefact(fetcher, path, artdir)
+
+				})
+			}
+
+			if err != nil {
+				fetcher.AppendTaskOutput(err.Error())
+			}
+
 			fetcher.AppendTaskOutput("Container execution terminated")
 			return c_data.State.ExitCode, nil
 		}
 	}
 
-	//fetcher := client.NewFetcher()
-	//SetTaskStatus(docID, "done")
-	//panic(errors.New("oops"))
-	fetcher.SetTaskResult("error")
-	fetcher.SetTaskStatus("done")
-	return 0, nil
 }
 
 func CleanUpContainer(client *docker.Client, ID string) {
@@ -176,7 +228,7 @@ func CleanUpContainer(client *docker.Client, ID string) {
 	})
 }
 
-func HandleSuccess(result int, docID string) error {
+func HandleSuccess(docID string, result int) error {
 	fetcher := client.NewFetcher(docID)
 
 	fetcher.SetTaskField("exit_status", strconv.Itoa(result))

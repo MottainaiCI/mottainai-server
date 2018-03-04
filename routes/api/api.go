@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package api
 
 import (
+	"github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	"github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 	"github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 
@@ -32,4 +33,5 @@ import (
 func Setup(m *macaron.Macaron) {
 	nodesapi.Setup(m)
 	tasksapi.Setup(m)
+	namespacesapi.Setup(m)
 }

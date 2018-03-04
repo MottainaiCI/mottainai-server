@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -20,27 +20,40 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package agentconn
+package namespace
 
-import (
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	machinery "github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/config"
-)
+import "encoding/json"
 
-func NewMachineryServer() (*machinery.Server, error) {
-	var cnf = &config.Config{
-		Broker:          setting.Configuration.AMQPBroker,
-		DefaultQueue:    setting.Configuration.AMQPDefaultQueue,
-		ResultBackend:   setting.Configuration.AMQPResultBackend,
-		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
-		AMQP: &config.AMQPConfig{
-			Exchange:     setting.Configuration.AMQPExchange,
-			ExchangeType: setting.Configuration.AMQPExchangeType,
-			BindingKey:   setting.Configuration.AMQPBindingKey,
-		},
+type Namespace struct {
+	ID   int    `json:"ID"`
+	Name string `form:"name" json:"name"`
+	Path string `json:"path" form:"path"`
+	//TaskID string `json:"taskid" form:"taskid"`
+}
+
+func NewFromJson(data []byte) Namespace {
+	var t Namespace
+	json.Unmarshal(data, &t)
+	return t
+}
+
+func NewFromMap(t map[string]interface{}) Namespace {
+
+	var (
+		name string
+		path string
+	)
+
+	if str, ok := t["name"].(string); ok {
+		name = str
+	}
+	if str, ok := t["path"].(string); ok {
+		path = str
 	}
 
-	server, err := machinery.NewServer(cnf)
-	return server, err
+	Namespace := Namespace{
+		Name: name,
+		Path: path,
+	}
+	return Namespace
 }

@@ -55,16 +55,25 @@ and it takes care of all the other things for you`,
 // newMacaron initializes Macaron instance.
 func newMacaron() *macaron.Macaron {
 
-	//m := macaron.New()
-
 	m := macaron.Classic()
 
+	m.Use(macaron.Static(
+		path.Join(setting.Configuration.StaticRootPath, "artefact"),
+		macaron.StaticOptions{
+			Prefix: "artefact",
+		},
+	))
+
+	m.Use(macaron.Static(
+		path.Join(setting.Configuration.StaticRootPath, "namespace"),
+		macaron.StaticOptions{
+			Prefix: "namespace",
+		},
+	))
 	//	m.Use(toolbox.Toolboxer(m))
 	m.Use(macaron.Static(
 		path.Join(setting.Configuration.StaticRootPath, "public"),
-		macaron.StaticOptions{
-		//	SkipLogging: setting.Configuration.DisableRouterLog,
-		},
+		macaron.StaticOptions{},
 	))
 	template.Setup(m)
 

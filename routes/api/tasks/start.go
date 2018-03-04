@@ -67,6 +67,7 @@ func SendTask(db *database.Database, rabbit *machinery.Server, docID int) error 
 	if err != nil {
 		panic(err)
 	}
+	task.ClearBuildLog()
 
 	db.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 

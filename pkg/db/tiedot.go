@@ -40,19 +40,45 @@ func (d *Database) Init() {
 	colls := d.DB().AllCols()
 	if !utils.ArrayContainsString(colls, "Tasks") {
 		if err := d.DB().Create("Tasks"); err != nil {
-			panic(err)
+			return
 		}
 		d.AddIndex("Tasks", []string{"status"})
 		d.AddIndex("Tasks", []string{"result"})
 		d.AddIndex("Tasks", []string{"result", "status"})
+
 	}
 	if !utils.ArrayContainsString(colls, "Nodes") {
 		if err := d.DB().Create("Nodes"); err != nil {
-			panic(err)
+			return
 		}
 		d.AddIndex("Nodes", []string{"nodeid"})
 		d.AddIndex("Nodes", []string{"key"})
 	}
+	if !utils.ArrayContainsString(colls, NamespaceColl) {
+
+		if err := d.DB().Create(NamespaceColl); err != nil {
+			return
+		}
+		d.AddIndex(NamespaceColl, []string{"name"})
+		d.AddIndex(NamespaceColl, []string{"path"})
+	}
+	if !utils.ArrayContainsString(colls, ArtefactColl) {
+
+		if err := d.DB().Create(ArtefactColl); err != nil {
+			return
+		}
+		d.AddIndex(ArtefactColl, []string{"task"})
+		d.AddIndex(ArtefactColl, []string{"namespace"})
+	}
+	d.AddIndex("Tasks", []string{"status"})
+	d.AddIndex("Tasks", []string{"result"})
+	d.AddIndex("Tasks", []string{"result", "status"})
+	d.AddIndex("Nodes", []string{"nodeid"})
+	d.AddIndex("Nodes", []string{"key"})
+	d.AddIndex(NamespaceColl, []string{"name"})
+	d.AddIndex(NamespaceColl, []string{"path"})
+	d.AddIndex(ArtefactColl, []string{"task"})
+	d.AddIndex(ArtefactColl, []string{"namespace"})
 }
 
 var MyDbInstance *db.DB

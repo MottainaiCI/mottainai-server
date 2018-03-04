@@ -22,47 +22,45 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package database
 
-import "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+import "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
-var TaskColl = "Tasks"
+var NodeColl = "Nodes"
 
-func (d *Database) CreateTask(t map[string]interface{}) (int, error) {
-	return d.InsertDoc(TaskColl, t)
+func (d *Database) CreateNode(t map[string]interface{}) (int, error) {
+	return d.InsertDoc(NodeColl, t)
 }
 
-func (d *Database) DeleteTask(docID int) error {
-	return d.DeleteDoc(TaskColl, docID)
+func (d *Database) DeleteNode(docID int) error {
+	return d.DeleteDoc(NodeColl, docID)
 }
 
-func (d *Database) UpdateTask(docID int, t map[string]interface{}) error {
-	return d.UpdateDoc(TaskColl, docID, t)
+func (d *Database) UpdateNode(docID int, t map[string]interface{}) error {
+	return d.UpdateDoc(NodeColl, docID, t)
 }
 
-func (d *Database) GetTask(docID int) (agenttasks.Task, error) {
-	doc, err := d.GetDoc(TaskColl, docID)
+func (d *Database) GetNode(docID int) (nodes.Node, error) {
+	doc, err := d.GetDoc(NodeColl, docID)
 	if err != nil {
-		panic(err)
-
-		return agenttasks.Task{}, err
+		return nodes.Node{}, err
 	}
-	t := agenttasks.NewTaskFromMap(doc)
+	t := nodes.NewNodeFromMap(doc)
 	t.ID = docID
 	return t, err
 }
 
-func (d *Database) ListTasks() []DocItem {
-	return d.ListDocs(TaskColl)
+func (d *Database) ListNodes() []DocItem {
+	return d.ListDocs(NodeColl)
 }
 
-func (d *Database) AllTasks() []agenttasks.Task {
-	tasks := d.DB().Use(TaskColl)
-	tasks_id := make([]agenttasks.Task, 0)
+func (d *Database) AllNodes() []nodes.Node {
+	nodec := d.DB().Use(NodeColl)
+	node_list := make([]nodes.Node, 0)
 
-	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		t := agenttasks.NewTaskFromJson(docContent)
+	nodec.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
+		t := nodes.NewFromJson(docContent)
 		t.ID = id
-		tasks_id = append(tasks_id, t)
+		node_list = append(node_list, t)
 		return true
 	})
-	return tasks_id
+	return node_list
 }

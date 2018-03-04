@@ -20,27 +20,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package agentconn
+package namespacesapi
 
-import (
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	machinery "github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/config"
-)
+import macaron "gopkg.in/macaron.v1"
 
-func NewMachineryServer() (*machinery.Server, error) {
-	var cnf = &config.Config{
-		Broker:          setting.Configuration.AMQPBroker,
-		DefaultQueue:    setting.Configuration.AMQPDefaultQueue,
-		ResultBackend:   setting.Configuration.AMQPResultBackend,
-		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
-		AMQP: &config.AMQPConfig{
-			Exchange:     setting.Configuration.AMQPExchange,
-			ExchangeType: setting.Configuration.AMQPExchangeType,
-			BindingKey:   setting.Configuration.AMQPBindingKey,
-		},
-	}
+func Setup(m *macaron.Macaron) {
+	//bind := binding.Bind
+	m.Get("/api/namespace/list", NamespaceList)
+	m.Get("/api/namespace/:name/list", NamespaceListArtefacts)
 
-	server, err := machinery.NewServer(cnf)
-	return server, err
+	m.Get("/api/namespace/:name/create", NamespaceCreate)
+	m.Get("/api/namespace/:name/delete", NamespaceDelete)
+	m.Get("/api/namespace/:name/tag/:taskid", NamespaceTag)
+
 }

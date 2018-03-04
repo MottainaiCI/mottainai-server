@@ -66,4 +66,8 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/tasks/update", bind(UpdateTaskForm{}), UpdateTask)
 	m.Get("/api/tasks/append", bind(UpdateTaskForm{}), AppendToTask)
 	m.Get("/api/tasks/updatefield", bind(UpdateTaskForm{}), UpdateTaskField)
+	m.Get("/api/tasks/:id/artefacts", ArtefactList)
+	m.Get("/api/artefacts", AllArtefactList)
+
+	m.Post("/api/tasks/artefact/upload", binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
 }

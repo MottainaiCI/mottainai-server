@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"fmt"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -62,6 +64,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 	ok, _ := ValidateNodeKey(&f, db)
 	if ok == false {
 		ctx.NotFound()
+		fmt.Println("Invalid KEY!!!!")
 		return ":( "
 	}
 
@@ -71,11 +74,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 		if err != nil {
 			return ":("
 		}
-
-		var output = mytask.Output + f.Output
-		db.UpdateTask(f.Id, map[string]interface{}{
-			"output": output + "\n",
-		})
+		mytask.AppendBuildLog(f.Output)
 	}
 	return "OK"
 }

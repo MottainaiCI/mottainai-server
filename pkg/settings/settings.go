@@ -33,10 +33,13 @@ type Config struct {
 	AppURL    string `yaml:"application_url" envconfig:"APPLICATION_URL"`
 	SecretKey string `yaml:"secret_key" envconfig:"SECRET_KEY"`
 
-	StaticRootPath string `yaml:"root_path" envconfig:"ROOT_PATH"`
-	CustomPath     string `yaml:"custom_path" envconfig:"CUSTOM_PATH"`
-	DBEngine       string `yaml:"db_engine" envconfig:"DB_ENGINE"`
-	DBPath         string `yaml:"db_path" envconfig:"DB_PATH"`
+	StaticRootPath  string `yaml:"root_path" envconfig:"ROOT_PATH"`
+	CustomPath      string `yaml:"custom_path" envconfig:"CUSTOM_PATH"`
+	DBEngine        string `yaml:"db_engine" envconfig:"DB_ENGINE"`
+	DBPath          string `yaml:"db_path" envconfig:"DB_PATH"`
+	ArtefactPath    string `yaml:"artefact_path" envconfig:"ARTEFACT_PATH"`
+	NamespacePath   string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
+	ResultsExpireIn int    `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
 
 	/* AMQP Settings */
 
@@ -78,6 +81,8 @@ var (
 	ShowFooterTemplateLoadTime bool
 	UI                         string
 	StaticRootPath             string
+	ArtefactPath               string
+	NamespacePath              string
 	CustomPath                 string
 	DBEngine                   string
 	DBPath                     string
@@ -94,8 +99,8 @@ var (
 	AMQPExchangeType  string
 	AMQPBindingKey    string
 	AgentConcurrency  int
-
-	AgentKey string
+	ResultsExpireIn   int
+	AgentKey          string
 
 	TempWorkDir string
 
@@ -116,6 +121,9 @@ func GenDefault() {
 	Configuration.AppURL = "http://127.0.0.1:9090"
 	Configuration.SecretKey = "baijoibejoiebgjoi"
 	Configuration.StaticRootPath = "./"
+	Configuration.ArtefactPath = "./artefact"
+	Configuration.NamespacePath = "./namespace"
+
 	Configuration.CustomPath = "./"
 	Configuration.AppSubURL = "http://127.0.0.1:9090/"
 	Configuration.DBEngine = "tiedot"
@@ -128,7 +136,7 @@ func GenDefault() {
 	Configuration.AMQPURI = "http://127.0.0.1:15672"
 	Configuration.AMQPUser = "guest"
 	Configuration.AMQPPass = "guest"
-
+	Configuration.ResultsExpireIn = 3600
 	Configuration.AMQPResultBackend = "amqp://guest@127.0.0.1:5672/"
 	Configuration.AMQPExchange = "machinery_exchange"
 	Configuration.AMQPExchangeType = "direct"

@@ -25,11 +25,16 @@ package agenttasks
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
-	"github.com/RichardKnop/machinery/v1"
+	machinery "github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/backends"
 	machinerytask "github.com/RichardKnop/machinery/v1/tasks"
 )
@@ -52,6 +57,10 @@ type Task struct {
 	Owner      int    `json:"ownerid" form:"ownerid"`
 	Image      string `json:"image" form:"image"`
 	ExitStatus string `json:"exit_status" form:"exit_status"`
+
+	CreatedTime string `json:"created_time" form:"created_time"`
+	StartTime   string `json:"start_time" form:"start_time"`
+	EndTime     string `json:"end_time" form:"end_time"`
 }
 
 func (t *Task) IsRunning() bool {
@@ -67,6 +76,27 @@ func (t *Task) IsWaiting() bool {
 		return true
 	}
 	return false
+}
+
+func (t *Task) ClearBuildLog() {
+	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+}
+
+func (t *Task) AppendBuildLog(s string) error {
+
+	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)), 0777)
+	file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	if _, err = file.WriteString(s + "\n"); err != nil {
+		panic(err)
+	}
+	return nil
+
 }
 
 var AvailableTasks = map[string]interface{}{
@@ -206,11 +236,33 @@ func RegisterTasks(m *machinery.Server) {
 	}
 }
 
-func FetchTask(fetcher *client.Fetcher, docID string) Task {
+func FetchTask(fetcher *client.Fetcher) Task {
 	task_data, err := fetcher.GetTask()
 
 	if err != nil {
 		panic(err)
 	}
 	return NewTaskFromJson(task_data)
+}
+
+func UploadArtefact(fetcher *client.Fetcher, path, art string) error {
+
+	_, file := filepath.Split(path)
+	rel := strings.Replace(path, art, "", 1)
+	rel = strings.Replace(rel, file, "", 1)
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		// do directory stuff
+		return err
+	case mode.IsRegular():
+		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel)
+		fetcher.UploadArtefact(path, rel)
+	}
+
+	return nil
 }

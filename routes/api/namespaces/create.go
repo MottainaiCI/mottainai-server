@@ -20,27 +20,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package agentconn
+package namespacesapi
 
 import (
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	machinery "github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/config"
+	"strconv"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-func NewMachineryServer() (*machinery.Server, error) {
-	var cnf = &config.Config{
-		Broker:          setting.Configuration.AMQPBroker,
-		DefaultQueue:    setting.Configuration.AMQPDefaultQueue,
-		ResultBackend:   setting.Configuration.AMQPResultBackend,
-		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
-		AMQP: &config.AMQPConfig{
-			Exchange:     setting.Configuration.AMQPExchange,
-			ExchangeType: setting.Configuration.AMQPExchangeType,
-			BindingKey:   setting.Configuration.AMQPBindingKey,
-		},
+func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
+	name := ctx.Params(":name")
+
+	docID, err := db.CreateNamespace(map[string]interface{}{
+		"name": name,
+		"path": name,
+	})
+
+	if err != nil {
+		return "", err
 	}
 
-	server, err := machinery.NewServer(cnf)
-	return server, err
+	return strconv.Itoa(docID), nil
 }
