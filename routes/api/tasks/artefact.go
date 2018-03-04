@@ -30,6 +30,7 @@ import (
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -50,15 +51,28 @@ func AllArtefactList(ctx *context.Context, db *database.Database) {
 
 func ArtefactList(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	artefacts, err := db.GetTaskArtefacts(id)
-	if err != nil {
-		panic(err)
-	}
+	// artefacts, err := db.GetTaskArtefacts(id)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// ns, err := db.SearchNamespace(name)
+	// if err != nil {
+	// 	ctx.JSON(200, ns)
+	// }
+
+	artefacts := utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(id)))
+
 	ctx.JSON(200, artefacts)
 }
 
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) string {
+	ok, _ := ValidateNodeKey(&f, db)
 
+	if ok == false {
+		ctx.NotFound()
+		return ":( "
+	}
 	file, err := uf.FileUpload.Open()
 
 	task, err := db.GetTask(uf.TaskID)

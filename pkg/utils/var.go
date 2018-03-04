@@ -33,6 +33,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"regexp"
 	"time"
 
 	"github.com/jaypipes/ghw"
@@ -154,4 +155,15 @@ func randomInt(max *big.Int) (int, error) {
 	}
 
 	return int(rand.Int64()), nil
+}
+
+func Strip(s string) (string, error) {
+
+	// Make a Regex to say we only want
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	if err != nil {
+		return "", err
+	}
+	processedString := reg.ReplaceAllString(s, "")
+	return processedString, nil
 }

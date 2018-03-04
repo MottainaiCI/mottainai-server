@@ -23,16 +23,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-func NamespaceDelete(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error) {
+	name := ctx.Params(":name")
+	name, _ = utils.Strip(name)
 
-	err := db.DeleteNamespace(id)
+	//err := db.DeleteNamespace(id)
+	err := os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, name))
 	if err != nil {
-		return err
+		return ":(", err
 	}
-	return nil
+	return "OK", nil
 }

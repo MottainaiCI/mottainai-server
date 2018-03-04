@@ -100,9 +100,9 @@ func (t *Task) AppendBuildLog(s string) error {
 }
 
 var AvailableTasks = map[string]interface{}{
-	"execute": Execute,
-	"error":   HandleErr,
-	"success": HandleSuccess,
+	"docker_execute": DockerExecute,
+	"error":          HandleErr,
+	"success":        HandleSuccess,
 }
 
 func NewTaskFromJson(data []byte) Task {

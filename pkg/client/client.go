@@ -112,6 +112,41 @@ func (f *Fetcher) GetOptions(url string, option map[string]string) ([]byte, erro
 	return contents, err
 }
 
+func (f *Fetcher) Form(URL string, option map[string]string) ([]byte, error) {
+	hclient := &http.Client{}
+
+	form := url.Values{}
+	for k, v := range option {
+		form.Add(k, v)
+	}
+
+	request, err := http.NewRequest("POST", f.BaseURL+URL, strings.NewReader(form.Encode()))
+	if err != nil {
+		return []byte{}, err
+	}
+	//request.Header.Add("Content-Type", writer.FormDataContentType())
+
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	// q := request.URL.Query()
+	// for k, v := range option {
+	// 	q.Add(k, v)
+	// }
+	// request.URL.RawQuery = q.Encode()
+	// if err != nil {
+	// 	return []byte{}, err
+	// }
+
+	response, err := hclient.Do(request)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer response.Body.Close()
+
+	contents, err := ioutil.ReadAll(response.Body)
+	return contents, err
+}
+
 func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, error) {
 	hclient := &http.Client{}
 
@@ -124,8 +159,9 @@ func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, err
 	if err != nil {
 		return []byte{}, err
 	}
+	//request.Header.Add("Content-Type", writer.FormDataContentType())
 
-	//req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	//request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	// q := request.URL.Query()
 	// for k, v := range option {

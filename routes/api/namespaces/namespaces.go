@@ -32,5 +32,4 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/namespace/:name/create", NamespaceCreate)
 	m.Get("/api/namespace/:name/delete", NamespaceDelete)
 	m.Get("/api/namespace/:name/tag/:taskid", NamespaceTag)
-
 }

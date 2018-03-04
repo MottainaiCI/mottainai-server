@@ -37,6 +37,11 @@ import (
 func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	taskid := ctx.ParamsInt(":taskid")
+	name, _ = utils.Strip(name)
+
+	if len(taskid) == 0 || len(name) == 0 {
+		return ":(", err
+	}
 
 	task, err := db.GetTask(taskid)
 	if err != nil {

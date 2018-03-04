@@ -23,23 +23,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
-	"strconv"
+	"os"
+	"path/filepath"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
+	name, _ = utils.Strip(name)
 
-	docID, err := db.CreateNamespace(map[string]interface{}{
-		"name": name,
-		"path": name,
-	})
-
+	// docID, err := db.CreateNamespace(map[string]interface{}{
+	// 	"name": name,
+	// 	"path": name,
+	// })
+	//
+	// if err != nil {
+	// 	return "", err
+	// }
+	err := os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, name), os.ModePerm)
 	if err != nil {
-		return "", err
+		return ":(", err
 	}
 
-	return strconv.Itoa(docID), nil
+	return "OK", nil
 }

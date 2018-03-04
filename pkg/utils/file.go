@@ -25,11 +25,28 @@ package utils
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
+
+func ListDirs(where string) ([]string, error) {
+	var res []string
+	files, err := ioutil.ReadDir(where)
+	if err != nil {
+		return res, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			res = append(res, file.Name())
+		}
+	}
+	return res, nil
+}
 
 // Exists checks if a path exists or not
 func Exists(path string) (bool, error) {
@@ -166,4 +183,27 @@ func humanateBytes(s uint64, base float64, sizes []string) string {
 func FileSize(s int64) string {
 	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
 	return humanateBytes(uint64(s), 1024, sizes)
+}
+
+func TreeList(sourcepath string) []string {
+	var artefacts []string
+	filepath.Walk(sourcepath, func(path string, f os.FileInfo, err error) error {
+		_, file := filepath.Split(path)
+		rel := strings.Replace(path, sourcepath, "", 1)
+		rel = strings.Replace(rel, file, "", 1)
+
+		fi, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// do directory stuff
+			return err
+		case mode.IsRegular():
+			artefacts = append(artefacts, filepath.Join(rel, file))
+		}
+		return nil
+	})
+	return artefacts
 }

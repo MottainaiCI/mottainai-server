@@ -147,26 +147,30 @@
               <a href="/api/tasks/{{.Task.ID}}" target="_blank">
                 <div class="ui secondary button"><i class="fa fa-code" aria-hidden="true"></i>&nbsp;See JSON</div>
               </a>
+              <a href="/api/tasks/{{.Task.ID}}/artefacts" target="_blank">
+                <div class="ui secondary button"><i class="fa fa-code" aria-hidden="true"></i>&nbsp;See Artifacts</div>
+              </a>
             </div>
           </div>
             <div class="row">
 
               <div class="ui  segment ">
                 <a class="ui ribbon label">Status: {{.Task.Status}}</a>
-
-                  <p>Source: {{.Task.Source}}</p>
-                  <p>Namespace: {{.Task.Namespace}}</p>
-                  <p>Script: {{.Task.Script}}
-                    <br>
-                  Directory:  {{.Task.Directory}}
+                <br>
+                <p>
+                  Script: {{.Task.Script}}<br>
+                  Directory:  {{.Task.Directory}}<br>
+                  Namespace: {{.Task.Namespace}}<br>
+                  Source: {{.Task.Source}}<br>
+                  Yaml: {{.Task.Yaml}}<br>
+                  Image: {{.Task.Image}}<br>
                 </p>
-                <p>Yaml: {{.Task.Yaml}}</p>
-                <p>Image: {{.Task.Image}}</p>
+                <p><a href="/artefact/{{.Task.ID}}/" target="_blank">Artefacts url</a></p>
+                <p><a href="/artefact/{{.Task.ID}}/build.log" target="_blank">Build log</a></p>
               </div>
 
             </div>
             <div class="ui hidden clearing divider"></div>
-
                 <div class="ui active row segment one column grid">
                   <div class="ui top attached label">
                     Task: {{.Task.TaskName}}
@@ -178,7 +182,6 @@
                       Result: {{.Task.Result}} - Exit Status: {{.Task.ExitStatus}}
                   </div>
                 </div>
-
           </div>
         </div>
       </div>

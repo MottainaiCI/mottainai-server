@@ -23,9 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
-	"os"
 	"path/filepath"
-	"strings"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -33,39 +33,25 @@ import (
 )
 
 func NamespaceList(ctx *context.Context, db *database.Database) {
-	ns := db.AllNamespaces()
+	//ns := db.AllNamespaces()
+
+	source := filepath.Join(setting.Configuration.NamespacePath)
+	ns, _ := utils.ListDirs(source)
 
 	ctx.JSON(200, ns)
 }
 
 func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
 	name := ctx.Params(":name")
+	name, _ = utils.Strip(name)
 
-	var artefacts []string
 	// ns, err := db.SearchNamespace(name)
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
 	source := filepath.Join(setting.Configuration.NamespacePath, name)
 
-	filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
-		_, file := filepath.Split(path)
-		rel := strings.Replace(path, source, "", 1)
-		rel = strings.Replace(rel, file, "", 1)
-
-		fi, err := os.Stat(path)
-		if err != nil {
-			return err
-		}
-		switch mode := fi.Mode(); {
-		case mode.IsDir():
-			// do directory stuff
-			return err
-		case mode.IsRegular():
-			artefacts = append(artefacts, filepath.Join(rel, file))
-		}
-		return nil
-	})
+	artefacts := utils.TreeList(source)
 
 	// artefacts, err := db.GetNamespaceArtefacts(ns.ID)
 	// if err != nil {

@@ -37,7 +37,7 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-func Execute(docID string) (int, error) {
+func DockerExecute(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetTaskStatus("running")
 	fetcher.AppendTaskOutput("Build started!\n")
