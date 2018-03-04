@@ -115,18 +115,22 @@ func NewTaskFromJson(data []byte) Task {
 func NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
-		source      string
-		script      string
-		yaml        string
-		directory   string
-		namespace   string
-		commit      string
-		taskname    string
-		output      string
-		image       string
-		status      string
-		result      string
-		exit_status string
+		source       string
+		script       string
+		yaml         string
+		directory    string
+		namespace    string
+		commit       string
+		taskname     string
+		output       string
+		image        string
+		status       string
+		result       string
+		exit_status  string
+		created_time string
+		start_time   string
+		end_time     string
+		storage      string
 	)
 	if str, ok := t["exit_status"].(string); ok {
 		exit_status = str
@@ -167,19 +171,35 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["image"].(string); ok {
 		image = str
 	}
+	if str, ok := t["storage"].(string); ok {
+		storage = str
+	}
+	if str, ok := t["created_time"].(string); ok {
+		created_time = str
+	}
+	if str, ok := t["start_time"].(string); ok {
+		start_time = str
+	}
+	if str, ok := t["end_time"].(string); ok {
+		end_time = str
+	}
 	task := Task{
-		Source:     source,
-		Script:     script,
-		Yaml:       yaml,
-		Directory:  directory,
-		TaskName:   taskname,
-		Namespace:  namespace,
-		Commit:     commit,
-		Output:     output,
-		Result:     result,
-		Status:     status,
-		Image:      image,
-		ExitStatus: exit_status,
+		Source:      source,
+		Script:      script,
+		Yaml:        yaml,
+		Directory:   directory,
+		TaskName:    taskname,
+		Namespace:   namespace,
+		Commit:      commit,
+		Output:      output,
+		Result:      result,
+		Status:      status,
+		Storage:     storage,
+		Image:       image,
+		ExitStatus:  exit_status,
+		CreatedTime: created_time,
+		StartTime:   start_time,
+		EndTime:     end_time,
 	}
 	return task
 }

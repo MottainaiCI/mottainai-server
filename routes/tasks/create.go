@@ -36,11 +36,10 @@ import (
 
 func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) {
 	docID, err := tasksapi.Create(ctx, rabbit, db, opts)
-
 	if err != nil {
-		ctx.Redirect("/tasks/display/" + docID)
-	} else {
 		ctx.NotFound()
+	} else {
+		ctx.Redirect("/tasks/display/" + docID)
 	}
 }
 
