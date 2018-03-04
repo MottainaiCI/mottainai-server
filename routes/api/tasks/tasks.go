@@ -31,12 +31,16 @@ import (
 )
 
 func ValidateNodeKey(f *UpdateTaskForm, db *database.Database) (bool, int) {
+	return ValidateKey(f.APIKey, db)
+}
 
-	if len(f.APIKey) == 0 {
+func ValidateKey(k string, db *database.Database) (bool, int) {
+
+	if len(k) == 0 {
 		return false, 0
 	}
 
-	nodesfound, err := db.FindDoc("Nodes", `[{"eq": "`+f.APIKey+`", "in": ["key"]}]`)
+	nodesfound, err := db.FindDoc("Nodes", `[{"eq": "`+k+`", "in": ["key"]}]`)
 	if err != nil || len(nodesfound) > 1 || len(nodesfound) == 0 {
 		return false, 0
 	}

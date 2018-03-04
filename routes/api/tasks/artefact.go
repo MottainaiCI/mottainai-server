@@ -67,12 +67,7 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 }
 
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) string {
-	ok, _ := ValidateNodeKey(&f, db)
 
-	if ok == false {
-		ctx.NotFound()
-		return ":( "
-	}
 	file, err := uf.FileUpload.Open()
 
 	task, err := db.GetTask(uf.TaskID)

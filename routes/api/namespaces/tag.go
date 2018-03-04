@@ -39,8 +39,8 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	taskid := ctx.ParamsInt(":taskid")
 	name, _ = utils.Strip(name)
 
-	if len(taskid) == 0 || len(name) == 0 {
-		return ":(", err
+	if len(name) == 0 {
+		return ":( No namespace name given", nil
 	}
 
 	task, err := db.GetTask(taskid)
