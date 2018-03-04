@@ -40,6 +40,7 @@ type Config struct {
 	ArtefactPath   string `yaml:"artefact_path" envconfig:"ARTEFACT_PATH"`
 	NamespacePath  string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
 	StoragePath    string `yaml:"storage_path" envconfig:"STORAGE_PATH"`
+	BuildPath      string `yaml:"build_path" envconfig:"BUILD_PATH"`
 
 	ResultsExpireIn int `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
 
@@ -86,6 +87,7 @@ var (
 	ArtefactPath               string
 	NamespacePath              string
 	StoragePath                string
+	BuildPath                  string
 
 	CustomPath string
 	DBEngine   string
@@ -128,6 +130,7 @@ func GenDefault() {
 	Configuration.ArtefactPath = "./artefact"
 	Configuration.NamespacePath = "./namespace"
 	Configuration.StoragePath = "./storage"
+	Configuration.BuildPath = "/build/"
 
 	Configuration.CustomPath = "./"
 	Configuration.AppSubURL = "http://127.0.0.1:9090/"
