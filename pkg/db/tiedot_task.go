@@ -35,6 +35,10 @@ import (
 
 var TaskColl = "Tasks"
 
+func (d *Database) InsertTask(t *agenttasks.Task) (int, error) {
+	return d.CreateTask(t.ToMap())
+}
+
 func (d *Database) CreateTask(t map[string]interface{}) (int, error) {
 
 	return d.InsertDoc(TaskColl, t)

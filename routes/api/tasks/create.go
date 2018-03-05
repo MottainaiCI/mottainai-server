@@ -45,28 +45,16 @@ func APICreate(ctx *context.Context, rabbit *machinery.Server, db *database.Data
 
 func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
 
-	docID, err := db.CreateTask(map[string]interface{}{
-		"source":    opts.Source,
-		"script":    opts.Script,
-		"yaml":      opts.Yaml,
-		"directory": opts.Directory,
-		"task":      opts.TaskName,
-		"storage":   opts.Storage,
-		"status":    "waiting",
-		"output":    "",
-		"namespace": opts.Namespace,
-		"commit":    opts.Commit,
-		"result":    "none",
-		"image":     opts.Image,
-	})
+	task := opts.ToMap()
+	task["output"] = ""
+	task["result"] = "none"
+	task["exit_status"] = ""
 
+	docID, err := db.CreateTask(task)
 	if err != nil {
 		return "", err
 	}
 	SendTask(db, rabbit, docID)
 
-	//ctx.Redirect("/tasks")
-	//ctx.Redirect("/tasks/display/" + strconv.Itoa(docID))
-	//ShowAll(ctx, db)
 	return strconv.Itoa(docID), nil
 }

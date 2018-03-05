@@ -28,6 +28,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -40,28 +41,45 @@ import (
 )
 
 type Task struct {
-	ID         int    `json:"ID"`
-	Source     string `json:"source" form:"source"`
-	Script     string `json:"script" form:"script"`
-	Yaml       string `json:"yaml" form:"yaml"`
-	Directory  string `json:"directory" form:"directory"`
-	TaskName   string `json:"task" form:"task"`
-	Status     string `json:"status" form:"status"`
-	Output     string `json:"output" form:"output"`
-	Result     string `json:"result" form:"result"`
-	Namespace  string `json:"namespace" form:"namespace"`
-	Commit     string `json:"commit" form:"commit"`
-	PrivKey    string `json:"privkey" form:"privkey"`
-	AuthHosts  string `json:"authhosts" form:"authhosts"`
-	Node       int    `json:"nodeid" form:"nodeid"`
-	Owner      int    `json:"ownerid" form:"ownerid"`
-	Image      string `json:"image" form:"image"`
-	ExitStatus string `json:"exit_status" form:"exit_status"`
-	Storage    string `json:"storage" form:"storage"`
+	ID           int    `json:"ID"`
+	Source       string `json:"source" form:"source"`
+	Script       string `json:"script" form:"script"`
+	Yaml         string `json:"yaml" form:"yaml"`
+	Directory    string `json:"directory" form:"directory"`
+	TaskName     string `json:"task" form:"task"`
+	Status       string `json:"status" form:"status"`
+	Output       string `json:"output" form:"output"`
+	Result       string `json:"result" form:"result"`
+	Namespace    string `json:"namespace" form:"namespace"`
+	Commit       string `json:"commit" form:"commit"`
+	PrivKey      string `json:"privkey" form:"privkey"`
+	AuthHosts    string `json:"authhosts" form:"authhosts"`
+	Node         int    `json:"nodeid" form:"nodeid"`
+	Owner        int    `json:"ownerid" form:"ownerid"`
+	Image        string `json:"image" form:"image"`
+	ExitStatus   string `json:"exit_status" form:"exit_status"`
+	Storage      string `json:"storage" form:"storage"`
+	ArtefactPath string `json:"artefact_path" form:"artefact_path"`
+	StoragePath  string `json:"storage_path" form:"storage_path"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
+}
+
+func (t *Task) ToMap() map[string]interface{} {
+
+	ts := make(map[string]interface{})
+	val := reflect.ValueOf(t).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+		tag := typeField.Tag
+
+		ts[tag.Get("form")] = valueField.Interface()
+		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
+	}
+	return ts
 }
 
 func (t *Task) IsRunning() bool {
@@ -115,23 +133,26 @@ func NewTaskFromJson(data []byte) Task {
 func NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
-		source       string
-		script       string
-		yaml         string
-		directory    string
-		namespace    string
-		commit       string
-		taskname     string
-		output       string
-		image        string
-		status       string
-		result       string
-		exit_status  string
-		created_time string
-		start_time   string
-		end_time     string
-		storage      string
+		source        string
+		script        string
+		yaml          string
+		directory     string
+		namespace     string
+		commit        string
+		taskname      string
+		output        string
+		image         string
+		status        string
+		result        string
+		exit_status   string
+		created_time  string
+		start_time    string
+		end_time      string
+		storage       string
+		storage_path  string
+		artefact_path string
 	)
+
 	if str, ok := t["exit_status"].(string); ok {
 		exit_status = str
 	}
@@ -183,23 +204,32 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["end_time"].(string); ok {
 		end_time = str
 	}
+	if str, ok := t["storage_path"].(string); ok {
+		storage_path = str
+	}
+	if str, ok := t["artefact_path"].(string); ok {
+		artefact_path = str
+	}
+
 	task := Task{
-		Source:      source,
-		Script:      script,
-		Yaml:        yaml,
-		Directory:   directory,
-		TaskName:    taskname,
-		Namespace:   namespace,
-		Commit:      commit,
-		Output:      output,
-		Result:      result,
-		Status:      status,
-		Storage:     storage,
-		Image:       image,
-		ExitStatus:  exit_status,
-		CreatedTime: created_time,
-		StartTime:   start_time,
-		EndTime:     end_time,
+		Source:       source,
+		Script:       script,
+		Yaml:         yaml,
+		Directory:    directory,
+		TaskName:     taskname,
+		Namespace:    namespace,
+		Commit:       commit,
+		Output:       output,
+		Result:       result,
+		Status:       status,
+		Storage:      storage,
+		StoragePath:  storage_path,
+		ArtefactPath: artefact_path,
+		Image:        image,
+		ExitStatus:   exit_status,
+		CreatedTime:  created_time,
+		StartTime:    start_time,
+		EndTime:      end_time,
 	}
 	return task
 }

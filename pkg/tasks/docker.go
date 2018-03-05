@@ -101,7 +101,19 @@ func DockerExecute(docID string) (int, error) {
 	var git_root_path = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
 	defer os.RemoveAll(git_root_path)
 	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
-	var storage_root_path = path.Join(git_build_root_path, "storage")
+
+	var storage_path = "storage"
+	var artefact_path = "artefacts"
+
+	if len(task_info.ArtefactPath) > 0 {
+		artefact_path = task_info.ArtefactPath
+	}
+
+	if len(task_info.StoragePath) > 0 {
+		storage_path = task_info.StoragePath
+	}
+
+	var storage_root_path = path.Join(git_build_root_path, storage_path)
 
 	var ContainerBinds []string
 
@@ -111,17 +123,13 @@ func DockerExecute(docID string) (int, error) {
 	if setting.Configuration.DockerInDocker {
 		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
 		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
-		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artefacts")+":"+path.Join(git_build_root_path, "artefacts"))
+		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, artefact_path)+":"+path.Join(git_build_root_path, artefact_path))
 		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
-		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, "artifacts")+":"+path.Join(git_build_root_path, "artifacts"))
-		if len(task_info.Namespace) > 0 {
-			fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, path.Join(git_build_root_path, "artifacts"))
-		}
-		artefactdir = path.Join(git_build_root_path, "artefacts")
+
+		artefactdir = path.Join(git_build_root_path, artefact_path)
 		storagedir = storage_root_path
 	} else {
-		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artefacts"))
-		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, "artifacts"))
+		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, artefact_path))
 		ContainerBinds = append(ContainerBinds, storagetmp+":"+storage_root_path)
 
 		artefactdir = artdir
@@ -207,27 +215,16 @@ func DockerExecute(docID string) (int, error) {
 		if c_data.State.Running == false {
 
 			var err error
+
+			to_upload := artdir
 			if setting.Configuration.DockerInDocker {
-				var art = path.Join(git_root_path, task_info.Directory, "artifacts")
-				var art2 = path.Join(git_root_path, task_info.Directory, "artefacts")
-
-				err = filepath.Walk(art, func(path string, f os.FileInfo, err error) error {
-					return UploadArtefact(fetcher, path, art)
-
-				})
-				if err != nil {
-					fetcher.AppendTaskOutput(err.Error())
-				}
-				err = filepath.Walk(art2, func(path string, f os.FileInfo, err error) error {
-
-					return UploadArtefact(fetcher, path, art2)
-				})
-			} else {
-				err = filepath.Walk(artdir, func(path string, f os.FileInfo, err error) error {
-					return UploadArtefact(fetcher, path, artdir)
-
-				})
+				to_upload = path.Join(git_root_path, task_info.Directory, artefact_path)
 			}
+
+			err = filepath.Walk(to_upload, func(path string, f os.FileInfo, err error) error {
+				return UploadArtefact(fetcher, path, artdir)
+
+			})
 
 			if err != nil {
 				fetcher.AppendTaskOutput(err.Error())
