@@ -24,6 +24,7 @@ package tasksapi
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -49,6 +50,7 @@ func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Databas
 	task["output"] = ""
 	task["result"] = "none"
 	task["exit_status"] = ""
+	task["created_time"] = time.Now().Format("20060102150405")
 
 	docID, err := db.CreateTask(task)
 	if err != nil {
