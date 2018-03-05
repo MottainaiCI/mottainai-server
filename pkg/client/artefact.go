@@ -53,6 +53,48 @@ func (d *Fetcher) StorageFileList(storage string) []string {
 	return fileList
 }
 
+func (d *Fetcher) TaskFileList(task string) []string {
+	var fileList []string
+	err := d.GetJSONOptions("/api/tasks/"+task+"/artefacts", map[string]string{}, &fileList)
+	if err != nil {
+		return []string{}
+	}
+
+	return fileList
+}
+
+func (d *Fetcher) DownloadArtefactsFromTask(taskid, target string) {
+	list := d.TaskFileList(taskid)
+
+	os.MkdirAll(target, os.ModePerm)
+	d.AppendTaskOutput("Downloading artefacts from " + taskid)
+	for _, file := range list {
+		trials := 5
+		done := true
+
+		reldir, _ := filepath.Split(file)
+		for done {
+
+			if trials < 0 {
+				done = false
+			}
+			os.MkdirAll(filepath.Join(target, reldir), os.ModePerm)
+			d.AppendTaskOutput("Downloading  " + d.BaseURL + "/artefact/" + taskid + "/" + file + " to " + filepath.Join(target, file))
+			if ok, err := d.Download(d.BaseURL+"/artefact/"+taskid+"/"+file, filepath.Join(target, file)); !ok {
+				d.AppendTaskOutput("Downloading failed : " + err.Error())
+				trials--
+			} else {
+				done = false
+				d.AppendTaskOutput("Downloading succeeded ")
+
+			}
+
+		}
+
+	}
+
+}
+
 func (d *Fetcher) DownloadArtefactsFromStorage(storage, target string) {
 	list := d.StorageFileList(storage)
 
