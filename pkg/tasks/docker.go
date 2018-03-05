@@ -222,7 +222,7 @@ func DockerExecute(docID string) (int, error) {
 			}
 
 			err = filepath.Walk(to_upload, func(path string, f os.FileInfo, err error) error {
-				return UploadArtefact(fetcher, path, artdir)
+				return UploadArtefact(fetcher, path, to_upload)
 
 			})
 
