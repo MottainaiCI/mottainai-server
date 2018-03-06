@@ -133,7 +133,7 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 	if f, ok := h.Tasks[s]; ok {
 		return f.(func(string) (int, error))
 	}
-	return func(string) (int, error) { return 0, nil }
+	panic(errors.New("No task handler found!"))
 }
 
 func DefaultTaskHandler() *TaskHandler {
