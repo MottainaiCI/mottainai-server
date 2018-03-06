@@ -46,8 +46,8 @@ func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Databas
 func Add(ctx *context.Context) {
 
 	available_tasks := make([]string, 0)
-
-	for i, _ := range agenttasks.AvailableTasks {
+	th := agenttasks.DefaultTaskHandler()
+	for i, _ := range th.Tasks {
 		if i != "error" && i != "success" {
 			available_tasks = append(available_tasks, i)
 		}

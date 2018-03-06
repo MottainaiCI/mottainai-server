@@ -118,10 +118,30 @@ func (t *Task) AppendBuildLog(s string) error {
 
 }
 
-var AvailableTasks = map[string]interface{}{
-	"docker_execute": DockerExecute,
-	"error":          HandleErr,
-	"success":        HandleSuccess,
+type TaskHandler struct {
+	Tasks map[string]interface{}
+}
+
+func (h *TaskHandler) Exists(s string) bool {
+	if _, ok := h.Tasks[s]; ok {
+		return true
+	}
+	return false
+}
+
+func (h *TaskHandler) Handler(s string) func(string) (int, error) {
+	if f, ok := h.Tasks[s]; ok {
+		return f.(func(string) (int, error))
+	}
+	return func(string) (int, error) { return 0, nil }
+}
+
+func DefaultTaskHandler() *TaskHandler {
+	return &TaskHandler{Tasks: map[string]interface{}{
+		"docker_execute": DockerExecute,
+		"error":          HandleErr,
+		"success":        HandleSuccess,
+	}}
 }
 
 func NewTaskFromJson(data []byte) Task {
@@ -152,6 +172,7 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		storage_path  string
 		artefact_path string
 	)
+	th := DefaultTaskHandler()
 
 	if str, ok := t["exit_status"].(string); ok {
 		exit_status = str
@@ -186,7 +207,7 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["status"].(string); ok {
 		status = str
 	}
-	if _, ok := AvailableTasks[taskname]; !ok {
+	if !th.Exists(taskname) {
 		taskname = ""
 	}
 	if str, ok := t["image"].(string); ok {
@@ -239,7 +260,8 @@ func SendTask(rabbit *machinery.Server, taskname string, taskid int) (*backends.
 	if len(taskname) == 0 {
 		return &backends.AsyncResult{}, errors.New("No task name specified")
 	}
-	if _, ok := AvailableTasks[taskname]; !ok {
+	th := DefaultTaskHandler()
+	if !th.Exists(taskname) {
 		return &backends.AsyncResult{}, errors.New("No task name specified")
 	}
 	onErr := make([]*machinerytask.Signature, 0)
@@ -281,7 +303,8 @@ func SendTask(rabbit *machinery.Server, taskname string, taskid int) (*backends.
 }
 
 func RegisterTasks(m *machinery.Server) {
-	err := m.RegisterTasks(AvailableTasks)
+	th := DefaultTaskHandler()
+	err := m.RegisterTasks(th.Tasks)
 	if err != nil {
 		panic(err)
 	}
