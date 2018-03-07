@@ -257,3 +257,21 @@ func (h *TaskHandler) UploadArtefact(fetcher *client.Fetcher, path, art string) 
 
 	return nil
 }
+
+func HandleSuccess(docID string, result int) error {
+	fetcher := client.NewFetcher(docID)
+
+	fetcher.SetTaskField("exit_status", strconv.Itoa(result))
+	fetcher.SetTaskResult("success")
+	fetcher.SetTaskStatus("done")
+	return nil
+}
+
+func HandleErr(docID, errstring string) error {
+	fetcher := client.NewFetcher(docID)
+
+	fetcher.AppendTaskOutput(errstring)
+	fetcher.SetTaskResult("error")
+	fetcher.SetTaskStatus("done")
+	return nil
+}
