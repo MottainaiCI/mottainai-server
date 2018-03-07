@@ -48,8 +48,10 @@ func New() *Mottainai {
 }
 
 func Classic() *Mottainai {
-	m := &Mottainai{Macaron: macaron.Classic()}
+	return &Mottainai{Macaron: macaron.Classic()}
+}
 
+func (m *Mottainai) SetStatic() {
 	m.Use(macaron.Static(
 		path.Join(setting.Configuration.ArtefactPath),
 		macaron.StaticOptions{
@@ -74,7 +76,6 @@ func Classic() *Mottainai {
 		path.Join(setting.Configuration.StaticRootPath, "public"),
 		macaron.StaticOptions{},
 	))
-	return m
 }
 
 func (m *Mottainai) Start(fileconfig string) error {
@@ -83,6 +84,8 @@ func (m *Mottainai) Start(fileconfig string) error {
 	if len(fileconfig) > 0 {
 		setting.LoadFromFileEnvironment(fileconfig)
 	}
+
+	m.SetStatic()
 
 	rabbit, m_error := agentconn.NewMachineryServer()
 	if m_error != nil {
