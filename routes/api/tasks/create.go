@@ -35,8 +35,8 @@ import (
 
 // TODO: Add dup.
 
-func APICreate(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
-	docID, err := Create(ctx, rabbit, db, opts)
+func APICreate(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
+	docID, err := Create(th, ctx, rabbit, db, opts)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -44,7 +44,7 @@ func APICreate(ctx *context.Context, rabbit *machinery.Server, db *database.Data
 	return docID
 }
 
-func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
+func Create(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
 
 	task := opts.ToMap()
 	task["output"] = ""
@@ -56,7 +56,7 @@ func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Databas
 	if err != nil {
 		return "", err
 	}
-	SendTask(db, rabbit, docID)
+	SendTask(th, db, rabbit, docID)
 
 	return strconv.Itoa(docID), nil
 }

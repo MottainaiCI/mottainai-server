@@ -34,8 +34,8 @@ import (
 
 // TODO: Add dup.
 
-func Create(ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) {
-	docID, err := tasksapi.Create(ctx, rabbit, db, opts)
+func Create(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) {
+	docID, err := tasksapi.Create(th, ctx, rabbit, db, opts)
 	if err != nil {
 		ctx.NotFound()
 	} else {

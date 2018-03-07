@@ -68,7 +68,8 @@ func (d *Database) GetTask(docID int) (agenttasks.Task, error) {
 	if err != nil {
 		return agenttasks.Task{}, err
 	}
-	t := agenttasks.NewTaskFromMap(doc)
+	th := agenttasks.DefaultTaskHandler()
+	t := th.NewTaskFromMap(doc)
 	t.ID = docID
 	return t, err
 }
@@ -105,9 +106,10 @@ func (d *Database) ListTasks() []DocItem {
 func (d *Database) AllTasks() []agenttasks.Task {
 	tasks := d.DB().Use(TaskColl)
 	tasks_id := make([]agenttasks.Task, 0)
+	th := agenttasks.DefaultTaskHandler()
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		t := agenttasks.NewTaskFromJson(docContent)
+		t := th.NewTaskFromJson(docContent)
 		t.ID = id
 		tasks_id = append(tasks_id, t)
 		return true

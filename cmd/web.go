@@ -106,9 +106,12 @@ func runWeb(c *cli.Context) error {
 		panic(r_error)
 	}
 
+	th := agenttasks.DefaultTaskHandler()
+	th.RegisterTasks(rabbit)
+
 	m.Map(rmqc)
-	agenttasks.RegisterTasks(rabbit)
 	m.Map(rabbit)
+	m.Map(th)
 
 	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
 	log.Printf("Listen: %v://%s%s", setting.Configuration.Protocol, listenAddr, setting.Configuration.AppSubURL)

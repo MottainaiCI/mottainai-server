@@ -32,8 +32,8 @@ import (
 	machinery "github.com/RichardKnop/machinery/v1"
 )
 
-func APISendStartTask(ctx *context.Context, db *database.Database, rabbit *machinery.Server) string {
-	_, err := SendStartTask(ctx, db, rabbit)
+func APISendStartTask(th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) string {
+	_, err := SendStartTask(th, ctx, db, rabbit)
 	if err != nil {
 		ctx.NotFound()
 		return ":("
@@ -41,7 +41,7 @@ func APISendStartTask(ctx *context.Context, db *database.Database, rabbit *machi
 	return "OK"
 }
 
-func SendStartTask(ctx *context.Context, db *database.Database, rabbit *machinery.Server) (string, error) {
+func SendStartTask(th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) (string, error) {
 	id := ctx.ParamsInt(":id")
 	fmt.Println("Starting task ", id)
 
@@ -53,7 +53,7 @@ func SendStartTask(ctx *context.Context, db *database.Database, rabbit *machiner
 		return "WAITING/RUNNING", nil
 	}
 
-	err = SendTask(db, rabbit, id)
+	err = SendTask(th, db, rabbit, id)
 	if err != nil {
 		return ":( ", err
 	} else {
@@ -61,7 +61,7 @@ func SendStartTask(ctx *context.Context, db *database.Database, rabbit *machiner
 	}
 }
 
-func SendTask(db *database.Database, rabbit *machinery.Server, docID int) error {
+func SendTask(th *agenttasks.TaskHandler, db *database.Database, rabbit *machinery.Server, docID int) error {
 
 	task, err := db.GetTask(docID)
 	if err != nil {
@@ -73,7 +73,7 @@ func SendTask(db *database.Database, rabbit *machinery.Server, docID int) error 
 
 	fmt.Printf("Task Source: %v, Script: %v, Yaml: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Yaml, task.Directory, task.TaskName)
 
-	_, err = agenttasks.SendTask(rabbit, task.TaskName, docID)
+	_, err = th.SendTask(rabbit, task.TaskName, docID)
 	if err != nil {
 		fmt.Printf("Could not send task: %s", err.Error())
 	}

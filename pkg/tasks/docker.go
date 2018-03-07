@@ -41,8 +41,8 @@ func DockerExecute(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetTaskStatus("running")
 	fetcher.AppendTaskOutput("Build started!\n")
-
-	task_info := FetchTask(fetcher)
+	th := DefaultTaskHandler()
+	task_info := th.FetchTask(fetcher)
 
 	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, task_info.Namespace)
 	if err != nil {
@@ -197,7 +197,7 @@ func DockerExecute(docID string) (int, error) {
 
 	for {
 		time.Sleep(1 * time.Second)
-		task_info = FetchTask(fetcher)
+		task_info = th.FetchTask(fetcher)
 		if task_info.Status == "stop" {
 			fetcher.AppendTaskOutput("Asked to stop")
 			docker_client.StopContainer(container.ID, uint(20))
@@ -222,7 +222,7 @@ func DockerExecute(docID string) (int, error) {
 			}
 
 			err = filepath.Walk(to_upload, func(path string, f os.FileInfo, err error) error {
-				return UploadArtefact(fetcher, path, to_upload)
+				return th.UploadArtefact(fetcher, path, to_upload)
 
 			})
 
