@@ -53,6 +53,8 @@ type Task struct {
 	ArtefactPath string `json:"artefact_path" form:"artefact_path"`
 	StoragePath  string `json:"storage_path" form:"storage_path"`
 
+	RootTask string `json:"root_task" form:"root_task"`
+
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`

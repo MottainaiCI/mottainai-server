@@ -89,9 +89,11 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		storage       string
 		storage_path  string
 		artefact_path string
+		root_task     string
 	)
-	//th := DefaultTaskHandler()
-
+	if str, ok := t["root_task"].(string); ok {
+		root_task = str
+	}
 	if str, ok := t["exit_status"].(string); ok {
 		exit_status = str
 	}
@@ -169,6 +171,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		CreatedTime:  created_time,
 		StartTime:    start_time,
 		EndTime:      end_time,
+		RootTask:     root_task,
 	}
 	return task
 }

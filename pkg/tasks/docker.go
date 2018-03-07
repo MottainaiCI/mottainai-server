@@ -136,6 +136,10 @@ func DockerExecute(docID string) (int, error) {
 		storagedir = storagetmp
 	}
 
+	if len(task_info.RootTask) > 0 {
+		fetcher.DownloadArtefactsFromTask(task_info.RootTask, artefactdir)
+	}
+
 	if len(task_info.Namespace) > 0 {
 		fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, artefactdir)
 	}
