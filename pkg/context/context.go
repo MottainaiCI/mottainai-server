@@ -23,11 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package context
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"gopkg.in/macaron.v1"
@@ -41,14 +40,10 @@ type Context struct {
 	IsBasicAuth bool
 }
 
-func Setup(m *macaron.Macaron) {
-	fmt.Println("DB  with " + setting.Configuration.DBPath)
-
-	database.NewDatabase("tiedot")
+func Setup(m *mottainai.Mottainai) {
 
 	m.Use(Contexter())
 
-	m.Map(database.DBInstance)
 	//m.Map()
 }
 

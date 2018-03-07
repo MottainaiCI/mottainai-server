@@ -23,13 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasks
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/go-macaron/binding"
-	macaron "gopkg.in/macaron.v1"
 )
 
-func Setup(m *macaron.Macaron) {
+func Setup(m *mottainai.Mottainai) {
 	bind := binding.BindIgnErr
 	m.Get("/tasks", ShowAll)
 	m.Get("/tasks/add", Add)

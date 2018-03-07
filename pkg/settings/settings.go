@@ -125,7 +125,7 @@ func GenDefault() {
 	Configuration.Protocol = "http"
 	Configuration.AppName = "Mottainai"
 	Configuration.AppURL = "http://127.0.0.1:9090"
-	Configuration.SecretKey = "baijoibejoiebgjoi"
+	Configuration.SecretKey = "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx"
 	Configuration.StaticRootPath = "./"
 	Configuration.ArtefactPath = "./artefact"
 	Configuration.NamespacePath = "./namespace"
@@ -152,7 +152,7 @@ func GenDefault() {
 	Configuration.AgentConcurrency = 1
 
 	// TODO: to remove from here, needs to be setted only on the agent side.
-	Configuration.AgentKey = "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx"
+	Configuration.AgentKey = ""
 
 	Configuration.TempWorkDir = "/tmp"
 	Configuration.DockerEndpoint = "unix:///var/run/docker.sock"

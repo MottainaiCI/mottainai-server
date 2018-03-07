@@ -25,14 +25,13 @@ package routes
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 
 	"github.com/MottainaiCI/mottainai-server/routes/api"
 
 	"github.com/MottainaiCI/mottainai-server/routes/nodes"
 	"github.com/MottainaiCI/mottainai-server/routes/tasks"
-
-	macaron "gopkg.in/macaron.v1"
 )
 
 func NotFound(c *context.Context) {
@@ -40,7 +39,7 @@ func NotFound(c *context.Context) {
 	c.NotFound()
 }
 
-func Setup(m *macaron.Macaron) {
+func Setup(m *mottainai.Mottainai) {
 
 	m.NotFound(NotFound)
 

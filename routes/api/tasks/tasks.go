@@ -24,10 +24,9 @@ package tasksapi
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/go-macaron/binding"
-
-	macaron "gopkg.in/macaron.v1"
 )
 
 func ValidateNodeKey(f *UpdateTaskForm, db *database.Database) (bool, int) {
@@ -58,7 +57,7 @@ func ValidateKey(k string, db *database.Database) (bool, int) {
 	return true, mynodeid
 }
 
-func Setup(m *macaron.Macaron) {
+func Setup(m *mottainai.Mottainai) {
 	bind := binding.Bind
 	m.Get("/api/tasks", ShowAll)
 	m.Post("/api/tasks", bind(agenttasks.Task{}), APICreate)

@@ -24,103 +24,38 @@ package cmd
 
 import (
 	"fmt"
-	"net/http"
-	"path"
 
-	log "log"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/agentconn"
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/michaelklishin/rabbit-hole"
-	macaron "gopkg.in/macaron.v1"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
+
 	"github.com/MottainaiCI/mottainai-server/routes"
 	"github.com/urfave/cli"
 )
 
 var Web = cli.Command{
-	Name:  "web",
-	Usage: "Start web server",
-	Description: `Mottainai web server is the only thing you need to run,
-and it takes care of all the other things for you`,
-	Action: runWeb,
+	Name:        "web",
+	Usage:       "Start web server",
+	Description: `Full-blown webui`,
+	Action: func(c *cli.Context) {
+		if c.IsSet("config") {
+			newWebUI().Start(c.String("config"))
+		} else {
+			fmt.Println("No config file provided - running default")
+			newWebUI().Start("")
+		}
+	},
 	Flags: []cli.Flag{
 		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
 	},
 }
 
-// newMacaron initializes Macaron instance.
-func newMacaron() *macaron.Macaron {
+func newWebUI() *mottainai.Mottainai {
 
-	m := macaron.Classic()
-
-	m.Use(macaron.Static(
-		path.Join(setting.Configuration.ArtefactPath),
-		macaron.StaticOptions{
-			Prefix: "artefact",
-		},
-	))
-
-	m.Use(macaron.Static(
-		path.Join(setting.Configuration.NamespacePath),
-		macaron.StaticOptions{
-			Prefix: "namespace",
-		},
-	))
-	m.Use(macaron.Static(
-		path.Join(setting.Configuration.StoragePath),
-		macaron.StaticOptions{
-			Prefix: "storage",
-		},
-	))
-	//	m.Use(toolbox.Toolboxer(m))
-	m.Use(macaron.Static(
-		path.Join(setting.Configuration.StaticRootPath, "public"),
-		macaron.StaticOptions{},
-	))
+	m := mottainai.Classic()
 	template.Setup(m)
-
 	context.Setup(m)
 	routes.Setup(m)
 
 	return m
-}
-
-func runWeb(c *cli.Context) error {
-	setting.GenDefault()
-	if c.IsSet("config") {
-		setting.LoadFromFileEnvironment(c.String("config"))
-	}
-
-	m := newMacaron()
-	rabbit, m_error := agentconn.NewMachineryServer()
-	if m_error != nil {
-		panic(m_error)
-	}
-
-	rmqc, r_error := rabbithole.NewClient(setting.Configuration.AMQPURI, setting.Configuration.AMQPUser, setting.Configuration.AMQPPass)
-	if r_error != nil {
-		panic(r_error)
-	}
-
-	th := agenttasks.DefaultTaskHandler()
-	th.RegisterTasks(rabbit)
-
-	m.Map(rmqc)
-	m.Map(rabbit)
-	m.Map(th)
-
-	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
-	log.Printf("Listen: %v://%s%s", setting.Configuration.Protocol, listenAddr, setting.Configuration.AppSubURL)
-
-	//m.Run()
-	err := http.ListenAndServe(listenAddr, m)
-
-	if err != nil {
-		log.Fatal(4, "Fail to start server: %v", err)
-	}
-	return nil
 }

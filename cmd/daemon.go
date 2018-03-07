@@ -19,38 +19,40 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
-package main
+
+package cmd
 
 import (
-	"os"
+	"fmt"
 
-	"github.com/MottainaiCI/mottainai-server/cmd"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
-
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	"github.com/MottainaiCI/mottainai-server/pkg/template"
+	"github.com/MottainaiCI/mottainai-server/routes/api"
 	"github.com/urfave/cli"
 )
 
-func init() {
-	setting.AppVer = setting.MOTTAINAI_VERSION
-	setting.HTTPAddr = "127.0.0.1"
-	setting.HTTPPort = "9090"
-	setting.Protocol = "http"
-	setting.AppName = "Mottainai"
-	setting.AppURL = "http://127.0.0.1:9090"
-	setting.SecretKey = "baijoibejoiebgjoi"
-	setting.StaticRootPath = "./"
-	setting.CustomPath = "./"
+var Daemon = cli.Command{
+	Name:        "daemon",
+	Usage:       "Start api daemon",
+	Description: `daemon - a lighter version, just api`,
+	Action: func(c *cli.Context) {
+		if c.IsSet("config") {
+			newDaemon().Start(c.String("config"))
+		} else {
+			fmt.Println("No config file provided - running default")
+			newDaemon().Start("")
+		}
+	},
+	Flags: []cli.Flag{
+		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
+	},
 }
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "Mottainai"
-	app.Usage = "Task/Job Build Service"
-	app.Version = setting.MOTTAINAI_VERSION
-	app.Commands = []cli.Command{
-		cmd.Web,
-		cmd.Daemon,
-	}
-	app.Flags = append(app.Flags, []cli.Flag{}...)
-	app.Run(os.Args)
+func newDaemon() *mottainai.Mottainai {
+	m := mottainai.Classic()
+	context.Setup(m)
+	api.Setup(m)
+	template.Setup(m)
+	return m
 }
