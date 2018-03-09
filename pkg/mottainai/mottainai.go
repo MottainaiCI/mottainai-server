@@ -30,8 +30,9 @@ import (
 	log "log"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	machinery "github.com/RichardKnop/machinery/v1"
+	"github.com/RichardKnop/machinery/v1/config"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/agentconn"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/michaelklishin/rabbit-hole"
 	macaron "gopkg.in/macaron.v1"
@@ -87,7 +88,7 @@ func (m *Mottainai) Start(fileconfig string) error {
 
 	m.SetStatic()
 
-	rabbit, m_error := agentconn.NewMachineryServer()
+	rabbit, m_error := m.NewMachineryServer()
 	if m_error != nil {
 		panic(m_error)
 	}
@@ -118,4 +119,21 @@ func (m *Mottainai) Start(fileconfig string) error {
 		log.Fatal(4, "Fail to start server: %v", err)
 	}
 	return nil
+}
+
+func (m *Mottainai) NewMachineryServer() (*machinery.Server, error) {
+	var cnf = &config.Config{
+		Broker:          setting.Configuration.AMQPBroker,
+		DefaultQueue:    setting.Configuration.AMQPDefaultQueue,
+		ResultBackend:   setting.Configuration.AMQPResultBackend,
+		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
+		AMQP: &config.AMQPConfig{
+			Exchange:     setting.Configuration.AMQPExchange,
+			ExchangeType: setting.Configuration.AMQPExchangeType,
+			BindingKey:   setting.Configuration.AMQPBindingKey,
+		},
+	}
+
+	server, err := machinery.NewServer(cnf)
+	return server, err
 }

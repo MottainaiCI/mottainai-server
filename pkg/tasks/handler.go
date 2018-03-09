@@ -90,6 +90,8 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		storage_path  string
 		artefact_path string
 		root_task     string
+
+		tag_namespace string
 	)
 	if str, ok := t["root_task"].(string); ok {
 		root_task = str
@@ -123,6 +125,10 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	}
 	if str, ok := t["result"].(string); ok {
 		result = str
+	}
+
+	if str, ok := t["tag_namespace"].(string); ok {
+		tag_namespace = str
 	}
 	if str, ok := t["status"].(string); ok {
 		status = str
@@ -172,6 +178,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		StartTime:    start_time,
 		EndTime:      end_time,
 		RootTask:     root_task,
+		TagNamespace: tag_namespace,
 	}
 	return task
 }
@@ -262,7 +269,11 @@ func HandleSuccess(docID string, result int) error {
 	fetcher := client.NewFetcher(docID)
 
 	fetcher.SetTaskField("exit_status", strconv.Itoa(result))
-	fetcher.SetTaskResult("success")
+	if result != 0 {
+		fetcher.SetTaskResult("failed")
+	} else {
+		fetcher.SetTaskResult("success")
+	}
 	fetcher.SetTaskStatus("done")
 	return nil
 }

@@ -23,14 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -47,6 +42,11 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
+	err = ns.Tag(task.ID)
+	if err != nil {
+		return ":(", err
+	}
 	// artefacts, err := db.GetTaskArtefacts(taskid)
 	// if err != nil {
 	// 	return "", err
@@ -57,33 +57,7 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	// }
 	// os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, ns.Name))
 	// os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, ns.Name), os.ModePerm)
-	source := filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID))
 
-	err = filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
-		_, file := filepath.Split(path)
-		rel := strings.Replace(path, source, "", 1)
-		rel = strings.Replace(rel, file, "", 1)
-
-		fi, err := os.Stat(path)
-		if err != nil {
-			return err
-		}
-		switch mode := fi.Mode(); {
-		case mode.IsDir():
-			// do directory stuff
-			return err
-		case mode.IsRegular():
-			os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, name, rel), os.ModePerm)
-			utils.CopyFile(
-				path,
-				filepath.Join(setting.Configuration.NamespacePath, name, rel, file),
-			)
-		}
-		return nil
-	})
-	if err != nil {
-		return ":(", err
-	}
 	// for _, artefact := range artefacts {
 	// 	fmt.Println("Moving artefact: " + artefact.Name)
 	// 	db.UpdateArtefact(artefact.ID, map[string]interface{}{

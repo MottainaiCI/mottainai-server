@@ -22,7 +22,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package namespace
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+)
 
 type Namespace struct {
 	ID   int    `json:"ID"`
@@ -56,4 +65,46 @@ func NewFromMap(t map[string]interface{}) Namespace {
 		Path: path,
 	}
 	return Namespace
+}
+func (n *Namespace) Exists() bool {
+
+	fi, err := os.Stat(filepath.Join(setting.Configuration.NamespacePath, n.Name))
+	if err != nil {
+		panic(err)
+	}
+	if fi.Mode().IsDir() {
+		return true
+	}
+	return false
+}
+
+func (n *Namespace) Tag(from int) error {
+
+	os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, n.Name))
+	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name), os.ModePerm)
+
+	source := filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(from))
+	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
+		_, file := filepath.Split(path)
+		rel := strings.Replace(path, source, "", 1)
+		rel = strings.Replace(rel, file, "", 1)
+
+		fi, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// do directory stuff
+			return err
+		case mode.IsRegular():
+			os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name, rel), os.ModePerm)
+			utils.CopyFile(
+				path,
+				filepath.Join(setting.Configuration.NamespacePath, n.Name, rel, file),
+			)
+		}
+		return nil
+	})
+
 }

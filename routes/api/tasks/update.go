@@ -91,6 +91,12 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 		db.UpdateTask(f.Id, map[string]interface{}{
 			"status": f.Status,
 		})
+		t, err := db.GetTask(f.Id)
+		if err != nil {
+			return ":("
+		}
+		t.HandleStatus()
+
 	}
 
 	if len(f.Output) > 0 {

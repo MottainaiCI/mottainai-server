@@ -23,13 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
-	"os"
-	"path"
-	"strconv"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
@@ -51,32 +46,7 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 		ctx.NotFound()
 		return ""
 	}
-
-	file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID), "build.log"))
-	if err != nil {
-		ctx.NotFound()
-		return ""
-	}
-	_, err = file.Seek(int64(pos), 0)
-	if err != nil {
-		return ""
-	}
-	fi, err := file.Stat()
-	if err != nil {
-		return ""
-	}
-
-	b3 := make([]byte, fi.Size()-int64(pos))
-	_, err = file.Read(b3)
-	if err != nil {
-		return ""
-	}
-
-	// if pos > len([]rune(task.Output)) {
-	// 	return ""
-	// }
-	//	return string([]rune(task.Output)[pos:])
-	return string(b3)
+	return task.GetLogPart(pos)
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {

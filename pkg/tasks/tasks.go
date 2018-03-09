@@ -28,7 +28,9 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	flock "github.com/theckman/go-flock"
 )
 
 type Task struct {
@@ -52,8 +54,9 @@ type Task struct {
 	Storage      string `json:"storage" form:"storage"`
 	ArtefactPath string `json:"artefact_path" form:"artefact_path"`
 	StoragePath  string `json:"storage_path" form:"storage_path"`
+	RootTask     string `json:"root_task" form:"root_task"`
 
-	RootTask string `json:"root_task" form:"root_task"`
+	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
@@ -94,19 +97,103 @@ func (t *Task) ClearBuildLog() {
 	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
 }
 
-func (t *Task) AppendBuildLog(s string) error {
+func (t *Task) Clear() {
+	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)))
+	os.RemoveAll("/var/lock/mottainai/" + strconv.Itoa(t.ID) + ".lock")
+}
 
-	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)), 0777)
-	file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0777)
+func (t *Task) GetLogPart(pos int) string {
+	var b3 []byte
+	err := t.LockSection(func() error {
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+		if err != nil {
+			return err
+		}
+		_, err = file.Seek(int64(pos), 0)
+		if err != nil {
+			return err
+		}
+		fi, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		b3 = make([]byte, fi.Size()-int64(pos))
+		_, err = file.Read(b3)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return ""
+	}
+	return string(b3)
+}
+
+func (t *Task) LockSection(f func() error) error {
+	os.MkdirAll("/var/lock/mottainai", os.ModePerm)
+	lockfile := "/var/lock/mottainai/" + strconv.Itoa(t.ID) + ".lock"
+	fileLock := flock.NewFlock(lockfile)
+
+	locked, err := fileLock.TryLock()
 	if err != nil {
 		return err
 	}
 
-	defer file.Close()
-
-	if _, err = file.WriteString(s + "\n"); err != nil {
-		panic(err)
+	if locked {
+		err := f()
+		fileLock.Unlock()
+		return err
 	}
 	return nil
+}
 
+func (t *Task) AppendBuildLog(s string) error {
+
+	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)), os.ModePerm)
+	return t.LockSection(func() error {
+
+		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		if _, err = file.WriteString(s + "\n"); err != nil {
+			return err
+		}
+		return nil
+	})
+
+}
+
+func (t *Task) HandleStatus() {
+	if t.Status == "done" {
+		if t.ExitStatus == "0" {
+			t.OnSuccess()
+		} else {
+			t.OnFailure()
+		}
+
+		t.Done()
+	}
+}
+
+func (t *Task) Done() {
+}
+
+func (t *Task) OnFailure() {
+
+}
+
+func (t *Task) OnSuccess() {
+	if len(t.TagNamespace) > 0 {
+
+		ns := namespace.NewFromMap(map[string]interface{}{"name": t.TagNamespace, "path": t.TagNamespace})
+		ns.Tag(t.ID)
+	}
 }

@@ -24,12 +24,9 @@ package database
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -44,8 +41,21 @@ func (d *Database) CreateTask(t map[string]interface{}) (int, error) {
 	return d.InsertDoc(TaskColl, t)
 }
 
+func (d *Database) CloneTask(t int) (int, error) {
+	task, err := d.GetTask(t)
+	if err != nil {
+		return 0, err
+	}
+
+	return d.InsertTask(&task)
+}
+
 func (d *Database) DeleteTask(docID int) error {
 
+	t, err := d.GetTask(docID)
+	if err != nil {
+		return err
+	}
 	artefacts, err := d.GetTaskArtefacts(docID)
 	if err != nil {
 		return err
@@ -54,8 +64,7 @@ func (d *Database) DeleteTask(docID int) error {
 		artefact.CleanFromTask()
 		d.DeleteArtefact(artefact.ID)
 	}
-	os.RemoveAll(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(docID)))
-
+	t.Clear()
 	return d.DeleteDoc(TaskColl, docID)
 }
 

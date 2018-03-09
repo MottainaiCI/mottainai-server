@@ -30,7 +30,7 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Ser
 	if err != nil {
 		return "", err
 	}
-	_, err = rmqc.UpdatePermissionsIn("/", user, rabbithole.Permissions{Read: ".*"})
+	_, err = rmqc.UpdatePermissionsIn("/", user, rabbithole.Permissions{Read: ".*", Write: ".*"})
 	if err != nil {
 		return "", err
 	}

@@ -39,10 +39,19 @@ import (
 
 func DockerExecute(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
+	th := DefaultTaskHandler()
+
+	task_info := th.FetchTask(fetcher)
+	if task_info.Status == "running" {
+		fetcher.SetTaskStatus("failure")
+		msg := "Task picked twice"
+		fetcher.AppendTaskOutput(msg)
+		return 1, errors.New(msg)
+	}
+
 	fetcher.SetTaskStatus("running")
 	fetcher.AppendTaskOutput("Build started!\n")
-	th := DefaultTaskHandler()
-	task_info := th.FetchTask(fetcher)
+	task_info = th.FetchTask(fetcher)
 
 	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, task_info.Namespace)
 	if err != nil {
@@ -75,6 +84,13 @@ func DockerExecute(docID string) (int, error) {
 
 	//cwd, _ := os.Getwd()
 	os.Chdir(git_repo_dir)
+	if len(task_info.Commit) > 0 {
+		out, err = utils.Git([]string{"checkout", task_info.Commit}, git_repo_dir)
+		fetcher.AppendTaskOutput(out)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	var execute_script = "mottainai-run"
 
@@ -202,8 +218,8 @@ func DockerExecute(docID string) (int, error) {
 	for {
 		time.Sleep(1 * time.Second)
 		task_info = th.FetchTask(fetcher)
-		if task_info.Status == "stop" {
-			fetcher.AppendTaskOutput("Asked to stop")
+		if task_info.Status != "running" {
+			fetcher.AppendTaskOutput("Aborting execution")
 			docker_client.StopContainer(container.ID, uint(20))
 			fetcher.SetTaskResult("stopped")
 			fetcher.SetTaskStatus("stop")
