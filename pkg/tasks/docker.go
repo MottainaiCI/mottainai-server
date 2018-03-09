@@ -53,7 +53,7 @@ func DockerExecute(docID string) (int, error) {
 	fetcher.AppendTaskOutput("Build started!\n")
 	task_info = th.FetchTask(fetcher)
 
-	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, task_info.Namespace)
+	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
 	if err != nil {
 		panic(err)
 	}

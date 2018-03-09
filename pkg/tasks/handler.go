@@ -278,7 +278,7 @@ func HandleSuccess(docID string, result int) error {
 	return nil
 }
 
-func HandleErr(docID, errstring string) error {
+func HandleErr(errstring, docID string) error {
 	fetcher := client.NewFetcher(docID)
 
 	fetcher.AppendTaskOutput(errstring)
