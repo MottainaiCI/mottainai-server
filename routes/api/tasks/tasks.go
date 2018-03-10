@@ -63,6 +63,7 @@ func Setup(m *mottainai.Mottainai) {
 	m.Post("/api/tasks", bind(agenttasks.Task{}), APICreate)
 	m.Get("/api/tasks/:id", GetTaskJson)
 	m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
+	m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
 	m.Get("/api/tasks/start/:id", SendStartTask)
 	m.Get("/api/tasks/stop/:id", Stop)
 	m.Get("/api/tasks/delete/:id", APIDelete)

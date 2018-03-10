@@ -49,6 +49,18 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 	return task.GetLogPart(pos)
 }
 
+func TailTask(ctx *context.Context, db *database.Database) string {
+	id := ctx.ParamsInt(":id")
+	pos := ctx.ParamsInt(":pos")
+
+	task, err := db.GetTask(id)
+	if err != nil {
+		ctx.NotFound()
+		return ""
+	}
+	return task.TailLog(pos)
+}
+
 func ShowAll(ctx *context.Context, db *database.Database) {
 	tasks_info := db.AllTasks()
 

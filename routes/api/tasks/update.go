@@ -24,6 +24,7 @@ package tasksapi
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -91,12 +92,6 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 		db.UpdateTask(f.Id, map[string]interface{}{
 			"status": f.Status,
 		})
-		t, err := db.GetTask(f.Id)
-		if err != nil {
-			return ":("
-		}
-		t.HandleStatus()
-
 	}
 
 	if len(f.Output) > 0 {
@@ -107,8 +102,14 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 
 	if len(f.Result) > 0 {
 		db.UpdateTask(f.Id, map[string]interface{}{
-			"result": f.Result,
+			"result":   f.Result,
+			"end_time": time.Now().Format("20060102150405"),
 		})
+		t, err := db.GetTask(f.Id)
+		if err != nil {
+			return ":("
+		}
+		t.HandleStatus()
 	}
 
 	return "OK"

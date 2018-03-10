@@ -50,6 +50,7 @@ func DockerExecute(docID string) (int, error) {
 	}
 
 	fetcher.SetTaskStatus("running")
+	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("Build started!\n")
 	task_info = th.FetchTask(fetcher)
 

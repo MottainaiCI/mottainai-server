@@ -133,6 +133,44 @@ func (t *Task) GetLogPart(pos int) string {
 	return string(b3)
 }
 
+func (t *Task) TailLog(pos int) string {
+	var b3 []byte
+	err := t.LockSection(func() error {
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+		if err != nil {
+			return err
+		}
+
+		fi, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		where := fi.Size() - int64(pos)
+		if int64(pos) > fi.Size() {
+			where = 0
+		}
+
+		_, err = file.Seek(where, 0)
+		if err != nil {
+			return err
+		}
+
+		b3 = make([]byte, int64(pos))
+		_, err = file.Read(b3)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return ""
+	}
+	return string(b3)
+}
+
 func (t *Task) LockSection(f func() error) error {
 	os.MkdirAll("/var/lock/mottainai", os.ModePerm)
 	lockfile := "/var/lock/mottainai/" + strconv.Itoa(t.ID) + ".lock"
