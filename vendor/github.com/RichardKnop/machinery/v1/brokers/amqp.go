@@ -1,6 +1,7 @@
 package brokers
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 type AMQPBroker struct {
 	Broker
 	common.AMQPConnector
+	processingWG sync.WaitGroup // use wait group to make sure task processing completes on interrupt signal
 }
 
 // NewAMQPBroker creates new AMQPBroker instance
@@ -75,17 +77,29 @@ func (b *AMQPBroker) StartConsuming(consumerTag string, concurrency int, taskPro
 		return b.retry, err
 	}
 
+	// Waiting for any tasks being processed to finish
+	b.processingWG.Wait()
+
 	return b.retry, nil
 }
 
 // StopConsuming quits the loop
 func (b *AMQPBroker) StopConsuming() {
 	b.stopConsuming()
+
+	// Waiting for any tasks being processed to finish
+	b.processingWG.Wait()
 }
 
 // Publish places a new message on the default queue
 func (b *AMQPBroker) Publish(signature *tasks.Signature) error {
-	b.AdjustRoutingKey(signature)
+	// Adjust routing key (this decides which queue the message will be published to)
+	AdjustRoutingKey(b, signature)
+
+	msg, err := json.Marshal(signature)
+	if err != nil {
+		return fmt.Errorf("JSON marshal error: %s", err)
+	}
 
 	// Check the ETA signature field, if it is set and it is in the future,
 	// delay the task
@@ -99,17 +113,12 @@ func (b *AMQPBroker) Publish(signature *tasks.Signature) error {
 		}
 	}
 
-	message, err := json.Marshal(signature)
-	if err != nil {
-		return fmt.Errorf("JSON marshal error: %s", err)
-	}
-
 	conn, channel, _, confirmsChan, _, err := b.Connect(
 		b.cnf.Broker,
 		b.cnf.TLSConfig,
 		b.cnf.AMQP.Exchange,     // exchange name
 		b.cnf.AMQP.ExchangeType, // exchange type
-		b.cnf.DefaultQueue,      // queue name
+		signature.RoutingKey,    // queue name
 		true,                    // queue durable
 		false,                   // queue delete when unused
 		b.cnf.AMQP.BindingKey, // queue binding key
@@ -130,7 +139,7 @@ func (b *AMQPBroker) Publish(signature *tasks.Signature) error {
 		amqp.Publishing{
 			Headers:      amqp.Table(signature.Headers),
 			ContentType:  "application/json",
-			Body:         message,
+			Body:         msg,
 			DeliveryMode: amqp.Persistent,
 		},
 	); err != nil {
@@ -160,10 +169,6 @@ func (b *AMQPBroker) consume(deliveries <-chan amqp.Delivery, concurrency int, t
 
 	errorsChan := make(chan error)
 
-	// Use wait group to make sure task processing completes on interrupt signal
-	var wg sync.WaitGroup
-	defer wg.Wait()
-
 	for {
 		select {
 		case amqpErr := <-amqpCloseChan:
@@ -176,16 +181,16 @@ func (b *AMQPBroker) consume(deliveries <-chan amqp.Delivery, concurrency int, t
 				<-pool
 			}
 
-			wg.Add(1)
+			b.processingWG.Add(1)
 
 			// Consume the task inside a gotourine so multiple tasks
 			// can be processed concurrently
 			go func() {
-				defer wg.Done()
-
 				if err := b.consumeOne(d, taskProcessor); err != nil {
 					errorsChan <- err
 				}
+
+				b.processingWG.Done()
 
 				if concurrency > 0 {
 					// give worker back to pool
@@ -199,30 +204,39 @@ func (b *AMQPBroker) consume(deliveries <-chan amqp.Delivery, concurrency int, t
 }
 
 // consumeOne processes a single message using TaskProcessor
-func (b *AMQPBroker) consumeOne(d amqp.Delivery, taskProcessor TaskProcessor) error {
-	if len(d.Body) == 0 {
-		d.Nack(false, false)                           // multiple, requeue
+func (b *AMQPBroker) consumeOne(delivery amqp.Delivery, taskProcessor TaskProcessor) error {
+	if len(delivery.Body) == 0 {
+		delivery.Nack(true, false)                     // multiple, requeue
 		return errors.New("Received an empty message") // RabbitMQ down?
 	}
 
-	log.INFO.Printf("Received new message: %s", d.Body)
+	var multiple, requeue = false, false
 
 	// Unmarshal message body into signature struct
 	signature := new(tasks.Signature)
-	if err := json.Unmarshal(d.Body, signature); err != nil {
-		d.Nack(false, false) // multiple, requeue
-		return err
+	decoder := json.NewDecoder(bytes.NewReader(delivery.Body))
+	decoder.UseNumber()
+	if err := decoder.Decode(signature); err != nil {
+		delivery.Nack(multiple, requeue)
+		return NewErrCouldNotUnmarshaTaskSignature(delivery.Body, err)
 	}
 
 	// If the task is not registered, we nack it and requeue,
 	// there might be different workers for processing specific tasks
 	if !b.IsTaskRegistered(signature.Name) {
-		d.Nack(false, true) // multiple, requeue
+		if !delivery.Redelivered {
+			requeue = true
+			log.INFO.Printf("Requeing message: %s", delivery.Body)
+		}
+		delivery.Nack(multiple, requeue)
 		return nil
 	}
 
-	d.Ack(false) // multiple
-	return taskProcessor.Process(signature)
+	log.INFO.Printf("Received new message: %s", delivery.Body)
+
+	err := taskProcessor.Process(signature)
+	delivery.Ack(multiple)
+	return err
 }
 
 // delay a task by delayDuration miliseconds, the way it works is a new queue
