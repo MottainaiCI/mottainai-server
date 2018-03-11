@@ -56,10 +56,15 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 
 func DefaultTaskHandler() *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
-		"docker_execute": DockerExecute,
+		"docker_execute": DockerPlayer,
 		"error":          HandleErr,
 		"success":        HandleSuccess,
 	}}
+}
+
+func DockerPlayer(docID string) (int, error) {
+	player := NewPlayer(docID)
+	return player.Start(&DockerExecutor{})
 }
 
 func (h *TaskHandler) NewTaskFromJson(data []byte) Task {

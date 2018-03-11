@@ -37,7 +37,9 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-func DockerExecute(docID string) (int, error) {
+type DockerExecutor struct{}
+
+func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
 	th := DefaultTaskHandler()
 
