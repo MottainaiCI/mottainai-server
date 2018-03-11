@@ -74,11 +74,12 @@ func DockerExecute(docID string) (int, error) {
 	defer os.RemoveAll(dir)
 
 	fetcher.AppendTaskOutput("Cloning git repo: " + task_info.Source)
-
-	out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, dir)
-	fetcher.AppendTaskOutput(out)
-	if err != nil {
-		panic(err)
+	if len(task_info.Source) > 0 {
+		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, dir)
+		fetcher.AppendTaskOutput(out)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	git_repo_dir := filepath.Join(dir, "target_repo")
@@ -86,7 +87,7 @@ func DockerExecute(docID string) (int, error) {
 	//cwd, _ := os.Getwd()
 	os.Chdir(git_repo_dir)
 	if len(task_info.Commit) > 0 {
-		out, err = utils.Git([]string{"checkout", task_info.Commit}, git_repo_dir)
+		out, err := utils.Git([]string{"checkout", task_info.Commit}, git_repo_dir)
 		fetcher.AppendTaskOutput(out)
 		if err != nil {
 			panic(err)
