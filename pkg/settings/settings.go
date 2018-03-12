@@ -47,6 +47,7 @@ type Config struct {
 	/* Broker Settings */
 
 	Broker              string `yaml:"broker" envconfig:"BROKER"`
+	BrokerType          string `yaml:"broker_type" envconfig:"BROKER_TYPE"`
 	BrokerDefaultQueue  string `yaml:"broker_default_queue" envconfig:"BROKER_DEFAULT_QUEUE"`
 	BrokerResultBackend string `yaml:"broker_result_backend" envconfig:"BROKER_RESULT_BACKEND"`
 	BrokerURI           string `yaml:"broker_uri" envconfig:"BROKER_URI"`
@@ -96,6 +97,7 @@ var (
 	/* Broker Settings */
 
 	Broker              string
+	BrokerType          string
 	BrokerDefaultQueue  string
 	BrokerResultBackend string
 	BrokerURI           string
@@ -138,6 +140,8 @@ func GenDefault() {
 	Configuration.DBPath = "./.DB"
 
 	Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
+	Configuration.BrokerType = "amqp"
+
 	Configuration.BrokerDefaultQueue = "global_tasks"
 	Configuration.BrokerExchange = "machinery_exchange"
 

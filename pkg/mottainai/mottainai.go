@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"strings"
 
 	log "log"
 
@@ -94,7 +93,7 @@ func (m *Mottainai) Start(fileconfig string) error {
 		panic(m_error)
 	}
 
-	if strings.Contains(setting.Configuration.Broker, "amqp") {
+	if setting.Configuration.BrokerType == "amqp" {
 		rmqc, r_error := rabbithole.NewClient(setting.Configuration.BrokerURI, setting.Configuration.BrokerUser, setting.Configuration.BrokerPass)
 		if r_error != nil {
 			panic(r_error)
@@ -127,7 +126,7 @@ func (m *Mottainai) Start(fileconfig string) error {
 func (m *Mottainai) NewMachineryServer() (*machinery.Server, error) {
 
 	var amqpConfig *config.AMQPConfig
-	if strings.Contains(setting.Configuration.Broker, "amqp") {
+	if setting.Configuration.BrokerType == "amqp" {
 		amqpConfig = &config.AMQPConfig{
 			Exchange:     setting.Configuration.BrokerExchange,
 			ExchangeType: setting.Configuration.BrokerExchangeType,
