@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	log "log"
 
@@ -88,25 +89,27 @@ func (m *Mottainai) Start(fileconfig string) error {
 
 	m.SetStatic()
 
-	rabbit, m_error := m.NewMachineryServer()
+	server, m_error := m.NewMachineryServer()
 	if m_error != nil {
 		panic(m_error)
 	}
 
-	rmqc, r_error := rabbithole.NewClient(setting.Configuration.AMQPURI, setting.Configuration.AMQPUser, setting.Configuration.AMQPPass)
-	if r_error != nil {
-		panic(r_error)
+	if strings.Contains(setting.Configuration.Broker, "amqp") {
+		rmqc, r_error := rabbithole.NewClient(setting.Configuration.BrokerURI, setting.Configuration.BrokerUser, setting.Configuration.BrokerPass)
+		if r_error != nil {
+			panic(r_error)
+		}
+		m.Map(rmqc)
 	}
 
 	th := agenttasks.DefaultTaskHandler()
-	th.RegisterTasks(rabbit)
+	th.RegisterTasks(server)
 	fmt.Println("DB  with " + setting.Configuration.DBPath)
 
 	database.NewDatabase("tiedot")
 
 	m.Map(database.DBInstance)
-	m.Map(rmqc)
-	m.Map(rabbit)
+	m.Map(server)
 	m.Map(th)
 
 	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
@@ -122,16 +125,22 @@ func (m *Mottainai) Start(fileconfig string) error {
 }
 
 func (m *Mottainai) NewMachineryServer() (*machinery.Server, error) {
+
+	var amqpConfig *config.AMQPConfig
+	if strings.Contains(setting.Configuration.Broker, "amqp") {
+		amqpConfig = &config.AMQPConfig{
+			Exchange:     setting.Configuration.BrokerExchange,
+			ExchangeType: setting.Configuration.BrokerExchangeType,
+			BindingKey:   setting.Configuration.BrokerBindingKey,
+		}
+
+	}
 	var cnf = &config.Config{
-		Broker:          setting.Configuration.AMQPBroker,
-		DefaultQueue:    setting.Configuration.AMQPDefaultQueue,
-		ResultBackend:   setting.Configuration.AMQPResultBackend,
+		Broker:          setting.Configuration.Broker,
+		DefaultQueue:    setting.Configuration.BrokerDefaultQueue,
+		ResultBackend:   setting.Configuration.BrokerResultBackend,
 		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
-		AMQP: &config.AMQPConfig{
-			Exchange:     setting.Configuration.AMQPExchange,
-			ExchangeType: setting.Configuration.AMQPExchangeType,
-			BindingKey:   setting.Configuration.AMQPBindingKey,
-		},
+		AMQP:            amqpConfig,
 	}
 
 	server, err := machinery.NewServer(cnf)

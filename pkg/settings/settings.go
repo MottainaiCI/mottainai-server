@@ -44,18 +44,18 @@ type Config struct {
 
 	ResultsExpireIn int `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
 
-	/* AMQP Settings */
+	/* Broker Settings */
 
-	AMQPBroker        string `yaml:"amqp_broker" envconfig:"AMQP_BROKER"`
-	AMQPDefaultQueue  string `yaml:"amqp_default_queue" envconfig:"AMQP_DEFAULT_QUEUE"`
-	AMQPResultBackend string `yaml:"amqp_result_backend" envconfig:"AMQP_RESULT_BACKEND"`
-	AMQPURI           string `yaml:"amqp_uri" envconfig:"AMQP_URI"`
-	AMQPPass          string `yaml:"amqp_pass" envconfig:"AMQP_PASS"`
-	AMQPUser          string `yaml:"amqp_user" envconfig:"AMQP_USER"`
-	AMQPExchange      string `yaml:"amqp_exchange" envconfig:"AMQP_EXCHANGE"`
-	AMQPExchangeType  string `yaml:"amqp_exchange_type" envconfig:"AMQP_EXCHANGE_TYPE"`
-	AMQPBindingKey    string `yaml:"amqp_binding_key" envconfig:"AMQP_BINDING_KEY"`
-	AgentConcurrency  int    `yaml:"agent_concurrency" envconfig:"AGENT_CONCURRENCY"`
+	Broker              string `yaml:"broker" envconfig:"BROKER"`
+	BrokerDefaultQueue  string `yaml:"broker_default_queue" envconfig:"BROKER_DEFAULT_QUEUE"`
+	BrokerResultBackend string `yaml:"broker_result_backend" envconfig:"BROKER_RESULT_BACKEND"`
+	BrokerURI           string `yaml:"broker_uri" envconfig:"BROKER_URI"`
+	BrokerPass          string `yaml:"broker_pass" envconfig:"BROKER_PASS"`
+	BrokerUser          string `yaml:"broker_user" envconfig:"BROKER_USER"`
+	BrokerExchange      string `yaml:"broker_exchange" envconfig:"BROKER_EXCHANGE"`
+	BrokerExchangeType  string `yaml:"broker_exchange_type" envconfig:"BROKER_EXCHANGE_TYPE"`
+	BrokerBindingKey    string `yaml:"broker_binding_key" envconfig:"BROKER_BINDING_KEY"`
+	AgentConcurrency    int    `yaml:"agent_concurrency" envconfig:"AGENT_CONCURRENCY"`
 
 	AgentKey string `yaml:"agent_key" envconfig:"AGENT_KEY"`
 
@@ -93,20 +93,20 @@ var (
 	DBEngine   string
 	DBPath     string
 
-	/* AMQP Settings */
+	/* Broker Settings */
 
-	AMQPBroker        string
-	AMQPDefaultQueue  string
-	AMQPResultBackend string
-	AMQPURI           string
-	AMQPPass          string
-	AMQPUser          string
-	AMQPExchange      string
-	AMQPExchangeType  string
-	AMQPBindingKey    string
-	AgentConcurrency  int
-	ResultsExpireIn   int
-	AgentKey          string
+	Broker              string
+	BrokerDefaultQueue  string
+	BrokerResultBackend string
+	BrokerURI           string
+	BrokerPass          string
+	BrokerUser          string
+	BrokerExchange      string
+	BrokerExchangeType  string
+	BrokerBindingKey    string
+	AgentConcurrency    int
+	ResultsExpireIn     int
+	AgentKey            string
 
 	TempWorkDir string
 
@@ -137,23 +137,21 @@ func GenDefault() {
 	Configuration.DBEngine = "tiedot"
 	Configuration.DBPath = "./.DB"
 
-	Configuration.AMQPBroker = "amqp://guest@127.0.0.1:5672/"
-	Configuration.AMQPDefaultQueue = "global_tasks"
-	Configuration.AMQPExchange = "machinery_exchange"
+	Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
+	Configuration.BrokerDefaultQueue = "global_tasks"
+	Configuration.BrokerExchange = "machinery_exchange"
 
-	Configuration.AMQPURI = "http://127.0.0.1:15672"
-	Configuration.AMQPUser = "guest"
-	Configuration.AMQPPass = "guest"
+	Configuration.BrokerURI = "http://127.0.0.1:15672"
+	Configuration.BrokerUser = "guest"
+	Configuration.BrokerPass = "guest"
 	Configuration.ResultsExpireIn = 3600
-	Configuration.AMQPResultBackend = "amqp://guest@127.0.0.1:5672/"
-	Configuration.AMQPExchange = "machinery_exchange"
-	Configuration.AMQPExchangeType = "direct"
-	Configuration.AMQPBindingKey = "machinery_task"
+	Configuration.BrokerResultBackend = "amqp://guest@127.0.0.1:5672/"
+	Configuration.BrokerExchange = "machinery_exchange"
+	Configuration.BrokerExchangeType = "direct"
+	Configuration.BrokerBindingKey = "machinery_task"
 	Configuration.AgentConcurrency = 1
 
-	// TODO: to remove from here, needs to be setted only on the agent side.
 	Configuration.AgentKey = ""
-
 	Configuration.TempWorkDir = "/tmp"
 	Configuration.DockerEndpoint = "unix:///var/run/docker.sock"
 	Configuration.DockerKeepImg = true
