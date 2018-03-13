@@ -94,7 +94,7 @@ func (t *Task) IsWaiting() bool {
 }
 
 func (t *Task) ClearBuildLog() {
-	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
 }
 
 func (t *Task) Clear() {
@@ -105,7 +105,7 @@ func (t *Task) Clear() {
 func (t *Task) GetLogPart(pos int) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
 		if err != nil {
 			return err
 		}
@@ -136,7 +136,7 @@ func (t *Task) GetLogPart(pos int) string {
 func (t *Task) TailLog(pos int) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"))
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func (t *Task) AppendBuildLog(s string) error {
 	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)), os.ModePerm)
 	return t.LockSection(func() error {
 
-		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build.log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 		if err != nil {
 			return err
 		}
