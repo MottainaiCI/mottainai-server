@@ -39,6 +39,13 @@ import (
 
 type DockerExecutor struct{}
 
+func (e *DockerExecutor) Prune(d *docker.Client) {
+	d.PruneContainers(docker.PruneContainersOptions{})
+	d.PruneImages(docker.PruneImagesOptions{})
+	d.PruneVolumes(docker.PruneVolumesOptions{})
+	d.PruneNetworks(docker.PruneNetworksOptions{})
+}
+
 func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := client.NewFetcher(docID)
 	th := DefaultTaskHandler()
@@ -255,6 +262,11 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			}
 
 			fetcher.AppendTaskOutput("Container execution terminated")
+
+			if len(task_info.Prune) > 0 {
+				fetcher.AppendTaskOutput("Pruning unused docker resources")
+				d.Prune(docker_client)
+			}
 			return c_data.State.ExitCode, nil
 		}
 	}

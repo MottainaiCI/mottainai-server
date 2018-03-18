@@ -78,3 +78,22 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 
 	return "OK", nil
 }
+
+func NamespaceClone(ctx *context.Context, db *database.Database) (string, error) {
+	name := ctx.Params(":name")
+	from := ctx.Params(":from")
+	name, _ = utils.Strip(name)
+	from, _ = utils.Strip(from)
+
+	if len(name) == 0 {
+		return ":( No namespace name given", nil
+	}
+
+	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
+	err := ns.Clone(namespace.NewFromMap(map[string]interface{}{"name": from, "path": from}))
+	if err != nil {
+		return ":(", err
+	}
+
+	return "OK", nil
+}

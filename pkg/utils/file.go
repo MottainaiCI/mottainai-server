@@ -207,3 +207,28 @@ func TreeList(sourcepath string) []string {
 	})
 	return artefacts
 }
+
+func DeepCopy(source, destination string) error {
+	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
+		_, file := filepath.Split(path)
+		rel := strings.Replace(path, source, "", 1)
+		rel = strings.Replace(rel, file, "", 1)
+
+		fi, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		switch mode := fi.Mode(); {
+		case mode.IsDir():
+			// do directory stuff
+			return err
+		case mode.IsRegular():
+			os.MkdirAll(filepath.Join(destination, rel), os.ModePerm)
+			CopyFile(
+				path,
+				filepath.Join(destination, rel, file),
+			)
+		}
+		return nil
+	})
+}

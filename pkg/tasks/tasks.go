@@ -55,6 +55,7 @@ type Task struct {
 	ArtefactPath string `json:"artefact_path" form:"artefact_path"`
 	StoragePath  string `json:"storage_path" form:"storage_path"`
 	RootTask     string `json:"root_task" form:"root_task"`
+	Prune        string `json:"prune" form:"prune"`
 
 	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
 

@@ -27,7 +27,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -78,33 +77,25 @@ func (n *Namespace) Exists() bool {
 	return false
 }
 
-func (n *Namespace) Tag(from int) error {
-
+func (n *Namespace) Wipe() {
 	os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, n.Name))
 	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name), os.ModePerm)
+}
 
-	source := filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(from))
-	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
-		_, file := filepath.Split(path)
-		rel := strings.Replace(path, source, "", 1)
-		rel = strings.Replace(rel, file, "", 1)
+func (n *Namespace) Tag(from int) error {
 
-		fi, err := os.Stat(path)
-		if err != nil {
-			return err
-		}
-		switch mode := fi.Mode(); {
-		case mode.IsDir():
-			// do directory stuff
-			return err
-		case mode.IsRegular():
-			os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name, rel), os.ModePerm)
-			utils.CopyFile(
-				path,
-				filepath.Join(setting.Configuration.NamespacePath, n.Name, rel, file),
-			)
-		}
-		return nil
-	})
+	n.Wipe()
 
+	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(from))
+	namespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	return utils.DeepCopy(taskArtefact, namespace)
+}
+
+func (n *Namespace) Clone(old Namespace) error {
+
+	n.Wipe()
+
+	oldNamespace := filepath.Join(setting.Configuration.NamespacePath, old.Path)
+	newNamespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	return utils.DeepCopy(oldNamespace, newNamespace)
 }

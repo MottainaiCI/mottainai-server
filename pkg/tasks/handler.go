@@ -95,7 +95,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		storage_path  string
 		artefact_path string
 		root_task     string
-
+		prune         string
 		tag_namespace string
 	)
 	if str, ok := t["root_task"].(string); ok {
@@ -162,7 +162,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["artefact_path"].(string); ok {
 		artefact_path = str
 	}
-
+	if str, ok := t["prune"].(string); ok {
+		prune = str
+	}
 	task := Task{
 		Source:       source,
 		Script:       script,
@@ -184,6 +186,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		EndTime:      end_time,
 		RootTask:     root_task,
 		TagNamespace: tag_namespace,
+		Prune:        prune,
 	}
 	return task
 }
