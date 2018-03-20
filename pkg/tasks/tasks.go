@@ -56,6 +56,7 @@ type Task struct {
 	StoragePath  string `json:"storage_path" form:"storage_path"`
 	RootTask     string `json:"root_task" form:"root_task"`
 	Prune        string `json:"prune" form:"prune"`
+	CacheImage   string `json:"cache_image" form:"cache_image"`
 
 	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
 

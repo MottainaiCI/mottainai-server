@@ -167,3 +167,14 @@ func Strip(s string) (string, error) {
 	processedString := reg.ReplaceAllString(s, "")
 	return processedString, nil
 }
+
+func StrictStrip(s string) (string, error) {
+
+	// Make a Regex to say we only want
+	reg, err := regexp.Compile("[^a-z0-9-/]+")
+	if err != nil {
+		return "", err
+	}
+	processedString := reg.ReplaceAllString(s, "")
+	return processedString, nil
+}

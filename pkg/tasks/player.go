@@ -22,8 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package agenttasks
 
+import "errors"
+
 type Executor interface {
 	Play(string) (int, error)
+	Setup(string) error
 }
 
 type Player struct{ TaskID string }
@@ -33,5 +36,9 @@ func NewPlayer(taskid string) *Player {
 }
 
 func (p *Player) Start(e Executor) (int, error) {
+	err := e.Setup(p.TaskID)
+	if err != nil {
+		return 1, errors.New("Setup phase error: " + err.Error())
+	}
 	return e.Play(p.TaskID)
 }

@@ -25,6 +25,7 @@ package agenttasks
 import (
 	"errors"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -37,17 +38,33 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-type DockerExecutor struct{}
+type DockerExecutor struct {
+	DockerClient    *docker.Client
+	MottainaiClient *client.Fetcher
+}
 
-func (e *DockerExecutor) Prune(d *docker.Client) {
-	d.PruneContainers(docker.PruneContainersOptions{})
-	d.PruneImages(docker.PruneImagesOptions{})
-	d.PruneVolumes(docker.PruneVolumesOptions{})
-	d.PruneNetworks(docker.PruneNetworksOptions{})
+func (e *DockerExecutor) Prune() {
+	e.DockerClient.PruneContainers(docker.PruneContainersOptions{})
+	e.DockerClient.PruneImages(docker.PruneImagesOptions{})
+	e.DockerClient.PruneVolumes(docker.PruneVolumesOptions{})
+	e.DockerClient.PruneNetworks(docker.PruneNetworksOptions{})
+}
+
+func (d *DockerExecutor) Setup(docID string) error {
+	fetcher := client.NewFetcher(docID)
+	fetcher.SetTaskStatus("setup")
+	fetcher.AppendTaskOutput("Setting up the docker interface")
+	d.MottainaiClient = fetcher
+	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
+	if err != nil {
+		return (errors.New("Endpoint:" + setting.Configuration.DockerEndpoint + " Error: " + err.Error()))
+	}
+	d.DockerClient = docker_client
+	return nil
 }
 
 func (d *DockerExecutor) Play(docID string) (int, error) {
-	fetcher := client.NewFetcher(docID)
+	fetcher := d.MottainaiClient
 	th := DefaultTaskHandler()
 
 	task_info := th.FetchTask(fetcher)
@@ -61,7 +78,22 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher.SetTaskStatus("running")
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("Build started!\n")
+
 	task_info = th.FetchTask(fetcher)
+	var sharedName, OriginalSharedName string
+	image := task_info.Image
+
+	u, err := url.Parse(task_info.Source)
+	if err != nil {
+		OriginalSharedName = image + task_info.Directory
+	} else {
+		OriginalSharedName = image + u.Path + task_info.Directory
+	}
+
+	sharedName, err = utils.StrictStrip(OriginalSharedName)
+	if err != nil {
+		panic(err)
+	}
 
 	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
 	if err != nil {
@@ -112,12 +144,17 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	// XXX: Exp. in docker container
 	// XXX: Start with docker, monitor it.
 	// XXX: optional args, with --priviledged and -v socket
-	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
-	if err != nil {
-		panic(errors.New(err.Error() + " ENDPOINT:" + setting.Configuration.DockerEndpoint))
-	}
+	docker_client := d.DockerClient
 
 	if len(task_info.Image) > 0 {
+
+		if len(task_info.CacheImage) > 0 {
+			if img, err := d.FindImage(sharedName); err == nil {
+				fetcher.AppendTaskOutput("Cached image found: " + img + " " + sharedName)
+				image = img
+			}
+		}
+
 		fetcher.AppendTaskOutput("Pulling image: " + task_info.Image)
 		if err = docker_client.PullImage(docker.PullImageOptions{Repository: task_info.Image}, docker.AuthConfiguration{}); err != nil {
 			panic(err)
@@ -186,7 +223,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 
 	var containerconfig = &docker.Config{
-		Image: task_info.Image,
+		Image: image,
 		Cmd:   []string{"-c", "pwd;ls -liah;" + execute_script},
 		//	Env:        config.Env,
 		WorkingDir: git_build_root_path,
@@ -213,7 +250,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	utils.ContainerOutputAttach(func(s string) {
 		fetcher.AppendTaskOutput(s)
 	}, docker_client, container)
-	defer CleanUpContainer(docker_client, container.ID)
+	defer d.CleanUpContainer(container.ID)
 	if setting.Configuration.DockerKeepImg == false {
 		defer docker_client.RemoveImage(task_info.Image)
 	}
@@ -263,9 +300,14 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 			fetcher.AppendTaskOutput("Container execution terminated")
 
+			if len(task_info.CacheImage) > 0 {
+				fetcher.AppendTaskOutput("Saving container")
+				d.CommitImage(container.ID, sharedName, "latest")
+			}
+
 			if len(task_info.Prune) > 0 {
 				fetcher.AppendTaskOutput("Pruning unused docker resources")
-				d.Prune(docker_client)
+				d.Prune()
 			}
 			return c_data.State.ExitCode, nil
 		}
@@ -273,8 +315,41 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 }
 
-func CleanUpContainer(client *docker.Client, ID string) {
-	client.RemoveContainer(docker.RemoveContainerOptions{
+func (d *DockerExecutor) CommitImage(containerID, repo, tag string) (string, error) {
+	image, err := d.DockerClient.CommitContainer(docker.CommitContainerOptions{Container: containerID, Repository: repo, Tag: tag})
+	if err != nil {
+		return "", err
+	}
+	return image.ID, nil
+}
+
+func (d *DockerExecutor) FindImage(image string) (string, error) {
+	images, err := d.DockerClient.ListImages(docker.ListImagesOptions{Filter: image})
+	if err != nil {
+		return "", err
+	}
+	if len(images) > 0 {
+		return images[0].ID, nil
+	}
+	return "", errors.New("Image not found")
+}
+
+func (d *DockerExecutor) NewImageFrom(image, newimage, tag string) error {
+	images, err := d.DockerClient.ListImages(docker.ListImagesOptions{Filter: image})
+	var id string
+	if len(images) > 0 {
+		id = images[0].ID
+	}
+
+	err = d.DockerClient.TagImage(id, docker.TagImageOptions{Repo: newimage, Tag: tag, Force: true})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DockerExecutor) CleanUpContainer(ID string) error {
+	return d.DockerClient.RemoveContainer(docker.RemoveContainerOptions{
 		ID:    ID,
 		Force: true,
 	})
