@@ -289,7 +289,15 @@ func HandleSuccess(docID string, result int) error {
 	} else {
 		fetcher.SetTaskResult("success")
 	}
-	fetcher.SetTaskStatus("done")
+
+	th := DefaultTaskHandler()
+
+	task_info := th.FetchTask(fetcher)
+	if task_info.Status != "stop" {
+		fetcher.SetTaskStatus("done")
+	} else {
+		fetcher.SetTaskStatus("stopped")
+	}
 	return nil
 }
 
@@ -298,6 +306,14 @@ func HandleErr(errstring, docID string) error {
 
 	fetcher.AppendTaskOutput(errstring)
 	fetcher.SetTaskResult("error")
-	fetcher.SetTaskStatus("done")
+
+	th := DefaultTaskHandler()
+
+	task_info := th.FetchTask(fetcher)
+	if task_info.Status != "stop" {
+		fetcher.SetTaskStatus("done")
+	} else {
+		fetcher.SetTaskStatus("stopped")
+	}
 	return nil
 }
