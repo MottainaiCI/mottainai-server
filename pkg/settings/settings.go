@@ -62,11 +62,13 @@ type Config struct {
 
 	TempWorkDir string `yaml:"work_dir" envconfig:"WORKING_DIR"`
 
-	DockerEndpoint    string `yaml:"docker_endpoint" envconfig:"DOCKER_ENDPOINT"`
-	DockerKeepImg     bool   `yaml:"docker_keepimg" envconfig:"DOCKER_KEEPIMG"`
-	DockerPriviledged bool   `yaml:"docker_privileged" envconfig:"DOCKER_PRIVILEGED"`
-	DockerInDocker    bool   `yaml:"docker_in_docker" envconfig:"DOCKER_IN_DOCKER"`
-	DockerEndpointDiD string `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
+	DockerEndpoint    string   `yaml:"docker_endpoint" envconfig:"DOCKER_ENDPOINT"`
+	DockerKeepImg     bool     `yaml:"docker_keepimg" envconfig:"DOCKER_KEEPIMG"`
+	DockerPriviledged bool     `yaml:"docker_privileged" envconfig:"DOCKER_PRIVILEGED"`
+	DockerInDocker    bool     `yaml:"docker_in_docker" envconfig:"DOCKER_IN_DOCKER"`
+	DockerEndpointDiD string   `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
+	DockerCaps        []string `yaml:"docker_caps" envconfig:"DOCKER_CAPS"`
+	DockerCapsDrop    []string `yaml:"docker_caps_drop" envconfig:"DOCKER_CAPS_DROP"`
 }
 
 var (
@@ -117,6 +119,8 @@ var (
 	DockerPriviledged bool
 	DockerInDocker    bool
 	DockerEndpointDiD string
+	DockerCaps        []string
+	DockerCapsDrop    []string
 )
 
 func GenDefault() {
@@ -162,6 +166,8 @@ func GenDefault() {
 	Configuration.DockerPriviledged = true
 	Configuration.DockerInDocker = true
 	Configuration.DockerEndpointDiD = "/var/run/docker.sock"
+	Configuration.DockerCaps = []string{"SYS_PTRACE"}
+	Configuration.DockerCapsDrop = []string{}
 
 	LoadFromEnvironment()
 }

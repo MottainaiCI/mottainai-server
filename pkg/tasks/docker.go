@@ -53,6 +53,7 @@ func (e *DockerExecutor) Prune() {
 func (d *DockerExecutor) Setup(docID string) error {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetTaskStatus("setup")
+	fetcher.AppendTaskOutput("Node: " + utils.GenID())
 	fetcher.AppendTaskOutput("Setting up the docker interface")
 	d.MottainaiClient = fetcher
 	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
@@ -152,6 +153,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			if img, err := d.FindImage(sharedName); err == nil {
 				fetcher.AppendTaskOutput("Cached image found: " + img + " " + sharedName)
 				image = img
+			} else {
+				fetcher.AppendTaskOutput("No cached image found")
 			}
 		}
 
@@ -219,6 +222,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	createContHostConfig := docker.HostConfig{
 		Privileged: setting.Configuration.DockerPriviledged,
 		Binds:      ContainerBinds,
+		CapAdd:     setting.Configuration.DockerCaps,
+		CapDrop:    setting.Configuration.DockerCapsDrop,
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
 
