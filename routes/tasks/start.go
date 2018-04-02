@@ -27,14 +27,15 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 
 	machinery "github.com/RichardKnop/machinery/v1"
 )
 
-func SendStartTask(th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) {
+func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) {
 	id := ctx.ParamsInt(":id")
-	tasksapi.SendStartTask(th, ctx, db, rabbit)
+	tasksapi.SendStartTask(m, th, ctx, db, rabbit)
 	ctx.Redirect("/tasks/display/" + strconv.Itoa(id))
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	machinery "github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/config"
+	cron "github.com/robfig/cron"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/michaelklishin/rabbit-hole"
@@ -107,9 +108,16 @@ func (m *Mottainai) Start(fileconfig string) error {
 
 	database.NewDatabase("tiedot")
 
+	c := cron.New()
+
 	m.Map(database.DBInstance)
 	m.Map(server)
 	m.Map(th)
+	m.Map(c)
+	m.Map(m)
+	c.Start()
+
+	m.LoadPlans()
 
 	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
 	log.Printf("Listen: %v://%s", setting.Configuration.Protocol, listenAddr)
@@ -120,7 +128,55 @@ func (m *Mottainai) Start(fileconfig string) error {
 	if err != nil {
 		log.Fatal(4, "Fail to start server: %v", err)
 	}
+	c.Stop()
 	return nil
+}
+
+func (m *Mottainai) SendTask(docID int, server *machinery.Server, d *database.Database) (bool, error) {
+
+	task, err := d.GetTask(docID)
+	if err != nil {
+		return false, err
+	}
+	task.ClearBuildLog()
+
+	d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+
+	fmt.Printf("Task Source: %v, Script: %v, Yaml: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Yaml, task.Directory, task.TaskName)
+	th := agenttasks.DefaultTaskHandler()
+
+	_, err = th.SendTask(server, task.TaskName, docID)
+	if err != nil {
+		fmt.Printf("Could not send task: %s", err.Error())
+		return false, err
+	}
+	return true, nil
+}
+
+func (m *Mottainai) LoadPlans() {
+	m.Invoke(func(c *cron.Cron, d *database.Database, server *machinery.Server) {
+
+		for _, plan := range d.AllPlans() {
+			fmt.Println("Loading plan: ", plan.Task, plan)
+			c.AddFunc(plan.Planned, func() {
+				docID, _ := d.CreateTask(plan.Task.ToMap())
+				m.SendTask(docID, server, d)
+			})
+		}
+
+	})
+}
+
+func (m *Mottainai) ReloadCron() {
+
+	m.Invoke(func(c *cron.Cron, d *database.Database, server *machinery.Server) {
+		c.Stop()
+		c = cron.New()
+		m.Map(c)
+		m.LoadPlans()
+		c.Start()
+	})
+
 }
 
 func (m *Mottainai) NewMachineryServer() (*machinery.Server, error) {

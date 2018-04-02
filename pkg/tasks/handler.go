@@ -67,10 +67,27 @@ func DockerPlayer(docID string) (int, error) {
 	return player.Start(&DockerExecutor{})
 }
 
+func (h *TaskHandler) NewPlanFromJson(data []byte) Plan {
+	var t Plan
+	json.Unmarshal(data, &t)
+	return t
+}
+
 func (h *TaskHandler) NewTaskFromJson(data []byte) Task {
 	var t Task
 	json.Unmarshal(data, &t)
 	return t
+}
+
+func (h *TaskHandler) NewPlanFromMap(t map[string]interface{}) Plan {
+	tk := h.NewTaskFromMap(t)
+	var planned string
+	if str, ok := t["planned"].(string); ok {
+		planned = str
+	}
+	pl := Plan{Task: &tk}
+	pl.Planned = planned
+	return pl
 }
 
 func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {

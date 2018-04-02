@@ -27,6 +27,7 @@ import (
 	"path"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -65,6 +66,33 @@ type Task struct {
 	EndTime     string `json:"end_time" form:"end_time"`
 }
 
+type Plan struct {
+	*Task
+	Planned string `json:"planned" form:"planned"`
+}
+
+func (t *Plan) ToMap() map[string]interface{} {
+
+	ts := make(map[string]interface{})
+	val := reflect.ValueOf(t).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+		tag := typeField.Tag
+
+		ts[tag.Get("form")] = valueField.Interface()
+	}
+	val = reflect.ValueOf(t.Task).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+		tag := typeField.Tag
+
+		ts[tag.Get("form")] = valueField.Interface()
+		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
+	}
+	return ts
+}
 func (t *Task) ToMap() map[string]interface{} {
 
 	ts := make(map[string]interface{})
@@ -78,6 +106,14 @@ func (t *Task) ToMap() map[string]interface{} {
 		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
+}
+
+func (t *Task) Reset() {
+	t.Output = ""
+	t.Result = "none"
+	t.Status = ""
+	t.ExitStatus = ""
+	t.CreatedTime = time.Now().Format("20060102150405")
 }
 
 func (t *Task) IsRunning() bool {

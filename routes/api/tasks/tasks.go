@@ -73,5 +73,10 @@ func Setup(m *mottainai.Mottainai) {
 	m.Get("/api/tasks/:id/artefacts", ArtefactList)
 	m.Get("/api/artefacts", AllArtefactList)
 
+	m.Post("/api/tasks/plan", bind(agenttasks.Plan{}), Plan)
+	m.Get("/api/tasks/planned", PlannedTasks)
+	m.Get("/api/tasks/plan/delete/:id", PlanDelete)
+	m.Get("/api/tasks/plan/:id", PlannedTask)
+
 	m.Post("/api/tasks/artefact/upload", binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
 }

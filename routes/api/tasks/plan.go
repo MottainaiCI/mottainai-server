@@ -24,40 +24,58 @@ package tasksapi
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/robfig/cron"
 
 	machinery "github.com/RichardKnop/machinery/v1"
 )
 
-func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) string {
-	_, err := SendStartTask(m, th, ctx, db, rabbit)
-	if err != nil {
-		ctx.NotFound()
-		return ":("
-	}
-	return "OK"
+func PlannedTasks(ctx *context.Context, db *database.Database) {
+	plans := db.AllPlans()
+
+	ctx.JSON(200, plans)
 }
 
-func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) (string, error) {
+func PlannedTask(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	fmt.Println("Starting task ", id)
+	plan, err := db.GetPlan(id)
+	if err != nil {
+		panic(err)
+	}
 
-	mytask, err := db.GetTask(id)
+	ctx.JSON(200, plan)
+}
+
+func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Plan) (string, error) {
+	plan := opts.Planned
+	opts.Reset()
+	fields := opts.ToMap()
+	fmt.Println(fields)
+
+	docID, err := db.CreatePlan(fields)
 	if err != nil {
 		return "", err
 	}
-	if mytask.IsWaiting() || mytask.IsRunning() {
-		return "WAITING/RUNNING", nil
-	}
 
-	_, err = m.SendTask(id, rabbit, db)
+	c.AddFunc(plan, func() {
+		docID, _ := db.CreateTask(fields)
+		m.SendTask(docID, rabbit, db)
+	})
+
+	return strconv.Itoa(docID), nil
+}
+
+func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, rabbit *machinery.Server, db *database.Database, c *cron.Cron) error {
+	id := ctx.ParamsInt(":id")
+	err := db.DeletePlan(id)
 	if err != nil {
-		return ":( ", err
-	} else {
-		return "OK", nil
+		return err
 	}
+	m.ReloadCron()
+	return nil
 }

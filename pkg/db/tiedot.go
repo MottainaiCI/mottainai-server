@@ -47,6 +47,14 @@ func (d *Database) Init() {
 		d.AddIndex("Tasks", []string{"result", "status"})
 
 	}
+	if !utils.ArrayContainsString(colls, "Plans") {
+		if err := d.DB().Create("Plans"); err != nil {
+			return
+		}
+		d.AddIndex("Plans", []string{"status"})
+		d.AddIndex("Plans", []string{"result"})
+		d.AddIndex("Plans", []string{"result", "status"})
+	}
 	if !utils.ArrayContainsString(colls, "Nodes") {
 		if err := d.DB().Create("Nodes"); err != nil {
 			return
@@ -79,7 +87,9 @@ func (d *Database) Init() {
 		d.AddIndex(StorageColl, []string{"name"})
 		d.AddIndex(StorageColl, []string{"path"})
 	}
-
+	d.AddIndex("Plans", []string{"status"})
+	d.AddIndex("Plans", []string{"result"})
+	d.AddIndex("Plans", []string{"result", "status"})
 	d.AddIndex("Tasks", []string{"status"})
 	d.AddIndex("Tasks", []string{"result"})
 	d.AddIndex("Tasks", []string{"result", "status"})

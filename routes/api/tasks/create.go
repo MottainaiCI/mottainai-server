@@ -28,6 +28,7 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	machinery "github.com/RichardKnop/machinery/v1"
@@ -35,8 +36,8 @@ import (
 
 // TODO: Add dup.
 
-func APICreate(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
-	docID, err := Create(th, ctx, rabbit, db, opts)
+func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
+	docID, err := Create(m, th, ctx, rabbit, db, opts)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -44,7 +45,7 @@ func APICreate(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machine
 	return docID
 }
 
-func Create(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
+func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
 
 	task := opts.ToMap()
 	task["output"] = ""
@@ -56,7 +57,7 @@ func Create(th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.
 	if err != nil {
 		return "", err
 	}
-	SendTask(th, db, rabbit, docID)
+	m.SendTask(docID, rabbit, db)
 
 	return strconv.Itoa(docID), nil
 }
