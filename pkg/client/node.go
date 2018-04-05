@@ -26,9 +26,10 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
-func (f *Fetcher) RegisterNode(ID string) ([]byte, error) {
+func (f *Fetcher) RegisterNode(ID, hostname string) ([]byte, error) {
 	return f.GetOptions("/api/nodes/register", map[string]string{
-		"key":    setting.Configuration.AgentKey,
-		"nodeid": ID,
+		"key":      setting.Configuration.AgentKey,
+		"nodeid":   ID,
+		"hostname": hostname,
 	})
 }

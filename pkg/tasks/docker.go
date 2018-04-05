@@ -53,8 +53,11 @@ func (e *DockerExecutor) Prune() {
 func (d *DockerExecutor) Setup(docID string) error {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetTaskStatus("setup")
-	fetcher.AppendTaskOutput("Node: " + utils.GenID())
-	fetcher.AppendTaskOutput("Setting up the docker interface")
+	ID := utils.GenID()
+	hostname := utils.Hostname()
+	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + ") ")
+	fetcher.SetTaskField("nodeid", ID)
+
 	d.MottainaiClient = fetcher
 	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
 	if err != nil {
@@ -67,7 +70,6 @@ func (d *DockerExecutor) Setup(docID string) error {
 func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
 	th := DefaultTaskHandler()
-
 	task_info := th.FetchTask(fetcher)
 	if task_info.Status == "running" {
 		fetcher.SetTaskStatus("failure")

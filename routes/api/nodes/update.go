@@ -14,6 +14,7 @@ import (
 func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
+	hostname := nodedata.Hostname
 	fmt.Println("KEY " + key + ", ID " + nodeid)
 
 	if len(key) == 0 {
@@ -41,7 +42,8 @@ func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context
 	}
 
 	db.UpdateNode(mynodeid, map[string]interface{}{
-		"nodeid": nodeid,
+		"nodeid":   nodeid,
+		"hostname": hostname,
 	})
 
 	return "OK"

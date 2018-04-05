@@ -33,6 +33,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"os"
 	"regexp"
 	"time"
 
@@ -64,6 +65,13 @@ func GetBytes(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func Hostname() string {
+	if name, err := os.Hostname(); err == nil {
+		return name
+	}
+	return "unknown"
 }
 
 func GenID() string {
