@@ -105,12 +105,13 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 			"result":   f.Result,
 			"end_time": time.Now().Format("20060102150405"),
 		})
-		t, err := db.GetTask(f.Id)
-		if err != nil {
-			return ":("
-		}
-		t.HandleStatus()
 	}
+
+	t, err := db.GetTask(f.Id)
+	if err != nil {
+		return ":("
+	}
+	t.HandleStatus()
 
 	return "OK"
 }

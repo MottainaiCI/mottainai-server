@@ -159,6 +159,7 @@ func (m *Mottainai) LoadPlans() {
 		for _, plan := range d.AllPlans() {
 			fmt.Println("Loading plan: ", plan.Task, plan)
 			c.AddFunc(plan.Planned, func() {
+				plan.Task.Reset()
 				docID, _ := d.CreateTask(plan.Task.ToMap())
 				m.SendTask(docID, server, d)
 			})

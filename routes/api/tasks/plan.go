@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -55,17 +54,13 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	plan := opts.Planned
 	opts.Reset()
 	fields := opts.ToMap()
-	fmt.Println(fields)
 
 	docID, err := db.CreatePlan(fields)
 	if err != nil {
 		return "", err
 	}
 
-	c.AddFunc(plan, func() {
-		docID, _ := db.CreateTask(fields)
-		m.SendTask(docID, rabbit, db)
-	})
+	m.ReloadCron()
 
 	return strconv.Itoa(docID), nil
 }
