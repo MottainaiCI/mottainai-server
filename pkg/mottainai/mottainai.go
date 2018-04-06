@@ -132,25 +132,31 @@ func (m *Mottainai) Start(fileconfig string) error {
 	return nil
 }
 
-func (m *Mottainai) SendTask(docID int, server *machinery.Server, d *database.Database) (bool, error) {
+func (m *Mottainai) SendTask(docID int) (bool, error) {
+	result := true
+	var err error
+	m.Invoke(func(d *database.Database, server *machinery.Server) {
 
-	task, err := d.GetTask(docID)
-	if err != nil {
-		return false, err
-	}
-	task.ClearBuildLog()
+		task, err := d.GetTask(docID)
+		if err != nil {
+			result = false
+			return
+		}
+		task.ClearBuildLog()
 
-	d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+		d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
-	fmt.Printf("Task Source: %v, Script: %v, Yaml: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Yaml, task.Directory, task.TaskName)
-	th := agenttasks.DefaultTaskHandler()
+		fmt.Printf("Task Source: %v, Script: %v, Yaml: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Yaml, task.Directory, task.TaskName)
+		th := agenttasks.DefaultTaskHandler()
 
-	_, err = th.SendTask(server, task.TaskName, docID)
-	if err != nil {
-		fmt.Printf("Could not send task: %s", err.Error())
-		return false, err
-	}
-	return true, nil
+		_, err = th.SendTask(server, task.TaskName, docID)
+		if err != nil {
+			fmt.Printf("Could not send task: %s", err.Error())
+			result = false
+			return
+		}
+	})
+	return result, err
 }
 
 func (m *Mottainai) LoadPlans() {
@@ -161,7 +167,7 @@ func (m *Mottainai) LoadPlans() {
 			c.AddFunc(plan.Planned, func() {
 				plan.Task.Reset()
 				docID, _ := d.CreateTask(plan.Task.ToMap())
-				m.SendTask(docID, server, d)
+				m.SendTask(docID)
 			})
 		}
 

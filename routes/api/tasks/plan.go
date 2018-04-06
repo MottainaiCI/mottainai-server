@@ -51,7 +51,6 @@ func PlannedTask(ctx *context.Context, db *database.Database) {
 }
 
 func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Plan) (string, error) {
-	plan := opts.Planned
 	opts.Reset()
 	fields := opts.ToMap()
 
@@ -61,7 +60,6 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	}
 
 	m.ReloadCron()
-
 	return strconv.Itoa(docID), nil
 }
 
@@ -71,6 +69,7 @@ func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, rabbit *machinery.
 	if err != nil {
 		return err
 	}
+
 	m.ReloadCron()
 	return nil
 }

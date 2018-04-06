@@ -57,7 +57,19 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	if err != nil {
 		return "", err
 	}
-	m.SendTask(docID, rabbit, db)
+	m.SendTask(docID)
+
+	return strconv.Itoa(docID), nil
+}
+
+func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database) (string, error) {
+	id := ctx.ParamsInt(":id")
+
+	docID, err := db.CloneTask(id)
+	if err != nil {
+		return "", err
+	}
+	m.SendTask(docID)
 
 	return strconv.Itoa(docID), nil
 }

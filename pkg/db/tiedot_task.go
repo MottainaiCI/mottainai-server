@@ -42,12 +42,13 @@ func (d *Database) CreateTask(t map[string]interface{}) (int, error) {
 }
 
 func (d *Database) CloneTask(t int) (int, error) {
-	task, err := d.GetTask(t)
+	tdata, err := d.GetTask(t)
 	if err != nil {
 		return 0, err
 	}
-
-	return d.InsertTask(&task)
+	tdata.Reset()
+	tdata.ID = 0
+	return d.InsertTask(&tdata)
 }
 
 func (d *Database) DeleteTask(docID int) error {

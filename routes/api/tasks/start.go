@@ -54,7 +54,7 @@ func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *cont
 		return "WAITING/RUNNING", nil
 	}
 
-	_, err = m.SendTask(id, rabbit, db)
+	_, err = m.SendTask(id)
 	if err != nil {
 		return ":( ", err
 	} else {
