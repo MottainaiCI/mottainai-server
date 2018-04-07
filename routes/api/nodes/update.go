@@ -28,18 +28,18 @@ func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context
 		return ":("
 	}
 
-	var mynode nodes.Node
+	//var mynode nodes.Node
 	var mynodeid int
 	// Query result are document IDs
 	for id := range nodesfound {
-		mynode, _ = db.GetNode(id)
+		//	mynode, _ = db.GetNode(id)
 		mynodeid = id
 	}
 
-	if mynode.NodeID != "" { //Already registered
-		ctx.NotFound()
-		return ":("
-	}
+	//	if mynode.NodeID != "" { //Already registered
+	//ctx.NotFound()
+	//return ":("
+	//	}
 
 	db.UpdateNode(mynodeid, map[string]interface{}{
 		"nodeid":   nodeid,

@@ -55,7 +55,7 @@ func (d *DockerExecutor) Setup(docID string) error {
 	fetcher.SetTaskStatus("setup")
 	ID := utils.GenID()
 	hostname := utils.Hostname()
-	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + ") ")
+	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + " ) ")
 	fetcher.SetTaskField("nodeid", ID)
 
 	d.MottainaiClient = fetcher
