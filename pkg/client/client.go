@@ -30,6 +30,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -37,9 +38,10 @@ import (
 )
 
 type Fetcher struct {
-	BaseURL string
-	docID   string
-	Agent   *anagent.Anagent
+	BaseURL       string
+	docID         string
+	Agent         *anagent.Anagent
+	ActiveReports bool
 }
 
 func NewClient() *Fetcher {
@@ -101,6 +103,38 @@ func (f *Fetcher) GetOptions(url string, option map[string]string) ([]byte, erro
 	if err != nil {
 		return []byte{}, err
 	}
+
+	response, err := hclient.Do(request)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer response.Body.Close()
+
+	contents, err := ioutil.ReadAll(response.Body)
+	return contents, err
+}
+
+func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte, error) {
+	hclient := &http.Client{}
+	form := url.Values{}
+	var InterfaceList []interface{}
+
+	for k, v := range option {
+		if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
+			for _, el := range v.([]interface{}) {
+				form.Add(k, el.(string))
+			}
+		} else {
+			form.Add(k, v.(string))
+		}
+	}
+
+	request, err := http.NewRequest("POST", f.BaseURL+URL, strings.NewReader(form.Encode()))
+	if err != nil {
+		return []byte{}, err
+	}
+
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	response, err := hclient.Do(request)
 	if err != nil {

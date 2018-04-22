@@ -114,7 +114,22 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		prune         string
 		tag_namespace string
 		cache_image   string
+
+		environment []string
+		binds       []string
 	)
+	if arr, ok := t["binds"].([]interface{}); ok {
+		for _, v := range arr {
+			binds = append(binds, v.(string))
+		}
+	}
+
+	if arr, ok := t["environment"].([]interface{}); ok {
+		for _, v := range arr {
+			environment = append(environment, v.(string))
+		}
+	}
+
 	if str, ok := t["root_task"].(string); ok {
 		root_task = str
 	}
@@ -206,6 +221,8 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		TagNamespace: tag_namespace,
 		Prune:        prune,
 		CacheImage:   cache_image,
+		Environment:  environment,
+		Binds:        binds,
 	}
 	return task
 }
