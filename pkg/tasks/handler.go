@@ -95,7 +95,6 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	var (
 		source        string
 		script        string
-		yaml          string
 		directory     string
 		namespace     string
 		commit        string
@@ -127,9 +126,6 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	}
 	if str, ok := t["script"].(string); ok {
 		script = str
-	}
-	if str, ok := t["yaml"].(string); ok {
-		yaml = str
 	}
 	if str, ok := t["directory"].(string); ok {
 		directory = str
@@ -191,7 +187,6 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	task := Task{
 		Source:       source,
 		Script:       script,
-		Yaml:         yaml,
 		Directory:    directory,
 		TaskName:     taskname,
 		Namespace:    namespace,

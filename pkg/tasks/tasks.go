@@ -38,7 +38,6 @@ type Task struct {
 	ID           int    `json:"ID"`
 	Source       string `json:"source" form:"source"`
 	Script       string `json:"script" form:"script"`
-	Yaml         string `json:"yaml" form:"yaml"`
 	Directory    string `json:"directory" form:"directory"`
 	TaskName     string `json:"task" form:"task"`
 	Status       string `json:"status" form:"status"`
@@ -64,6 +63,9 @@ type Task struct {
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
+
+	Binds       []string `json:"binds" form:"binds"`
+	Environment []string `json:"environment" form:"environment"`
 }
 
 type Plan struct {

@@ -189,6 +189,10 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	var artefactdir string
 	var storagedir string
 
+	for _, b := range task_info.Binds {
+		ContainerBinds = append(ContainerBinds, b)
+	}
+
 	if setting.Configuration.DockerInDocker {
 		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
 		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
@@ -228,14 +232,15 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		CapDrop:    setting.Configuration.DockerCapsDrop,
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
+	var containerconfig = &docker.Config{Image: image, WorkingDir: git_build_root_path}
 
-	var containerconfig = &docker.Config{
-		Image: image,
-		Cmd:   []string{"-c", "pwd;ls -liah;" + execute_script},
-		//	Env:        config.Env,
-		WorkingDir: git_build_root_path,
-		Entrypoint: []string{"/bin/sh"},
-		//Entrypoint:  //[]string{execute_script},
+	if len(execute_script) > 0 {
+		containerconfig.Cmd = []string{"-c", "pwd;ls -liah;" + execute_script}
+		containerconfig.Entrypoint = []string{"/bin/sh"}
+	}
+
+	if len(task_info.Environment) > 0 {
+		containerconfig.Env = task_info.Environment
 	}
 
 	fetcher.AppendTaskOutput("Binds: ")

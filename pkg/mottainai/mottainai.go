@@ -146,7 +146,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 
 		d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
-		fmt.Printf("Task Source: %v, Script: %v, Yaml: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Yaml, task.Directory, task.TaskName)
+		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Directory, task.TaskName)
 		th := agenttasks.DefaultTaskHandler()
 
 		_, err = th.SendTask(server, task.TaskName, docID)
