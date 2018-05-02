@@ -46,19 +46,19 @@ type Config struct {
 
 	/* Broker Settings */
 
-	Broker              string `yaml:"broker" envconfig:"BROKER"`
-	BrokerType          string `yaml:"broker_type" envconfig:"BROKER_TYPE"`
-	BrokerDefaultQueue  string `yaml:"broker_default_queue" envconfig:"BROKER_DEFAULT_QUEUE"`
-	BrokerResultBackend string `yaml:"broker_result_backend" envconfig:"BROKER_RESULT_BACKEND"`
-	BrokerURI           string `yaml:"broker_uri" envconfig:"BROKER_URI"`
-	BrokerPass          string `yaml:"broker_pass" envconfig:"BROKER_PASS"`
-	BrokerUser          string `yaml:"broker_user" envconfig:"BROKER_USER"`
-	BrokerExchange      string `yaml:"broker_exchange" envconfig:"BROKER_EXCHANGE"`
-	BrokerExchangeType  string `yaml:"broker_exchange_type" envconfig:"BROKER_EXCHANGE_TYPE"`
-	BrokerBindingKey    string `yaml:"broker_binding_key" envconfig:"BROKER_BINDING_KEY"`
-	AgentConcurrency    int    `yaml:"agent_concurrency" envconfig:"AGENT_CONCURRENCY"`
-
-	AgentKey string `yaml:"agent_key" envconfig:"AGENT_KEY"`
+	Broker              string         `yaml:"broker" envconfig:"BROKER"`
+	BrokerType          string         `yaml:"broker_type" envconfig:"BROKER_TYPE"`
+	BrokerDefaultQueue  string         `yaml:"broker_default_queue" envconfig:"BROKER_DEFAULT_QUEUE"`
+	BrokerResultBackend string         `yaml:"broker_result_backend" envconfig:"BROKER_RESULT_BACKEND"`
+	BrokerURI           string         `yaml:"broker_uri" envconfig:"BROKER_URI"`
+	BrokerPass          string         `yaml:"broker_pass" envconfig:"BROKER_PASS"`
+	BrokerUser          string         `yaml:"broker_user" envconfig:"BROKER_USER"`
+	BrokerExchange      string         `yaml:"broker_exchange" envconfig:"BROKER_EXCHANGE"`
+	BrokerExchangeType  string         `yaml:"broker_exchange_type" envconfig:"BROKER_EXCHANGE_TYPE"`
+	BrokerBindingKey    string         `yaml:"broker_binding_key" envconfig:"BROKER_BINDING_KEY"`
+	AgentConcurrency    int            `yaml:"agent_concurrency" envconfig:"AGENT_CONCURRENCY"`
+	Queues              map[string]int `yaml:"queues" envconfig:"QUEUES"`
+	AgentKey            string         `yaml:"agent_key" envconfig:"AGENT_KEY"`
 
 	TempWorkDir string `yaml:"work_dir" envconfig:"WORKING_DIR"`
 
@@ -69,6 +69,7 @@ type Config struct {
 	DockerEndpointDiD string   `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
 	DockerCaps        []string `yaml:"docker_caps" envconfig:"DOCKER_CAPS"`
 	DockerCapsDrop    []string `yaml:"docker_caps_drop" envconfig:"DOCKER_CAPS_DROP"`
+	PrivateQueue      bool     `yaml:"private_queue" envconfig:"PRIVATE_QUEUE"`
 }
 
 var (
@@ -121,6 +122,8 @@ var (
 	DockerEndpointDiD string
 	DockerCaps        []string
 	DockerCapsDrop    []string
+	Queues            map[string]int
+	PrivateQueue      bool
 )
 
 func GenDefault() {
@@ -168,7 +171,8 @@ func GenDefault() {
 	Configuration.DockerEndpointDiD = "/var/run/docker.sock"
 	Configuration.DockerCaps = []string{"SYS_PTRACE"}
 	Configuration.DockerCapsDrop = []string{}
-
+	Configuration.Queues = map[string]int{}
+	Configuration.PrivateQueue = true
 	LoadFromEnvironment()
 }
 

@@ -27,17 +27,15 @@ import (
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
-	machinery "github.com/RichardKnop/machinery/v1"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 // TODO: Add dup.
 
-func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) string {
-	docID, err := Create(m, th, ctx, rabbit, db, opts)
+func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) string {
+	docID, err := Create(m, th, ctx, db, opts)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -45,7 +43,7 @@ func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 	return docID
 }
 
-func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) (string, error) {
+func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
 
 	task := opts.ToMap()
 	task["output"] = ""
@@ -62,7 +60,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	return strconv.Itoa(docID), nil
 }
 
-func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database) (string, error) {
+func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.ParamsInt(":id")
 
 	docID, err := db.CloneTask(id)

@@ -25,13 +25,12 @@ package tasksapi
 import (
 	"strconv"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/robfig/cron"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	"github.com/robfig/cron"
 )
 
 func PlannedTasks(ctx *context.Context, db *database.Database) {
@@ -50,7 +49,7 @@ func PlannedTask(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, plan)
 }
 
-func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Plan) (string, error) {
+func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Plan) (string, error) {
 	opts.Reset()
 	fields := opts.ToMap()
 
@@ -63,7 +62,7 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	return strconv.Itoa(docID), nil
 }
 
-func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, rabbit *machinery.Server, db *database.Database, c *cron.Cron) error {
+func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.ParamsInt(":id")
 	err := db.DeletePlan(id)
 	if err != nil {

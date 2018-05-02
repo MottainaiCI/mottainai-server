@@ -44,36 +44,43 @@ func NewAgent() *MottainaiAgent {
 func (m *MottainaiAgent) Run(config string) error {
 
 	setting.GenDefault()
-	//agent := mottainai.NewAgent()
 	if len(config) > 0 {
 		setting.LoadFromFileEnvironment(config)
 	}
 
-	server, m_error := New().NewMachineryServer()
-	if m_error != nil {
-		panic(m_error)
-	}
+	server := NewServer()
+	broker := server.Add(setting.Configuration.BrokerDefaultQueue)
 
 	th := agenttasks.DefaultTaskHandler()
-	th.RegisterTasks(server)
 	m.Map(th)
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 	log.INFO.Println("Worker ID: " + ID)
 	log.INFO.Println("Worker Hostname: " + hostname)
 
-	worker := server.NewWorker(ID, setting.Configuration.AgentConcurrency)
+	if setting.Configuration.PrivateQueue {
+		b := server.Add(hostname)
+		w := b.NewWorker(ID+hostname, 1)
+		log.INFO.Println("Listening on private queue")
+		go w.Launch()
+	}
+
+	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
 	fetcher := client.NewClient()
 	fetcher.RegisterNode(ID, hostname)
 	m.Map(fetcher)
-	// agent.TimerSeconds(int64(200), true, func(l *corelog.Logger) {
-	// 		Register(ID)
-	// 	})
+
+	for q, concurrent := range setting.Configuration.Queues {
+		log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
+		b := server.Add(q)
+		w := b.NewWorker(ID, concurrent)
+		go w.Launch()
+	}
 
 	go func(w *machinery.Worker, a *MottainaiAgent) {
 		a.Map(w)
 		a.Start()
-	}(worker, m)
+	}(defaultWorker, m)
 
-	return worker.Launch()
+	return defaultWorker.Launch()
 }

@@ -24,15 +24,14 @@ package nodesroute
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/routes/api/nodes"
+	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Remove(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) {
-	_, err := nodesapi.Remove(rmqc, ctx, rabbit, db)
+func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) {
+	_, err := nodesapi.Remove(rmqc, ctx, db)
 
 	if err != nil {
 		ctx.NotFound()

@@ -29,16 +29,17 @@ import (
 
 	log "log"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	machinery "github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/config"
+	config "github.com/RichardKnop/machinery/v1/config"
 	cron "github.com/robfig/cron"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/michaelklishin/rabbit-hole"
+	rabbithole "github.com/michaelklishin/rabbit-hole"
 	macaron "gopkg.in/macaron.v1"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 type Mottainai struct {
@@ -89,11 +90,9 @@ func (m *Mottainai) Start(fileconfig string) error {
 
 	m.SetStatic()
 
-	server, m_error := m.NewMachineryServer()
-	if m_error != nil {
-		panic(m_error)
-	}
+	server := NewServer()
 
+	server.Add(setting.Configuration.BrokerDefaultQueue)
 	if setting.Configuration.BrokerType == "amqp" {
 		rmqc, r_error := rabbithole.NewClient(setting.Configuration.BrokerURI, setting.Configuration.BrokerUser, setting.Configuration.BrokerPass)
 		if r_error != nil {
@@ -103,7 +102,6 @@ func (m *Mottainai) Start(fileconfig string) error {
 	}
 
 	th := agenttasks.DefaultTaskHandler()
-	th.RegisterTasks(server)
 	fmt.Println("DB  with " + setting.Configuration.DBPath)
 
 	database.NewDatabase("tiedot")
@@ -135,7 +133,7 @@ func (m *Mottainai) Start(fileconfig string) error {
 func (m *Mottainai) SendTask(docID int) (bool, error) {
 	result := true
 	var err error
-	m.Invoke(func(d *database.Database, server *machinery.Server) {
+	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
 
 		task, err := d.GetTask(docID)
 		if err != nil {
@@ -143,13 +141,28 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 			return
 		}
 		task.ClearBuildLog()
+		var broker *Broker
+		if len(task.Queue) > 0 {
+			broker = server.Get(task.Queue)
+			log.Println("Sending task to queue ", task.Queue)
+
+		} else {
+			broker = server.Get(setting.Configuration.BrokerDefaultQueue)
+			log.Println("Sending task to queue ", setting.Configuration.BrokerDefaultQueue)
+
+		}
 
 		d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
 		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Directory, task.TaskName)
-		th := agenttasks.DefaultTaskHandler()
 
-		_, err = th.SendTask(server, task.TaskName, docID)
+		if !th.Exists(task.TaskName) {
+			fmt.Printf("Could not send task: Invalid task name")
+			result = false
+			return
+		}
+
+		_, err = broker.SendTask(task.TaskName, docID)
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
 			result = false
@@ -160,7 +173,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 }
 
 func (m *Mottainai) LoadPlans() {
-	m.Invoke(func(c *cron.Cron, d *database.Database, server *machinery.Server) {
+	m.Invoke(func(c *cron.Cron, d *database.Database) {
 
 		for _, plan := range d.AllPlans() {
 			fmt.Println("Loading plan: ", plan.Task, plan)
@@ -178,7 +191,7 @@ func (m *Mottainai) LoadPlans() {
 
 func (m *Mottainai) ReloadCron() {
 
-	m.Invoke(func(c *cron.Cron, d *database.Database, server *machinery.Server) {
+	m.Invoke(func(c *cron.Cron, d *database.Database) {
 		c.Stop()
 		c = cron.New()
 		m.Map(c)
@@ -188,20 +201,21 @@ func (m *Mottainai) ReloadCron() {
 
 }
 
-func (m *Mottainai) NewMachineryServer() (*machinery.Server, error) {
+func NewMachineryServer(queue string) (*machinery.Server, error) {
 
 	var amqpConfig *config.AMQPConfig
 	if setting.Configuration.BrokerType == "amqp" {
 		amqpConfig = &config.AMQPConfig{
 			Exchange:     setting.Configuration.BrokerExchange,
 			ExchangeType: setting.Configuration.BrokerExchangeType,
-			BindingKey:   setting.Configuration.BrokerBindingKey,
+			BindingKey:   queue + "_key",
+			//BindingKey:   setting.Configuration.BrokerBindingKey,
 		}
 
 	}
 	var cnf = &config.Config{
 		Broker:          setting.Configuration.Broker,
-		DefaultQueue:    setting.Configuration.BrokerDefaultQueue,
+		DefaultQueue:    queue,
 		ResultBackend:   setting.Configuration.BrokerResultBackend,
 		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
 		AMQP:            amqpConfig,

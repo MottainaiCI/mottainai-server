@@ -24,14 +24,12 @@ package tasks
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-
-	machinery "github.com/RichardKnop/machinery/v1"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 )
 
-func Delete(ctx *context.Context, rabbit *machinery.Server, db *database.Database) {
-	err := tasksapi.Delete(ctx, rabbit, db)
+func Delete(ctx *context.Context, db *database.Database) {
+	err := tasksapi.Delete(ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return

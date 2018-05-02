@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
-	machinery "github.com/RichardKnop/machinery/v1"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
+func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
 	hostname := nodedata.Hostname

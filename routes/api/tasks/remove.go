@@ -23,14 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
-func APIDelete(ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
-	err := Delete(ctx, rabbit, db)
+func APIDelete(ctx *context.Context, db *database.Database) string {
+	err := Delete(ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -38,7 +37,7 @@ func APIDelete(ctx *context.Context, rabbit *machinery.Server, db *database.Data
 	return "OK"
 }
 
-func Delete(ctx *context.Context, rabbit *machinery.Server, db *database.Database) error {
+func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 	err := db.DeleteTask(id)
 	if err != nil {

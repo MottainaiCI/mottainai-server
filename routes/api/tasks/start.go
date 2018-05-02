@@ -25,16 +25,16 @@ package tasksapi
 import (
 	"fmt"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 )
 
-func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) string {
-	_, err := SendStartTask(m, th, ctx, db, rabbit)
+func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) string {
+	_, err := SendStartTask(m, th, ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return ":("
@@ -42,7 +42,7 @@ func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *c
 	return "OK"
 }
 
-func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, rabbit *machinery.Server) (string, error) {
+func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.ParamsInt(":id")
 	fmt.Println("Starting task ", id)
 

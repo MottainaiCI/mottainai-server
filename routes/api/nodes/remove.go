@@ -2,14 +2,13 @@ package nodesapi
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
-	_, err := Remove(rmqc, ctx, rabbit, db)
+func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
+	_, err := Remove(rmqc, ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return ":("
@@ -19,7 +18,7 @@ func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.
 	return "OK"
 }
 
-func Remove(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) (string, error) {
+func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.ParamsInt(":id")
 	node, _ := db.GetNode(id)
 

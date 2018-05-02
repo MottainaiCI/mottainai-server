@@ -32,8 +32,6 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	machinery "github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/backends"
-	machinerytask "github.com/RichardKnop/machinery/v1/tasks"
 )
 
 type TaskHandler struct {
@@ -114,10 +112,15 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		prune         string
 		tag_namespace string
 		cache_image   string
+		queue         string
 
 		environment []string
 		binds       []string
 	)
+
+	binds = make([]string, 0)
+	environment = make([]string, 0)
+
 	if arr, ok := t["binds"].([]interface{}); ok {
 		for _, v := range arr {
 			binds = append(binds, v.(string))
@@ -130,6 +133,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		}
 	}
 
+	if str, ok := t["queue"].(string); ok {
+		queue = str
+	}
 	if str, ok := t["root_task"].(string); ok {
 		root_task = str
 	}
@@ -200,6 +206,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	}
 
 	task := Task{
+		Queue:        queue,
 		Source:       source,
 		Script:       script,
 		Directory:    directory,
@@ -225,49 +232,6 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		Binds:        binds,
 	}
 	return task
-}
-
-func (h *TaskHandler) SendTask(rabbit *machinery.Server, taskname string, taskid int) (*backends.AsyncResult, error) {
-
-	if !h.Exists(taskname) {
-		return &backends.AsyncResult{}, errors.New("No task name specified")
-	}
-	onErr := make([]*machinerytask.Signature, 0)
-
-	onErr = append(onErr, &machinerytask.Signature{
-		Name: "error",
-		Args: []machinerytask.Arg{
-			{
-				Type:  "string",
-				Value: strconv.Itoa(taskid),
-			},
-		},
-	})
-
-	onSuccess := make([]*machinerytask.Signature, 0)
-
-	onSuccess = append(onSuccess, &machinerytask.Signature{
-		Name: "success",
-		Args: []machinerytask.Arg{
-			{
-				Type:  "string",
-				Value: strconv.Itoa(taskid),
-			},
-		},
-	})
-
-	return rabbit.SendTask(&machinerytask.Signature{
-		Name: taskname,
-		Args: []machinerytask.Arg{
-			{
-				Type:  "string",
-				Value: strconv.Itoa(taskid),
-			},
-		},
-
-		OnError:   onErr,
-		OnSuccess: onSuccess,
-	})
 }
 
 func (h *TaskHandler) RegisterTasks(m *machinery.Server) {

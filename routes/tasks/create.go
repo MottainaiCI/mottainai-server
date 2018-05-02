@@ -24,19 +24,18 @@ package tasks
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/MottainaiCI/mottainai-server/pkg/template"
-	"github.com/MottainaiCI/mottainai-server/routes/api/tasks"
+	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 
-	machinery "github.com/RichardKnop/machinery/v1"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
 
 // TODO: Add dup.
 
-func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, rabbit *machinery.Server, db *database.Database, opts agenttasks.Task) {
-	docID, err := tasksapi.Create(m, th, ctx, rabbit, db, opts)
+func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) {
+	docID, err := tasksapi.Create(m, th, ctx, db, opts)
 	if err != nil {
 		ctx.NotFound()
 	} else {

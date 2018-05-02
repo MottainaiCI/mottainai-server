@@ -27,9 +27,8 @@ import (
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
-	machinery "github.com/RichardKnop/machinery/v1"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
@@ -44,7 +43,7 @@ type UpdateTaskForm struct {
 	Value      string `form:"value"`
 }
 
-func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
+func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 
 	ok, _ := ValidateNodeKey(&f, db)
 	if ok == false {
@@ -60,7 +59,7 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 	return "OK"
 }
 
-func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
+func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 
 	ok, _ := ValidateNodeKey(&f, db)
 	if ok == false {
@@ -80,7 +79,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 	return "OK"
 }
 
-func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) string {
+func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 	ok, _ := ValidateNodeKey(&f, db)
 
 	if ok == false {

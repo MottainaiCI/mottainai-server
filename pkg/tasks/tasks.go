@@ -63,6 +63,7 @@ type Task struct {
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
+	Queue       string `json:"queue" form:"queue"`
 
 	Binds       []string `json:"binds" form:"binds"`
 	Environment []string `json:"environment" form:"environment"`

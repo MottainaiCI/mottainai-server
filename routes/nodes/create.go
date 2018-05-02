@@ -24,15 +24,14 @@ package nodesroute
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/routes/api/nodes"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 
-	machinery "github.com/RichardKnop/machinery/v1"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Create(rmqc *rabbithole.Client, ctx *context.Context, rabbit *machinery.Server, db *database.Database) {
-	_, err := nodesapi.Create(rmqc, ctx, rabbit, db)
+func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) {
+	_, err := nodesapi.Create(rmqc, ctx, db)
 
 	if err != nil {
 		ctx.NotFound()
