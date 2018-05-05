@@ -33,7 +33,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/mudler/anagent"
 )
 
@@ -61,6 +62,10 @@ func New(docID string, a *anagent.Anagent) *Fetcher {
 	f.docID = docID
 	f.Agent = a
 	return f
+}
+
+func (f *Fetcher) Doc(id string) {
+	f.docID = id
 }
 
 func (f *Fetcher) GetJSONOptions(url string, option map[string]string, target interface{}) error {
