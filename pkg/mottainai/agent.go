@@ -70,6 +70,10 @@ func (m *MottainaiAgent) Run(config string) error {
 	fetcher.RegisterNode(ID, hostname)
 	m.Map(fetcher)
 
+	m.TimerSeconds(int64(200), true, func(c *client.Fetcher) {
+		c.RegisterNode(ID, hostname)
+	})
+
 	for q, concurrent := range setting.Configuration.Queues {
 		log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
 		b := server.Add(q)
