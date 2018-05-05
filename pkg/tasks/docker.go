@@ -241,6 +241,10 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	if len(task_info.Environment) > 0 {
 		containerconfig.Env = task_info.Environment
+		fetcher.AppendTaskOutput("Env: ")
+		for _, e := range task_info.Environment {
+			fetcher.AppendTaskOutput("- " + e)
+		}
 	}
 
 	fetcher.AppendTaskOutput("Binds: ")
