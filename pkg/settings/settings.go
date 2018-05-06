@@ -41,6 +41,7 @@ type Config struct {
 	NamespacePath  string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
 	StoragePath    string `yaml:"storage_path" envconfig:"STORAGE_PATH"`
 	BuildPath      string `yaml:"build_path" envconfig:"BUILD_PATH"`
+	LockPath       string `yaml:"lock_path" envconfig:"LOCK_PATH"`
 
 	ResultsExpireIn int `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
 
@@ -112,6 +113,7 @@ var (
 	AgentConcurrency    int
 	ResultsExpireIn     int
 	AgentKey            string
+	LockPath            string
 
 	TempWorkDir string
 
@@ -173,6 +175,9 @@ func GenDefault() {
 	Configuration.DockerCapsDrop = []string{}
 	Configuration.Queues = map[string]int{}
 	Configuration.PrivateQueue = true
+
+	Configuration.LockPath = "/var/lock/mottainai/"
+
 	LoadFromEnvironment()
 }
 

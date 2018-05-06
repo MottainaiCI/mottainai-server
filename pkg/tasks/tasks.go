@@ -140,7 +140,7 @@ func (t *Task) ClearBuildLog() {
 
 func (t *Task) Clear() {
 	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)))
-	os.RemoveAll("/var/lock/mottainai/" + strconv.Itoa(t.ID) + ".lock")
+	os.RemoveAll(path.Join(setting.Configuration.LockPath, strconv.Itoa(t.ID)+".lock"))
 }
 
 func (t *Task) GetLogPart(pos int) string {
@@ -213,8 +213,8 @@ func (t *Task) TailLog(pos int) string {
 }
 
 func (t *Task) LockSection(f func() error) error {
-	os.MkdirAll("/var/lock/mottainai", os.ModePerm)
-	lockfile := "/var/lock/mottainai/" + strconv.Itoa(t.ID) + ".lock"
+	os.MkdirAll(setting.Configuration.LockPath, os.ModePerm)
+	lockfile := path.Join(setting.Configuration.LockPath, strconv.Itoa(t.ID)+".lock")
 	fileLock := flock.NewFlock(lockfile)
 
 	locked, err := fileLock.TryLock()
