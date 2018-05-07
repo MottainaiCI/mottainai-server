@@ -22,9 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package nodesroute
 
-import "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+import (
+	macaron "gopkg.in/macaron.v1"
+)
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 	m.Get("/nodes", ShowAll)
 	m.Get("/nodes/add", Create)
 	m.Get("/nodes/delete/:id", Remove)

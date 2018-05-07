@@ -23,11 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storagesapi
 
 import (
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/go-macaron/binding"
+	macaron "gopkg.in/macaron.v1"
 )
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 	//bind := binding.Bind
 	m.Get("/api/storage/list", StorageList)
 	m.Get("/api/storage/:id/list", StorageListArtefacts)

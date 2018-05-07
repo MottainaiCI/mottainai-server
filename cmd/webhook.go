@@ -20,22 +20,32 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tasks
+package cmd
 
 import (
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/go-macaron/binding"
-	macaron "gopkg.in/macaron.v1"
+	"fmt"
+
+	"github.com/MottainaiCI/mottainai-server/routes"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	"github.com/urfave/cli"
 )
 
-func Setup(m *macaron.Macaron) {
-	bind := binding.BindIgnErr
-	m.Get("/tasks", ShowAll)
-	m.Get("/tasks/add", Add)
-	m.Post("/tasks", bind(agenttasks.Task{}), Create)
-	m.Get("/tasks/display/:id", DisplayTask)
-	m.Get("/tasks/:id", DisplayTask)
-	m.Get("/tasks/start/:id", SendStartTask)
-	m.Get("/tasks/stop/:id", Stop)
-	m.Get("/tasks/delete/:id", Delete)
+var WebHook = cli.Command{
+	Name:        "webhook",
+	Usage:       "webhook",
+	Description: `webhook server to run tasks against repositories`,
+	Action: func(c *cli.Context) {
+		m := mottainai.NewWebHookServer()
+		routes.SetupWebHookServer(m)
+		if c.IsSet("config") {
+			m.Start(c.String("config"))
+		} else {
+			fmt.Println("No config file provided - running default")
+			m.Start("")
+		}
+	},
+	Flags: []cli.Flag{
+		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
+	},
 }

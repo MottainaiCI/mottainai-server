@@ -25,11 +25,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/template"
-
 	"github.com/MottainaiCI/mottainai-server/routes"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+
 	"github.com/urfave/cli"
 )
 
@@ -38,24 +37,16 @@ var Web = cli.Command{
 	Usage:       "Start web server",
 	Description: `Full-blown webui`,
 	Action: func(c *cli.Context) {
+		m := mottainai.Classic()
+		routes.SetupWebUI(m)
 		if c.IsSet("config") {
-			newWebUI().Start(c.String("config"))
+			m.Start(c.String("config"))
 		} else {
 			fmt.Println("No config file provided - running default")
-			newWebUI().Start("")
+			m.Start("")
 		}
 	},
 	Flags: []cli.Flag{
 		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
 	},
-}
-
-func newWebUI() *mottainai.Mottainai {
-
-	m := mottainai.Classic()
-	template.Setup(m)
-	context.Setup(m)
-	routes.Setup(m)
-
-	return m
 }

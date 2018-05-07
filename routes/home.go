@@ -24,13 +24,16 @@ package routes
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/routes/api"
+	"github.com/MottainaiCI/mottainai-server/routes/webhook"
 
-	"github.com/MottainaiCI/mottainai-server/routes/nodes"
+	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
+	macaron "gopkg.in/macaron.v1"
+
 	"github.com/MottainaiCI/mottainai-server/routes/tasks"
 )
 
@@ -39,7 +42,32 @@ func NotFound(c *context.Context) {
 	c.NotFound()
 }
 
-func Setup(m *mottainai.Mottainai) {
+func SetupDaemon(m *mottainai.Mottainai) *mottainai.Mottainai {
+	context.Setup(m.Macaron)
+	api.Setup(m.Macaron)
+	template.Setup(m.Macaron)
+	return m
+}
+
+func SetupWebHookServer(m *mottainai.WebHookServer) *mottainai.WebHookServer {
+
+	template.Setup(m.Mottainai.Macaron)
+	context.Setup(m.Mottainai.Macaron)
+	webhook.Setup(m.Mottainai.Macaron)
+
+	return m
+}
+
+func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
+
+	template.Setup(m.Macaron)
+	context.Setup(m.Macaron)
+	Setup(m.Macaron)
+
+	return m
+}
+
+func Setup(m *macaron.Macaron) {
 
 	m.NotFound(NotFound)
 

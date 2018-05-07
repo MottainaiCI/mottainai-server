@@ -30,14 +30,14 @@ import (
 	"strings"
 	"time"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	macaron "gopkg.in/macaron.v1"
 
 	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/markup"
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -54,7 +54,7 @@ func TemplatePreview(c *context.Context, templatename string) {
 	//c.HTML(200, (c.Params("*")))
 }
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 	funcMap := NewFuncMap()
 	m.Use(macaron.Renderer(macaron.RenderOptions{
 		Directory:         path.Join(setting.Configuration.StaticRootPath, "templates"),

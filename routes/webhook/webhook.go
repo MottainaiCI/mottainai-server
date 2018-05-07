@@ -20,22 +20,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tasks
+package webhook
 
 import (
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/go-macaron/binding"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	bind := binding.BindIgnErr
-	m.Get("/tasks", ShowAll)
-	m.Get("/tasks/add", Add)
-	m.Post("/tasks", bind(agenttasks.Task{}), Create)
-	m.Get("/tasks/display/:id", DisplayTask)
-	m.Get("/tasks/:id", DisplayTask)
-	m.Get("/tasks/start/:id", SendStartTask)
-	m.Get("/tasks/stop/:id", Stop)
-	m.Get("/tasks/delete/:id", Delete)
+
+	m.Get("/webhook/github", func(ctx *context.Context, db *database.Database) {
+		//
+	})
+
 }

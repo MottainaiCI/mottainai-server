@@ -1,12 +1,12 @@
 package nodesapi
 
 import (
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
+	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	"github.com/go-macaron/binding"
+	macaron "gopkg.in/macaron.v1"
 )
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 	bind := binding.Bind
 	m.Get("/api/nodes", ShowAll)
 	m.Get("/api/nodes/add", APICreate)

@@ -24,8 +24,9 @@ package main
 import (
 	"os"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/MottainaiCI/mottainai-server/cmd"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"github.com/urfave/cli"
 )
@@ -49,6 +50,7 @@ func main() {
 	app.Version = setting.MOTTAINAI_VERSION
 	app.Commands = []cli.Command{
 		cmd.Web,
+		cmd.WebHook,
 		cmd.Daemon,
 	}
 	app.Flags = append(app.Flags, []cli.Flag{}...)

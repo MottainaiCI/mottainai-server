@@ -22,9 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package namespacesapi
 
-import "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+import (
+	macaron "gopkg.in/macaron.v1"
+)
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 	//bind := binding.Bind
 	m.Get("/api/namespace/list", NamespaceList)
 	m.Get("/api/namespace/:name/list", NamespaceListArtefacts)

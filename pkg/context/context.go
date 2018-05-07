@@ -26,10 +26,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
-	"gopkg.in/macaron.v1"
+	macaron "gopkg.in/macaron.v1"
 )
 
 // Context represents context of a request.
@@ -40,7 +39,7 @@ type Context struct {
 	IsBasicAuth bool
 }
 
-func Setup(m *mottainai.Mottainai) {
+func Setup(m *macaron.Macaron) {
 
 	m.Use(Contexter())
 

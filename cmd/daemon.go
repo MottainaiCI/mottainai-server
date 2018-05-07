@@ -25,10 +25,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/MottainaiCI/mottainai-server/routes"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/MottainaiCI/mottainai-server/pkg/template"
-	"github.com/MottainaiCI/mottainai-server/routes/api"
 	"github.com/urfave/cli"
 )
 
@@ -37,22 +36,16 @@ var Daemon = cli.Command{
 	Usage:       "Start api daemon",
 	Description: `daemon - a lighter version, just api`,
 	Action: func(c *cli.Context) {
+		m := mottainai.Classic()
+		routes.SetupDaemon(m)
 		if c.IsSet("config") {
-			newDaemon().Start(c.String("config"))
+			m.Start(c.String("config"))
 		} else {
 			fmt.Println("No config file provided - running default")
-			newDaemon().Start("")
+			m.Start("")
 		}
 	},
 	Flags: []cli.Flag{
 		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
 	},
-}
-
-func newDaemon() *mottainai.Mottainai {
-	m := mottainai.Classic()
-	context.Setup(m)
-	api.Setup(m)
-	template.Setup(m)
-	return m
 }
