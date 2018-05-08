@@ -60,6 +60,7 @@ func (m *WebHookServer) Start(fileconfig string) error {
 
 	m.Map(database.DBInstance)
 	m.Map(m)
+	m.Map(m.Mottainai)
 
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: setting.Configuration.WebHookGitHubToken})
 	tc := oauth2.NewClient(oauth2.NoContext, ts)

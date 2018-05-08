@@ -63,15 +63,16 @@ type Config struct {
 
 	TempWorkDir string `yaml:"work_dir" envconfig:"WORKING_DIR"`
 
-	DockerEndpoint     string   `yaml:"docker_endpoint" envconfig:"DOCKER_ENDPOINT"`
-	DockerKeepImg      bool     `yaml:"docker_keepimg" envconfig:"DOCKER_KEEPIMG"`
-	DockerPriviledged  bool     `yaml:"docker_privileged" envconfig:"DOCKER_PRIVILEGED"`
-	DockerInDocker     bool     `yaml:"docker_in_docker" envconfig:"DOCKER_IN_DOCKER"`
-	DockerEndpointDiD  string   `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
-	DockerCaps         []string `yaml:"docker_caps" envconfig:"DOCKER_CAPS"`
-	DockerCapsDrop     []string `yaml:"docker_caps_drop" envconfig:"DOCKER_CAPS_DROP"`
-	PrivateQueue       bool     `yaml:"private_queue" envconfig:"PRIVATE_QUEUE"`
-	WebHookGitHubToken string   `yaml:"github_token" envconfig:"GH_TOKEN"`
+	DockerEndpoint      string   `yaml:"docker_endpoint" envconfig:"DOCKER_ENDPOINT"`
+	DockerKeepImg       bool     `yaml:"docker_keepimg" envconfig:"DOCKER_KEEPIMG"`
+	DockerPriviledged   bool     `yaml:"docker_privileged" envconfig:"DOCKER_PRIVILEGED"`
+	DockerInDocker      bool     `yaml:"docker_in_docker" envconfig:"DOCKER_IN_DOCKER"`
+	DockerEndpointDiD   string   `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
+	DockerCaps          []string `yaml:"docker_caps" envconfig:"DOCKER_CAPS"`
+	DockerCapsDrop      []string `yaml:"docker_caps_drop" envconfig:"DOCKER_CAPS_DROP"`
+	PrivateQueue        bool     `yaml:"private_queue" envconfig:"PRIVATE_QUEUE"`
+	WebHookGitHubToken  string   `yaml:"github_token" envconfig:"GH_TOKEN"`
+	WebHookGitHubSecret string   `yaml:"github_secret" envconfig:"GH_SECRET"`
 }
 
 var (
@@ -118,17 +119,17 @@ var (
 
 	TempWorkDir string
 
-	DockerEndpoint    string
-	DockerKeepImg     bool
-	DockerPriviledged bool
-	DockerInDocker    bool
-	DockerEndpointDiD string
-	DockerCaps        []string
-	DockerCapsDrop    []string
-	Queues            map[string]int
-	PrivateQueue      bool
-
-	WebHookGitHubToken string
+	DockerEndpoint      string
+	DockerKeepImg       bool
+	DockerPriviledged   bool
+	DockerInDocker      bool
+	DockerEndpointDiD   string
+	DockerCaps          []string
+	DockerCapsDrop      []string
+	Queues              map[string]int
+	PrivateQueue        bool
+	WebHookGitHubSecret string
+	WebHookGitHubToken  string
 )
 
 func GenDefault() {
@@ -181,6 +182,8 @@ func GenDefault() {
 
 	Configuration.LockPath = "/var/lock/mottainai/"
 	Configuration.WebHookGitHubToken = ""
+	Configuration.WebHookGitHubSecret = ""
+
 	LoadFromEnvironment()
 }
 
