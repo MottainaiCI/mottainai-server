@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
@@ -109,6 +111,18 @@ func (t *Task) ToMap() map[string]interface{} {
 		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
+}
+
+func FromFile(file string) *Task {
+	var t *Task
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(content, &t); err != nil {
+		panic(err)
+	}
+	return t
 }
 
 func (t *Task) Reset() {
