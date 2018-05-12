@@ -110,7 +110,7 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 
 			docID, err := db.CreateTask(t.ToMap())
 			if err != nil {
-				return "", err
+				panic(err)
 			}
 			m.SendTask(docID)
 
