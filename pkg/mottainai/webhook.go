@@ -29,6 +29,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/github"
+	anagent "github.com/mudler/anagent"
 	"golang.org/x/oauth2"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -57,10 +58,22 @@ func (m *WebHookServer) Start(fileconfig string) error {
 	}
 
 	database.NewDatabase("tiedot")
+	a := anagent.New()
+
+	a.TimerSeconds(int64(200), true, func() {
+		fmt.Println("Health check")
+		// XXX: TODO
+	})
 
 	m.Map(database.DBInstance)
 	m.Map(m)
 	m.Map(m.Mottainai)
+	m.Map(a)
+	a.Map(m)
+
+	go func(a *anagent.Anagent) {
+		a.Start()
+	}(a)
 
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: setting.Configuration.WebHookGitHubToken})
 	tc := oauth2.NewClient(oauth2.NoContext, ts)

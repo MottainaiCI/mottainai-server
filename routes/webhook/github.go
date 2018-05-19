@@ -31,6 +31,9 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
+
+	anagent "github.com/mudler/anagent"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
@@ -65,19 +68,15 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 	fmt.Println("Handling Pull Request")
 
 	pl := payload.(github.PullRequestPayload)
+	repo := pl.PullRequest.Base.Repo.CloneURL
+	//commit := pl.PullRequest.Head.Sha
+	number := pl.PullRequest.Number
+	pruid := pl.PullRequest.Head.Sha + strconv.FormatInt(number, 10) + repo
 
 	fmt.Printf("%+v", pl)
 
 	m.Invoke(func(client *ggithub.Client, db *database.Database) {
 
-		// Create the 'pending' status and send it
-		status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &targetUrl, Description: &pendingDesc, Context: &appName}
-
-		client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status1)
-
-		repo := pl.PullRequest.Base.Repo.CloneURL
-		//commit := pl.PullRequest.Head.Sha
-		number := pl.PullRequest.Number
 		gitdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "git"+pl.PullRequest.Head.Sha)
 		if err != nil {
 			panic(err)
@@ -112,19 +111,51 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 			if err != nil {
 				panic(err)
 			}
+			fmt.Println("Sending task")
+
 			m.SendTask(docID)
+			fmt.Println("Task sent")
 
-			// We should update the status when we know the result of the task.
-			log.Println("Returning Success")
-			status2 := &ggithub.RepoStatus{State: &success, TargetURL: &targetUrl, Description: &successDesc, Context: &appName}
-			client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status2)
+			// Create the 'pending' status and send it
+			status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &targetUrl, Description: &pendingDesc, Context: &appName}
 
+			client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status1)
+
+			fmt.Println(pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status1)
+
+			m.Invoke(func(a *anagent.Anagent) {
+				fmt.Println("Create watcher")
+				var tid anagent.TimerID = anagent.TimerID(pruid)
+				a.Timer(tid, time.Now(), time.Duration(30*time.Second), true, func() {
+					fmt.Println("Checking PR status")
+					task, err := db.GetTask(docID)
+					if err != nil {
+						panic(err)
+					}
+					if task.IsDone() {
+						if task.IsSuccess() {
+							fmt.Println("Returning Success")
+							status2 := &ggithub.RepoStatus{State: &success, TargetURL: &targetUrl, Description: &successDesc, Context: &appName}
+							client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status2)
+
+						} else {
+							fmt.Println("Returning Failure")
+							status2 := &ggithub.RepoStatus{State: &failure, TargetURL: &targetUrl, Description: &failureDesc, Context: &appName}
+							client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status2)
+						}
+
+						a.RemoveTimer(tid)
+					}
+
+				})
+
+			})
+			return
 		} else {
 			// Create the 'success' status and send it
 			log.Println("mottainai.json not present")
 			status2 := &ggithub.RepoStatus{State: &failure, TargetURL: &targetUrl, Description: &notfoundDesc, Context: &appName}
 			client.Repositories.CreateStatus(stdctx.Background(), pl.PullRequest.Base.User.Login, pl.PullRequest.Base.Repo.Name, pl.PullRequest.Head.Sha, status2)
-
 		}
 
 	})

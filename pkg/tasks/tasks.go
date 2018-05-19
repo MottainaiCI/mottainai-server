@@ -263,6 +263,21 @@ func (t *Task) AppendBuildLog(s string) error {
 	})
 
 }
+func (t *Task) IsDone() bool {
+	if t.Status == "done" {
+		return true
+	}
+
+	return false
+}
+
+func (t *Task) IsSuccess() bool {
+	if t.ExitStatus == "0" {
+		return true
+	}
+
+	return false
+}
 
 func (t *Task) HandleStatus() {
 	if t.Status == "done" {
