@@ -33,6 +33,21 @@ import (
 	"strings"
 )
 
+func ListAll(where string) ([]string, error) {
+	var res []string
+	files, err := ioutil.ReadDir(where)
+	if err != nil {
+		return res, err
+	}
+
+	for _, file := range files {
+
+		res = append(res, file.Name())
+
+	}
+	return res, nil
+}
+
 func ListDirs(where string) ([]string, error) {
 	var res []string
 	files, err := ioutil.ReadDir(where)
