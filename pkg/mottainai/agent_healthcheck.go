@@ -79,9 +79,9 @@ func (m *MottainaiAgent) CleanBuildDir() {
 			task_info := th.FetchTask(c)
 			log.INFO.Println("Found: " + what)
 			log.INFO.Println(task_info)
-			if task_info.IsDone() {
+			if task_info.IsDone() || task_info.ID == 0 {
 				log.INFO.Println("Removing: " + what)
-				os.Remove(path.Join(setting.Configuration.BuildPath, what))
+				os.RemoveAll(path.Join(setting.Configuration.BuildPath, what))
 			} else {
 				log.INFO.Println("Keeping: " + what)
 			}
