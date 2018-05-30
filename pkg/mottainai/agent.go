@@ -72,7 +72,7 @@ func (m *MottainaiAgent) Run(config string) error {
 	}
 
 	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
-	fetcher := client.NewClient()
+	fetcher := client.NewClient(setting.Configuration.AppURL)
 	fetcher.RegisterNode(ID, hostname)
 	m.Map(fetcher)
 

@@ -47,7 +47,7 @@ func (m *MottainaiAgent) HealthCheckSetup(config string) {
 	log.INFO.Println("Worker ID: " + ID)
 	log.INFO.Println("Worker Hostname: " + hostname)
 
-	fetcher := client.NewClient()
+	fetcher := client.NewClient(setting.Configuration.AppURL)
 	fetcher.RegisterNode(ID, hostname)
 	m.Map(fetcher)
 

@@ -45,20 +45,18 @@ type Fetcher struct {
 	ActiveReports bool
 }
 
-func NewClient() *Fetcher {
-	var f Fetcher
-	f.BaseURL = setting.Configuration.AppURL
-	return &f
+func NewClient(host string) *Fetcher {
+	return &Fetcher{BaseURL: host}
 }
 
 func NewFetcher(docID string) *Fetcher {
-	f := NewClient()
+	f := NewClient(setting.Configuration.AppURL)
 	f.docID = docID
 	return f
 }
 
 func New(docID string, a *anagent.Anagent) *Fetcher {
-	f := NewClient()
+	f := NewClient(setting.Configuration.AppURL)
 	f.docID = docID
 	f.Agent = a
 	return f
