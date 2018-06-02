@@ -246,3 +246,32 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	}
 	return nil
 }
+
+func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) error {
+	_, file := filepath.Split(fullpath)
+
+	opts := map[string]string{
+		"name":      file,
+		"path":      relativepath,
+		"namespace": namespace,
+		//	"namespace": dir,
+	}
+
+	request, err := f.Upload("/api/namespace/upload", opts, "file", fullpath)
+
+	if err != nil {
+		panic(err)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		panic(err)
+	} else {
+		var bodyContent []byte
+		fmt.Println(strconv.Itoa(resp.StatusCode))
+		resp.Body.Read(bodyContent)
+		resp.Body.Close()
+		fmt.Println(string(bodyContent))
+	}
+	return nil
+}

@@ -23,12 +23,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -47,4 +49,31 @@ func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error
 	}
 
 	return "OK", nil
+}
+
+type NamespaceForm struct {
+	Namespace  string                `form:"namespace" binding:"Required"`
+	Name       string                `form:"name"`
+	Path       string                `form:"path"`
+	FileUpload *multipart.FileHeader `form:"file"`
+}
+
+func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Database) string {
+
+	file, err := uf.FileUpload.Open()
+	defer file.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(setting.Configuration.NamespacePath, uf.Namespace, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	defer f.Close()
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(f, file)
+
+	return "OK"
 }

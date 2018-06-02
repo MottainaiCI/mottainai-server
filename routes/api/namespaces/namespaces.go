@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"github.com/go-macaron/binding"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -35,4 +37,7 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/namespace/:name/delete", NamespaceDelete)
 	m.Get("/api/namespace/:name/tag/:taskid", NamespaceTag)
 	m.Get("/api/namespace/:name/clone/:from", NamespaceClone)
+
+	m.Post("/api/namespace/upload", binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
+
 }
