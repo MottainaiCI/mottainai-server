@@ -30,6 +30,7 @@ import (
 	log "log"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	static "github.com/MottainaiCI/mottainai-server/pkg/static"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	machinery "github.com/RichardKnop/machinery/v1"
@@ -51,31 +52,37 @@ func New() *Mottainai {
 }
 
 func Classic() *Mottainai {
-	return &Mottainai{Macaron: macaron.Classic()}
+	cl := macaron.New()
+	cl.Use(macaron.Logger())
+	cl.Use(macaron.Recovery())
+	cl.Invoke(func(l *log.Logger) {
+		l.SetPrefix("[ Mottainai ] ")
+	})
+	return &Mottainai{Macaron: cl}
 }
 
 func (m *Mottainai) SetStatic() {
-	m.Use(macaron.Static(
+	m.Use(static.Static(
 		path.Join(setting.Configuration.ArtefactPath),
 		macaron.StaticOptions{
 			Prefix: "artefact",
 		},
 	))
 
-	m.Use(macaron.Static(
+	m.Use(static.Static(
 		path.Join(setting.Configuration.NamespacePath),
 		macaron.StaticOptions{
 			Prefix: "namespace",
 		},
 	))
-	m.Use(macaron.Static(
+	m.Use(static.Static(
 		path.Join(setting.Configuration.StoragePath),
 		macaron.StaticOptions{
 			Prefix: "storage",
 		},
 	))
 	//	m.Use(toolbox.Toolboxer(m))
-	m.Use(macaron.Static(
+	m.Use(static.Static(
 		path.Join(setting.Configuration.StaticRootPath, "public"),
 		macaron.StaticOptions{},
 	))
@@ -89,6 +96,7 @@ func (m *Mottainai) Start(fileconfig string) error {
 	}
 
 	m.SetStatic()
+	m.SetAutoHead(true)
 
 	server := NewServer()
 
