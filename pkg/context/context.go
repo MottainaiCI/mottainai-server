@@ -55,6 +55,17 @@ func Contexter() macaron.Handler {
 		c.Data["Link"] = c.Link
 		c.Data["PageStartTime"] = time.Now()
 
+		if len(setting.Configuration.AccessControlAllowOrigin) > 0 {
+			// Set CORS headers for browser-based git clients
+			ctx.Resp.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
+			ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+			ctx.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
+			c.Header().Set("'Access-Control-Allow-Credentials' ", "true")
+			c.Header().Set("Access-Control-Max-Age", "3600")
+			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+		}
+
 		//log.Info("DBPath: %v", c.DBPath)
 
 		ctx.Map(c)

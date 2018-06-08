@@ -23,7 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package routes
 
 import (
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 
@@ -43,9 +43,9 @@ func NotFound(c *context.Context) {
 }
 
 func SetupDaemon(m *mottainai.Mottainai) *mottainai.Mottainai {
-	context.Setup(m.Macaron)
 	api.Setup(m.Macaron)
 	template.Setup(m.Macaron)
+	context.Setup(m.Macaron)
 	return m
 }
 
@@ -61,8 +61,8 @@ func SetupWebHookServer(m *mottainai.WebHookServer) *mottainai.WebHookServer {
 func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 
 	template.Setup(m.Macaron)
-	context.Setup(m.Macaron)
 	Setup(m.Macaron)
+	context.Setup(m.Macaron)
 
 	return m
 }

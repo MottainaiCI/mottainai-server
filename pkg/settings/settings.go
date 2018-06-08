@@ -73,6 +73,8 @@ type Config struct {
 	PrivateQueue        bool     `yaml:"private_queue" envconfig:"PRIVATE_QUEUE"`
 	WebHookGitHubToken  string   `yaml:"github_token" envconfig:"GH_TOKEN"`
 	WebHookGitHubSecret string   `yaml:"github_secret" envconfig:"GH_SECRET"`
+
+	AccessControlAllowOrigin string `yaml:"access_control_allow_origin" envconfig:"ACCESSCONTROL_ALLOW_ORIGIN"`
 }
 
 var (
@@ -119,17 +121,18 @@ var (
 
 	TempWorkDir string
 
-	DockerEndpoint      string
-	DockerKeepImg       bool
-	DockerPriviledged   bool
-	DockerInDocker      bool
-	DockerEndpointDiD   string
-	DockerCaps          []string
-	DockerCapsDrop      []string
-	Queues              map[string]int
-	PrivateQueue        bool
-	WebHookGitHubSecret string
-	WebHookGitHubToken  string
+	DockerEndpoint           string
+	DockerKeepImg            bool
+	DockerPriviledged        bool
+	DockerInDocker           bool
+	DockerEndpointDiD        string
+	DockerCaps               []string
+	DockerCapsDrop           []string
+	Queues                   map[string]int
+	PrivateQueue             bool
+	WebHookGitHubSecret      string
+	WebHookGitHubToken       string
+	AccessControlAllowOrigin string
 )
 
 func GenDefault() {
@@ -151,6 +154,8 @@ func GenDefault() {
 	Configuration.AppSubURL = "http://127.0.0.1:9090/"
 	Configuration.DBEngine = "tiedot"
 	Configuration.DBPath = "./.DB"
+
+	Configuration.AccessControlAllowOrigin = "*"
 
 	Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
 	Configuration.BrokerType = "amqp"
