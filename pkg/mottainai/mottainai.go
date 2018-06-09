@@ -62,26 +62,26 @@ func Classic() *Mottainai {
 }
 
 func (m *Mottainai) SetStatic() {
-	m.Use(static.Static(
+	m.Use(macaron.Static(
 		path.Join(setting.Configuration.ArtefactPath),
 		macaron.StaticOptions{
 			Prefix: "artefact",
 		},
 	))
 
-	m.Use(static.Static(
+	m.Use(macaron.Static(
 		path.Join(setting.Configuration.NamespacePath),
 		macaron.StaticOptions{
 			Prefix: "namespace",
 		},
 	))
-	m.Use(static.Static(
+	m.Use(macaron.Static(
 		path.Join(setting.Configuration.StoragePath),
 		macaron.StaticOptions{
 			Prefix: "storage",
 		},
 	))
-	//	m.Use(toolbox.Toolboxer(m))
+
 	m.Use(static.Static(
 		path.Join(setting.Configuration.StaticRootPath, "public"),
 		macaron.StaticOptions{},
