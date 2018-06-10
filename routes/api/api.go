@@ -25,6 +25,7 @@ package api
 import (
 	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
+	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
 	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
 	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 	macaron "gopkg.in/macaron.v1"
@@ -35,4 +36,5 @@ func Setup(m *macaron.Macaron) {
 	tasksapi.Setup(m)
 	namespacesapi.Setup(m)
 	storagesapi.Setup(m)
+	stats.Setup(m)
 }
