@@ -1,83 +1,86 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
 
-    <div class="ui grid">
-      <div class="row">
-        <div class="column" id="sidebar">
-          <div class="ui secondary vertical fluid menu">
-            <a class="active item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
-            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
-            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
-            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
-            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
-            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Namespaces</a>
-
-            <div class="ui hidden divider"></div>
+        <div class="breadcrumbs">
+            <div class="col-sm-4">
+                <div class="page-header float-left">
+                    <div class="page-title">
+                        <h1>Dashboard</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <div class="page-header float-right">
+                    <div class="page-title">
+                        <ol class="breadcrumb text-right">
+                            <!-- <li class="active">Dashboard</li> -->
+                        </ol>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="column" id="content">
-          <div class="ui grid">
-            <div class="row">
-              <h1 class="ui huge header">
-                Dashboard
-              </h1>
-            </div>
-            <div class="ui divider"></div>
-            <div class="four column center aligned row">
-              <div class="column">
-                <h1 class="ui huge header">
-                  {{.RunningTasks}}
-                </h1>
-                <div class="ui hidden divider"></div>
-                <div class="ui large green label">
-                  Running
-                </div>
-                <p>
-                  Tasks being run
-                </p>
-              </div>
-              <div class="column">
-                <h1 class="ui huge header">
-                {{.TotalTasks}}
-                </h1>
-                <div class="ui hidden divider"></div>
-                <div class="ui large blue label">
-                  Total
-                </div>
-                <p>
-                  Total tasks
-                </p>
-              </div>
-              <div class="column">
-                <h1 class="ui huge header">
-                {{.WaitingTasks}}
-                </h1>
-                <div class="ui hidden divider"></div>
-                <div class="ui large pink label">
-                  Waiting
-                </div>
-                <p>
-                  In waiting to be processed
-                </p>
-              </div>
-              <div class="column">
-                <h1 class="ui huge header">
-                {{.ErroredTasks}}
-                </h1>
-                <div class="ui hidden divider"></div>
-                <div class="ui large red label">
-                  Errors
-                </div>
-                <p>
-                  Tasks that didn't ended as expected
-                </p>
-              </div>
-            </div>
-            <div class="ui hidden section divider"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
-		{{template "base/footer" .}}
+        <div class="content mt-3">
+
+          <div class="col-xl-3 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-widget-one">
+                            <div class="stat-icon dib"><i class="fa  fa-play-circle text-primary border-primary"></i></div>
+                            <div class="stat-content dib">
+                                <div class="stat-text">Running</div>
+                                <div class="stat-digit">{{.RunningTasks}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-widget-one">
+                            <div class="stat-icon dib"><i class="fa fa-bars text-dark border-dark"></i></div>
+                            <div class="stat-content dib">
+                                <div class="stat-text">Total</div>
+                                <div class="stat-digit">{{.TotalTasks}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-widget-one">
+                            <div class="stat-icon dib"><i class="fa fa-times-circle-o text-danger border-danger"></i></div>
+                            <div class="stat-content dib">
+                                <div class="stat-text">Errored</div>
+                                <div class="stat-digit">{{.ErroredTasks}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-widget-one">
+                            <div class="stat-icon dib"><i class="fa fa-pause text-warning border-warning"></i></div>
+                            <div class="stat-content dib">
+                                <div class="stat-text">Waiting</div>
+                                <div class="stat-digit">{{.WaitingTasks}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
+
+      <!--      <script src="{{AppSubURL}}/assets/js/dashboard.js"></script> -->
+
+{{template "base/footer" .}}

@@ -1,78 +1,85 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
 
-    <div class="ui grid">
-      <div class="row">
-        <div class="column" id="sidebar">
-          <div class="ui secondary vertical fluid menu">
-            <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
-            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
-            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
-            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
-            <a class="active item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
-            <div class="ui hidden divider"></div>
-            </div>
-        </div>
-        <div class="column" id="content">
-          <div class="ui two column grid">
-            <div class="row">
-              <div class="column">
-                <h1 class="ui huge header">
-                  Nodes List
-                </h1>
-              </div>
-              <div class="column">
-                <a href="/nodes/add"> <div class="ui right floated secondary button"><i class="fa fa-plus-square" aria-hidden="true"></i></div> </a>
-              </div>
-            </div>
-            <div class="ui divider"></div>
-            <div class="row">
-              <table class="ui single line striped selectable table">
-                <thead>
-                  <tr>
-                    <th>
-                      Action
-                    </th>
-                    <th>
-                      UUID
-                    </th>
-                    <th>
-                      NodeID
-                    </th>
-                    <th>
-                      Key
-                    </th>
-                    <th>
-                      User
-                    </th>
-                    <th>
-                      Pass
-                    </th>
-                    <th>
-                      State
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                {{range .Nodes}}
-                <tr>
-                  <td><a href="/nodes/delete/{{.ID}}"> <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div> </a></td>
-                  <td>{{.ID}}</td>
-                  <td>{{.NodeID}}</td>
-                  <td>{{.Key}}</td>
-                  <td>{{.User}}</td>
-                  <td>{{.Pass}}</td>
+            <div class="content mt-3">
+                <div class="animated fadeIn">
+                    <div class="row">
 
-                  <td></td>
-                </tr>
-                {{end}}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong class="card-title">Nodes list</strong>
+                            </div>
+                            <div class="card-body">
+                      <table id="bootstrap-data-table" class="table table-striped table-bordered">
+                        <thead>
+                          <tr>
+                            <th>
+                              Action
+                            </th>
+                            <th>
+                              Hostname
+                            </th>
+                            <th>
+                              UUID
+                            </th>
+                            <th>
+                              NodeID
+                            </th>
+                            <th>
+                              Key
+                            </th>
+                            <th>
+                              User
+                            </th>
+                            <th>
+                              Pass
+                            </th>
+
+                          </tr>
+                        </thead>
+                        <tbody>
+
+                          {{range .Nodes}}
+                          <tr>
+                            <td><a href="/nodes/delete/{{.ID}}"> <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div> </a></td>
+                            <td>{{.Hostname}}</td>
+
+                            <td>{{.ID}}</td>
+                            <td>{{.NodeID}}</td>
+                            <td>{{.Key}}</td>
+                            <td>{{.User}}</td>
+                            <td>{{.Pass}}</td>
+                          </tr>
+                          {{end}}
+
+                        </tbody>
+                      </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+            <script src="assets/js/lib/data-table/datatables.min.js"></script>
+            <script src="assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
+            <script src="assets/js/lib/data-table/dataTables.buttons.min.js"></script>
+            <script src="assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
+            <script src="assets/js/lib/data-table/jszip.min.js"></script>
+            <script src="assets/js/lib/data-table/pdfmake.min.js"></script>
+            <script src="assets/js/lib/data-table/vfs_fonts.js"></script>
+            <script src="assets/js/lib/data-table/buttons.html5.min.js"></script>
+            <script src="assets/js/lib/data-table/buttons.print.min.js"></script>
+            <script src="assets/js/lib/data-table/buttons.colVis.min.js"></script>
+            <script src="assets/js/lib/data-table/datatables-init.js"></script>
+
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+                  $('#bootstrap-data-table-export').DataTable();
+                } );
+            </script>
 
 
 		{{template "base/footer" .}}

@@ -1,9 +1,9 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
-<script src="{{AppSubURL}}/js/jquery.terminal.min.js"></script>
-<script src="{{AppSubURL}}/js/unix_formatting.js"></script>
-
-<link rel="stylesheet" href="{{AppSubURL}}/css/jquery.terminal.min.css">
+<script src="{{AppSubURL}}/assets/js/vendor/jquery-2.1.4.min.js"></script>
+<script src="{{AppSubURL}}/assets/js/vendor/jquery.terminal.min.js"></script>
+<script src="{{AppSubURL}}/assets/js/vendor/unix_formatting.js"></script>
+<link rel="stylesheet" href="{{AppSubURL}}/assets/css/jquery.terminal.min.css">
 <style>
 @keyframes blink {
     50% {
@@ -51,6 +51,7 @@
     margin: 0;
 }
 </style>
+
 <script type='text/javascript'>
 	  $(document).ready(function() {
       var pos = 0;
@@ -107,84 +108,132 @@
 		});
 </script>
 
-
-    <div class="ui grid">
-      <div class="row">
-        <div class="column" id="sidebar">
-          <div class="ui secondary vertical fluid menu">
-            <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i> Overview</a>
-            <a class="item" href="/tasks"><i class="fa fa-tasks" aria-hidden="true"></i> Tasks</a>
-            <a class="item"><i class="fa fa-clock-o" aria-hidden="true"></i> Planned Tasks</a>
-            <a class="item"><i class="fa fa-link" aria-hidden="true"></i> Links </a>
-            <a class="item" href="/nodes"><i class="fa fa-sitemap" aria-hidden="true"></i> Nodes</a>
-            <div class="ui hidden divider"></div>
+<div class="breadcrumbs">
+    <div class="col-sm-4">
+        <div class="page-header float-left">
+            <div class="page-title">
+                <h1>Task</h1>
             </div>
         </div>
-        <div class="column" id="content">
-          <div class="ui hidden clearing divider"></div>
-          <div class="ui hidden clearing divider"></div>
-
-          <div class="ui two column grid">
-            <div class="row">
-                <h1 class="ui huge header">
-                  Task detail for '{{.Task.ID}}'
-                </h1>
-            </div>
-            <div class="ui divider"></div>
-            <div class="row">
-
-            <div class="ui  segment ">
-              <a class="ui ribbon label">Actions</a>
-              <a href="/tasks/delete/{{.Task.ID}}">
-                <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
-              </a>
-              <a href="/tasks/stop/{{.Task.ID}}">
-                <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
-              </a>
-              <a href="/tasks/start/{{.Task.ID}}">
-                <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
-              </a>
-              <a href="/api/tasks/{{.Task.ID}}" target="_blank">
-                <div class="ui secondary button"><i class="fa fa-code" aria-hidden="true"></i>&nbsp;See JSON</div>
-              </a>
-              <a href="/api/tasks/{{.Task.ID}}/artefacts" target="_blank">
-                <div class="ui secondary button"><i class="fa fa-code" aria-hidden="true"></i>&nbsp;See Artifacts</div>
-              </a>
-            </div>
-          </div>
-            <div class="row">
-
-              <div class="ui  segment ">
-                <a class="ui ribbon label">Status: {{.Task.Status}}</a>
-                <br>
-                <p>
-                  Script: {{.Task.Script}}<br>
-                  Directory:  {{.Task.Directory}}<br>
-                  Namespace: {{.Task.Namespace}}<br>
-                  Source: {{.Task.Source}}<br>
-                  Image: {{.Task.Image}}<br>
-                </p>
-                <p><a href="/artefact/{{.Task.ID}}/" target="_blank">Artefacts url</a>
-                <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank">Build log</a></p>
-              </div>
-
-            </div>
-            <div class="ui hidden clearing divider"></div>
-                <div class="ui active row segment one column grid">
-                  <div class="ui top attached label">
-                    Task: {{.Task.TaskName}}
-                  </div>
-
-                  <div class="ui column" id="terminal">
-                  </div>
-                  <div class="ui bottom attached label">
-                      Result: {{.Task.Result}} - Exit Status: {{.Task.ExitStatus}}
-                  </div>
-                </div>
-          </div>
-        </div>
-      </div>
     </div>
+    <div class="col-sm-8">
+        <div class="page-header float-right">
+            <div class="page-title">
+                <ol class="breadcrumb text-right">
+                    <li class="active">{{.Task.ID}}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-		{{template "base/footer" .}}
+<div class="col-lg-12 col-md-12">
+                    <div class="card">
+                        <div class="card-body bg-dark">
+
+                          <div class="dropdown float-right">
+                             <button class="btn bg-dark dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton" data-toggle="dropdown">
+                                 <i class="fa fa-cog"></i>
+                             </button>
+                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                 <div class="dropdown-menu-content">
+                                     <a href="/tasks/delete/{{.Task.ID}}">
+                                       <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
+                                     </a>
+                                     <a href="/tasks/stop/{{.Task.ID}}">
+                                       <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
+                                     </a>
+                                     <a href="/tasks/start/{{.Task.ID}}">
+                                       <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
+                                     </a>
+
+                                 </div>
+                             </div>
+                         </div>
+
+                            <div class="stat-widget-one">
+                                <div class="stat-icon dib"><i class="fa fa-info text-light"></i></div>
+                                <div class="stat-content dib">
+                                    <div class="stat-text">Result: <span class="badge badge-primary">{{.Task.Result}}</span> </div>
+                                    <div class="stat-text">Status: <span class="badge badge-info">{{.Task.Status}}</span> </div>
+                                    <div class="stat-text">Exit with: {{.Task.ExitStatus}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+</div>
+
+<!-- /# column -->
+<div class="col-lg-12">
+   <div class="card">
+       <div class="card-header">
+           <h4>Details</h4>
+       </div>
+       <div class="card-body">
+           <div class="custom-tab">
+
+               <nav>
+                   <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                       <a class="nav-item nav-link active" id="custom-nav-home-tab" data-toggle="tab" href="#custom-nav-home" role="tab" aria-controls="custom-nav-home" aria-selected="true">Details</a>
+                       <a class="nav-item nav-link" id="custom-nav-profile-tab" data-toggle="tab" href="#custom-nav-profile" role="tab" aria-controls="custom-nav-profile" aria-selected="false">JSON</a>
+                       <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#custom-nav-contact" role="tab" aria-controls="custom-nav-contact" aria-selected="false">CLI</a>
+                   </div>
+               </nav>
+               <div class="tab-content pl-3 pt-2" id="nav-tabContent">
+                   <div class="tab-pane fade show active" id="custom-nav-home" role="tabpanel" aria-labelledby="custom-nav-home-tab">
+                    <p>
+                      <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Build log</button> </a>
+                      <a href="/api/tasks/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; As JSON</button> </a>
+                      <a href="/api/tasks/{{.Task.ID}}/artefacts" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Artefact list</button> </a>
+                      <p>
+                      Type: {{.Task.TaskName}}<br>
+                      Image: {{.Task.Image}}<br>
+                      Source: {{.Task.Source}}<br>
+                      Directory: {{.Task.Directory}}<br>
+                      Script: {{.Task.Script}}<br>
+                      Namespace: {{.Task.Namespace}}<br>
+                      Artefacts url: <code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></p>
+
+                    </p>
+                   </div>
+                   <div class="tab-pane fade" id="custom-nav-profile" role="tabpanel" aria-labelledby="custom-nav-profile-tab">
+<p>
+
+</p>
+                   </div>
+                   <div class="tab-pane fade" id="custom-nav-contact" role="tabpanel" aria-labelledby="custom-nav-contact-tab">
+
+                     <p>
+                       Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code><br>
+                       Download log with: <code>mottainai-cli --master {{AppSubURL}} task log {{.Task.ID}} > build.log </code><br>
+                       Show task info with: <code>mottainai-cli --master {{AppSubURL}} task show {{.Task.ID}}</code>
+                     </p>
+                   </div>
+               </div>
+
+           </div>
+       </div>
+   </div>
+</div>
+<!-- /# column -->
+
+
+                    <div class="content mt-3">
+                       <div class="animated fadeIn">
+                           <div class="card">
+                               <div class="card-header">
+                                   <i class="mr-2 fa fa-align-justify"></i>
+                                   <strong class="card-title">Log</strong>
+                               </div>
+                               <div class="card-body ">
+                                 <p>
+                                   Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
+                                 </p>
+                                 <div class="ui row" id="terminal"></div>
+                               </div>
+                           </div>
+                        </div><!-- .animated -->
+                     </div><!-- .content -->
+
+{{template "base/footer" .}}

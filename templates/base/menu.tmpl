@@ -1,15 +1,80 @@
-<div id="menu" class="ui inverted huge borderless fixed fluid menu">
-  <a class="header item" href="/"><img src="/img/logo.png" class="ui mini image">&nbsp;&nbsp;&nbsp;{{AppName}}</a>
-  <div class="right menu">
-    <div class="item">
-      <div class="ui small input">
-        <input placeholder="Search..." />
-      </div>
+<!-- Left Panel -->
+
+<aside id="left-panel" class="left-panel">
+<nav class="navbar navbar-expand-sm navbar-default">
+
+    <div class="navbar-header">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa fa-bars"></i>
+        </button>
+        <a class="navbar-brand" href="./"><img src="{{AppSubURL}}images/logo.png" alt="Logo"></a>
+        <a class="navbar-brand hidden" href="./"><img src="{{AppSubURL}}/images/logo2.png" alt="Logo"></a>
     </div>
-    <a class="item" href="/"><i class="fa fa-tachometer" aria-hidden="true"></i></a>
-    <a class="item" href="/tasks/add"><i class="fa fa-plus" aria-hidden="true"></i></a>
-    <a class="item"><i class="fa fa-wrench" aria-hidden="true"></i></a>
-    <a class="item"><i class="fa fa-user" aria-hidden="true"></i></a>
-    <a class="item"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
-  </div>
-</div>
+
+    <div id="main-menu" class="main-menu collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+            <li class="active">
+                <a href="/"> <i class="menu-icon fa fa-dashboard"></i>Dashboard </a>
+            </li>
+            <h3 class="menu-title">Control panel</h3><!-- /.menu-title -->
+            <li class="menu-item-has-children dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-tasks"></i>Tasks</a>
+                <ul class="sub-menu children dropdown-menu">
+                    <li><i class="ti ti-view-list-alt"></i><a href="/tasks">List</a></li>
+                    <li><i class="fa fa-plus-square-o"></i><a href="/tasks/add">Add</a></li>
+
+                    <!--
+                    <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
+
+                    -->
+                </ul>
+            </li>
+
+            <li class="menu-item-has-children dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-sitemap"></i>Nodes</a>
+                <ul class="sub-menu children dropdown-menu">
+                  <li><i class="ti ti-view-list-alt"></i><a href="/nodes">List</a></li>
+                  <li><i class="fa fa-plus-square-o"></i><a href="/nodes/add">Add</a></li>
+
+                    <!--
+                    <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
+
+                    <li><i class="fa fa-id-badge"></i><a href="/namespaces">Namespaces</a></li>
+                    -->
+                </ul>
+            </li>
+
+            <!--
+
+            <li class="menu-item-has-children dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-laptop"></i>Namespaces</a>
+                <ul class="sub-menu children dropdown-menu">
+                    <li><i class="fa fa-id-badge"></i><a href="/namespaces">List</a></li>
+                </ul>
+            </li>
+            -->
+
+        </ul>
+
+
+
+    </div><!-- /.navbar-collapse -->
+
+
+
+
+</nav>
+</aside><!-- /#left-panel -->
+
+
+<!-- Right Panel -->
+<div id="right-panel" class="right-panel">
+
+    <!-- Header -->
+    <header id="header" class="header">
+        <div class="header-menu">
+          <div class="col-sm-7">
+              <a id="menuToggle" class="menutoggle pull-left"><i class="fa fa fa-tasks"></i></a>
+          </div>
+        </div>
+    </header><!-- /header -->
