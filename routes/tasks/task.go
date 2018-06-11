@@ -38,4 +38,5 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/tasks/start/:id", SendStartTask)
 	m.Get("/tasks/stop/:id", Stop)
 	m.Get("/tasks/delete/:id", Delete)
+	m.Get("/tasks/clone/:id", Clone)
 }

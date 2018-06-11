@@ -43,6 +43,16 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	}
 }
 
+func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
+
+	docID, err := tasksapi.CloneTask(m, th, ctx, db)
+	if err != nil {
+		ctx.NotFound()
+	} else {
+		ctx.Redirect("/tasks/display/" + docID)
+	}
+}
+
 func Add(ctx *context.Context) {
 
 	available_tasks := make([]string, 0)
