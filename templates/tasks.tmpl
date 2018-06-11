@@ -27,6 +27,15 @@
                           Task
                         </th>
                         <th>
+                          Source
+                        </th>
+                        <th>
+                          Directory
+                        </th>
+                        <th>
+                          Image
+                        </th>
+                        <th>
                           State
                         </th>
                         <th>
@@ -34,6 +43,10 @@
                         </th>
                         <th>
                           Created
+                        </th>
+
+                        <th>
+                          End
                         </th>
                       </tr>
                     </thead>
@@ -54,9 +67,14 @@
                         </td>
                         <td><a href="/tasks/display/{{.ID}}">{{.ID}}</a></td>
                         <td>{{.TaskName}}</td>
+                        <td>{{.Source}}</td>
+                        <td>{{.Directory}}</td>
+                        <td>{{.Image}}</td>
+
                         <td>{{.Status}}</td>
                         <td>{{.Result}}</td>
-                        <td>{{.CreatedTime}}</td>
+                        <td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
+                        <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>
                       </tr>
                       {{end}}
 
@@ -65,8 +83,6 @@
                         </div>
                     </div>
                 </div>
-
-
 
 
         <script src="assets/js/lib/data-table/datatables.min.js"></script>
@@ -83,7 +99,9 @@
 
 
         <script type="text/javascript">
-            $(document).ready(function() {
+        $(document).ready(function() {
+              $("time.timeago").timeago();
+              $("#bootstrap-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
               $('#bootstrap-data-table-export').DataTable();
             } );
         </script>
