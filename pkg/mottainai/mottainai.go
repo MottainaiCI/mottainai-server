@@ -173,6 +173,12 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 		_, err = broker.SendTask(task.TaskName, docID)
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
+			d.UpdateTask(docID, map[string]interface{}{
+				"result": "error",
+				"status": "done",
+				"output": "Backend error, could not send task to broker: " + err.Error(),
+			})
+
 			result = false
 			return
 		}
