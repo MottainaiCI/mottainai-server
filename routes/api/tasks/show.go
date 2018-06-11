@@ -23,8 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"sort"
+
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
@@ -63,6 +66,10 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	tasks_info := db.AllTasks()
+
+	sort.Slice(tasks_info[:], func(i, j int) bool {
+		return tasks_info[i].CreatedTime > tasks_info[j].CreatedTime
+	})
 
 	ctx.JSON(200, tasks_info)
 }
