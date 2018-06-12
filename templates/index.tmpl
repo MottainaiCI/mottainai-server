@@ -79,8 +79,80 @@
                 </div>
             </div>
 
+
+            <div class="col-sm-6 col-lg-3">
+                      <div class="card text-white bg-flat-color-2">
+                          <div class="card-body pb-0">
+                              <h4 class="mb-0">
+                                  <span class="count">{{.TotalTasks}}</span>
+                              </h4>
+                              <p class="text-light">Created tasks</p>
+
+                              <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                  <canvas id="dailychart"></canvas>
+                              </div>
+
+                          </div>
+                      </div>
+                  </div>
+                  <!--/.col-->
+
+                  <div class="col-sm-6 col-lg-3">
+                            <div class="card text-white bg-flat-color-5">
+                                <div class="card-body pb-0">
+                                    <h4 class="mb-0">
+                                        <span class="count">{{.SucceededTasks}}</span>
+                                    </h4>
+                                    <p class="text-light">Succeeded tasks</p>
+
+                                    <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                        <canvas id="succeededchart"></canvas>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!--/.col-->
+
+                  <div class="col-sm-6 col-lg-3">
+                            <div class="card text-white bg-flat-color-4">
+                                <div class="card-body pb-0">
+                                    <h4 class="mb-0">
+                                        <span class="count">{{.FailedTasks}}</span>
+                                    </h4>
+                                    <p class="text-light">Failed tasks</p>
+
+                                    <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                        <canvas id="failedchart"></canvas>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!--/.col-->
+
+                        <div class="col-sm-6 col-lg-3">
+                                  <div class="card text-white bg-flat-color-4">
+                                      <div class="card-body pb-0">
+                                          <h4 class="mb-0">
+                                              <span class="count">{{.ErroredTasks}}</span>
+                                          </h4>
+                                          <p class="text-light">Errored tasks</p>
+
+                                          <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                              <canvas id="erroredchart"></canvas>
+                                          </div>
+
+                                      </div>
+                                  </div>
+                              </div>
+                              <!--/.col-->
+
+
             <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
 
-      <!--      <script src="{{AppSubURL}}/assets/js/dashboard.js"></script> -->
+            <script src="{{AppSubURL}}/assets/js/lib/chart-js/Chart.bundle.js"></script>
+            <script src="{{AppSubURL}}/assets/js/dashboard.js"></script>
+            <script src="{{AppSubURL}}/assets/js/widgets.js"></script>
 
 {{template "base/footer" .}}
