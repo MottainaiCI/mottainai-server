@@ -82,6 +82,10 @@ func Setup(m *macaron.Macaron) {
 		waiting_tasks := len(wtasks)
 		etasks, _ := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
 		error_tasks := len(etasks)
+		ftasks, _ := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		failed_tasks := len(ftasks)
+		stasks, _ := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		succeeded_tasks := len(stasks)
 
 		ctx.Data["TotalTasks"] = db.DB().Use("Tasks").ApproxDocCount()
 		if ctx.Data["TotalTasks"] == 0 {
@@ -90,6 +94,8 @@ func Setup(m *macaron.Macaron) {
 		ctx.Data["RunningTasks"] = running_tasks
 		ctx.Data["WaitingTasks"] = waiting_tasks
 		ctx.Data["ErroredTasks"] = error_tasks
+		ctx.Data["SucceededTasks"] = succeeded_tasks
+		ctx.Data["FailedTasks"] = failed_tasks
 
 		template.TemplatePreview(ctx, "index")
 	})
