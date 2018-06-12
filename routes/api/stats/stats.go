@@ -23,16 +23,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package stats
 
 import (
+	"strconv"
+	"time"
+
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	macaron "gopkg.in/macaron.v1"
 )
 
 type Stats struct {
-	Running int `json:"running"`
-	Waiting int `json:"waiting"`
-	Errored int `json:"error"`
-	Total   int `json:"total_tasks"`
+	Running   int `json:"running"`
+	Waiting   int `json:"waiting"`
+	Errored   int `json:"error"`
+	Failed    int `json:"failed"`
+	Succeeded int `json:"succeeded"`
+	Total     int `json:"total_tasks"`
+
+	CreatedDaily   map[string]int `json:"created_daily"`
+	FailedDaily    map[string]int `json:"failed_daily"`
+	ErroredDaily   map[string]int `json:"errored_daily"`
+	SucceededDaily map[string]int `json:"succeeded_daily"`
 }
 
 func Info(ctx *context.Context, db *database.Database) {
@@ -42,6 +54,34 @@ func Info(ctx *context.Context, db *database.Database) {
 	waiting_tasks := len(wtasks)
 	etasks, _ := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
 	error_tasks := len(etasks)
+	ftasks, _ := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+	failed_tasks := len(ftasks)
+	stasks, _ := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+	succeeded_tasks := len(stasks)
+
+	var fail_task = make([]agenttasks.Task, 0)
+	for i, _ := range ftasks {
+		t, _ := db.GetTask(i)
+		fail_task = append(fail_task, t)
+	}
+	var failed = GetStats(fail_task)
+
+	var err_tasks = make([]agenttasks.Task, 0)
+	for i, _ := range etasks {
+		t, _ := db.GetTask(i)
+		err_tasks = append(err_tasks, t)
+	}
+	var errored = GetStats(err_tasks)
+
+	var suc_tasks = make([]agenttasks.Task, 0)
+	for i, _ := range stasks {
+		t, _ := db.GetTask(i)
+		suc_tasks = append(suc_tasks, t)
+	}
+	var succeded = GetStats(suc_tasks)
+
+	atasks := db.AllTasks()
+	var created = GetStats(atasks)
 
 	s := &Stats{}
 	total := db.DB().Use("Tasks").ApproxDocCount()
@@ -52,8 +92,32 @@ func Info(ctx *context.Context, db *database.Database) {
 	s.Running = running_tasks
 	s.Total = total
 	s.Waiting = waiting_tasks
+	s.Failed = failed_tasks
+	s.Succeeded = succeeded_tasks
+	s.CreatedDaily = created
+	s.FailedDaily = failed
+	s.ErroredDaily = errored
+	s.SucceededDaily = succeded
 
 	ctx.JSON(200, s)
+}
+
+func GetStats(atasks []agenttasks.Task) map[string]int {
+	var created = make(map[string]int)
+	for _, t := range atasks {
+		//t, _ := db.GetTask(i)
+		t1, _ := time.Parse(
+			"20060102150405",
+			t.CreatedTime)
+		day := strconv.Itoa(t1.Year()) + "-" + strconv.Itoa(int(t1.Month())) + "-" + strconv.Itoa(t1.Day())
+		i, ok := created[day]
+		if !ok {
+			created[day] = 1
+		} else {
+			created[day] = i + 1
+		}
+	}
+	return created
 }
 
 func Setup(m *macaron.Macaron) {
