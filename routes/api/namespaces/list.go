@@ -25,25 +25,29 @@ package namespacesapi
 import (
 	"path/filepath"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
-func NamespaceList(ctx *context.Context, db *database.Database) {
+func Namespaces() []string {
 	//ns := db.AllNamespaces()
 
 	source := filepath.Join(setting.Configuration.NamespacePath)
 	ns, _ := utils.ListDirs(source)
+	return ns
+}
 
+func NamespaceList(ctx *context.Context, db *database.Database) {
+
+	ns := Namespaces()
 	ctx.JSON(200, ns)
 }
 
-func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
-	name := ctx.Params(":name")
-	name, _ = utils.Strip(name)
+func NamespaceArtefacts(namespace string) []string {
+	name, _ := utils.Strip(namespace)
 
 	// ns, err := db.SearchNamespace(name)
 	// if err != nil {
@@ -52,6 +56,17 @@ func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
 	source := filepath.Join(setting.Configuration.NamespacePath, name)
 
 	artefacts := utils.TreeList(source)
+	return artefacts
+}
+
+func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
+	name := ctx.Params(":name")
+	artefacts := NamespaceArtefacts(name)
+
+	// ns, err := db.SearchNamespace(name)
+	// if err != nil {
+	// 	ctx.JSON(200, ns)
+	// }
 
 	// artefacts, err := db.GetNamespaceArtefacts(ns.ID)
 	// if err != nil {

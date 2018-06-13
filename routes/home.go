@@ -29,9 +29,9 @@ import (
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/routes/api"
-	"github.com/MottainaiCI/mottainai-server/routes/webhook"
-
+	namespaceroute "github.com/MottainaiCI/mottainai-server/routes/namespaces"
 	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
+	"github.com/MottainaiCI/mottainai-server/routes/webhook"
 	macaron "gopkg.in/macaron.v1"
 
 	"github.com/MottainaiCI/mottainai-server/routes/tasks"
@@ -102,5 +102,6 @@ func Setup(m *macaron.Macaron) {
 
 	tasks.Setup(m)
 	nodesroute.Setup(m)
+	namespaceroute.Setup(m)
 	api.Setup(m)
 }
