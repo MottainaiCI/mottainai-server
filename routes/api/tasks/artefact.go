@@ -29,12 +29,10 @@ import (
 	"path/filepath"
 	"strconv"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 type ArtefactForm struct {
@@ -60,8 +58,12 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
+	t, err := db.GetTask(id)
 
-	artefacts := utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(id)))
+	if err != nil {
+		panic(err)
+	}
+	artefacts := t.Artefacts()
 
 	ctx.JSON(200, artefacts)
 }

@@ -27,12 +27,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	flock "github.com/theckman/go-flock"
 )
 
@@ -289,6 +291,10 @@ func (t *Task) HandleStatus() {
 
 		t.Done()
 	}
+}
+
+func (t *Task) Artefacts() []string {
+	return utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)))
 }
 
 func (t *Task) Done() {

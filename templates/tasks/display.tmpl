@@ -176,16 +176,17 @@
                <nav>
                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
                        <a class="nav-item nav-link active" id="custom-nav-home-tab" data-toggle="tab" href="#custom-nav-home" role="tab" aria-controls="custom-nav-home" aria-selected="true">Details</a>
+                       <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#artefacts" role="tab" aria-controls="artefacts" aria-selected="false">Artefacts</a>
+                       <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#log" role="tab" aria-controls="log" aria-selected="false">Log</a>
+
                        <a class="nav-item nav-link" id="custom-nav-profile-tab" data-toggle="tab" href="#custom-nav-profile" role="tab" aria-controls="custom-nav-profile" aria-selected="false">JSON</a>
                        <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#custom-nav-contact" role="tab" aria-controls="custom-nav-contact" aria-selected="false">CLI</a>
+
                    </div>
                </nav>
                <div class="tab-content pl-3 pt-2" id="nav-tabContent">
                    <div class="tab-pane fade show active" id="custom-nav-home" role="tabpanel" aria-labelledby="custom-nav-home-tab">
                     <p>
-                      <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Build log</button> </a>
-                      <a href="/api/tasks/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; As JSON</button> </a>
-                      <a href="/api/tasks/{{.Task.ID}}/artefacts" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Artefact list</button> </a>
                       <p>
                       {{if .Task.TaskName}}Type: {{.Task.TaskName}}<br>{{end}}
                       {{if .Task.Image}}Image: {{.Task.Image}}<br>{{end}}
@@ -197,9 +198,15 @@
 
                       Artefacts url: <code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></p>
                     </p>
-                   </div>
+                  </div>
+                  <div class="tab-pane fade" id="log" role="tabpanel" aria-labelledby="log">
+                   <p>
+                      <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
+                   </p>
+                  </div>
                    <div class="tab-pane fade" id="custom-nav-profile" role="tabpanel" aria-labelledby="custom-nav-profile-tab">
-                    <p></p>
+                    <p id="as_json"></p>
+                    <a href="/api/tasks/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
                    </div>
                    <div class="tab-pane fade" id="custom-nav-contact" role="tabpanel" aria-labelledby="custom-nav-contact-tab">
                      <p>
@@ -210,6 +217,34 @@
                        Show task info with: <code>mottainai-cli --master {{AppSubURL}} task show {{.Task.ID}}</code>
                      </p>
                    </div>
+                   <div class="tab-pane fade" id="artefacts" role="tabpanel" aria-labelledby="artefacts">
+                     <div class="alert alert-secondary fade show">
+                       <span class="badge badge-pill badge-secondary">Tip</span>
+                       Create or tag a namespace with this content: <code>mottainai-cli --master {{AppSubURL}} namespace tag mybeautifulpony --from {{.Task.ID}}</code><br>
+                     </div>
+                     <table id="bootstrap-data-table" class="table table-striped table-bordered">
+                       <thead>
+                         <tr>
+                           <th>
+                             File
+                           </th>
+                       </tr>
+                       </thead>
+                       <tbody>
+                         {{$t := $.Task.ID}}
+                         {{range .Artefacts}}
+                         <tr>
+                           <td><a href="/artefact/{{$t}}/{{.}}/" target="_blank">{{.}}</a></td>
+                         </tr>
+                         {{end}}
+
+                       </tbody>
+                     </table>
+                     <a href="/tasks/artefacts/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Browse</button> </a>
+
+                 </div>
+
+
                </div>
 
            </div>
@@ -236,5 +271,32 @@
       </div><!-- .animated -->
    </div><!-- .content -->
  {{end}}
+
+ <script src="/assets/js/lib/data-table/datatables.min.js"></script>
+ <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
+ <script src="/assets/js/lib/data-table/dataTables.buttons.min.js"></script>
+ <script src="/assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
+ <script src="/assets/js/lib/data-table/jszip.min.js"></script>
+ <script src="/assets/js/lib/data-table/pdfmake.min.js"></script>
+ <script src="/assets/js/lib/data-table/vfs_fonts.js"></script>
+ <script src="/assets/js/lib/data-table/buttons.html5.min.js"></script>
+ <script src="/assets/js/lib/data-table/buttons.print.min.js"></script>
+ <script src="/assets/js/lib/data-table/buttons.colVis.min.js"></script>
+ <script src="/assets/js/lib/data-table/datatables-init.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#bootstrap-data-table-export').DataTable();
+
+ $.ajax({
+     url: "/api/tasks/{{.Task.ID}}",
+   })
+   .done(function( data ) {console.log(data);
+     $('#as_json').html("<code>"+JSON.stringify(data)+"</code>");
+   });
+} );
+</script>
+
+
 
 {{template "base/footer" .}}

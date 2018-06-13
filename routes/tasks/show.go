@@ -39,6 +39,7 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 		return
 	}
 	ctx.Data["Task"] = task
+	ctx.Data["Artefacts"] = task.Artefacts()
 	template.TemplatePreview(ctx, "tasks/display")
 }
 
@@ -52,4 +53,20 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	ctx.Data["Tasks"] = tasks_info
 
 	template.TemplatePreview(ctx, "tasks")
+}
+
+func ShowArtefacts(ctx *context.Context, db *database.Database) {
+	id := ctx.ParamsInt(":id")
+
+	tasks_info, err := db.GetTask(id)
+
+	if err != nil {
+		panic(err)
+	}
+
+	ctx.Data["Artefacts"] = tasks_info.Artefacts()
+	ctx.Data["Task"] = id
+	ctx.Data["TaskDetail"] = tasks_info
+
+	template.TemplatePreview(ctx, "tasks/artefacts")
 }
