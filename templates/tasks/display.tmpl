@@ -192,7 +192,8 @@
                       {{if .Task.Source}}Source: {{.Task.Source}}<br>{{end}}
                       {{if .Task.Directory}}Directory: {{.Task.Directory}}<br>{{end}}
                       {{if .Task.Script}}Script: {{.Task.Script}}<br>{{end}}
-                      {{if .Task.Namespace}}Namespace: {{.Task.Namespace}}<br>{{end}}
+                      {{if .Task.Namespace}}Artifacts synced from namespace: <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span><br>{{end}}
+                      {{if .Task.TagNamespace}}Tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span><br>{{end}}
 
                       Artefacts url: <code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></p>
                     </p>
