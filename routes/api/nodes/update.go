@@ -24,6 +24,7 @@ package nodesapi
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -62,9 +63,11 @@ func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context
 	//return ":("
 	//	}
 
+	hb := time.Now().Format("20060102150405")
 	db.UpdateNode(mynodeid, map[string]interface{}{
-		"nodeid":   nodeid,
-		"hostname": hostname,
+		"nodeid":      nodeid,
+		"hostname":    hostname,
+		"last_report": hb,
 	})
 
 	return "OK"

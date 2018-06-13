@@ -25,13 +25,14 @@ package nodes
 import "encoding/json"
 
 type Node struct {
-	ID       int    `json:"ID"`
-	NodeID   string `form:"nodeid" json:"nodeid"`
-	Key      string `json:"key" form:"key"`
-	User     string `json:"user" form:"user"`
-	Pass     string `json:"pass" form:"pass"`
-	Owner    int    `json:"owner" form:"owner"`
-	Hostname string `json:"hostname" form:"hostname"`
+	ID         int    `json:"ID"`
+	NodeID     string `form:"nodeid" json:"nodeid"`
+	Key        string `json:"key" form:"key"`
+	User       string `json:"user" form:"user"`
+	Pass       string `json:"pass" form:"pass"`
+	Owner      int    `json:"owner" form:"owner"`
+	Hostname   string `json:"hostname" form:"hostname"`
+	LastReport string `json:"last_report" form:"last_report"`
 }
 
 func NewFromJson(data []byte) Node {
@@ -43,12 +44,13 @@ func NewFromJson(data []byte) Node {
 func NewNodeFromMap(t map[string]interface{}) Node {
 
 	var (
-		key      string
-		user     string
-		pass     string
-		owner    int
-		nodeid   string
-		hostname string
+		key         string
+		user        string
+		pass        string
+		owner       int
+		nodeid      string
+		hostname    string
+		last_report string
 	)
 
 	if str, ok := t["user"].(string); ok {
@@ -69,13 +71,17 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 	if str, ok := t["hostname"].(string); ok {
 		hostname = str
 	}
+	if str, ok := t["last_report"].(string); ok {
+		last_report = str
+	}
 	node := Node{
-		Owner:    owner,
-		Pass:     pass,
-		Key:      key,
-		User:     user,
-		Hostname: hostname,
-		NodeID:   nodeid,
+		Owner:      owner,
+		Pass:       pass,
+		Key:        key,
+		User:       user,
+		Hostname:   hostname,
+		LastReport: last_report,
+		NodeID:     nodeid,
 	}
 	return node
 }
