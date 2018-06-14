@@ -74,6 +74,9 @@ type Config struct {
 	WebHookGitHubToken  string   `yaml:"github_token" envconfig:"GH_TOKEN"`
 	WebHookGitHubSecret string   `yaml:"github_secret" envconfig:"GH_SECRET"`
 
+	TLSCert string `yaml:"tls_cert" envconfig:"TLS_CERT"`
+	TLSKey  string `yaml:"tls_key" envconfig:"TLS_KEY"`
+
 	AccessControlAllowOrigin string `yaml:"access_control_allow_origin" envconfig:"ACCESSCONTROL_ALLOW_ORIGIN"`
 }
 
@@ -133,6 +136,8 @@ var (
 	WebHookGitHubSecret      string
 	WebHookGitHubToken       string
 	AccessControlAllowOrigin string
+	TLSCert                  string
+	TLSKey                   string
 )
 
 func GenDefault() {
@@ -188,6 +193,8 @@ func GenDefault() {
 	Configuration.LockPath = "/var/lock/mottainai/"
 	Configuration.WebHookGitHubToken = ""
 	Configuration.WebHookGitHubSecret = ""
+	Configuration.TLSKey = ""
+	Configuration.TLSCert = ""
 
 	LoadFromEnvironment()
 }

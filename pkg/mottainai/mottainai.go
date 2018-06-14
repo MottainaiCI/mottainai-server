@@ -129,7 +129,12 @@ func (m *Mottainai) Start(fileconfig string) error {
 	log.Printf("Listen: %v://%s", setting.Configuration.Protocol, listenAddr)
 
 	//m.Run()
-	err := http.ListenAndServe(listenAddr, m)
+	var err error
+	if len(setting.Configuration.TLSCert) > 0 && len(setting.Configuration.TLSKey) > 0 {
+		err = http.ListenAndServeTLS(listenAddr, setting.Configuration.TLSCert, setting.Configuration.TLSKey, m)
+	} else {
+		err = http.ListenAndServe(listenAddr, m)
+	}
 
 	if err != nil {
 		log.Fatal(4, "Fail to start server: %v", err)
