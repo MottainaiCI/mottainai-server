@@ -152,9 +152,15 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	if len(task_info.Image) > 0 {
 
 		if len(task_info.CacheImage) > 0 {
+
 			if img, err := d.FindImage(sharedName); err == nil {
 				fetcher.AppendTaskOutput("Cached image found: " + img + " " + sharedName)
-				image = img
+				if len(task_info.CacheClean) > 0 {
+					fetcher.AppendTaskOutput("Not using previously cached image - deleting image: " + sharedName)
+					d.RemoveImage(sharedName)
+				} else {
+					image = img
+				}
 			} else {
 				fetcher.AppendTaskOutput("No cached image found")
 			}
@@ -268,7 +274,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}, docker_client, container)
 	defer d.CleanUpContainer(container.ID)
 	if setting.Configuration.DockerKeepImg == false {
-		defer docker_client.RemoveImage(task_info.Image)
+		defer d.RemoveImage(task_info.Image)
 	}
 
 	fetcher.AppendTaskOutput("Created container ID: " + container.ID)
@@ -348,6 +354,10 @@ func (d *DockerExecutor) FindImage(image string) (string, error) {
 		return images[0].ID, nil
 	}
 	return "", errors.New("Image not found")
+}
+
+func (d *DockerExecutor) RemoveImage(image string) error {
+	return d.DockerClient.RemoveImage(image)
 }
 
 func (d *DockerExecutor) NewImageFrom(image, newimage, tag string) error {

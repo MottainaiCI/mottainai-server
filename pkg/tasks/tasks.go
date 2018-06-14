@@ -61,6 +61,7 @@ type Task struct {
 	RootTask     string `json:"root_task" form:"root_task"`
 	Prune        string `json:"prune" form:"prune"`
 	CacheImage   string `json:"cache_image" form:"cache_image"`
+	CacheClean   string `json:"cache_clean" form:"cache_clean"`
 
 	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
 
@@ -267,6 +268,14 @@ func (t *Task) AppendBuildLog(s string) error {
 }
 func (t *Task) IsDone() bool {
 	if t.Status == "done" {
+		return true
+	}
+
+	return false
+}
+
+func (t *Task) WantsClean() bool {
+	if len(t.CacheClean) > 0 {
 		return true
 	}
 

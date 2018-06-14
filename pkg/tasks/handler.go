@@ -112,6 +112,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		prune         string
 		tag_namespace string
 		cache_image   string
+		cache_clean   string
 		queue         string
 
 		environment []string
@@ -165,6 +166,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	}
 	if str, ok := t["result"].(string); ok {
 		result = str
+	}
+	if str, ok := t["cache_clean"].(string); ok {
+		cache_clean = str
 	}
 
 	if str, ok := t["tag_namespace"].(string); ok {
@@ -230,6 +234,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		CacheImage:   cache_image,
 		Environment:  environment,
 		Binds:        binds,
+		CacheClean:   cache_clean,
 	}
 	return task
 }
