@@ -1,6 +1,7 @@
 /*
 
 Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -20,54 +21,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package setting
+package cmd
 
 import (
 	"fmt"
-	"os"
 
-	"gopkg.in/yaml.v2"
+	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	cobra "github.com/spf13/cobra"
 )
 
-// ReadFromFile reads data from a file
-func ReadFromFile(cnfPath string) ([]byte, error) {
-	file, err := os.Open(cnfPath)
+func newPrintCommand() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   "print",
+		Short: "Show configuration params",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
 
-	// Config file not found
-	if err != nil {
-		return nil, fmt.Errorf("Open file error: %s", err)
+			fmt.Println("Configurations:")
+			fmt.Println(s.Configuration)
+		},
 	}
 
-	// Config file found, let's try to read it
-	data := make([]byte, 1000)
-	count, err := file.Read(data)
-	if err != nil {
-		return nil, fmt.Errorf("Read from file error: %s", err)
-	}
-
-	return data[:count], nil
-}
-
-func fromFile(cnfPath string) (*Config, error) {
-	var newCnf Config
-	newCnf = *Configuration
-
-	data, err := ReadFromFile(cnfPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := yaml.Unmarshal(data, &newCnf); err != nil {
-		return nil, fmt.Errorf("Unmarshal YAML error: %s", err)
-	}
-
-	return &newCnf, nil
-}
-
-func LoadFromFile(cnfPath string) error {
-	cfg, err := fromFile(cnfPath)
-	if err == nil {
-		Configuration = cfg
-	}
-	return err
+	return cmd
 }

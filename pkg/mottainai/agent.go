@@ -41,18 +41,13 @@ func NewAgent() *MottainaiAgent {
 	return &MottainaiAgent{Anagent: anagent.New()}
 }
 
-func (m *MottainaiAgent) HealthCheckRun(config string) {
-	m.HealthCheckSetup(config)
+func (m *MottainaiAgent) HealthCheckRun() {
+	m.HealthCheckSetup()
 
 	m.Anagent.Start()
 }
 
-func (m *MottainaiAgent) Run(config string) error {
-
-	setting.GenDefault()
-	if len(config) > 0 {
-		setting.LoadFromFileEnvironment(config)
-	}
+func (m *MottainaiAgent) Run() error {
 
 	server := NewServer()
 	broker := server.Add(setting.Configuration.BrokerDefaultQueue)

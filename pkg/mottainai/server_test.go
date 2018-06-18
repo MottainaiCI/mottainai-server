@@ -44,7 +44,7 @@ func TestNew(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	server := NewServer()
-	setting.GenDefault()
+	//	setting.GenDefault()
 
 	server.Add("test")
 
@@ -59,7 +59,7 @@ func TestAdd(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	server := NewServer()
-	setting.GenDefault()
+	//	setting.GenDefault()
 
 	if len(server.Servers) != 0 {
 		t.Errorf("0 server by default")

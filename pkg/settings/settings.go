@@ -22,190 +22,215 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package setting
 
-const MOTTAINAI_VERSION = "0.0000001"
+import (
+	"fmt"
+
+	v "github.com/spf13/viper"
+)
+
+const (
+	MOTTAINAI_VERSION    = "0.0000001"
+	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
+	MOTTAINAI_CONFIGNAME = "mottainai-server"
+	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
+)
 
 type Config struct {
-	Protocol  string `yaml:"webui_protocol" envconfig:"WEBUI_PROTOCOL"`
-	AppSubURL string `yaml:"webui_url" envconfig:"WEBUI_URL"`
-	HTTPAddr  string `yaml:"webui_listenaddress" envconfig:"WEBUI_LISTENADDRESS"`
-	HTTPPort  string `yaml:"webui_port" envconfig:"WEBUI_PORT"`
-	AppName   string `yaml:"application_name" envconfig:"APPLICATION_NAME"`
-	AppURL    string `yaml:"application_url" envconfig:"APPLICATION_URL"`
-	SecretKey string `yaml:"secret_key" envconfig:"SECRET_KEY"`
+	Viper     *v.Viper
+	Protocol  string `mapstructure:"webui_protocol"`
+	AppSubURL string `mapstructure:"webui_url"`
+	HTTPAddr  string `mapstructure:"webui_listenaddress"`
+	HTTPPort  string `mapstructure:"webui_port"`
+	AppName   string `mapstructure:"application_name"`
+	AppURL    string `mapstructure:"application_url"`
+	SecretKey string `mapstructure:"secret_key"`
 
-	StaticRootPath string `yaml:"root_path" envconfig:"ROOT_PATH"`
-	CustomPath     string `yaml:"custom_path" envconfig:"CUSTOM_PATH"`
-	DBEngine       string `yaml:"db_engine" envconfig:"DB_ENGINE"`
-	DBPath         string `yaml:"db_path" envconfig:"DB_PATH"`
-	ArtefactPath   string `yaml:"artefact_path" envconfig:"ARTEFACT_PATH"`
-	NamespacePath  string `yaml:"namespace_path" envconfig:"NAMESPACE_PATH"`
-	StoragePath    string `yaml:"storage_path" envconfig:"STORAGE_PATH"`
-	BuildPath      string `yaml:"build_path" envconfig:"BUILD_PATH"`
-	LockPath       string `yaml:"lock_path" envconfig:"LOCK_PATH"`
+	StaticRootPath string `mapstructure:"root_path"`
+	CustomPath     string `mapstructure:"custom_path"`
+	DBEngine       string `mapstructure:"db_engine"`
+	DBPath         string `mapstructure:"db_path"`
+	ArtefactPath   string `mapstructure:"artefact_path"`
+	NamespacePath  string `mapstructure:"namespace_path"`
+	StoragePath    string `mapstructure:"storage_path"`
+	BuildPath      string `mapstructure:"build_path"`
+	LockPath       string `mapstructure:"lock_path"`
 
-	ResultsExpireIn int `yaml:"results_expire_in" envconfig:"RESULTS_EXPIRE_IN"`
+	ResultsExpireIn int `mapstructure:"results_expire_in"`
 
 	/* Broker Settings */
+	Broker              string         `mapstructure:"broker"`
+	BrokerType          string         `mapstructure:"broker_type"`
+	BrokerDefaultQueue  string         `mapstructure:"broker_default_queue"`
+	BrokerResultBackend string         `mapstructure:"broker_result_backend"`
+	BrokerURI           string         `mapstructure:"broker_uri"`
+	BrokerPass          string         `mapstructure:"broker_pass"`
+	BrokerUser          string         `mapstructure:"broker_user"`
+	BrokerExchange      string         `mapstructure:"broker_exchange"`
+	BrokerExchangeType  string         `mapstructure:"broker_exchange_type"`
+	BrokerBindingKey    string         `mapstructure:"broker_binding_key"`
+	AgentConcurrency    int            `mapstructure:"agent_concurrency"`
+	Queues              map[string]int `mapstructure:"queues"`
+	AgentKey            string         `mapstructure:"agent_key"`
 
-	Broker              string         `yaml:"broker" envconfig:"BROKER"`
-	BrokerType          string         `yaml:"broker_type" envconfig:"BROKER_TYPE"`
-	BrokerDefaultQueue  string         `yaml:"broker_default_queue" envconfig:"BROKER_DEFAULT_QUEUE"`
-	BrokerResultBackend string         `yaml:"broker_result_backend" envconfig:"BROKER_RESULT_BACKEND"`
-	BrokerURI           string         `yaml:"broker_uri" envconfig:"BROKER_URI"`
-	BrokerPass          string         `yaml:"broker_pass" envconfig:"BROKER_PASS"`
-	BrokerUser          string         `yaml:"broker_user" envconfig:"BROKER_USER"`
-	BrokerExchange      string         `yaml:"broker_exchange" envconfig:"BROKER_EXCHANGE"`
-	BrokerExchangeType  string         `yaml:"broker_exchange_type" envconfig:"BROKER_EXCHANGE_TYPE"`
-	BrokerBindingKey    string         `yaml:"broker_binding_key" envconfig:"BROKER_BINDING_KEY"`
-	AgentConcurrency    int            `yaml:"agent_concurrency" envconfig:"AGENT_CONCURRENCY"`
-	Queues              map[string]int `yaml:"queues" envconfig:"QUEUES"`
-	AgentKey            string         `yaml:"agent_key" envconfig:"AGENT_KEY"`
+	TempWorkDir string `mapstructure:"work_dir"`
 
-	TempWorkDir string `yaml:"work_dir" envconfig:"WORKING_DIR"`
+	DockerEndpoint      string   `mapstructure:"docker_endpoint"`
+	DockerKeepImg       bool     `mapstructure:"docker_keepimg"`
+	DockerPriviledged   bool     `mapstructure:"docker_privileged"`
+	DockerInDocker      bool     `mapstructure:"docker_in_docker"`
+	DockerEndpointDiD   string   `mapstructure:"docker_in_docker_endpoint"`
+	DockerCaps          []string `mapstructure:"docker_caps"`
+	DockerCapsDrop      []string `mapstructure:"docker_caps_drop"`
+	PrivateQueue        bool     `mapstructure:"private_queue"`
+	WebHookGitHubToken  string   `mapstructure:"github_token"`
+	WebHookGitHubSecret string   `mapstructure:"github_secret"`
 
-	DockerEndpoint      string   `yaml:"docker_endpoint" envconfig:"DOCKER_ENDPOINT"`
-	DockerKeepImg       bool     `yaml:"docker_keepimg" envconfig:"DOCKER_KEEPIMG"`
-	DockerPriviledged   bool     `yaml:"docker_privileged" envconfig:"DOCKER_PRIVILEGED"`
-	DockerInDocker      bool     `yaml:"docker_in_docker" envconfig:"DOCKER_IN_DOCKER"`
-	DockerEndpointDiD   string   `yaml:"docker_in_docker_endpoint" envconfig:"DOCKER_IN_DOCKER_ENDPOINT"`
-	DockerCaps          []string `yaml:"docker_caps" envconfig:"DOCKER_CAPS"`
-	DockerCapsDrop      []string `yaml:"docker_caps_drop" envconfig:"DOCKER_CAPS_DROP"`
-	PrivateQueue        bool     `yaml:"private_queue" envconfig:"PRIVATE_QUEUE"`
-	WebHookGitHubToken  string   `yaml:"github_token" envconfig:"GH_TOKEN"`
-	WebHookGitHubSecret string   `yaml:"github_secret" envconfig:"GH_SECRET"`
+	TLSCert string `mapstructure:"tls_cert"`
+	TLSKey  string `mapstructure:"tls_key"`
 
-	TLSCert string `yaml:"tls_cert" envconfig:"TLS_CERT"`
-	TLSKey  string `yaml:"tls_key" envconfig:"TLS_KEY"`
-
-	AccessControlAllowOrigin string `yaml:"access_control_allow_origin" envconfig:"ACCESSCONTROL_ALLOW_ORIGIN"`
+	AccessControlAllowOrigin string `mapstructure:"access_control_allow_origin"`
 }
 
 var (
-	AppVer string
-
-	Configuration = &Config{}
-
-	Protocol                   string
-	AppSubURL                  string
-	HTTPAddr                   string
-	HTTPPort                   string
-	AppName                    string
-	AppURL                     string
-	SecretKey                  string
-	TimeFormat                 string
-	ShowFooterTemplateLoadTime bool
-	UI                         string
-	StaticRootPath             string
-	ArtefactPath               string
-	NamespacePath              string
-	StoragePath                string
-	BuildPath                  string
-
-	CustomPath string
-	DBEngine   string
-	DBPath     string
-
-	/* Broker Settings */
-
-	Broker              string
-	BrokerType          string
-	BrokerDefaultQueue  string
-	BrokerResultBackend string
-	BrokerURI           string
-	BrokerPass          string
-	BrokerUser          string
-	BrokerExchange      string
-	BrokerExchangeType  string
-	BrokerBindingKey    string
-	AgentConcurrency    int
-	ResultsExpireIn     int
-	AgentKey            string
-	LockPath            string
-
-	TempWorkDir string
-
-	DockerEndpoint           string
-	DockerKeepImg            bool
-	DockerPriviledged        bool
-	DockerInDocker           bool
-	DockerEndpointDiD        string
-	DockerCaps               []string
-	DockerCapsDrop           []string
-	Queues                   map[string]int
-	PrivateQueue             bool
-	WebHookGitHubSecret      string
-	WebHookGitHubToken       string
-	AccessControlAllowOrigin string
-	TLSCert                  string
-	TLSKey                   string
+	Configuration = &Config{Viper: v.New()}
 )
 
-func GenDefault() {
+func GenDefault(viper *v.Viper) {
 
-	AppVer = MOTTAINAI_VERSION
-	Configuration.HTTPAddr = "127.0.0.1"
-	Configuration.HTTPPort = "9090"
-	Configuration.Protocol = "http"
-	Configuration.AppName = "Mottainai"
-	Configuration.AppURL = "http://127.0.0.1:9090"
-	Configuration.SecretKey = "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx"
-	Configuration.StaticRootPath = "./"
-	Configuration.ArtefactPath = "./artefact"
-	Configuration.NamespacePath = "./namespace"
-	Configuration.StoragePath = "./storage"
-	Configuration.BuildPath = "/build/"
+	viper.SetDefault("webui_protocol", "http")
+	viper.SetDefault("webui_url", "http://127.0.0.1:9090/")
+	viper.SetDefault("webui_listenaddress", "127.0.0.1")
+	viper.SetDefault("webui_port", "9090")
+	viper.SetDefault("application_name", "Mottainai")
+	viper.SetDefault("application_url", "http://127.0.0.1:9090")
+	viper.SetDefault("secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
 
-	Configuration.CustomPath = "./"
-	Configuration.AppSubURL = "http://127.0.0.1:9090/"
-	Configuration.DBEngine = "tiedot"
-	Configuration.DBPath = "./.DB"
+	viper.SetDefault("root_path", "./")
+	viper.SetDefault("custom_path", "./")
+	viper.SetDefault("db_engine", "tiedot")
+	viper.SetDefault("db_path", "./.DB")
+	viper.SetDefault("artefact_path", "./artefact")
+	viper.SetDefault("namespace_path", "./namespace")
+	viper.SetDefault("storage_path", "./storage")
+	viper.SetDefault("build_path", "/build/")
+	viper.SetDefault("lock_path", "/var/lock/mottainai/")
 
-	Configuration.AccessControlAllowOrigin = "*"
+	viper.SetDefault("results_expire_in", 3600)
 
-	Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
-	Configuration.BrokerType = "amqp"
+	viper.SetDefault("broker", "amqp://guest@127.0.0.1:5672/")
+	viper.SetDefault("broker_type", "amqp")
+	viper.SetDefault("broker_default_queue", "global_tasks")
+	viper.SetDefault("broker_result_backend", "amqp://guest@127.0.0.1:5672/")
+	viper.SetDefault("broker_uri", "http://127.0.0.1:15672")
+	viper.SetDefault("broker_pass", "guest")
+	viper.SetDefault("broker_user", "guest")
+	viper.SetDefault("broker_exchange", "machinery_exchange")
+	viper.SetDefault("broker_exchange_type", "direct")
+	viper.SetDefault("broker_binding_key", "machinery_task")
+	viper.SetDefault("agent_concurrency", 1)
+	viper.SetDefault("queues", map[string]int{})
+	viper.SetDefault("agent_key", "")
 
-	Configuration.BrokerDefaultQueue = "global_tasks"
-	Configuration.BrokerExchange = "machinery_exchange"
+	viper.SetDefault("work_dir", "/tmp")
 
-	Configuration.BrokerURI = "http://127.0.0.1:15672"
-	Configuration.BrokerUser = "guest"
-	Configuration.BrokerPass = "guest"
-	Configuration.ResultsExpireIn = 3600
-	Configuration.BrokerResultBackend = "amqp://guest@127.0.0.1:5672/"
-	Configuration.BrokerExchange = "machinery_exchange"
-	Configuration.BrokerExchangeType = "direct"
-	Configuration.BrokerBindingKey = "machinery_task"
-	Configuration.AgentConcurrency = 1
+	viper.SetDefault("docker_endpoint", "unix:///var/run/docker.sock")
+	viper.SetDefault("docker_keepimg", true)
+	viper.SetDefault("docker_privileged", true)
+	viper.SetDefault("docker_in_docker", true)
+	viper.SetDefault("docker_in_docker_endpoint", "/var/run/docker.sock")
+	viper.SetDefault("docker_caps", []string{"SYS_PTRACE"})
+	viper.SetDefault("docker_caps_drop", []string{})
+	viper.SetDefault("private_queue", true)
+	viper.SetDefault("github_token", "")
+	viper.SetDefault("github_secret", "")
 
-	Configuration.AgentKey = ""
-	Configuration.TempWorkDir = "/tmp"
-	Configuration.DockerEndpoint = "unix:///var/run/docker.sock"
-	Configuration.DockerKeepImg = true
-	Configuration.DockerPriviledged = true
-	Configuration.DockerInDocker = true
-	Configuration.DockerEndpointDiD = "/var/run/docker.sock"
-	Configuration.DockerCaps = []string{"SYS_PTRACE"}
-	Configuration.DockerCapsDrop = []string{}
-	Configuration.Queues = map[string]int{}
-	Configuration.PrivateQueue = true
+	viper.SetDefault("tls_cert", "")
+	viper.SetDefault("tls_key", "")
 
-	Configuration.LockPath = "/var/lock/mottainai/"
-	Configuration.WebHookGitHubToken = ""
-	Configuration.WebHookGitHubSecret = ""
-	Configuration.TLSKey = ""
-	Configuration.TLSCert = ""
-
-	LoadFromEnvironment()
+	viper.SetDefault("access_control_allow_origin", "*")
 }
 
-func LoadFromFileEnvironment(cnfPath string) error {
-	cfg, err := fromFile(cnfPath)
-	if err == nil {
-		Configuration = cfg
-	} else {
-		return err
-	}
+func (c *Config) Unmarshal() error {
+	var err error
 
-	return LoadFromEnvironment()
+	err = Configuration.Viper.ReadInConfig()
+	// TODO: add loglevel warning related to no config file processed
+
+	err = Configuration.Viper.Unmarshal(&Configuration)
+
+	return err
+}
+
+func (c *Config) String() string {
+	// TODO: Currently I don't find a way to create a json from
+	//       with viper to a io.Writer (or string)
+	var ans string = fmt.Sprintf(`
+configfile: %s
+
+webui_protocol: %s
+webui_url: %s
+webui_listenaddress: %s
+webui_port: %s
+application_name: %s
+application_url: %s
+secret_key: **************
+
+root_path: %s
+custom_path: %s
+db_engine: %s
+db_path: %s
+artefact_path: %s
+namespace_path: %s
+storage_path: %s
+build_path: %s
+lock_path: %s
+
+results_expire_in: %d
+
+broker: %s
+broker_type: %s
+broker_default_queue: %s
+broker_result_backend: %s
+broker_uri: %s
+broker_pass: %s
+broker_user: %s
+broker_exchange: %s
+broker_exchange_type: %s
+broker_binding_key: %s
+agent_concurrency: %d
+queues: %s
+agent_key: ***************
+
+work_dir: %s
+
+docker_endpoint: %s
+docker_keepimg: %t
+docker_privileged: %t
+docker_in_docker: %t
+docker_in_docker_endpoint: %s
+docker_caps: %s
+docker_caps_drop: %s
+private_queue: %t
+github_token: %s
+github_secret: *****************
+
+tls_cert: %s
+tls_key: ***********************
+
+access_control_allow_origin: %s
+
+`,
+		c.Viper.Get("config"),
+		c.Protocol, c.AppSubURL, c.HTTPAddr, c.HTTPPort, c.AppName, c.AppURL,
+		c.StaticRootPath, c.CustomPath, c.DBEngine, c.DBPath, c.ArtefactPath,
+		c.NamespacePath, c.StoragePath, c.BuildPath, c.LockPath,
+		c.ResultsExpireIn,
+		c.Broker, c.BrokerType, c.BrokerDefaultQueue, c.BrokerResultBackend,
+		c.BrokerURI, c.BrokerPass, c.BrokerUser, c.BrokerExchange, c.BrokerExchangeType,
+		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.TempWorkDir,
+		c.DockerEndpoint, c.DockerKeepImg, c.DockerPriviledged, c.DockerInDocker,
+		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue,
+		c.WebHookGitHubToken, c.TLSCert, c.AccessControlAllowOrigin)
+
+	return ans
 }

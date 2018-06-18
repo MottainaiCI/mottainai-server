@@ -23,29 +23,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/urfave/cli"
+	cobra "github.com/spf13/cobra"
 )
 
-var Daemon = cli.Command{
-	Name:        "daemon",
-	Usage:       "Start api daemon",
-	Description: `daemon - a lighter version, just api`,
-	Action: func(c *cli.Context) {
-		m := mottainai.Classic()
-		routes.SetupDaemon(m)
-		if c.IsSet("config") {
-			m.Start(c.String("config"))
-		} else {
-			fmt.Println("No config file provided - running default")
-			m.Start("")
-		}
-	},
-	Flags: []cli.Flag{
-		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
-	},
+func newDaemonCommand() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   "daemon",
+		Short: "Start api daemon",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			m := mottainai.Classic()
+			routes.SetupDaemon(m)
+			m.Start()
+		},
+	}
+
+	return cmd
 }
