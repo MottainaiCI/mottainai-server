@@ -23,30 +23,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-
-	"github.com/urfave/cli"
+	cobra "github.com/spf13/cobra"
 )
 
-var Web = cli.Command{
-	Name:        "web",
-	Usage:       "Start web server",
-	Description: `Full-blown webui`,
-	Action: func(c *cli.Context) {
-		m := mottainai.Classic()
-		routes.SetupWebUI(m)
-		if c.IsSet("config") {
-			m.Start(c.String("config"))
-		} else {
-			fmt.Println("No config file provided - running default")
-			m.Start("")
-		}
-	},
-	Flags: []cli.Flag{
-		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
-	},
+func newWebCommand() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   "web",
+		Short: "Start web server",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			m := mottainai.Classic()
+			routes.SetupWebUI(m)
+			m.Start()
+		},
+	}
+
+	return cmd
 }

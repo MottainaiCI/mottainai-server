@@ -186,3 +186,9 @@ func StrictStrip(s string) (string, error) {
 	processedString := reg.ReplaceAllString(s, "")
 	return processedString, nil
 }
+
+func CheckError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

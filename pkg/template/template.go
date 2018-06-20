@@ -44,7 +44,7 @@ import (
 func TemplatePreview(c *context.Context, templatename string) {
 	//c.Data["User"] = models.User{Name: "Unknown"}
 	c.Data["AppName"] = setting.Configuration.AppName
-	c.Data["AppVer"] = setting.AppVer
+	c.Data["AppVer"] = setting.MOTTAINAI_VERSION
 	c.Data["AppURL"] = setting.Configuration.AppURL
 	c.Data["Code"] = "2014031910370000009fff6782aadb2162b4a997acb69d4400888e0b9274657374"
 	//c.Data["ActiveCodeLives"] = setting.Configuration.Service.ActiveCodeLives / 60
@@ -83,7 +83,7 @@ func NewFuncMap() []template.FuncMap {
 			return setting.Configuration.AppURL
 		},
 		"AppVer": func() string {
-			return setting.AppVer
+			return setting.MOTTAINAI_VERSION
 		},
 		"LoadTimes": func(startTime time.Time) string {
 			return fmt.Sprint(time.Since(startTime).Nanoseconds()/1e6) + "ms"

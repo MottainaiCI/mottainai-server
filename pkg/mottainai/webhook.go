@@ -49,14 +49,7 @@ func ClassicWebHookServer() *WebHookServer {
 	return &WebHookServer{Mottainai: Classic()}
 }
 
-func (m *WebHookServer) Start(fileconfig string) error {
-
-	setting.GenDefault()
-
-	if len(fileconfig) > 0 {
-		setting.LoadFromFileEnvironment(fileconfig)
-	}
-
+func (m *WebHookServer) Start() error {
 	database.NewDatabase("tiedot")
 	a := anagent.New()
 

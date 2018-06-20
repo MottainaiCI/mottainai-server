@@ -22,37 +22,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"os"
-
+	cmd "github.com/MottainaiCI/mottainai-server/cmd"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-
-	"github.com/MottainaiCI/mottainai-server/cmd"
-
-	"github.com/urfave/cli"
 )
 
-func init() {
-	setting.AppVer = setting.MOTTAINAI_VERSION
-	setting.HTTPAddr = "127.0.0.1"
-	setting.HTTPPort = "9090"
-	setting.Protocol = "http"
-	setting.AppName = "Mottainai"
-	setting.AppURL = "http://127.0.0.1:9090"
-	setting.SecretKey = "baijoibejoiebgjoi"
-	setting.StaticRootPath = "./"
-	setting.CustomPath = "./"
-}
-
 func main() {
-	app := cli.NewApp()
-	app.Name = "Mottainai"
-	app.Usage = "Task/Job Build Service"
-	app.Version = setting.MOTTAINAI_VERSION
-	app.Commands = []cli.Command{
-		cmd.Web,
-		cmd.WebHook,
-		cmd.Daemon,
-	}
-	app.Flags = append(app.Flags, []cli.Flag{}...)
-	app.Run(os.Args)
+	v := setting.Configuration.Viper
+
+	// Set env variable
+	v.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	v.BindEnv("config")
+	v.SetDefault("config", "")
+	v.AutomaticEnv()
+
+	// Set config file name (without extension)
+	v.SetConfigName(setting.MOTTAINAI_CONFIGNAME)
+
+	v.SetTypeByDefaultValue(true)
+
+	// Initialize Default Viper Configuration
+	setting.GenDefault(v)
+
+	cmd.Execute()
 }

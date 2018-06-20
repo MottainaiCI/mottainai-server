@@ -88,12 +88,7 @@ func (m *Mottainai) SetStatic() {
 	))
 }
 
-func (m *Mottainai) Start(fileconfig string) error {
-	setting.GenDefault()
-
-	if len(fileconfig) > 0 {
-		setting.LoadFromFileEnvironment(fileconfig)
-	}
+func (m *Mottainai) Start() error {
 
 	m.SetStatic()
 	m.SetAutoHead(true)

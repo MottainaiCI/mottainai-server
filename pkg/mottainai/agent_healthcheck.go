@@ -34,12 +34,7 @@ import (
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 )
 
-func (m *MottainaiAgent) HealthCheckSetup(config string) {
-	setting.GenDefault()
-	if len(config) > 0 {
-		setting.LoadFromFileEnvironment(config)
-	}
-
+func (m *MottainaiAgent) HealthCheckSetup() {
 	th := agenttasks.DefaultTaskHandler()
 	m.Map(th)
 	ID := utils.GenID()

@@ -23,29 +23,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	"github.com/urfave/cli"
+	cobra "github.com/spf13/cobra"
 )
 
-var WebHook = cli.Command{
-	Name:        "webhook",
-	Usage:       "webhook",
-	Description: `webhook server to run tasks against repositories`,
-	Action: func(c *cli.Context) {
-		m := mottainai.NewWebHookServer()
-		routes.SetupWebHookServer(m)
-		if c.IsSet("config") {
-			m.Start(c.String("config"))
-		} else {
-			fmt.Println("No config file provided - running default")
-			m.Start("")
-		}
-	},
-	Flags: []cli.Flag{
-		stringFlag("config, c", "custom/conf/app.yml", "Custom configuration file path"),
-	},
+func newWebHookCommand() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   "webhook",
+		Short: "Start WebHook Server to run tasks against repositories",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			m := mottainai.NewWebHookServer()
+			routes.SetupWebHookServer(m)
+			m.Start()
+		},
+	}
+
+	return cmd
 }
