@@ -25,12 +25,16 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -217,6 +221,107 @@ func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, err
 
 	contents, err := ioutil.ReadAll(response.Body)
 	return contents, err
+}
+
+func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramName string, filePath string, chunkSize int) error {
+	//open file and retrieve info
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	//buffer for storing multipart data
+	byteBuf := &bytes.Buffer{}
+
+	//part: parameters
+	mpWriter := multipart.NewWriter(byteBuf)
+	for key, value := range params {
+		err = mpWriter.WriteField(key, value)
+		if err != nil {
+			return err
+		}
+	}
+
+	//part: file
+	mpWriter.CreateFormFile(paramName, fi.Name())
+	contentType := mpWriter.FormDataContentType()
+
+	nmulti := byteBuf.Len()
+	multi := make([]byte, nmulti)
+	_, err = byteBuf.Read(multi)
+	if err != nil {
+		return err
+	}
+	//part: latest boundary
+	//when multipart closed, latest boundary is added
+	mpWriter.Close()
+	nboundary := byteBuf.Len()
+	lastBoundary := make([]byte, nboundary)
+	_, err = byteBuf.Read(lastBoundary)
+	if err != nil {
+		return err
+	}
+	//calculate content length
+	totalSize := int64(nmulti) + fi.Size() + int64(nboundary)
+	log.Printf("Content length = %v byte(s)\n", totalSize)
+
+	//use pipe to pass request
+	rd, wr := io.Pipe()
+	defer rd.Close()
+
+	go func() {
+		defer wr.Close()
+
+		//write multipart
+		_, _ = wr.Write(multi)
+
+		//write file
+		buf := make([]byte, chunkSize)
+		for {
+			n, err := file.Read(buf)
+			if err != nil {
+				break
+			}
+			_, _ = wr.Write(buf[:n])
+		}
+		//write boundary
+		_, _ = wr.Write(lastBoundary)
+	}()
+
+	//construct request with rd
+	req, err := http.NewRequest("POST", f.BaseURL+uri, rd)
+	if err != nil {
+		return err
+	}
+	req.TransferEncoding = []string{"chunked"}
+
+	req.Header.Set("Content-Type", contentType)
+	req.ContentLength = -1 //totalSize
+	req.ProtoMajor = 1
+	req.ProtoMinor = 1
+	//process request
+	client := &http.Client{Timeout: 0}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println(resp.StatusCode)
+		log.Println(resp.Header)
+
+		body := &bytes.Buffer{}
+		_, _ = body.ReadFrom(resp.Body)
+		resp.Body.Close()
+		log.Println(body)
+		if resp.StatusCode != 200 {
+			return errors.New("[Upload] Error while uploading " + filePath + ": " + strconv.Itoa(resp.StatusCode))
+		}
+	}
+	return err
 }
 
 // Creates a new file upload http request with optional extra params
