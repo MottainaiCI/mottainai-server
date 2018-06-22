@@ -216,6 +216,17 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 	return nil
 }
 
+func (f *Fetcher) UploadArtefactRetry(fullpath, relativepath string, trials int) error {
+	trial := 1
+	err := f.UploadArtefact(fullpath, relativepath)
+	for err != nil && trial < trials {
+		trial++
+		f.AppendTaskOutput("[Upload] Trial " + strconv.Itoa(trial))
+		err = f.UploadArtefact(fullpath, relativepath)
+	}
+	return err
+}
+
 func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
@@ -226,24 +237,29 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 		//	"namespace": dir,
 	}
 
-	request, err := f.Upload("/api/tasks/artefact/upload", opts, "file", fullpath)
-
+	//request, err := f.Upload("/api/tasks/artefact/upload", opts, "file", fullpath)
+	err := f.UploadLargeFile("/api/tasks/artefact/upload", opts, "file", fullpath, 1024)
+	//
 	if err != nil {
-		f.AppendTaskOutput(err.Error())
+		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
 		return err
 	}
-	client := &http.Client{}
-	resp, err := client.Do(request)
-	if err != nil {
-		f.AppendTaskOutput(err.Error())
-		return err
-	} else {
-		var bodyContent []byte
-		f.AppendTaskOutput(strconv.Itoa(resp.StatusCode))
-		resp.Body.Read(bodyContent)
-		resp.Body.Close()
-		f.AppendTaskOutput(string(bodyContent))
-	}
+	// client := &http.Client{}
+	// resp, err := client.Do(request)
+	// if err != nil {
+	// 	f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
+	// 	return err
+	// } else {
+	// 	var bodyContent []byte
+	// 	f.AppendTaskOutput("[Upload] " + file + " response status : " + strconv.Itoa(resp.StatusCode))
+	// 	resp.Body.Read(bodyContent)
+	// 	resp.Body.Close()
+	// 	f.AppendTaskOutput("[Upload] " + file + " response : " + string(bodyContent))
+	//
+	// 	if resp.StatusCode != 200 {
+	// 		return errors.New("[Upload] Error while uploading artefact " + file + ": " + strconv.Itoa(resp.StatusCode))
+	// 	}
+	// }
 	return nil
 }
 

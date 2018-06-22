@@ -272,10 +272,10 @@ func (h *TaskHandler) UploadArtefact(fetcher *client.Fetcher, path, art string) 
 		return err
 	case mode.IsRegular():
 		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel)
-		fetcher.UploadArtefact(path, rel)
+		err = fetcher.UploadArtefactRetry(path, rel, 5)
 	}
 
-	return nil
+	return err
 }
 
 func HandleSuccess(docID string, result int) error {

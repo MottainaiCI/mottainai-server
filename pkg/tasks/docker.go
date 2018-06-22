@@ -331,6 +331,9 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 				fetcher.AppendTaskOutput("Pruning unused docker resources")
 				d.Prune()
 			}
+			if err != nil {
+				return 1, err
+			}
 			return c_data.State.ExitCode, nil
 		}
 	}
