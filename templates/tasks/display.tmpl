@@ -1,6 +1,5 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
-<script src="{{AppSubURL}}/assets/js/vendor/jquery-2.1.4.min.js"></script>
 
 {{if eq .Task.Status "running"}}
 <script src="{{AppSubURL}}/assets/js/vendor/jquery.terminal.min.js"></script>
@@ -55,7 +54,7 @@
 </style>
 
 <script type='text/javascript'>
-	  $(document).ready(function() {
+  jQuery(document).ready(function($) {
       var pos = 0;
       var build_data;
       var save_state = [];
