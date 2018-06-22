@@ -95,6 +95,10 @@ var (
 	Configuration = &Config{Viper: v.New()}
 )
 
+func (c *Config) GenDefault() {
+	GenDefault(c.Viper)
+}
+
 func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("webui_protocol", "http")
