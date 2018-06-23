@@ -266,9 +266,6 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	if err != nil {
 		return err
 	}
-	//calculate content length
-	totalSize := int64(nmulti) + fi.Size() + int64(nboundary)
-	log.Printf("Content length = %v byte(s)\n", totalSize)
 
 	//use pipe to pass request
 	rd, wr := io.Pipe()
@@ -304,6 +301,8 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	req.ContentLength = -1 //totalSize
 	req.ProtoMajor = 1
 	req.ProtoMinor = 1
+	req.Header.Add("Connection", "keep-alive")
+
 	//process request
 	client := &http.Client{Timeout: 0}
 	resp, err := client.Do(req)
