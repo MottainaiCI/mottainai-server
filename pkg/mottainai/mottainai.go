@@ -25,6 +25,7 @@ package mottainai
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 
 	log "log"
@@ -55,6 +56,14 @@ func Classic() *Mottainai {
 	cl := macaron.New()
 	cl.Use(macaron.Logger())
 	cl.Use(macaron.Recovery())
+
+	// XXX: Workaround
+	// Set TMPDIR to /var/tmp by default
+	// to prevent large files to be stored in ram instead of disk
+	if os.Getenv("TMPDIR") == "" {
+		os.Setenv("TMPDIR", "/var/tmp")
+	}
+
 	cl.Invoke(func(l *log.Logger) {
 		l.SetPrefix("[ Mottainai ] ")
 	})
