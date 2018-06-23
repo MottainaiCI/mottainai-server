@@ -74,13 +74,13 @@ func TestUpload(t *testing.T) {
 	}
 
 	fetcher := client.NewFetcher(tid)
-
-	err = fetcher.UploadArtefactRetry("artefact.go", "/", 5)
+	testFile := "artefact.go"
+	err = fetcher.UploadArtefactRetry(testFile, "/", 5)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	file, err := os.Open(path.Join(s.Configuration.ArtefactPath, tid, "artefact.go"))
+	file, err := os.Open(path.Join(s.Configuration.ArtefactPath, tid, testFile))
 	if err != nil {
 		t.Errorf(err.Error())
 	}
