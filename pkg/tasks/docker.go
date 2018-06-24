@@ -32,15 +32,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	docker "github.com/fsouza/go-dockerclient"
 )
 
 type DockerExecutor struct {
-	DockerClient    *docker.Client
-	MottainaiClient *client.Fetcher
+	*TaskExecutor
+	DockerClient *docker.Client
 }
 
 func (e *DockerExecutor) Prune() {
@@ -51,14 +50,7 @@ func (e *DockerExecutor) Prune() {
 }
 
 func (d *DockerExecutor) Setup(docID string) error {
-	fetcher := client.NewFetcher(docID)
-	fetcher.SetTaskStatus("setup")
-	ID := utils.GenID()
-	hostname := utils.Hostname()
-	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + " ) ")
-	fetcher.SetTaskField("nodeid", ID)
-
-	d.MottainaiClient = fetcher
+	d.TaskExecutor.Setup(docID)
 	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
 	if err != nil {
 		return (errors.New("Endpoint:" + setting.Configuration.DockerEndpoint + " Error: " + err.Error()))
@@ -71,18 +63,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
 	th := DefaultTaskHandler()
 	task_info := th.FetchTask(fetcher)
-	if task_info.Status == "running" {
-		fetcher.SetTaskStatus("failure")
-		msg := "Task picked twice"
-		fetcher.AppendTaskOutput(msg)
-		return 1, errors.New(msg)
-	}
 
-	fetcher.SetTaskStatus("running")
-	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
-	fetcher.AppendTaskOutput("Build started!\n")
-
-	task_info = th.FetchTask(fetcher)
 	var sharedName, OriginalSharedName string
 	image := task_info.Image
 
@@ -215,16 +196,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		storagedir = storagetmp
 	}
 
-	if len(task_info.RootTask) > 0 {
-		fetcher.DownloadArtefactsFromTask(task_info.RootTask, artefactdir)
-	}
-
-	if len(task_info.Namespace) > 0 {
-		fetcher.DownloadArtefactsFromNamespace(task_info.Namespace, artefactdir)
-	}
-
-	if len(task_info.Storage) > 0 {
-		fetcher.DownloadArtefactsFromStorage(task_info.Storage, storagedir)
+	if err := d.DownloadArtefacts(artefactdir, storagedir); err != nil {
+		return 1, err
 	}
 
 	//ContainerVolumes = append(ContainerVolumes, git_repo_dir+":/build")
