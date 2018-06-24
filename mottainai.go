@@ -33,6 +33,8 @@ func main() {
 	v.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
 	v.BindEnv("config")
 	v.SetDefault("config", "")
+	v.SetDefault("etcd-config", false)
+
 	v.AutomaticEnv()
 
 	// Set config file name (without extension)

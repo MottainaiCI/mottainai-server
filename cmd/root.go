@@ -43,6 +43,8 @@ Mottainai - Task/Job Build Service`
 	srvExamples = `$> mottainai-server web -c mottainai-server.yaml
 
 $> mottainai-server daemon -c mottainai-server.yaml
+
+$> mottainai-server daemon -r -e http://127.0.0.1:4001 -c mottainai1/mottainai-server.yaml
 `
 )
 
@@ -65,14 +67,25 @@ var rootCmd = &cobra.Command{
 		var pwd string
 		var v *viper.Viper = s.Configuration.Viper
 
-		if v.Get("config") == "" {
-			// Set config path list
-			pwd, err = os.Getwd()
-			utils.CheckError(err)
-			v.AddConfigPath(pwd)
-			v.AddConfigPath(s.MOTTAINAI_CONFIGPATH)
+		if v.GetBool("etcd-config") {
+			if v.Get("etcd-keyring") != "" {
+				v.AddSecureRemoteProvider("etcd", v.GetString("etcd-endpoint"),
+					v.GetString("config"), v.GetString("etcd-keyring"))
+			} else {
+				v.AddRemoteProvider("etcd", v.GetString("etcd-endpoint"),
+					v.GetString("config"))
+			}
+			v.SetConfigType("yml")
 		} else {
-			v.SetConfigFile(v.Get("config").(string))
+			if v.Get("config") == "" {
+				// Set config path list
+				pwd, err = os.Getwd()
+				utils.CheckError(err)
+				v.AddConfigPath(pwd)
+				v.AddConfigPath(s.MOTTAINAI_CONFIGPATH)
+			} else {
+				v.SetConfigFile(v.Get("config").(string))
+			}
 		}
 
 		// Parse configuration file
@@ -85,9 +98,18 @@ func init() {
 	var pflags = rootCmd.PersistentFlags()
 
 	pflags.StringP("config", "c", "/etc/mottainai/mottainai-server.yaml",
-		"Mottainai Server configuration file")
+		"Mottainai Server configuration file or Etcd path")
+	pflags.BoolP("remote-config", "r", false,
+		"Enable etcd remote config provider")
+	pflags.StringP("etcd-endpoint", "e", "http://127.0.0.1:4001",
+		"Etcd Server Address")
+	pflags.String("etcd-keyring", "",
+		"Etcd Keyring (Ex: /etc/secrets/mykeyring.gpg)")
 
 	s.Configuration.Viper.BindPFlag("config", pflags.Lookup("config"))
+	s.Configuration.Viper.BindPFlag("etcd-config", pflags.Lookup("remote-config"))
+	s.Configuration.Viper.BindPFlag("etcd-endpoint", pflags.Lookup("etcd-endpoint"))
+	s.Configuration.Viper.BindPFlag("etcd-keyring", pflags.Lookup("etcd-keyring"))
 
 	rootCmd.AddCommand(
 		newDaemonCommand(),

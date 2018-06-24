@@ -157,8 +157,13 @@ func GenDefault(viper *v.Viper) {
 func (c *Config) Unmarshal() error {
 	var err error
 
-	err = Configuration.Viper.ReadInConfig()
-	// TODO: add loglevel warning related to no config file processed
+	if Configuration.Viper.InConfig("etcd-config") &&
+		Configuration.Viper.GetBool("etcd-config") {
+		err = Configuration.Viper.ReadRemoteConfig()
+	} else {
+		err = Configuration.Viper.ReadInConfig()
+		// TODO: add loglevel warning related to no config file processed
+	}
 
 	err = Configuration.Viper.Unmarshal(&Configuration)
 
@@ -222,7 +227,6 @@ tls_cert: %s
 tls_key: ***********************
 
 access_control_allow_origin: %s
-
 `,
 		c.Viper.Get("config"),
 		c.Protocol, c.AppSubURL, c.HTTPAddr, c.HTTPPort, c.AppName, c.AppURL,

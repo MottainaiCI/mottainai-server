@@ -37,8 +37,24 @@ func newPrintCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			fmt.Println("Configurations:")
+			fmt.Println("===================================")
+			fmt.Println("CONFIGURATION PARAMS:")
+			fmt.Println("===================================")
 			fmt.Println(s.Configuration)
+			fmt.Println("===================================")
+			fmt.Println("")
+			fmt.Println("===================================")
+			fmt.Println("CONFIG SOURCE:")
+			fmt.Println("===================================")
+			fmt.Println("remote-config: ", s.Configuration.Viper.Get("etcd-config"))
+			if s.Configuration.Viper.GetBool("etcd-config") {
+				fmt.Println("Etcd Server: ", s.Configuration.Viper.Get("etcd-endpoint"))
+				fmt.Println("Etcd Keyring: ", s.Configuration.Viper.Get("etcd-keyring"))
+				fmt.Println("Etcd Path: ", s.Configuration.Viper.Get("config"))
+			} else {
+				fmt.Println("Config File: ", s.Configuration.Viper.Get("config"))
+			}
+			fmt.Println("===================================")
 		},
 	}
 
