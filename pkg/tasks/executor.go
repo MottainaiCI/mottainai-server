@@ -24,8 +24,13 @@ package agenttasks
 
 import (
 	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
+
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -38,6 +43,7 @@ type ExecutorContext struct {
 
 type TaskExecutor struct {
 	MottainaiClient *client.Fetcher
+	Context         *ExecutorContext
 }
 
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
@@ -62,6 +68,19 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	}
 	return nil
 }
+func (d *TaskExecutor) Clean() error {
+	if len(d.Context.ArtefactDir) > 0 {
+		os.RemoveAll(d.Context.ArtefactDir)
+	}
+	if len(d.Context.StorageDir) > 0 {
+		os.RemoveAll(d.Context.StorageDir)
+	}
+	if len(d.Context.BuildDir) > 0 {
+		os.RemoveAll(d.Context.BuildDir)
+	}
+
+	return nil
+}
 
 func (d *TaskExecutor) Setup(docID string) error {
 	fetcher := client.NewFetcher(docID)
@@ -83,6 +102,51 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	fetcher.SetTaskStatus("running")
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
-	fetcher.AppendTaskOutput("Build started!\n")
+	fetcher.AppendTaskOutput("> Build started!\n")
+
+	// Create temp folders and setup context
+	d.Context = &ExecutorContext{}
+
+	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
+	if err != nil {
+		return err
+	}
+
+	artdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "artefact")
+	if err != nil {
+		return err
+	}
+
+	storagetmp, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "storage")
+	if err != nil {
+		return err
+	}
+
+	d.Context.BuildDir = dir
+	d.Context.ArtefactDir = artdir
+	d.Context.StorageDir = storagetmp
+
+	// Fetch git repo (for now only one supported) and checkout commit
+	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source)
+	if len(task_info.Source) > 0 {
+		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, d.Context.BuildDir)
+		fetcher.AppendTaskOutput(out)
+		if err != nil {
+			return err
+		}
+	}
+
+	d.Context.SourceDir = filepath.Join(d.Context.BuildDir, "target_repo")
+
+	//cwd, _ := os.Getwd()
+	os.Chdir(d.Context.SourceDir)
+	if len(task_info.Commit) > 0 {
+		out, err := utils.Git([]string{"checkout", task_info.Commit}, d.Context.SourceDir)
+		fetcher.AppendTaskOutput(out)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

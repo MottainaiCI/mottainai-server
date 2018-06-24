@@ -22,11 +22,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package agenttasks
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 type Executor interface {
 	Play(string) (int, error)
 	Setup(string) error
+	Clean() error
 }
 
 type Player struct{ TaskID string }
@@ -36,9 +40,19 @@ func NewPlayer(taskid string) *Player {
 }
 
 func (p *Player) Start(e Executor) (int, error) {
+	defer e.Clean()
 	err := e.Setup(p.TaskID)
 	if err != nil {
 		return 1, errors.New("Setup phase error: " + err.Error())
 	}
-	return e.Play(p.TaskID)
+
+	res, err := e.Play(p.TaskID)
+	if err != nil {
+		return 1, errors.New("Play phase error (Exit with: " + strconv.Itoa(res) + ") : " + err.Error())
+	}
+	// err = e.Clean()
+	// if err != nil {
+	// 	return 1, errors.New("Clean phase error: " + err.Error())
+	// }
+	return res, err
 }

@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"errors"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -79,45 +78,9 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		panic(err)
 	}
 
-	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
-	if err != nil {
-		panic(err)
-	}
-
-	artdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "artefact")
-	if err != nil {
-		panic(err)
-	}
-
-	storagetmp, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "storage")
-	if err != nil {
-		panic(err)
-	}
-
-	defer os.RemoveAll(artdir)
-	defer os.RemoveAll(storagetmp)
-	defer os.RemoveAll(dir)
-
-	fetcher.AppendTaskOutput("Cloning git repo: " + task_info.Source)
-	if len(task_info.Source) > 0 {
-		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, dir)
-		fetcher.AppendTaskOutput(out)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	git_repo_dir := filepath.Join(dir, "target_repo")
-
-	//cwd, _ := os.Getwd()
-	os.Chdir(git_repo_dir)
-	if len(task_info.Commit) > 0 {
-		out, err := utils.Git([]string{"checkout", task_info.Commit}, git_repo_dir)
-		fetcher.AppendTaskOutput(out)
-		if err != nil {
-			panic(err)
-		}
-	}
+	artdir := d.Context.ArtefactDir
+	storagetmp := d.Context.StorageDir
+	git_repo_dir := d.Context.SourceDir
 
 	var execute_script = "mottainai-run"
 
