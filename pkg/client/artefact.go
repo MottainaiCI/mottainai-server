@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	storageci "github.com/MottainaiCI/mottainai-server/pkg/storage"
 )
@@ -93,6 +94,28 @@ func (d *Fetcher) DownloadArtefactsFromTask(taskid, target string) {
 
 	}
 
+}
+
+func (fetcher *Fetcher) UploadFile(path, art string) error {
+
+	_, file := filepath.Split(path)
+	rel := strings.Replace(path, art, "", 1)
+	rel = strings.Replace(rel, file, "", 1)
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		// do directory stuff
+		return err
+	case mode.IsRegular():
+		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel)
+		err = fetcher.UploadArtefactRetry(path, rel, 5)
+	}
+
+	return err
 }
 
 func (d *Fetcher) DownloadArtefactsFromStorage(storage, target string) {

@@ -26,7 +26,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,7 +40,7 @@ import (
 
 //TODO:
 type ExecutorContext struct {
-	ArtefactDir, StorageDir, NamespaceDir, BuildDir, SourceDir string
+	ArtefactDir, StorageDir, NamespaceDir, BuildDir, SourceDir, RootTaskDir string
 }
 
 type TaskExecutor struct {
@@ -68,6 +70,19 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	}
 	return nil
 }
+
+func (d *TaskExecutor) UploadArtefacts(folder string) error {
+	err := filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+		return d.MottainaiClient.UploadFile(path, folder)
+	})
+
+	if err != nil {
+		d.MottainaiClient.SetTaskStatus("failure")
+		d.MottainaiClient.AppendTaskOutput(err.Error())
+	}
+	return err
+}
+
 func (d *TaskExecutor) Clean() error {
 	if len(d.Context.ArtefactDir) > 0 {
 		os.RemoveAll(d.Context.ArtefactDir)
@@ -78,7 +93,9 @@ func (d *TaskExecutor) Clean() error {
 	if len(d.Context.BuildDir) > 0 {
 		os.RemoveAll(d.Context.BuildDir)
 	}
-
+	if len(d.Context.RootTaskDir) > 0 {
+		os.RemoveAll(d.Context.RootTaskDir)
+	}
 	return nil
 }
 
@@ -125,6 +142,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.BuildDir = dir
 	d.Context.ArtefactDir = artdir
 	d.Context.StorageDir = storagetmp
+	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
 
 	// Fetch git repo (for now only one supported) and checkout commit
 	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source)

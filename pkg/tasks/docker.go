@@ -25,10 +25,7 @@ package agenttasks
 import (
 	"errors"
 	"net/url"
-	"os"
 	"path"
-	"path/filepath"
-	"strconv"
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -117,8 +114,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		fetcher.AppendTaskOutput("Pulling image: DONE!")
 	}
 	//var args []string
-	var git_root_path = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
-	defer os.RemoveAll(git_root_path)
+	var git_root_path = d.Context.RootTaskDir
 	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
 
 	var storage_path = "storage"
@@ -247,14 +243,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 				to_upload = path.Join(git_root_path, task_info.Directory, artefact_path)
 			}
 
-			err = filepath.Walk(to_upload, func(path string, f os.FileInfo, err error) error {
-				return th.UploadArtefact(fetcher, path, to_upload)
-
-			})
-
-			if err != nil {
-				fetcher.AppendTaskOutput(err.Error())
-			}
+			err = d.UploadArtefacts(to_upload)
 
 			fetcher.AppendTaskOutput("Container execution terminated")
 
