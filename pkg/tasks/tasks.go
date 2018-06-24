@@ -134,6 +134,8 @@ func (t *Task) Reset() {
 	t.Status = ""
 	t.ExitStatus = ""
 	t.CreatedTime = time.Now().Format("20060102150405")
+	t.EndTime = ""
+	t.StartTime = ""
 }
 
 func (t *Task) IsRunning() bool {
