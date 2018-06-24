@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package mottainai
 
 import (
+	"os"
+
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
@@ -65,6 +67,8 @@ func (m *MottainaiAgent) Run() error {
 		log.INFO.Println("Listening on private queue")
 		go w.Launch()
 	}
+
+	os.MkdirAll(setting.Configuration.TempWorkDir, os.ModePerm)
 
 	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
 	fetcher := client.NewClient(setting.Configuration.AppURL)

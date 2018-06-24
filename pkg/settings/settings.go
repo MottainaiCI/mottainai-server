@@ -135,7 +135,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("queues", map[string]int{})
 	viper.SetDefault("agent_key", "")
 
-	viper.SetDefault("work_dir", "/tmp")
+	viper.SetDefault("work_dir", "/var/tmp/mottainai")
 
 	viper.SetDefault("docker_endpoint", "unix:///var/run/docker.sock")
 	viper.SetDefault("docker_keepimg", true)
