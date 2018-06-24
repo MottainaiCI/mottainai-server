@@ -40,7 +40,11 @@ import (
 
 //TODO:
 type ExecutorContext struct {
-	ArtefactDir, StorageDir, NamespaceDir, BuildDir, SourceDir, RootTaskDir string
+	ArtefactDir, StorageDir, NamespaceDir, BuildDir, SourceDir, RootTaskDir, RealRootDir string
+}
+
+func NewExecutorContext() *ExecutorContext {
+	return &ExecutorContext{ArtefactDir: "", StorageDir: "", NamespaceDir: "", BuildDir: "", SourceDir: "", RootTaskDir: "", RealRootDir: ""}
 }
 
 type TaskExecutor struct {
@@ -85,16 +89,24 @@ func (d *TaskExecutor) UploadArtefacts(folder string) error {
 
 func (d *TaskExecutor) Clean() error {
 	if len(d.Context.ArtefactDir) > 0 {
-		os.RemoveAll(d.Context.ArtefactDir)
+		if err := os.RemoveAll(d.Context.ArtefactDir); err != nil {
+			return err
+		}
 	}
 	if len(d.Context.StorageDir) > 0 {
-		os.RemoveAll(d.Context.StorageDir)
+		if err := os.RemoveAll(d.Context.StorageDir); err != nil {
+			return err
+		}
 	}
 	if len(d.Context.BuildDir) > 0 {
-		os.RemoveAll(d.Context.BuildDir)
+		if err := os.RemoveAll(d.Context.BuildDir); err != nil {
+			return err
+		}
 	}
 	if len(d.Context.RootTaskDir) > 0 {
-		os.RemoveAll(d.Context.RootTaskDir)
+		if err := os.RemoveAll(d.Context.RootTaskDir); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -121,9 +133,6 @@ func (d *TaskExecutor) Setup(docID string) error {
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("> Build started!\n")
 
-	// Create temp folders and setup context
-	d.Context = &ExecutorContext{}
-
 	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
 	if err != nil {
 		return err
@@ -145,7 +154,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
 
 	// Fetch git repo (for now only one supported) and checkout commit
-	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source)
+	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source + " in : " + d.Context.BuildDir)
 	if len(task_info.Source) > 0 {
 		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, d.Context.BuildDir)
 		fetcher.AppendTaskOutput(out)

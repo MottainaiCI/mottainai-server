@@ -59,7 +59,7 @@ func DefaultTaskHandler() *TaskHandler {
 
 func DockerPlayer(docID string) (int, error) {
 	player := NewPlayer(docID)
-	return player.Start(&DockerExecutor{})
+	return player.Start(NewDockerExecutor())
 }
 
 func (h *TaskHandler) NewPlanFromJson(data []byte) Plan {

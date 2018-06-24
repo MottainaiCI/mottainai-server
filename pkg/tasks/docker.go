@@ -38,6 +38,10 @@ type DockerExecutor struct {
 	DockerClient *docker.Client
 }
 
+func NewDockerExecutor() *DockerExecutor {
+	return &DockerExecutor{TaskExecutor: &TaskExecutor{Context: NewExecutorContext()}}
+}
+
 func (e *DockerExecutor) Prune() {
 	e.DockerClient.PruneContainers(docker.PruneContainersOptions{})
 	e.DockerClient.PruneImages(docker.PruneImagesOptions{})

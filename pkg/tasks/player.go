@@ -42,6 +42,7 @@ func NewPlayer(taskid string) *Player {
 func (p *Player) Start(e Executor) (int, error) {
 	defer e.Clean()
 	err := e.Setup(p.TaskID)
+
 	if err != nil {
 		return 1, errors.New("Setup phase error: " + err.Error())
 	}
