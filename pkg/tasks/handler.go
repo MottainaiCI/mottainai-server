@@ -25,10 +25,7 @@ package agenttasks
 import (
 	"encoding/json"
 	"errors"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	machinery "github.com/RichardKnop/machinery/v1"
@@ -254,28 +251,6 @@ func (h *TaskHandler) FetchTask(fetcher *client.Fetcher) Task {
 		panic(err)
 	}
 	return h.NewTaskFromJson(task_data)
-}
-
-func (h *TaskHandler) UploadArtefact(fetcher *client.Fetcher, path, art string) error {
-
-	_, file := filepath.Split(path)
-	rel := strings.Replace(path, art, "", 1)
-	rel = strings.Replace(rel, file, "", 1)
-
-	fi, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	switch mode := fi.Mode(); {
-	case mode.IsDir():
-		// do directory stuff
-		return err
-	case mode.IsRegular():
-		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel)
-		err = fetcher.UploadArtefactRetry(path, rel, 5)
-	}
-
-	return err
 }
 
 func HandleSuccess(docID string, result int) error {
