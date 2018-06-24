@@ -29,7 +29,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes"
@@ -47,7 +46,7 @@ func TestUpload(t *testing.T) {
 	routes.SetupWebUI(server)
 	go server.Start()
 	time.Sleep(time.Duration(60 * time.Second))
-	c := client.NewClient(s.Configuration.AppURL)
+	c := NewClient(s.Configuration.AppURL)
 
 	dat := make(map[string]interface{})
 
@@ -73,7 +72,7 @@ func TestUpload(t *testing.T) {
 		t.Fatal("Document not created")
 	}
 
-	fetcher := client.NewFetcher(tid)
+	fetcher := NewFetcher(tid)
 	testFile := "artefact.go"
 	err = fetcher.UploadArtefactRetry(testFile, "/", 5)
 	if err != nil {
