@@ -53,27 +53,30 @@ func (m *MottainaiAgent) Run() error {
 
 	server := NewServer()
 	broker := server.Add(setting.Configuration.BrokerDefaultQueue)
-
 	th := agenttasks.DefaultTaskHandler()
+	fetcher := client.NewClient(setting.Configuration.AppURL)
+
+	m.Map(server)
 	m.Map(th)
+	m.Map(fetcher)
+
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 	log.INFO.Println("Worker ID: " + ID)
 	log.INFO.Println("Worker Hostname: " + hostname)
 
-	if setting.Configuration.PrivateQueue {
-		b := server.Add(hostname)
-		w := b.NewWorker(ID+hostname, 1)
-		log.INFO.Println("Listening on private queue")
+	if setting.Configuration.PrivateQueue != 0 {
+		privqueue := hostname + ID
+		b := server.Add(privqueue)
+		w := b.NewWorker(privqueue, setting.Configuration.PrivateQueue)
+		log.INFO.Println("Listening on private queue: " + privqueue)
 		go w.Launch()
 	}
 
 	os.MkdirAll(setting.Configuration.TempWorkDir, os.ModePerm)
 
 	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
-	fetcher := client.NewClient(setting.Configuration.AppURL)
 	fetcher.RegisterNode(ID, hostname)
-	m.Map(fetcher)
 
 	m.TimerSeconds(int64(200), true, func(c *client.Fetcher) {
 		c.RegisterNode(ID, hostname)
@@ -84,6 +87,11 @@ func (m *MottainaiAgent) Run() error {
 		b := server.Add(q)
 		w := b.NewWorker(ID, concurrent)
 		go w.Launch()
+	}
+
+	if setting.Configuration.StandAlone {
+		m.Start()
+		return nil
 	}
 
 	go func(w *machinery.Worker, a *MottainaiAgent) {

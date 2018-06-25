@@ -74,16 +74,18 @@ type Config struct {
 
 	TempWorkDir string `mapstructure:"work_dir"`
 
-	DockerEndpoint      string   `mapstructure:"docker_endpoint"`
-	DockerKeepImg       bool     `mapstructure:"docker_keepimg"`
-	DockerPriviledged   bool     `mapstructure:"docker_privileged"`
-	DockerInDocker      bool     `mapstructure:"docker_in_docker"`
-	DockerEndpointDiD   string   `mapstructure:"docker_in_docker_endpoint"`
-	DockerCaps          []string `mapstructure:"docker_caps"`
-	DockerCapsDrop      []string `mapstructure:"docker_caps_drop"`
-	PrivateQueue        bool     `mapstructure:"private_queue"`
-	WebHookGitHubToken  string   `mapstructure:"github_token"`
-	WebHookGitHubSecret string   `mapstructure:"github_secret"`
+	DockerEndpoint    string   `mapstructure:"docker_endpoint"`
+	DockerKeepImg     bool     `mapstructure:"docker_keepimg"`
+	DockerPriviledged bool     `mapstructure:"docker_privileged"`
+	DockerInDocker    bool     `mapstructure:"docker_in_docker"`
+	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint"`
+	DockerCaps        []string `mapstructure:"docker_caps"`
+	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
+	PrivateQueue      int      `mapstructure:"private_queue"`
+	StandAlone        bool     `mapstructure:"standalone"`
+
+	WebHookGitHubToken  string `mapstructure:"github_token"`
+	WebHookGitHubSecret string `mapstructure:"github_secret"`
 
 	TLSCert string `mapstructure:"tls_cert"`
 	TLSKey  string `mapstructure:"tls_key"`
@@ -144,7 +146,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("docker_in_docker_endpoint", "/var/run/docker.sock")
 	viper.SetDefault("docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("docker_caps_drop", []string{})
-	viper.SetDefault("private_queue", true)
+	viper.SetDefault("private_queue", 1)
+	viper.SetDefault("standalone", false)
 	viper.SetDefault("github_token", "")
 	viper.SetDefault("github_secret", "")
 
@@ -219,7 +222,8 @@ docker_in_docker: %t
 docker_in_docker_endpoint: %s
 docker_caps: %s
 docker_caps_drop: %s
-private_queue: %t
+private_queue: %d
+standalone: %t
 github_token: %s
 github_secret: *****************
 
@@ -237,7 +241,7 @@ access_control_allow_origin: %s
 		c.BrokerURI, c.BrokerPass, c.BrokerUser, c.BrokerExchange, c.BrokerExchangeType,
 		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.TempWorkDir,
 		c.DockerEndpoint, c.DockerKeepImg, c.DockerPriviledged, c.DockerInDocker,
-		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue,
+		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue, c.StandAlone,
 		c.WebHookGitHubToken, c.TLSCert, c.AccessControlAllowOrigin)
 
 	return ans
