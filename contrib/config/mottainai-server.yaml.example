@@ -1,0 +1,24 @@
+# Application URL
+webui_url: 'http://127.0.0.1:9090'
+webui_listenaddress: '127.0.0.1'
+webui_port: '9090'
+application_url: 'http://127.0.0.1:9090'
+
+# AMQP
+broker_result_backend: 'amqp://guest@127.0.0.1:5672/'
+broker: 'amqp://guest@127.0.0.1:5672/'
+broker_default_queue: "standard"
+broker_exchange: "jobs"
+results_expire_in: 3600
+
+# Artefact paths
+artefact_path: '/srv/mottainai/web/artefact'
+namespace_path: '/srv/mottainai/web/namespace'
+storage_path: '/srv/mottainai/web/storage'
+db_path: '/srv/mottainai/web/db'
+root_path: '/var/lib/mottainai'
+
+# broker api management (if available)
+broker_uri: 'http://127.0.0.1:8080'
+broker_user: 'guest'
+broker_pass: 'guest'
