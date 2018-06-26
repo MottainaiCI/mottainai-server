@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package mottainai
 
 import (
+	"errors"
 	"os"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
@@ -91,7 +92,7 @@ func (m *MottainaiAgent) Run() error {
 
 	if setting.Configuration.StandAlone {
 		m.Start()
-		return nil
+		return errors.New("Agent stopped")
 	}
 
 	go func(w *machinery.Worker, a *MottainaiAgent) {
