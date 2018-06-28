@@ -23,8 +23,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesroute
 
 import (
+	"sort"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
 
@@ -34,4 +38,28 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	//ctx.Data["TasksIDs"] = tasks
 	ctx.Data["Nodes"] = nodes
 	template.TemplatePreview(ctx, "nodes")
+}
+
+func Show(ctx *context.Context, db *database.Database) {
+	id := ctx.ParamsInt(":id")
+
+	node, err := db.GetNode(id)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+	ctx.Data["Node"] = node
+	tasks, _ := db.FindDoc("Tasks", `[{"eq": "`+node.Hostname+node.NodeID+`", "in": ["queue"]}]`)
+	var node_tasks = make([]agenttasks.Task, 0)
+	for i, _ := range tasks {
+		t, _ := db.GetTask(i)
+		node_tasks = append(node_tasks, t)
+	}
+	sort.Slice(node_tasks[:], func(i, j int) bool {
+		return node_tasks[i].CreatedTime > node_tasks[j].CreatedTime
+	})
+
+	ctx.Data["Tasks"] = node_tasks
+
+	template.TemplatePreview(ctx, "nodes/show")
 }

@@ -47,6 +47,13 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	pass, _ := utils.RandomString(10)
 	key, _ := utils.RandomString(30)
 
+	docID, _ := db.CreateNode(map[string]interface{}{
+		"owner": 0,
+		"user":  user,
+		"pass":  pass,
+		"key":   key})
+	fmt.Println(docID)
+
 	_, err := rmqc.PutUser(user, rabbithole.UserSettings{Password: pass, Tags: ""})
 	if err != nil {
 		return "", err
@@ -55,13 +62,6 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	if err != nil {
 		return "", err
 	}
-
-	docID, _ := db.CreateNode(map[string]interface{}{
-		"owner": 0,
-		"user":  user,
-		"pass":  pass,
-		"key":   key})
-	fmt.Println(docID)
 
 	return strconv.Itoa(docID), nil
 }

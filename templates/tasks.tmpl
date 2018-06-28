@@ -1,9 +1,6 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
 
-
-
-
         <div class="content mt-3">
             <div class="animated fadeIn">
                 <div class="row">
@@ -14,97 +11,9 @@
                             <strong class="card-title">Tasks list</strong>
                         </div>
                         <div class="card-body">
-                  <table id="bootstrap-data-table" class="table table-striped table-bordered">
-                    <thead>
-                      <tr>
-                        <th>
-                          Action
-                        </th>
-                        <th>
-                          ID
-                        </th>
-                        <th>
-                          Task
-                        </th>
-                        <th>
-                          Source
-                        </th>
-                        <th>
-                          Directory
-                        </th>
-                        <th>
-                          Image
-                        </th>
-                        <th>
-                          State
-                        </th>
-                        <th>
-                          Result
-                        </th>
-                        <th>
-                          Created
-                        </th>
-
-                        <th>
-                          End
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-
-                      {{range .Tasks}}
-                      <tr>
-                        <td>
-                          <a href="/tasks/delete/{{.ID}}">
-                            <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
-                          </a>
-                          <a href="/tasks/stop/{{.ID}}">
-                            <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
-                          </a>
-                          <a href="/tasks/start/{{.ID}}">
-                            <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
-                          </a>
-                        </td>
-                        <td><a href="/tasks/display/{{.ID}}">{{.ID}}</a></td>
-                        <td>{{.TaskName}}</td>
-                        <td>{{.Source}}</td>
-                        <td>{{.Directory}}</td>
-                        <td>{{.Image}}</td>
-
-                        <td>{{.Status}}</td>
-                        <td>{{.Result}}</td>
-                        <td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
-                        <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>
-                      </tr>
-                      {{end}}
-
-                    </tbody>
-                  </table>
+                          {{template "tasks/single" .}}
                         </div>
                     </div>
                 </div>
-
-
-        <script src="/assets/js/lib/data-table/datatables.min.js"></script>
-        <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
-        <script src="/assets/js/lib/data-table/dataTables.buttons.min.js"></script>
-        <script src="/assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
-        <script src="/assets/js/lib/data-table/jszip.min.js"></script>
-        <script src="/assets/js/lib/data-table/pdfmake.min.js"></script>
-        <script src="/assets/js/lib/data-table/vfs_fonts.js"></script>
-        <script src="/assets/js/lib/data-table/buttons.html5.min.js"></script>
-        <script src="/assets/js/lib/data-table/buttons.print.min.js"></script>
-        <script src="/assets/js/lib/data-table/buttons.colVis.min.js"></script>
-        <script src="/assets/js/lib/data-table/datatables-init.js"></script>
-
-
-        <script type="text/javascript">
-        $(document).ready(function() {
-              $("time.timeago").timeago();
-              $("#bootstrap-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
-              $('#bootstrap-data-table-export').DataTable();
-            } );
-        </script>
-
 
 		{{template "base/footer" .}}

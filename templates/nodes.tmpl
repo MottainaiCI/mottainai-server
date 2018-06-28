@@ -24,18 +24,6 @@
                               UUID
                             </th>
                             <th>
-                              NodeID
-                            </th>
-                            <th>
-                              Key
-                            </th>
-                            <th>
-                              User
-                            </th>
-                            <th>
-                              Pass
-                            </th>
-                            <th>
                               Last Report
                             </th>
                           </tr>
@@ -47,11 +35,7 @@
                             <td><a href="/nodes/delete/{{.ID}}"> <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div> </a></td>
                             <td>{{.Hostname}}</td>
 
-                            <td>{{.ID}}</td>
-                            <td>{{.NodeID}}</td>
-                            <td>{{.Key}}</td>
-                            <td>{{.User}}</td>
-                            <td>{{.Pass}}</td>
+                            <td><a href="/nodes/show/{{.ID}}"> {{.ID}} </a></td>
                             <td><time class="timeago" datetime="{{.LastReport}}">{{.LastReport}}</time></td>
                           </tr>
                           {{end}}

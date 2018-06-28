@@ -27,7 +27,8 @@ import (
 	"fmt"
 
 	"github.com/HouzuoGuo/tiedot/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -35,16 +36,17 @@ import (
 /// POC
 func (d *Database) Init() {
 	d.DBPath = setting.Configuration.DBPath
-	fmt.Println("Init done with " + d.DBPath)
 
 	colls := d.DB().AllCols()
-	if !utils.ArrayContainsString(colls, "Tasks") {
-		if err := d.DB().Create("Tasks"); err != nil {
+	if !utils.ArrayContainsString(colls, TaskColl) {
+		if err := d.DB().Create(TaskColl); err != nil {
 			return
 		}
-		d.AddIndex("Tasks", []string{"status"})
-		d.AddIndex("Tasks", []string{"result"})
-		d.AddIndex("Tasks", []string{"result", "status"})
+		d.AddIndex(TaskColl, []string{"status"})
+		d.AddIndex(TaskColl, []string{"result"})
+		d.AddIndex(TaskColl, []string{"queue"})
+
+		d.AddIndex(TaskColl, []string{"result", "status"})
 
 	}
 	if !utils.ArrayContainsString(colls, "Plans") {
@@ -90,9 +92,10 @@ func (d *Database) Init() {
 	d.AddIndex("Plans", []string{"status"})
 	d.AddIndex("Plans", []string{"result"})
 	d.AddIndex("Plans", []string{"result", "status"})
-	d.AddIndex("Tasks", []string{"status"})
-	d.AddIndex("Tasks", []string{"result"})
-	d.AddIndex("Tasks", []string{"result", "status"})
+	d.AddIndex(TaskColl, []string{"status"})
+	d.AddIndex(TaskColl, []string{"queue"})
+	d.AddIndex(TaskColl, []string{"result"})
+	d.AddIndex(TaskColl, []string{"result", "status"})
 	d.AddIndex("Nodes", []string{"nodeid"})
 	d.AddIndex("Nodes", []string{"key"})
 	d.AddIndex(NamespaceColl, []string{"name"})

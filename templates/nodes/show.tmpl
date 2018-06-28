@@ -1,0 +1,58 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+
+<div class="col-md-12">
+                        <aside class="profile-nav alt">
+                            <section class="card">
+                                <div class="card-header user-header alt bg-dark">
+                                    <div class="media">
+                                        <a href="/nodes">
+                                            <img class="align-self-center rounded-circle mr-3" style="width:85px; height:85px;" alt="" src="images/admin.jpg">
+                                        </a>
+                                        <div class="media-body">
+                                            <h2 class="text-light display-6">{{.Node.Hostname}}</h2>
+                                            <p>UUID: {{.Node.ID}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                         <i class="fa fa-group"></i> HW Node ID <span class="badge  pull-right">{{.Node.NodeID}}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                         <i class="fa fa-key"></i> APIKey <span class="badge  pull-right">{{.Node.Key}}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fa fa-user"></i> Broker User <span class="badge  pull-right">{{.Node.User}}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fa fa-lock"></i> Broker Pass <span class="badge pull-right r-activity">{{.Node.Pass}}</span>
+                                    </li>
+                                </ul>
+
+                            </section>
+                        </aside>
+                    </div>
+
+
+                      <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong class="card-title">Tasks directly assigned to this node</strong>
+                            </div>
+                            <div class="card-body">
+                              <div class="alert alert-secondary fade show">
+                                <span class="badge badge-pill badge-secondary">Tip</span>
+                                Create a new task directed to this node with: <br><code>mottainai-cli --master {{AppURL}} task create --json task.json -q '{{.Node.Hostname}}{{.Node.NodeID}}' </code><br>
+                              </div>
+            
+                              {{template "tasks/single" .}}
+
+                          </div>
+                        </div>
+                      </div>
+
+{{template "base/footer" .}}
