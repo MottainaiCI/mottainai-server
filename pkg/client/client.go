@@ -202,16 +202,16 @@ func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, err
 	}
 	//request.Header.Add("Content-Type", writer.FormDataContentType())
 
-	//request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	// q := request.URL.Query()
-	// for k, v := range option {
-	// 	q.Add(k, v)
-	// }
-	// request.URL.RawQuery = q.Encode()
-	// if err != nil {
-	// 	return []byte{}, err
-	// }
+	q := request.URL.Query()
+	for k, v := range option {
+		q.Add(k, v)
+	}
+	request.URL.RawQuery = q.Encode()
+	if err != nil {
+		return []byte{}, err
+	}
 
 	response, err := hclient.Do(request)
 	if err != nil {

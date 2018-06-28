@@ -19,6 +19,9 @@
 
 
                                 <ul class="list-group list-group-flush">
+                                   <li class="list-group-item">
+                                       <i class="fa fa-flash"></i> Online <span class="badge  pull-right"><time class="timeago" datetime="{{.Node.LastReport}}">{{.Node.LastReport}}</time></span>
+                                   </li>
                                     <li class="list-group-item">
                                          <i class="fa fa-group"></i> HW Node ID <span class="badge  pull-right">{{.Node.NodeID}}</span>
                                     </li>
@@ -48,7 +51,7 @@
                                 <span class="badge badge-pill badge-secondary">Tip</span>
                                 Create a new task directed to this node with: <br><code>mottainai-cli --master {{AppURL}} task create --json task.json -q '{{.Node.Hostname}}{{.Node.NodeID}}' </code><br>
                               </div>
-            
+
                               {{template "tasks/single" .}}
 
                           </div>

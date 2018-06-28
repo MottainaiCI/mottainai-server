@@ -27,7 +27,7 @@ import (
 )
 
 func (f *Fetcher) RegisterNode(ID, hostname string) ([]byte, error) {
-	return f.GetOptions("/api/nodes/register", map[string]string{
+	return f.PostOptions("/api/nodes/register", map[string]string{
 		"key":      setting.Configuration.AgentKey,
 		"nodeid":   ID,
 		"hostname": hostname,
