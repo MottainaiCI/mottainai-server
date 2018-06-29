@@ -162,7 +162,60 @@
                         </div>
                     </div>
 </div>
+<div class="col-md-12">
+  <aside class="profile-nav alt">
+      <section class="card">
+          <div class="card-header user-header alt bg-dark">
+              <div class="media">
+                  <a href="/nodes">
+                      <img class="align-self-center rounded-circle mr-3" style="width:85px; height:85px;" alt="" src="images/admin.jpg">
+                  </a>
+                  <div class="media-body">
+                      <h3 class="text-light display-6">{{if .Task.Source}}{{.Task.Source}}{{end}}</h3>
+                      <p>{{if .Task.Directory}}{{.Task.Directory}}{{end}}</p>
+                  </div>
+              </div>
+          </div>
 
+
+          <ul class="list-group list-group-flush">
+            {{if .Task.TaskName}}
+             <li class="list-group-item">
+                 <i class="fa fa-cogs"></i> Type <span class="badge  pull-right">{{.Task.TaskName}}</span>
+             </li>
+             {{end}}
+             {{if .Task.Image}}
+              <li class="list-group-item">
+                   <i class="fa fa-cloud"></i> Image <span class="badge  pull-right">{{.Task.Image}}</span>
+              </li>
+              {{end}}
+              {{if .Task.Script}}
+
+              <li class="list-group-item">
+                   <i class="fa fa-terminal"></i> Script <span class="badge  pull-right">{{.Task.Script}}</span>
+              </li>
+              {{end}}
+              {{if .Task.Namespace}}
+
+              <li class="list-group-item">
+                  <i class="fa fa-download"></i> Artifacts synced from namespace <span class="badge  pull-right"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span>
+              </li>
+              {{end}}
+
+              <li class="list-group-item">
+                  <i class="fa fa-external-link"></i> Artefacts url <span class="badge pull-right r-activity"><code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></span>
+              </li>
+              {{if .Task.TagNamespace}}
+
+              <li class="list-group-item">
+                  <i class="fa fa-tag"></i> Automatic tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span>
+              </li>
+              {{end}}
+          </ul>
+
+      </section>
+  </aside>
+</div>
 <!-- /# column -->
 <div class="col-lg-12">
    <div class="card">
@@ -174,8 +227,7 @@
 
                <nav>
                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                       <a class="nav-item nav-link active" id="custom-nav-home-tab" data-toggle="tab" href="#custom-nav-home" role="tab" aria-controls="custom-nav-home" aria-selected="true">Details</a>
-                       <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#artefacts" role="tab" aria-controls="artefacts" aria-selected="false">Artefacts</a>
+                       <a class="nav-item nav-link active" id="custom-nav-contact-tab" data-toggle="tab" href="#artefacts" role="tab" aria-controls="artefacts" aria-selected="false">Artefacts</a>
                        <a class="nav-item nav-link" id="custom-nav-contact-tab" data-toggle="tab" href="#log" role="tab" aria-controls="log" aria-selected="false">Log</a>
 
                        <a class="nav-item nav-link" id="custom-nav-profile-tab" data-toggle="tab" href="#custom-nav-profile" role="tab" aria-controls="custom-nav-profile" aria-selected="false">JSON</a>
@@ -184,21 +236,8 @@
                    </div>
                </nav>
                <div class="tab-content pl-3 pt-2" id="nav-tabContent">
-                   <div class="tab-pane fade show active" id="custom-nav-home" role="tabpanel" aria-labelledby="custom-nav-home-tab">
-                    <p>
-                      <p>
-                      {{if .Task.TaskName}}Type: {{.Task.TaskName}}<br>{{end}}
-                      {{if .Task.Image}}Image: {{.Task.Image}}<br>{{end}}
-                      {{if .Task.Source}}Source: {{.Task.Source}}<br>{{end}}
-                      {{if .Task.Directory}}Directory: {{.Task.Directory}}<br>{{end}}
-                      {{if .Task.Script}}Script: {{.Task.Script}}<br>{{end}}
-                      {{if .Task.Namespace}}Artifacts synced from namespace: <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span><br>{{end}}
-                      {{if .Task.TagNamespace}}Tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span><br>{{end}}
 
-                      Artefacts url: <code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></p>
-                    </p>
-                  </div>
-                  <div class="tab-pane fade" id="log" role="tabpanel" aria-labelledby="log">
+                  <div class="tab-pane fade " id="log" role="tabpanel" aria-labelledby="log">
                    <p>
                       <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
                    </p>
@@ -216,7 +255,7 @@
                        Show task info with: <code>mottainai-cli --master {{AppSubURL}} task show {{.Task.ID}}</code>
                      </p>
                    </div>
-                   <div class="tab-pane fade" id="artefacts" role="tabpanel" aria-labelledby="artefacts">
+                   <div class="tab-pane fade show active" id="artefacts" role="tabpanel" aria-labelledby="artefacts">
                      <div class="alert alert-secondary fade show">
                        <span class="badge badge-pill badge-secondary">Tip</span>
                        Create or tag a namespace with this content: <code>mottainai-cli --master {{AppSubURL}} namespace tag mybeautifulpony --from {{.Task.ID}}</code><br>

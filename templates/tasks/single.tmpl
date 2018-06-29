@@ -8,9 +8,6 @@
         ID
       </th>
       <th>
-        Task
-      </th>
-      <th>
         Source
       </th>
       <th>
@@ -49,14 +46,46 @@
           <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
         </a>
       </td>
-      <td><a href="/tasks/display/{{.ID}}">{{.ID}}</a></td>
-      <td>{{.TaskName}}</td>
+      <td>
+        <a href="/tasks/display/{{.ID}}">
+        {{if eq .TaskName "docker_execute"}}
+            <i class="fa fa-cloud" aria-hidden="true"></i>
+        {{else}}
+            <i class="fa fa-question" aria-hidden="true"></i>
+        {{end}}
+      <span >{{.ID}}</span> </a></td>
+
       <td>{{.Source}}</td>
       <td>{{.Directory}}</td>
       <td>{{.Image}}</td>
 
-      <td>{{.Status}}</td>
-      <td>{{.Result}}</td>
+      <td>{{if eq .Status "running"}}
+          <i class="ti-reload" aria-hidden="true"></i>
+        {{else if eq .Status "waiting"}}
+          <i class="ti-control-pause" aria-hidden="true"></i>
+          {{else if eq .Status "stop"}}
+          <i class="ti-hand-stop" aria-hidden="true"></i>
+          {{else if eq .Status "stopped"}}
+          <i class="ti-control-stop" aria-hidden="true"></i>
+          {{else if eq .Status "done"}}
+          <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+          {{else if eq .Status "setup"}}
+          <i class="ti-loop" aria-hidden="true"></i>
+          {{else}}
+          <i class="fa fa-question" aria-hidden="true"></i>
+          {{end}}
+      </td>
+      <td>
+        {{if eq .Result "success"}}
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+          {{else if eq .Result "error"}}
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+            {{else if eq .Result "failed"}}
+            <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+            {{else}}
+            <i class="fa fa-question" aria-hidden="true"></i>
+            {{end}}
+          </td>
       <td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
       <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>
     </tr>
