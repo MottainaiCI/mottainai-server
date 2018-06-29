@@ -107,7 +107,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 					image = img
 				}
 			} else {
-				fetcher.AppendTaskOutput("No cached image found")
+				fetcher.AppendTaskOutput("No cached image found for '" + sharedName + "'")
 			}
 		}
 
