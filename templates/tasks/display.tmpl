@@ -55,15 +55,13 @@
 
 <script type='text/javascript'>
   jQuery(document).ready(function($) {
-      var pos = 0;
-      var build_data;
       var save_state = [];
       var task_status = "{{.Task.Status}}";
 
       var term = $('#terminal').terminal(function(command, term) {},{
           greetings: '',
           name: 'build',
-          height: 600,
+          height: 250,
       });
       term.pause();
       save_state.push(term.export_view()); // save initial state
@@ -93,15 +91,14 @@
           });
 
         $.ajax({
-            url: "/api/tasks/stream_output/{{.Task.ID}}/"+pos,
+            url: "/api/tasks/tail_output/{{.Task.ID}}/"+1500,
             beforeSend: function( xhr ) {
               xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
             }
           })
           .done(function( data ) {
-               build_data += data;
                if (data.length > 0) {
-                  pos += data.length;
+                  term.clear();
                   term.echo(" "+data.trim());
                }
           });
@@ -162,6 +159,26 @@
                         </div>
                     </div>
 </div>
+
+{{if eq .Task.Status "running"}}
+  <div class="content mt-3">
+     <div class="animated fadeIn">
+         <div class="card">
+             <div class="card-header">
+                 <i class="mr-2 fa fa-align-justify"></i>
+                 <strong class="card-title">Log</strong>
+             </div>
+             <div class="card-body ">
+               <p>
+                 Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
+               </p>
+             <div class="ui row" id="terminal"></div>
+             </div>
+         </div>
+      </div><!-- .animated -->
+   </div><!-- .content -->
+ {{end}}
+
 <div class="col-md-12">
   <aside class="profile-nav alt">
       <section class="card">
@@ -291,24 +308,7 @@
 </div>
 <!-- /# column -->
 
-{{if eq .Task.Status "running"}}
-  <div class="content mt-3">
-     <div class="animated fadeIn">
-         <div class="card">
-             <div class="card-header">
-                 <i class="mr-2 fa fa-align-justify"></i>
-                 <strong class="card-title">Log</strong>
-             </div>
-             <div class="card-body ">
-               <p>
-                 Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
-               </p>
-             <div class="ui row" id="terminal"></div>
-             </div>
-         </div>
-      </div><!-- .animated -->
-   </div><!-- .content -->
- {{end}}
+
 
  <script src="/assets/js/lib/data-table/datatables.min.js"></script>
  <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
