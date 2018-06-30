@@ -32,28 +32,29 @@ import (
 func TestNew(t *testing.T) {
 	server := NewServer()
 	broker := NewBroker()
+	setting.Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
 
 	if reflect.TypeOf(server).String() != "*mottainai.MottainaiServer" {
-		t.Errorf("%v returned", server)
+		t.Error("returned", server)
 	}
 
 	if reflect.TypeOf(broker).String() != "*mottainai.Broker" {
-		t.Errorf("%v returned", broker)
+		t.Error("returned", broker)
 	}
 }
 
 func TestAdd(t *testing.T) {
 	server := NewServer()
-	//	setting.GenDefault()
+	//setting.Configuration.GenDefault()
 
 	server.Add("test")
 
 	if reflect.TypeOf(server.Servers["test"]).String() != "*mottainai.Broker" {
-		t.Errorf("N%v returned", server.Servers["test"])
+		t.Error("N returned", server.Servers["test"])
 	}
 
 	if len(server.Servers) != 1 {
-		t.Errorf("One server by default")
+		t.Error("One server by default")
 	}
 }
 
@@ -67,7 +68,7 @@ func TestGet(t *testing.T) {
 	server.Add("test")
 
 	if reflect.TypeOf(server.Servers["test"]).String() != "*mottainai.Broker" {
-		t.Errorf("N%v returned", server.Servers["test"])
+		t.Error("N returned", server.Servers["test"])
 	}
 
 	if len(server.Servers) != 1 {
