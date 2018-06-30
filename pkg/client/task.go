@@ -45,6 +45,24 @@ func (f *Fetcher) SetTaskStatus(status string) ([]byte, error) {
 	})
 }
 
+func (f *Fetcher) AbortTask() {
+	f.SetTaskResult("")
+	f.SetTaskStatus("stopped")
+}
+
+func (f *Fetcher) FailTask(e string) {
+	f.SetTaskStatus("failure")
+	f.AppendTaskOutput(e)
+}
+
+func (f *Fetcher) SetupTask() {
+	f.SetTaskStatus("setup")
+}
+
+func (f *Fetcher) RunTask() {
+	f.SetTaskStatus("running")
+}
+
 func (f *Fetcher) GetTask() ([]byte, error) {
 	doc, err := f.GetOptions("/api/tasks/"+f.docID, map[string]string{})
 	if err != nil {

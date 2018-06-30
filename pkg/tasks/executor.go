@@ -81,8 +81,7 @@ func (d *TaskExecutor) UploadArtefacts(folder string) error {
 	})
 
 	if err != nil {
-		d.MottainaiClient.SetTaskStatus("failure")
-		d.MottainaiClient.AppendTaskOutput(err.Error())
+		d.MottainaiClient.FailTask(err.Error())
 	}
 	return err
 }
@@ -113,7 +112,7 @@ func (d *TaskExecutor) Clean() error {
 
 func (d *TaskExecutor) Setup(docID string) error {
 	fetcher := client.NewFetcher(docID)
-	fetcher.SetTaskStatus("setup")
+	fetcher.SetupTask()
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + " ) ")
@@ -123,13 +122,12 @@ func (d *TaskExecutor) Setup(docID string) error {
 	th := DefaultTaskHandler()
 	task_info := th.FetchTask(fetcher)
 	if task_info.Status == "running" {
-		fetcher.SetTaskStatus("failure")
 		msg := "Task picked twice"
-		fetcher.AppendTaskOutput(msg)
+		fetcher.FailTask(msg)
 		return errors.New(msg)
 	}
 
-	fetcher.SetTaskStatus("running")
+	fetcher.RunTask()
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("> Build started!\n")
 

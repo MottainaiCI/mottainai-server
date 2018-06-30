@@ -227,8 +227,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		if task_info.Status != "running" {
 			fetcher.AppendTaskOutput("Aborting execution")
 			docker_client.StopContainer(container.ID, uint(20))
-			fetcher.SetTaskResult("stopped")
-			fetcher.SetTaskStatus("stop")
+			fetcher.AbortTask()
 			return 0, nil
 		}
 		c_data, err := docker_client.InspectContainer(container.ID) // update our container information
