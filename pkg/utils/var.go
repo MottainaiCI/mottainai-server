@@ -35,6 +35,7 @@ import (
 	"math/big"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jaypipes/ghw"
@@ -177,7 +178,7 @@ func Strip(s string) (string, error) {
 }
 
 func StrictStrip(s string) (string, error) {
-
+	s = strings.TrimSuffix(strings.ToLower(s), "/")
 	// Make a Regex to say we only want
 	reg, err := regexp.Compile("[^a-z0-9-/]+")
 	if err != nil {
