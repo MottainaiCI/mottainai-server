@@ -210,7 +210,7 @@ broker_exchange: %s
 broker_exchange_type: %s
 broker_binding_key: %s
 agent_concurrency: %d
-queues: %s
+queues: %v
 agent_key: ***************
 
 work_dir: %s
