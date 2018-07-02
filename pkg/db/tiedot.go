@@ -24,7 +24,6 @@ package database
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/HouzuoGuo/tiedot/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -48,6 +47,15 @@ func (d *Database) Init() {
 
 		d.AddIndex(TaskColl, []string{"result", "status"})
 
+	}
+
+	if !utils.ArrayContainsString(colls, UserColl) {
+		if err := d.DB().Create(UserColl); err != nil {
+			return
+		}
+		d.AddIndex(UserColl, []string{"name"})
+		d.AddIndex(UserColl, []string{"email"})
+		d.AddIndex(UserColl, []string{"is_admin"})
 	}
 	if !utils.ArrayContainsString(colls, "Plans") {
 		if err := d.DB().Create("Plans"); err != nil {
@@ -104,6 +112,9 @@ func (d *Database) Init() {
 	d.AddIndex(ArtefactColl, []string{"namespace"})
 	d.AddIndex(StorageColl, []string{"name"})
 	d.AddIndex(StorageColl, []string{"path"})
+	d.AddIndex(UserColl, []string{"name"})
+	d.AddIndex(UserColl, []string{"email"})
+	d.AddIndex(UserColl, []string{"is_admin"})
 }
 
 var MyDbInstance *db.DB
@@ -150,10 +161,7 @@ func (d *Database) FindDoc(coll string, searchquery string) (map[int]struct{}, e
 }
 
 func (d *Database) DeleteDoc(coll string, docID int) error {
-	tasks := d.DB().Use(coll)
-	// Insert document (afterwards the docID uniquely identifies the document and will never change)
-	err := tasks.Delete(docID)
-	return err
+	return d.DB().Use(coll).Delete(docID)
 }
 
 func (d *Database) UpdateDoc(coll string, docID int, t map[string]interface{}) error {
@@ -170,16 +178,7 @@ func (d *Database) ReplaceDoc(coll string, docID int, t map[string]interface{}) 
 }
 
 func (d *Database) GetDoc(coll string, docID int) (map[string]interface{}, error) {
-	tasks := d.DB().Use(coll)
-
-	// Read document
-	readBack, err := tasks.Read(docID)
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Document", docID, "is", readBack)
-	return readBack, err
+	return d.DB().Use(coll).Read(docID)
 }
 
 type DocItem struct {

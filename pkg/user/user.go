@@ -36,6 +36,7 @@ type User struct {
 	// Auth
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
+	IsAdmin  bool   `json:"is_admin" form:"is_admin"`
 }
 
 func (u *User) SaltPassword() error {
