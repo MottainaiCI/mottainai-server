@@ -47,7 +47,7 @@ func TestUpload(t *testing.T) {
 	server := mottainai.Classic()
 	routes.SetupWebUI(server)
 	go server.Start()
-	time.Sleep(time.Duration(60 * time.Second))
+	time.Sleep(time.Duration(80 * time.Second))
 	c := client.NewClient(s.Configuration.AppURL)
 
 	dat := make(map[string]interface{})

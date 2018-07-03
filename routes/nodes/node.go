@@ -23,12 +23,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesroute
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	m.Get("/nodes", ShowAll)
-	m.Get("/nodes/add", Create)
-	m.Get("/nodes/delete/:id", Remove)
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
+	m.Get("/nodes", reqSignIn, ShowAll)
+	m.Get("/nodes/add", reqSignIn, Create)
+	m.Get("/nodes/delete/:id", reqSignIn, Remove)
 	m.Get("/nodes/show/:id", Show)
 }

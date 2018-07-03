@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesroute
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -34,6 +35,7 @@ import (
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	//tasks := db.ListTasks()
+	fmt.Println("ShowAll")
 	nodes := db.AllNodes()
 	//ctx.Data["TasksIDs"] = tasks
 	ctx.Data["Nodes"] = nodes

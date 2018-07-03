@@ -36,7 +36,18 @@ type User struct {
 	// Auth
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
-	IsAdmin  bool   `json:"is_admin" form:"is_admin"`
+	Admin    string `json:"is_admin" form:"is_admin"`
+}
+
+func (u *User) IsAdmin() bool {
+	if u.Admin == "yes" {
+		return true
+	}
+	return false
+}
+
+func (u *User) MakeAdmin() {
+	u.Admin = "yes"
 }
 
 func (u *User) SaltPassword() error {

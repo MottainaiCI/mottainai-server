@@ -23,10 +23,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package context
 
 import (
+	"fmt"
+	"html/template"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
+	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
+	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/go-macaron/cache"
+	"github.com/go-macaron/csrf"
+	"github.com/go-macaron/session"
 
 	macaron "gopkg.in/macaron.v1"
 )
@@ -34,11 +44,102 @@ import (
 // Context represents context of a request.
 type Context struct {
 	*macaron.Context
-
+	Cache       cache.Cache
+	csrf        csrf.CSRF
+	Flash       *session.Flash
+	Session     session.Store
 	Link        string // Current request URL
+	IsLogged    bool
+	User        *user.User
 	IsBasicAuth bool
 }
 
+// HTML responses template with given status.
+func (c *Context) HTML(status int, name string) {
+	c.Context.HTML(status, name)
+}
+
+// Title sets "Title" field in template data.
+func (c *Context) Title(locale string) {
+	c.Data["Title"] = locale
+}
+
+// ServerError renders the 500 page.
+func (c *Context) ServerError(title string, err error) {
+	c.Handle(http.StatusInternalServerError, title, err)
+}
+
+// Handle handles and logs error by given status.
+func (c *Context) Handle(status int, title string, err error) {
+	switch status {
+	case http.StatusNotFound:
+		c.Data["Title"] = "Page Not Found"
+	case http.StatusInternalServerError:
+		c.Data["Title"] = "Internal Server Error"
+		fmt.Println(3, "%s: %v", title, err)
+		if c.IsLogged && c.User.IsAdmin() {
+			c.Data["ErrorMsg"] = err
+		}
+	}
+	c.HTML(status, fmt.Sprintf("status/%d", status))
+}
+
+// FormErr sets "Err_xxx" field in template data.
+func (c *Context) FormErr(names ...string) {
+	for i := range names {
+		c.Data["Err_"+names[i]] = true
+	}
+}
+
+// HasError returns true if error occurs in form validation.
+func (c *Context) HasError() bool {
+	hasErr, ok := c.Data["HasError"]
+	if !ok {
+		return false
+	}
+	c.Flash.ErrorMsg = c.Data["ErrorMsg"].(string)
+	c.Data["Flash"] = c.Flash
+	return hasErr.(bool)
+}
+
+// PageIs sets "PageIsxxx" field in template data.
+func (c *Context) PageIs(name string) {
+	c.Data["PageIs"+name] = true
+}
+
+// Success responses template with status http.StatusOK.
+func (c *Context) Success(name string) {
+	c.HTML(http.StatusOK, name)
+}
+
+// JSONSuccess responses JSON with status http.StatusOK.
+func (c *Context) JSONSuccess(data interface{}) {
+	c.JSON(http.StatusOK, data)
+}
+
+// SubURLRedirect responses redirection wtih given location and status.
+// It prepends setting.AppSubURL to the location string.
+func (c *Context) SubURLRedirect(location string, status ...int) {
+	c.Redirect(setting.Configuration.AppSubURL + location)
+}
+
+func (c *Context) ServeContent(name string, r io.ReadSeeker, params ...interface{}) {
+	modtime := time.Now()
+	for _, p := range params {
+		switch v := p.(type) {
+		case time.Time:
+			modtime = v
+		}
+	}
+	c.Resp.Header().Set("Content-Description", "File Transfer")
+	c.Resp.Header().Set("Content-Type", "application/octet-stream")
+	c.Resp.Header().Set("Content-Disposition", "attachment; filename="+name)
+	c.Resp.Header().Set("Content-Transfer-Encoding", "binary")
+	c.Resp.Header().Set("Expires", "0")
+	c.Resp.Header().Set("Cache-Control", "must-revalidate")
+	c.Resp.Header().Set("Pragma", "public")
+	http.ServeContent(c.Resp, c.Req.Request, name, modtime, r)
+}
 func Setup(m *macaron.Macaron) {
 
 	m.Use(Contexter())
@@ -47,9 +148,13 @@ func Setup(m *macaron.Macaron) {
 }
 
 func Contexter() macaron.Handler {
-	return func(ctx *macaron.Context) {
+	return func(ctx *macaron.Context, sess session.Store, f *session.Flash, x csrf.CSRF, cache cache.Cache) {
 		c := &Context{
 			Context: ctx,
+			Cache:   cache,
+			csrf:    x,
+			Flash:   f,
+			Session: sess,
 			Link:    setting.Configuration.AppSubURL + strings.TrimSuffix(ctx.Req.URL.Path, "/"),
 		}
 		c.Data["Link"] = c.Link
@@ -66,7 +171,28 @@ func Contexter() macaron.Handler {
 			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 		}
 
-		//log.Info("DBPath: %v", c.DBPath)
+		// If request sends files, parse them here otherwise the Query() can't be parsed and the CsrfToken will be invalid.
+		if c.Req.Method == "POST" && strings.Contains(c.Req.Header.Get("Content-Type"), "multipart/form-data") {
+
+		} //else {
+		// Get user from session if logined.
+		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)
+
+		if c.User != nil {
+			c.IsLogged = true
+			c.Data["IsLogged"] = c.IsLogged
+			c.Data["LoggedUser"] = c.User
+			c.Data["LoggedUserID"] = c.User.ID
+			c.Data["LoggedUserName"] = c.User.Name
+			c.Data["IsAdmin"] = c.User.Admin
+		} else {
+			c.Data["LoggedUserID"] = 0
+			c.Data["LoggedUserName"] = ""
+			c.Data["IsAdmin"] = "no"
+		}
+
+		c.Data["CSRFToken"] = x.GetToken()
+		c.Data["CSRFTokenHTML"] = template.HTML(`<input type="hidden" name="_csrf" value="` + x.GetToken() + `">`)
 
 		ctx.Map(c)
 	}

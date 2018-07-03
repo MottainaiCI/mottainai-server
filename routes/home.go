@@ -29,6 +29,7 @@ import (
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/routes/api"
+	auth "github.com/MottainaiCI/mottainai-server/routes/auth"
 	namespaceroute "github.com/MottainaiCI/mottainai-server/routes/namespaces"
 	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
 	"github.com/MottainaiCI/mottainai-server/routes/webhook"
@@ -63,7 +64,7 @@ func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 	template.Setup(m.Macaron)
 	Setup(m.Macaron)
 	context.Setup(m.Macaron)
-
+	auth.Setup(m.Macaron)
 	return m
 }
 

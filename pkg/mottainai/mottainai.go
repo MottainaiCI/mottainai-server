@@ -30,14 +30,19 @@ import (
 
 	log "log"
 
+	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	static "github.com/MottainaiCI/mottainai-server/pkg/static"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/go-macaron/cache"
+	"github.com/go-macaron/csrf"
+	"github.com/go-macaron/session"
 
 	machinery "github.com/RichardKnop/machinery/v1"
 	config "github.com/RichardKnop/machinery/v1/config"
 	cron "github.com/robfig/cron"
 
+	"github.com/go-macaron/captcha"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 	macaron "gopkg.in/macaron.v1"
 
@@ -54,8 +59,67 @@ func New() *Mottainai {
 
 func Classic() *Mottainai {
 	cl := macaron.New()
-	cl.Use(macaron.Logger())
-	cl.Use(macaron.Recovery())
+	m := &Mottainai{Macaron: cl}
+	m.Use(macaron.Logger())
+	m.Use(macaron.Recovery())
+
+	m.Use(cache.Cacher(cache.Options{ // Name of adapter. Default is "memory".
+		Adapter: "memory",
+		// Adapter configuration, it's corresponding to adapter.
+		AdapterConfig: "",
+		// GC interval time in seconds. Default is 60.
+		Interval: 60,
+		// Configuration section name. Default is "cache".
+		Section: "cache",
+	}))
+
+	m.Use(session.Sessioner(session.Options{
+		// Name of provider. Default is "memory".
+		Provider: "memory",
+		// Provider configuration, it's corresponding to provider.
+		ProviderConfig: "",
+		// Cookie name to save session ID. Default is "MacaronSession".
+		CookieName: "MottainaiSession",
+		// Cookie path to store. Default is "/".
+		CookiePath: "/",
+		// GC interval time in seconds. Default is 3600.
+		Gclifetime: 3600,
+		// Max life time in seconds. Default is whatever GC interval time is.
+		Maxlifetime: 3600,
+		// Use HTTPS only. Default is false.
+		Secure: false,
+		// Cookie life time. Default is 0.
+		CookieLifeTime: 0,
+		// Cookie domain name. Default is empty.
+		Domain: "",
+		// Session ID length. Default is 16.
+		IDLength: 16,
+		// Configuration section name. Default is "session".
+		Section: "session",
+	}))
+	m.Use(csrf.Csrfer(csrf.Options{ // HTTP header used to set and get token. Default is "X-CSRFToken".
+		Header: "X-CSRFToken",
+		// Form value used to set and get token. Default is "_csrf".
+		Form: "_csrf",
+		// Cookie value used to set and get token. Default is "_csrf".
+		Cookie: "_csrf",
+		// Cookie path. Default is "/".
+		CookiePath: "/",
+		// Key used for getting the unique ID per user. Default is "uid".
+		SessionKey: "uid",
+		// If true, send token via header. Default is false.
+		SetHeader: false,
+		// If true, send token via cookie. Default is false.
+		SetCookie: false,
+		// Set the Secure flag to true on the cookie. Default is false.
+		Secure: false,
+		// Disallow Origin appear in request header. Default is false.
+		Origin: false,
+		// The function called when Validate fails. Default is a simple error print.
+		ErrorFunc: func(w http.ResponseWriter) {
+			http.Error(w, "Invalid csrf token.", http.StatusBadRequest)
+		},
+	}))
 
 	// XXX: Workaround
 	// Set TMPDIR to /var/tmp by default
@@ -64,10 +128,14 @@ func Classic() *Mottainai {
 		os.Setenv("TMPDIR", "/var/tmp")
 	}
 
-	cl.Invoke(func(l *log.Logger) {
+	m.Invoke(func(l *log.Logger) {
 		l.SetPrefix("[ Mottainai ] ")
 	})
-	return &Mottainai{Macaron: cl}
+	m.Use(captcha.Captchaer(captcha.Options{
+		SubURL: setting.Configuration.AppSubURL,
+	}))
+	m.Use(context.Contexter())
+	return m
 }
 
 func (m *Mottainai) SetStatic() {
@@ -145,6 +213,18 @@ func (m *Mottainai) Start() error {
 	}
 	c.Stop()
 	return nil
+}
+
+func (m *Mottainai) WrapF(f http.HandlerFunc) macaron.Handler {
+	return func(c *context.Context) {
+		f(c.Resp, c.Req.Request)
+	}
+}
+
+func (m *Mottainai) WrapH(h http.Handler) macaron.Handler {
+	return func(c *context.Context) {
+		h.ServeHTTP(c.Resp, c.Req.Request)
+	}
 }
 
 func (m *Mottainai) SendTask(docID int) (bool, error) {
