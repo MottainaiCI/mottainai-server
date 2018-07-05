@@ -89,7 +89,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
 		source        string
-		script        string
+		script        []string
 		directory     string
 		namespace     string
 		commit        string
@@ -118,6 +118,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 
 	binds = make([]string, 0)
 	environment = make([]string, 0)
+	script = make([]string, 0)
 
 	if arr, ok := t["binds"].([]interface{}); ok {
 		for _, v := range arr {
@@ -128,6 +129,12 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if arr, ok := t["environment"].([]interface{}); ok {
 		for _, v := range arr {
 			environment = append(environment, v.(string))
+		}
+	}
+
+	if arr, ok := t["script"].([]interface{}); ok {
+		for _, v := range arr {
+			script = append(script, v.(string))
 		}
 	}
 
@@ -143,9 +150,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["source"].(string); ok {
 		source = str
 	}
-	if str, ok := t["script"].(string); ok {
-		script = str
-	}
+
 	if str, ok := t["directory"].(string); ok {
 		directory = str
 	}

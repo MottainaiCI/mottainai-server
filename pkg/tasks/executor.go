@@ -110,6 +110,10 @@ func (d *TaskExecutor) Clean() error {
 	return nil
 }
 
+func (d *TaskExecutor) Fail(errstring string) {
+	d.MottainaiClient.FailTask(errstring)
+}
+
 func (d *TaskExecutor) Setup(docID string) error {
 	fetcher := client.NewFetcher(docID)
 	fetcher.SetupTask()

@@ -26,6 +26,7 @@ import (
 	"errors"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -86,7 +87,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	var execute_script = "mottainai-run"
 
 	if len(task_info.Script) > 0 {
-		execute_script = task_info.Script
+		execute_script = strings.Join(task_info.Script, " && ")
 	}
 	// XXX: To replace with PID handling and background process.
 	// XXX: Exp. in docker container
