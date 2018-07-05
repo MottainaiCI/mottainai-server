@@ -205,9 +205,33 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/go-macaron/cache"
+  packages = ["."]
+  revision = "56173531277692bc2925924d51fda1cd0a6b8178"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/go-macaron/captcha"
+  packages = ["."]
+  revision = "cbfb9d984efb41f44f63e9abaa366a3308ff78ca"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/go-macaron/csrf"
+  packages = ["."]
+  revision = "503617c6b37257a55dff6293ec28556506c3a9a8"
+
+[[projects]]
+  branch = "master"
   name = "github.com/go-macaron/inject"
   packages = ["."]
   revision = "d8a0b8677191f4380287cfebd08e462217bac7ad"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/go-macaron/session"
+  packages = ["."]
+  revision = "b8e286a0dba8f4999042d6b258daf51b31d08938"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -434,7 +458,12 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
+    "argon2",
+    "bcrypt",
+    "blake2b",
+    "blowfish",
     "pbkdf2",
+    "scrypt",
     "ssh/terminal"
   ]
   revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
@@ -511,6 +540,37 @@
   version = "v3.12.0"
 
 [[projects]]
+  name = "gopkg.in/hlandau/easymetric.v1"
+  packages = ["cexp"]
+  revision = "1c173222e345c2ba115e0f483821c6da2d3b0fa9"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "gopkg.in/hlandau/measurable.v1"
+  packages = ["."]
+  revision = "d96a009bd9bda94dd1294105e67e8c1794e533d3"
+  version = "v1.0.1"
+
+[[projects]]
+  name = "gopkg.in/hlandau/passlib.v1"
+  packages = [
+    ".",
+    "abstract",
+    "hash/argon2",
+    "hash/argon2/raw",
+    "hash/bcrypt",
+    "hash/bcryptsha256",
+    "hash/pbkdf2",
+    "hash/pbkdf2/raw",
+    "hash/scrypt",
+    "hash/scrypt/raw",
+    "hash/sha2crypt",
+    "hash/sha2crypt/raw"
+  ]
+  revision = "b833d45cabf4a5151d9f955811216c6e7e377537"
+  version = "v1.0.10"
+
+[[projects]]
   name = "gopkg.in/ini.v1"
   packages = ["."]
   revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
@@ -549,6 +609,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "43bb69b416923c240db374e19cca91f312b89053e479fcfdbe73df0345a5cd66"
+  inputs-digest = "a3596385e69b29de00d175c22e499f640277433c68072e70e3c4a6fe9dc03c63"
   solver-name = "gps-cdcl"
   solver-version = 1
