@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-	passlib "gopkg.in/hlandau/passlib.v1"
+	passlib "github.com/MottainaiCI/passlib"
 )
 
 type User struct {

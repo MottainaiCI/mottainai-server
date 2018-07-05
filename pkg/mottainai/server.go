@@ -26,10 +26,9 @@ import (
 	"strconv"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	backends "github.com/RichardKnop/machinery/v1/backends"
-	machinerytask "github.com/RichardKnop/machinery/v1/tasks"
-
 	machinery "github.com/RichardKnop/machinery/v1"
+	results "github.com/RichardKnop/machinery/v1/backends/result"
+	machinerytask "github.com/RichardKnop/machinery/v1/tasks"
 )
 
 type Broker struct {
@@ -69,7 +68,7 @@ func (b *Broker) NewWorker(ID string, parallel int) *machinery.Worker {
 	return b.Server.NewWorker(ID, parallel)
 }
 
-func (b *Broker) SendTask(taskname string, taskid int) (*backends.AsyncResult, error) {
+func (b *Broker) SendTask(taskname string, taskid int) (*results.AsyncResult, error) {
 
 	onErr := make([]*machinerytask.Signature, 0)
 
