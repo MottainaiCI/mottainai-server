@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -17,6 +18,9 @@ const (
 	PathSysBlock    = "/sys/block"
 	PathDevDiskById = "/dev/disk/by-id"
 )
+
+var RegexNVMeDev = regexp.MustCompile(`^nvme\d+n\d+$`)
+var RegexNVMePart = regexp.MustCompile(`^(nvme\d+n\d+)p\d+$`)
 
 func blockFillInfo(info *BlockInfo) error {
 	info.Disks = Disks()
@@ -78,6 +82,22 @@ func DiskSerialNumber(disk string) string {
 	// primary SCSI disk (/dev/sda) is represented as a symbolic link named
 	// /dev/disk/by-id/scsi-3600508e000000000f8253aac9a1abd0c. The serial
 	// number is 3600508e000000000f8253aac9a1abd0c.
+	//
+	// Some SATA drives (or rather, disk drive vendors) use inconsistent ways
+	// of putting the serial numbers of the disks in this symbolic link name.
+	// For example, here are two SATA drive identifiers (examples come from
+	// @antylama on GH Issue #19):
+	//
+	// /dev/disk/by-id/ata-AXIOMTEK_Corp.-FSA032G300MW5T-H_BCA11704240020001
+	//
+	// in the above identifier, "BCA11704240020001" is the drive serial number.
+	// The vendor name along with what appears to be a vendor model name
+	// (FSA032G300MW5T-H) are also included in the symbolic link name.
+	//
+	// /dev/disk/by-id/ata-WDC_WD10JFCX-68N6GN0_WD-WX31A76R3KFS
+	//
+	// in the above identifier, the serial number of the disk is actually
+	// WD-WX31A76R3KFS, not WX31A76R3KFS. Go figure...
 	path := filepath.Join(PathDevDiskById)
 	links, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -94,8 +114,10 @@ func DiskSerialNumber(disk string) string {
 		if dest != disk {
 			continue
 		}
-		parts := strings.Split(lname, "-")
-		return parts[1]
+		pos := strings.LastIndexAny(lname, "-_")
+		if pos >= 0 {
+			return lname[pos+1:]
+		}
 	}
 	return "unknown"
 }
@@ -138,16 +160,19 @@ func Disks() []*Disk {
 	}
 	for _, file := range files {
 		dname := file.Name()
-		// Hard drives start with an 's' or an 'h' (for SCSI and IDE) followed
-		// by a 'd'
-		if !((dname[0] == 's' || dname[0] == 'h') && dname[1] == 'd') {
+
+		var busType string
+		if strings.HasPrefix(dname, "sd") {
+			busType = "SCSI"
+		} else if strings.HasPrefix(dname, "hd") {
+			busType = "IDE"
+		} else if RegexNVMeDev.MatchString(dname) {
+			busType = "NVMe"
+		}
+		if busType == "" {
 			continue
 		}
 
-		busType := "SCSI"
-		if dname[0] == 'h' {
-			busType = "IDE"
-		}
 		size := DiskSizeBytes(dname)
 		ss := DiskSectorSizeBytes(dname)
 		vendor := DiskVendor(dname)
@@ -177,11 +202,14 @@ func Disks() []*Disk {
 
 func PartitionSizeBytes(part string) uint64 {
 	// Allow calling PartitionSize with either the full partition name
-	// "/dev/sda1" or just "sda"
+	// "/dev/sda1" or just "sda1"
 	if strings.HasPrefix(part, "/dev") {
 		part = part[4:len(part)]
 	}
 	disk := part[0:3]
+	if m := RegexNVMePart.FindStringSubmatch(part); len(m) > 0 {
+		disk = m[1]
+	}
 	path := filepath.Join(PathSysBlock, disk, part, "size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {

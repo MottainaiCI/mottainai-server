@@ -25,8 +25,14 @@
 [[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
-  revision = "7da180ee92d8bd8bb8c37fc560e673e6557c392f"
-  version = "v0.4.7"
+  revision = "67921128fb397dd80339870d2193d6b1e6856fd4"
+  version = "v0.4.8"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/MottainaiCI/passlib"
+  packages = ["."]
+  revision = "f6527380e5ed8dc116bebcf3463ca46951b450b2"
 
 [[projects]]
   branch = "master"
@@ -38,14 +44,26 @@
   branch = "master"
   name = "github.com/RichardKnop/logging"
   packages = ["."]
-  revision = "66aaaba182584c20ec574b064975974f92f0936a"
+  revision = "314bb050fc93e11a2a3862d188c9855bb2f105f1"
 
 [[projects]]
   name = "github.com/RichardKnop/machinery"
   packages = [
     "v1",
-    "v1/backends",
-    "v1/brokers",
+    "v1/backends/amqp",
+    "v1/backends/dynamodb",
+    "v1/backends/eager",
+    "v1/backends/iface",
+    "v1/backends/memcache",
+    "v1/backends/mongo",
+    "v1/backends/redis",
+    "v1/backends/result",
+    "v1/brokers/amqp",
+    "v1/brokers/eager",
+    "v1/brokers/errs",
+    "v1/brokers/iface",
+    "v1/brokers/redis",
+    "v1/brokers/sqs",
     "v1/common",
     "v1/config",
     "v1/log",
@@ -53,17 +71,22 @@
     "v1/tasks",
     "v1/tracing"
   ]
-  revision = "6a249f4becc93c9938a1cd85831e6efc3086100b"
-  version = "v1.2.2"
+  revision = "480748c75ae7f13e96dda79b6ef5c2add6df5b8c"
+  version = "v1.3.7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/RichardKnop/redsync"
+  packages = ["."]
+  revision = "54b27db64c180751e7049321a2e109ff220ccdcc"
 
 [[projects]]
   branch = "master"
   name = "github.com/Unknwon/com"
   packages = ["."]
-  revision = "7677a1d7c1137cd3dd5ba7a076d0c898a1ef4520"
+  revision = "da59b551951d50441ca26b7a8cd81317f34df87f"
 
 [[projects]]
-  branch = "master"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,6 +99,7 @@
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
@@ -86,21 +110,27 @@
     "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
+    "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
+    "service/dynamodb/dynamodbiface",
     "service/sqs",
     "service/sqs/sqsiface",
     "service/sts"
   ]
-  revision = "9a78182bdd814365bd31b9c334d515c9d825e322"
+  revision = "e4f914808a9655ef3220bb0082002239cc7f3561"
+  version = "v1.14.19"
 
 [[projects]]
   branch = "master"
   name = "github.com/bradfitz/gomemcache"
   packages = ["memcache"]
-  revision = "1952afaa557dc08e8e0d89eafab110fb501c1a2b"
+  revision = "7886924cd2b307eb286bd679327a834be7bc5579"
 
 [[projects]]
   branch = "master"
@@ -118,7 +148,7 @@
   branch = "master"
   name = "github.com/containerd/continuity"
   packages = ["pathdriver"]
-  revision = "d8fb8589b0e8e85b8c8bbaa8840226d0dfeb7371"
+  revision = "246e49050efdf45e8f17fbbcf1547ee376f9939e"
 
 [[projects]]
   branch = "master"
@@ -135,22 +165,19 @@
     "api/types/swarm",
     "api/types/swarm/runtime",
     "api/types/versions",
+    "errdefs",
     "opts",
-    "pkg/archive",
     "pkg/fileutils",
     "pkg/homedir",
     "pkg/idtools",
     "pkg/ioutils",
-    "pkg/jsonmessage",
     "pkg/longpath",
     "pkg/mount",
     "pkg/pools",
     "pkg/stdcopy",
-    "pkg/system",
-    "pkg/term",
-    "pkg/term/windows"
+    "pkg/system"
   ]
-  revision = "241c904e6f5fff020890a7641558e83a209c0bbd"
+  revision = "06dee4cc27a1e5db75f2cdbcdcb7f762641b57d3"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -161,14 +188,20 @@
 [[projects]]
   name = "github.com/docker/go-units"
   packages = ["."]
-  revision = "0dadbb0345b35ec7ef35e228dabb8de89a65bf52"
-  version = "v0.3.2"
+  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
+  version = "v0.3.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/docker/libnetwork"
+  packages = ["ipamutils"]
+  revision = "b68af15b8c587cff0b7f6b715d9f7ad0ef7010ac"
 
 [[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
-  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
-  version = "v1.6.0"
+  revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
+  version = "v1.7.0"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -179,23 +212,19 @@
 [[projects]]
   branch = "master"
   name = "github.com/fsouza/go-dockerclient"
-  packages = ["."]
-  revision = "b4b709947ca6022744c3989d7741c069f29357e4"
-
-[[projects]]
-  name = "github.com/garyburd/redigo"
   packages = [
-    "internal",
-    "redis"
+    ".",
+    "internal/archive",
+    "internal/jsonmessage",
+    "internal/term"
   ]
-  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
-  version = "v1.6.0"
+  revision = "05828842f94da0aef6ad140aa3fe777d23d17139"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
-  version = "v1.33.0"
+  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
+  version = "v1.37.0"
 
 [[projects]]
   branch = "master"
@@ -246,6 +275,15 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis"
+  ]
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
+
+[[projects]]
   name = "github.com/google/go-github"
   packages = ["github"]
   revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
@@ -284,7 +322,7 @@
   branch = "master"
   name = "github.com/jaypipes/ghw"
   packages = ["."]
-  revision = "f5145c200b133a0768ce154da6f6a2feb21be4da"
+  revision = "7c02e40b8126691c153272196a7b6d139c604234"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -292,10 +330,10 @@
   revision = "0b12d6b5"
 
 [[projects]]
-  branch = "master"
   name = "github.com/kelseyhightower/envconfig"
   packages = ["."]
-  revision = "b2c5c876e2659d9060d82e9b8494150d53854cc4"
+  revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -319,13 +357,13 @@
   branch = "master"
   name = "github.com/michaelklishin/rabbit-hole"
   packages = ["."]
-  revision = "8ea6071d12bbf59ed5a948573bc0e3c350bbbc32"
+  revision = "f161a4e024cf7d37ec41a617f9caae7f13671a7e"
 
 [[projects]]
   branch = "master"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
-  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
+  revision = "f0761eb8ed07c1cc892ef631b00c33463b9b6868"
 
 [[projects]]
   branch = "master"
@@ -356,10 +394,7 @@
 
 [[projects]]
   name = "github.com/opencontainers/runc"
-  packages = [
-    "libcontainer/system",
-    "libcontainer/user"
-  ]
+  packages = ["libcontainer/user"]
   revision = "baf6536d6259209c3edfa2b22237af82942d3dfa"
   version = "v0.1.1"
 
@@ -388,14 +423,14 @@
 [[projects]]
   name = "github.com/robfig/cron"
   packages = ["."]
-  revision = "b024fc5ea0e34bc3f83d9941c8d60b0622bfaca4"
-  version = "v1"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/satori/go.uuid"
   packages = ["."]
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
+  revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -446,7 +481,7 @@
   branch = "master"
   name = "github.com/streadway/amqp"
   packages = ["."]
-  revision = "d27ae102b8892a98ca4edb74539436af62577379"
+  revision = "e5adc2ada8b8efff032bf61173a233d143e9318e"
 
 [[projects]]
   name = "github.com/theckman/go-flock"
@@ -466,7 +501,7 @@
     "scrypt",
     "ssh/terminal"
   ]
-  revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
@@ -477,7 +512,7 @@
     "html",
     "html/atom"
   ]
-  revision = "ae89d30ce0c63142b652837da33d782e2b0a9b25"
+  revision = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f"
 
 [[projects]]
   branch = "master"
@@ -486,16 +521,17 @@
     ".",
     "internal"
   ]
-  revision = "cdc340f7c179dbbfa4afd43b7614e8fcadde4269"
+  revision = "ef147856a6ddbb60760db74283d2424e98c87bff"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = [
+    "cpu",
     "unix",
     "windows"
   ]
-  revision = "c28acc882ebcbfbe8ce9f0f14b9ac26ee138dd51"
+  revision = "151529c776cdc58ddbe7963ba9af779f3577b419"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -521,14 +557,14 @@
     "internal/urlfetch",
     "urlfetch"
   ]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   name = "gopkg.in/clog.v1"
   packages = ["."]
-  revision = "8492a6faa632c31ba82f562b53b4a6e5eacf2732"
-  version = "v1.1.1"
+  revision = "3bc2eaba5fa35df0338549cc1180dc45f6fc2a16"
+  version = "v1.2.0"
 
 [[projects]]
   name = "gopkg.in/go-playground/webhooks.v3"
@@ -536,8 +572,8 @@
     ".",
     "github"
   ]
-  revision = "be944ed461fc75c52f0f149acfa011f8da721f6c"
-  version = "v3.12.0"
+  revision = "8ffb2ffc32b7af2c7e940944eccba4dcd66c692a"
+  version = "v3.13.0"
 
 [[projects]]
   name = "gopkg.in/hlandau/easymetric.v1"
@@ -554,7 +590,6 @@
 [[projects]]
   name = "gopkg.in/hlandau/passlib.v1"
   packages = [
-    ".",
     "abstract",
     "hash/argon2",
     "hash/argon2/raw",
@@ -573,8 +608,8 @@
 [[projects]]
   name = "gopkg.in/ini.v1"
   packages = ["."]
-  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
-  version = "v1.33.0"
+  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
+  version = "v1.37.0"
 
 [[projects]]
   name = "gopkg.in/macaron.v1"
@@ -592,13 +627,7 @@
     "internal/sasl",
     "internal/scram"
   ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
-  name = "gopkg.in/redsync.v1"
-  packages = ["."]
-  revision = "98dabdf1c8574561bf976911c14ff652c47b1ddf"
-  version = "v1.0.1"
+  revision = "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -609,6 +638,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3596385e69b29de00d175c22e499f640277433c68072e70e3c4a6fe9dc03c63"
+  inputs-digest = "809b97a5265364cc6afce9b4ed639db6a6e3f2540c26bc5b29634b9f781a75ec"
   solver-name = "gps-cdcl"
   solver-version = 1
