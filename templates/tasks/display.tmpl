@@ -178,6 +178,20 @@
       </div><!-- .animated -->
    </div><!-- .content -->
  {{end}}
+ 
+ {{if .Task.Script}}
+ <div class="col-lg-12">
+    <div class="card">
+        <div class="card-header">
+            <h4>Script</h4>
+        </div>
+        <div class="card-body">
+
+      <i class="fa fa-terminal"></i> Script <p><code>{{.Task.Script}}</code></p>
+</div>
+</div>
+</div>
+{{end}}
 
 <div class="col-md-12">
   <aside class="profile-nav alt">
@@ -206,12 +220,7 @@
                    <i class="fa fa-cloud"></i> Image <span class="badge  pull-right">{{.Task.Image}}</span>
               </li>
               {{end}}
-              {{if .Task.Script}}
 
-              <li class="list-group-item">
-                   <i class="fa fa-terminal"></i> Script <span class="badge  pull-right">{{.Task.Script}}</span>
-              </li>
-              {{end}}
               {{if .Task.Namespace}}
 
               <li class="list-group-item">

@@ -38,7 +38,7 @@ lint:
 
 test:
 	# Running tests... ${TOTEST}
-	go test -v -cover ./...
+	go test -v -cover -race ./...
 
 build-and-deploy:
 	make build BUILD_PLATFORMS="-os=linux -arch=amd64"

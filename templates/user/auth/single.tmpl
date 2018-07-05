@@ -1,0 +1,57 @@
+<table id="bootstrap-data-table" class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>
+        Action
+      </th>
+      <th>
+        Name
+      </th>
+      <th>
+        Email
+      </th>
+      <th>
+        Admin
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Users}}
+    <tr>
+      <td>
+        <a href="/user/delete/{{.ID}}">
+          <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
+        </a>
+        <a href="/user/setadmin/{{.ID}}">
+          <div class="ui primary button"><i class="fa fa-shield" aria-hidden="true"></i></div>
+        </a>
+        <a href="/user/unsetadmin/{{.ID}}">
+          <div class="ui primary button"><i class="fa fa-ban" aria-hidden="true"></i></div>
+        </a>
+      </td>
+      <td><span >{{.Name}}</span></a></td>
+      <td>{{.Email}}</td>
+      <td>{{.IsAdmin}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+<script src="/assets/js/lib/data-table/datatables.min.js"></script>
+<script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
+<script src="/assets/js/lib/data-table/dataTables.buttons.min.js"></script>
+<script src="/assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
+<script src="/assets/js/lib/data-table/jszip.min.js"></script>
+<script src="/assets/js/lib/data-table/pdfmake.min.js"></script>
+<script src="/assets/js/lib/data-table/vfs_fonts.js"></script>
+<script src="/assets/js/lib/data-table/buttons.html5.min.js"></script>
+<script src="/assets/js/lib/data-table/buttons.print.min.js"></script>
+<script src="/assets/js/lib/data-table/buttons.colVis.min.js"></script>
+<script src="/assets/js/lib/data-table/datatables-init.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+      $("time.timeago").timeago();
+      $("#bootstrap-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+      $('#bootstrap-data-table-export').DataTable();
+    } );
+</script>

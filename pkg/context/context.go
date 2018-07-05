@@ -64,6 +64,22 @@ func (c *Context) Title(locale string) {
 	c.Data["Title"] = locale
 }
 
+// RenderWithErr used for page has form validation but need to prompt error to users.
+func (c *Context) RenderWithErr(msg, tpl string) {
+
+	c.Flash.ErrorMsg = msg
+	c.Data["Flash"] = c.Flash
+	c.HTML(http.StatusOK, tpl)
+}
+
+// RenderWithInfo used for page has form validation but need to prompt error to users.
+func (c *Context) RenderWithInfo(msg, tpl string) {
+
+	c.Flash.InfoMsg = msg
+	c.Data["Flash"] = c.Flash
+	c.HTML(http.StatusOK, tpl)
+}
+
 // ServerError renders the 500 page.
 func (c *Context) ServerError(title string, err error) {
 	c.Handle(http.StatusInternalServerError, title, err)
@@ -140,11 +156,9 @@ func (c *Context) ServeContent(name string, r io.ReadSeeker, params ...interface
 	c.Resp.Header().Set("Pragma", "public")
 	http.ServeContent(c.Resp, c.Req.Request, name, modtime, r)
 }
+
 func Setup(m *macaron.Macaron) {
-
 	m.Use(Contexter())
-
-	//m.Map()
 }
 
 func Contexter() macaron.Handler {
@@ -171,10 +185,6 @@ func Contexter() macaron.Handler {
 			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 		}
 
-		// If request sends files, parse them here otherwise the Query() can't be parsed and the CsrfToken will be invalid.
-		if c.Req.Method == "POST" && strings.Contains(c.Req.Header.Get("Content-Type"), "multipart/form-data") {
-
-		} //else {
 		// Get user from session if logined.
 		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)
 

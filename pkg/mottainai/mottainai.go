@@ -63,6 +63,8 @@ func Classic() *Mottainai {
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
 
+	// TODO: This down deserve config section. Note for _csrf is duplicated in auth
+
 	m.Use(cache.Cacher(cache.Options{ // Name of adapter. Default is "memory".
 		Adapter: "memory",
 		// Adapter configuration, it's corresponding to adapter.

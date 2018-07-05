@@ -201,6 +201,8 @@ func Setup(m *macaron.Macaron) {
 	// ignSignInAndCsrf := context.Toggle(&context.ToggleOptions{DisableCSRF: true})
 	reqSignOut := context.Toggle(&context.ToggleOptions{SignOutRequired: true})
 	bindIgnErr := binding.BindIgnErr
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
 	m.Group("/user", func() {
 		m.Group("/login", func() {
@@ -212,6 +214,11 @@ func Setup(m *macaron.Macaron) {
 		m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
 
 	}, reqSignOut)
+
+	m.Get("/user/list", reqSignIn, ListUsers)
+	m.Get("/user/setadmin/:id", reqSignIn, reqAdmin, SetAdmin)
+	m.Get("/user/unsetadmin/:id", reqSignIn, reqAdmin, UnSetAdmin)
+	m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
 
 	m.Group("/user", func() {
 		m.Get("/logout", SignOut)

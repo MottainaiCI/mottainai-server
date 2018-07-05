@@ -50,6 +50,10 @@ func (u *User) MakeAdmin() {
 	u.Admin = "yes"
 }
 
+func (u *User) RemoveAdmin() {
+	u.Admin = "no"
+}
+
 func (u *User) SaltPassword() error {
 	hash, err := passlib.Hash(u.Password)
 	if err != nil {

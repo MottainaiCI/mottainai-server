@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package routes
 
 import (
+	"errors"
+
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
@@ -39,21 +41,21 @@ import (
 )
 
 func NotFound(c *context.Context) {
-	c.Data["Title"] = "Page Not Found"
-	c.NotFound()
+	err := "Page not found"
+	c.Data["Title"] = err
+	c.Handle(404, err, errors.New(err))
+	//c.NotFound()
 }
 
 func SetupDaemon(m *mottainai.Mottainai) *mottainai.Mottainai {
 	api.Setup(m.Macaron)
 	template.Setup(m.Macaron)
-	context.Setup(m.Macaron)
 	return m
 }
 
 func SetupWebHookServer(m *mottainai.WebHookServer) *mottainai.WebHookServer {
 
 	template.Setup(m.Mottainai.Macaron)
-	context.Setup(m.Mottainai.Macaron)
 	webhook.Setup(m.Mottainai.Macaron)
 
 	return m
@@ -63,7 +65,6 @@ func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 
 	template.Setup(m.Macaron)
 	Setup(m.Macaron)
-	context.Setup(m.Macaron)
 	auth.Setup(m.Macaron)
 	return m
 }

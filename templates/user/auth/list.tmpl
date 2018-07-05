@@ -1,0 +1,20 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+        <div class="content mt-3">
+            <div class="animated fadeIn">
+                <div class="row">
+                  {{template "base/alert"}}
+
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong class="card-title">User list</strong>
+                        </div>
+                        <div class="card-body">
+                          {{template "user/auth/single" .}}
+                        </div>
+                    </div>
+                </div>
+
+		{{template "base/footer" .}}

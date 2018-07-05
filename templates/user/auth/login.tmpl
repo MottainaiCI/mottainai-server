@@ -10,6 +10,8 @@
                     </a>
                 </div>
                 <div class="login-form">
+                  {{template "base/alert" .}}
+
                   <form class="ui form" action="{{.Link}}" method="post">
                     {{.CSRFTokenHTML}}
                         <div class="form-group">

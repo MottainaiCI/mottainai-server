@@ -38,8 +38,6 @@
 
                     <!--
                     <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
-
-                    <li><i class="fa fa-id-badge"></i><a href="/namespaces">Namespaces</a></li>
                     -->
                 </ul>
             </li>
@@ -52,23 +50,12 @@
             </li>
 
         </ul>
-
-
-
     </div><!-- /.navbar-collapse -->
-
-
-
-
 </nav>
 </aside><!-- /#left-panel -->
 
-
 <!-- Right Panel -->
 <div id="right-panel" class="right-panel">
-
-
-
           <!-- Header-->
           <header id="header" class="header">
 
@@ -87,24 +74,20 @@
                         {{if eq .LoggedUserName ""}}
                           <a class="nav-link" href="/user/login"><i class="fa fa-user"></i> Login</a>
                         {{else}}
-{{.IsAdmin}}
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                               {{if eq .IsAdmin "yes"}}
-
                               <i class="fa fa-rocket"></i>
                               {{else}}
                               <i class="fa fa-user"></i>
-
                               {{end}} {{.LoggedUserName}}
                           </a>
 
                           <div class="user-menu dropdown-menu">
-
-                                  <a class="nav-link" href="/user/logout"><i class="fa fa-power -off"></i>Logout</a>
+                            <a class="nav-link" href="/user/list"><i class="fa fa-users"></i> List</a>
+                            <a class="nav-link" href="/user/logout"><i class="fa fa-power-off"></i> Logout</a>
                           </div>
                         {{end}}
                       </div>
-
                       <div class="language-select dropdown" id="language-select">
                           <a class="dropdown-toggle" href="#" data-toggle="dropdown"  id="language" aria-haspopup="true" aria-expanded="true">
                               <i class="flag-icon flag-icon-us"></i>

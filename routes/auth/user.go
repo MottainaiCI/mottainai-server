@@ -40,6 +40,7 @@ import (
 const (
 	LOGIN  = "user/auth/login"
 	SIGNUP = "user/auth/signup"
+	LIST   = "user/auth/list"
 )
 
 // AutoLogin reads cookie and try to auto-login.
@@ -89,7 +90,7 @@ func isValidRedirect(url string) bool {
 }
 
 func Login(c *context.Context, db *database.Database) {
-	c.Title("sign_in")
+	c.Title("Log in")
 
 	// Check auto-login
 	isSucceed, err := AutoLogin(c, db)
@@ -151,7 +152,9 @@ func LoginPost(c *context.Context, f SignIn, db *database.Database) {
 
 	u, err := db.SignIn(f.UserName, f.Password)
 	if err != nil {
-		c.ServerError("UserLogin", err)
+		c.RenderWithErr(err.Error(), LOGIN)
+
+		//c.ServerError("UserLogin", err)
 		return
 	}
 
@@ -177,8 +180,60 @@ func SignUp(c *context.Context) {
 	c.Success(SIGNUP)
 }
 
+func SetAdmin(ctx *context.Context, db *database.Database) {
+	id := ctx.ParamsInt(":id")
+
+	u, err := db.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	u.MakeAdmin()
+
+	err = db.UpdateUser(id, u.ToMap())
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	ctx.Success(LIST)
+}
+
+func UnSetAdmin(ctx *context.Context, db *database.Database) {
+	id := ctx.ParamsInt(":id")
+
+	u, err := db.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	u.RemoveAdmin()
+
+	err = db.UpdateUser(id, u.ToMap())
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	ctx.Success(LIST)
+}
+
+func DeleteUser(ctx *context.Context, db *database.Database) {
+	id := ctx.ParamsInt(":id")
+
+	err := db.DeleteUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	ctx.Success(LIST)
+}
+
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
-	c.Title("sign_up")
+	c.Title("Sign Up")
 
 	c.Data["EnableCaptcha"] = true
 
@@ -188,12 +243,12 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 	}
 	//Captcha
 	if !cpt.VerifyReq(c.Req) {
-		c.FormErr("Captcha")
+		c.RenderWithErr("Captcha verification failed", SIGNUP)
 		return
 	}
 
 	if f.Password != f.Retype {
-		c.FormErr("Password")
+		c.RenderWithErr("Failed to type password twice", SIGNUP)
 		return
 	}
 
@@ -203,14 +258,20 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 		Password: f.Password,
 		//IsActive: !setting.Service.RegisterEmailConfirm,
 	}
-	if db.CountUsers() == 1 {
-		u.MakeAdmin()
+	if db.CountUsers() == 0 {
+		u.MakeAdmin() // XXX: ugly, also fix error
 	}
 	if _, err := db.InsertAndSaltUser(u); err != nil {
-		c.ServerError("CreateUser", err)
+		c.RenderWithErr("Failed creating new user "+err.Error(), SIGNUP)
 		return
 	}
 	log.Trace("Account created: %s", u.Name)
 
 	c.SubURLRedirect("/user/login")
+}
+
+func ListUsers(c *context.Context, db *database.Database) {
+	us := db.AllUsers()
+	c.Data["Users"] = us
+	c.Success(LIST)
 }

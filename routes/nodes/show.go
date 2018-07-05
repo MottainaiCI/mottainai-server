@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesroute
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -35,7 +34,6 @@ import (
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	//tasks := db.ListTasks()
-	fmt.Println("ShowAll")
 	nodes := db.AllNodes()
 	//ctx.Data["TasksIDs"] = tasks
 	ctx.Data["Nodes"] = nodes
@@ -50,8 +48,10 @@ func Show(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
+	p_queue := node.Hostname + node.NodeID
+
 	ctx.Data["Node"] = node
-	tasks, _ := db.FindDoc("Tasks", `[{"eq": "`+node.Hostname+node.NodeID+`", "in": ["queue"]}]`)
+	tasks, _ := db.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
 	var node_tasks = make([]agenttasks.Task, 0)
 	for i, _ := range tasks {
 		t, _ := db.GetTask(i)
