@@ -29,7 +29,12 @@ import (
 	"testing"
 	"time"
 
+	token "github.com/MottainaiCI/mottainai-server/pkg/token"
+
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	node "github.com/MottainaiCI/mottainai-server/pkg/nodes"
+	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -41,14 +46,41 @@ func TestUpload(t *testing.T) {
 	binding.MaxMemory = int64(1024 * 1024 * 1)
 	s.Configuration.GenDefault()
 	s.Configuration.Unmarshal()
+	s.Configuration.DBPath = "./DB"
+
 	defer os.RemoveAll(s.Configuration.DBPath)
 	defer os.RemoveAll(s.Configuration.ArtefactPath)
 
+	db := database.NewDatabase("")
+
+	u := &user.User{}
+	u.Name = "test"
+	u.Password = "foo"
+	u.Email = "foo@bar"
+	id, err := db.InsertAndSaltUser(u)
+	if err != nil {
+		t.Error(err)
+	}
+
+	tok, err := token.GenerateUserToken(id)
+	if err != nil {
+		t.Error(err)
+	}
+
+	node := &node.Node{Key: "test"}
+	nodeid, err := db.InsertNode(node)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = db.InsertToken(tok)
+	if err != nil {
+		t.Error(err)
+	}
 	server := mottainai.Classic()
 	routes.SetupWebUI(server)
 	go server.Start()
-	time.Sleep(time.Duration(120 * time.Second))
-	c := client.NewClient(s.Configuration.AppURL)
+	time.Sleep(time.Duration(5 * time.Second))
+	c := client.NewTokenClient(s.Configuration.AppURL, tok.Key)
 
 	dat := make(map[string]interface{})
 
@@ -74,8 +106,22 @@ func TestUpload(t *testing.T) {
 		t.Fatal("Document not created")
 	}
 
-	fetcher := client.NewFetcher(tid)
+	fetcher := client.NewTokenClient(s.Configuration.AppURL, tok.Key)
+	fetcher.Doc(tid)
 	testFile := "integration_test.go"
+
+	s.Configuration.AgentKey = node.Key
+	fetcher.RegisterNode("foo", "bar")
+
+	nd, err := db.GetNode(nodeid)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if nd.NodeID != "foo" {
+		t.Error("Failed registering node", nd)
+	}
+
 	err = fetcher.UploadArtefactRetry(testFile, "/", 5)
 	if err != nil {
 		t.Errorf(err.Error())
