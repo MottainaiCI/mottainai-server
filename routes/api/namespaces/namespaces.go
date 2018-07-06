@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
@@ -30,13 +31,14 @@ import (
 
 func Setup(m *macaron.Macaron) {
 	//bind := binding.Bind
-	m.Get("/api/namespace/list", NamespaceList)
-	m.Get("/api/namespace/:name/list", NamespaceListArtefacts)
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 
-	m.Get("/api/namespace/:name/create", NamespaceCreate)
-	m.Get("/api/namespace/:name/delete", NamespaceDelete)
-	m.Get("/api/namespace/:name/tag/:taskid", NamespaceTag)
-	m.Get("/api/namespace/:name/clone/:from", NamespaceClone)
+	m.Get("/api/namespace/list", reqSignIn, NamespaceList)
+	m.Get("/api/namespace/:name/list", reqSignIn, NamespaceListArtefacts)
+	m.Get("/api/namespace/:name/create", reqSignIn, NamespaceCreate)
+	m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
+	m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
+	m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
 
 	m.Post("/api/namespace/upload", binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
 

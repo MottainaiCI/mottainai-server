@@ -23,63 +23,37 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
 )
 
-func ValidateNodeKey(f *UpdateTaskForm, db *database.Database) (bool, int) {
-	return ValidateKey(f.APIKey, db)
-}
-
-func ValidateKey(k string, db *database.Database) (bool, int) {
-
-	if len(k) == 0 {
-		return false, 0
-	}
-
-	nodesfound, err := db.FindDoc("Nodes", `[{"eq": "`+k+`", "in": ["key"]}]`)
-	if err != nil || len(nodesfound) > 1 || len(nodesfound) == 0 {
-		return false, 0
-	}
-
-	//var mynode nodes.Node
-	var mynodeid = 0
-	// Query result are document IDs
-	for id := range nodesfound {
-		//mynode, _ = db.GetNode(id)
-		mynodeid = id
-	}
-	if mynodeid == 0 {
-		return false, 0
-	}
-	return true, mynodeid
-}
-
 func Setup(m *macaron.Macaron) {
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
 	bind := binding.Bind
 	m.Get("/api/tasks", ShowAll)
-	m.Post("/api/tasks", bind(agenttasks.Task{}), APICreate)
-	m.Get("/api/tasks/:id", GetTaskJson)
+	m.Post("/api/tasks", reqSignIn, bind(agenttasks.Task{}), APICreate)
+	m.Get("/api/tasks/:id", reqSignIn, GetTaskJson)
 	m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
 	m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
-	m.Get("/api/tasks/start/:id", SendStartTask)
-	m.Get("/api/tasks/clone/:id", CloneTask)
+	m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)
+	m.Get("/api/tasks/clone/:id", reqSignIn, CloneTask)
 
-	m.Get("/api/tasks/stop/:id", Stop)
-	m.Get("/api/tasks/delete/:id", APIDelete)
-	m.Get("/api/tasks/update", bind(UpdateTaskForm{}), UpdateTask)
-	m.Get("/api/tasks/append", bind(UpdateTaskForm{}), AppendToTask)
-	m.Get("/api/tasks/updatefield", bind(UpdateTaskForm{}), UpdateTaskField)
-	m.Get("/api/tasks/:id/artefacts", ArtefactList)
-	m.Get("/api/artefacts", AllArtefactList)
+	m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
+	m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)
+	m.Get("/api/tasks/update", reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
+	m.Get("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
+	m.Get("/api/tasks/updatefield", reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
+	m.Get("/api/tasks/:id/artefacts", reqSignIn, ArtefactList)
+	m.Get("/api/artefacts", reqSignIn, AllArtefactList)
 
-	m.Post("/api/tasks/plan", bind(agenttasks.Plan{}), Plan)
-	m.Get("/api/tasks/planned", PlannedTasks)
-	m.Get("/api/tasks/plan/delete/:id", PlanDelete)
-	m.Get("/api/tasks/plan/:id", PlannedTask)
+	m.Post("/api/tasks/plan", reqSignIn, bind(agenttasks.Plan{}), Plan)
+	m.Get("/api/tasks/planned", reqSignIn, PlannedTasks)
+	m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
+	m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
 
-	m.Post("/api/tasks/artefact/upload", binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
+	m.Post("/api/tasks/artefact/upload", reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
 }

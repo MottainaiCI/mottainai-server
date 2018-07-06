@@ -35,7 +35,6 @@ import (
 type UpdateTaskForm struct {
 	Id         int    `form:"id" binding:"Required"`
 	Status     string `form:"status"`
-	APIKey     string `form:"apikey" binding:"Required"`
 	Result     string `form:"result"`
 	Output     string `form:"output"`
 	ExitStatus string `form:"exit_status"`
@@ -45,11 +44,6 @@ type UpdateTaskForm struct {
 
 func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 
-	ok, _ := ValidateNodeKey(&f, db)
-	if ok == false {
-		ctx.NotFound()
-		return ":( "
-	}
 	if len(f.Field) > 0 && len(f.Value) > 0 {
 		db.UpdateTask(f.Id, map[string]interface{}{
 			f.Field: f.Value,
@@ -60,13 +54,6 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 }
 
 func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
-
-	ok, _ := ValidateNodeKey(&f, db)
-	if ok == false {
-		ctx.NotFound()
-		fmt.Println("Invalid KEY!!!!")
-		return ":( "
-	}
 
 	if len(f.Output) > 0 {
 
@@ -84,12 +71,6 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 }
 
 func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
-	ok, _ := ValidateNodeKey(&f, db)
-
-	if ok == false {
-		ctx.NotFound()
-		return ":( "
-	}
 
 	if len(f.Status) > 0 {
 		db.UpdateTask(f.Id, map[string]interface{}{
@@ -112,7 +93,7 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 
 	t, err := db.GetTask(f.Id)
 	if err != nil {
-		return ":("
+		return ":( "
 	}
 	t.HandleStatus()
 

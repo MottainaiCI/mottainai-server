@@ -121,5 +121,7 @@ func GetStats(atasks []agenttasks.Task) map[string]int {
 }
 
 func Setup(m *macaron.Macaron) {
+	//reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
 	m.Get("/api/stats", Info)
 }
