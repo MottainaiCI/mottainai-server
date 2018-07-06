@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -52,7 +51,6 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 		"user":  user,
 		"pass":  pass,
 		"key":   key})
-	fmt.Println(docID)
 
 	_, err := rmqc.PutUser(user, rabbithole.UserSettings{Password: pass, Tags: ""})
 	if err != nil {

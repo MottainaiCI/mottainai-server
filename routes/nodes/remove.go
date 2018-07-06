@@ -34,7 +34,7 @@ func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	_, err := nodesapi.Remove(rmqc, ctx, db)
 
 	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError("Failed removing node", err)
 		return
 	}
 

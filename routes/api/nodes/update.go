@@ -23,21 +23,24 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
+type NodeUpdate struct {
+	NodeID   string `form:"nodeid" json:"nodeid"`
+	Key      string `json:"key" form:"key"`
+	Hostname string `json:"hostname" form:"hostname"`
+}
+
+func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
 	hostname := nodedata.Hostname
-	fmt.Println("KEY " + key + ", ID " + nodeid)
 
 	if len(key) == 0 {
 		ctx.NotFound()
@@ -57,11 +60,6 @@ func Register(nodedata nodes.Node, rmqc *rabbithole.Client, ctx *context.Context
 		//	mynode, _ = db.GetNode(id)
 		mynodeid = id
 	}
-
-	//	if mynode.NodeID != "" { //Already registered
-	//ctx.NotFound()
-	//return ":("
-	//	}
 
 	hb := time.Now().Format("20060102150405")
 	db.UpdateNode(mynodeid, map[string]interface{}{

@@ -44,14 +44,14 @@ func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	id := ctx.ParamsInt(":id")
 	node, _ := db.GetNode(id)
 
-	_, err := rmqc.DeleteUser(node.User)
+	err := db.DeleteNode(id)
 	if err != nil {
 		return "", err
 	}
-	err = db.DeleteNode(id)
+
+	_, err = rmqc.DeleteUser(node.User)
 	if err != nil {
 		return "", err
-
 	}
 
 	return "OK", nil

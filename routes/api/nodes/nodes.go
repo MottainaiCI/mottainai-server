@@ -23,16 +23,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
-	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/go-macaron/binding"
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
 	bind := binding.Bind
-	m.Get("/api/nodes", ShowAll)
-	m.Get("/api/nodes/add", APICreate)
-	m.Get("/api/nodes/show/:id", Show)
-	m.Get("/api/nodes/delete/:id", APIRemove)
-	m.Post("/api/nodes/register", bind(nodes.Node{}), Register)
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
+	m.Get("/api/nodes", reqSignIn, ShowAll)
+	m.Get("/api/nodes/add", reqSignIn, APICreate)
+	m.Get("/api/nodes/show/:id", reqSignIn, Show)
+	m.Get("/api/nodes/delete/:id", reqSignIn, APIRemove)
+	m.Post("/api/nodes/register", reqSignIn, bind(NodeUpdate{}), Register)
 }

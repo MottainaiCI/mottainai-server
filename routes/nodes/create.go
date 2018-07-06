@@ -34,7 +34,7 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	_, err := nodesapi.Create(rmqc, ctx, db)
 
 	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError("Failed creating node", err)
 		return
 	}
 

@@ -34,5 +34,5 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/nodes", reqSignIn, ShowAll)
 	m.Get("/nodes/add", reqSignIn, Create)
 	m.Get("/nodes/delete/:id", reqSignIn, Remove)
-	m.Get("/nodes/show/:id", Show)
+	m.Get("/nodes/show/:id", reqSignIn, Show)
 }
