@@ -22,9 +22,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package database
 
-import "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+import (
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+)
 
 var PlansColl = "Plans"
+
+func (d *Database) IndexPlan() {
+	d.AddIndex(PlansColl, []string{"status"})
+	d.AddIndex(PlansColl, []string{"result"})
+	d.AddIndex(PlansColl, []string{"result", "status"})
+}
 
 func (d *Database) InsertPlan(t *agenttasks.Plan) (int, error) {
 	return d.CreatePlan(t.ToMap())

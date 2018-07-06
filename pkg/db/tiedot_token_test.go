@@ -27,32 +27,31 @@ import (
 	"testing"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 )
 
-func TestInsertUser(t *testing.T) {
+func TestInsertToken(t *testing.T) {
 
 	setting.Configuration.DBPath = "./DB"
 	db := NewDatabase("")
-	u := &user.User{}
-	u.Name = "test"
-	u.Password = "foo"
-	u.Email = "foo@bar"
-	id, err := db.InsertAndSaltUser(u)
+	u := &token.Token{}
+	u.Key = "test"
+
+	id, err := db.InsertToken(u)
 
 	if err != nil {
 		t.Fatal("Failed insert")
 	}
 
-	uu, _ := db.GetUser(id)
+	uu, _ := db.GetToken(id)
 
-	if uu.Name != u.Name {
+	if uu.Key != u.Key {
 		t.Fatal("Failed insert")
 	}
 
-	db.DeleteUser(id)
+	db.DeleteToken(id)
 
-	_, err = db.GetUser(id)
+	err = db.DeleteToken(id)
 
 	if err == nil {
 		t.Fatal("Failed Remove")
@@ -60,54 +59,71 @@ func TestInsertUser(t *testing.T) {
 
 }
 
-func TestGetUserByName(t *testing.T) {
+func TestGetTokenByKey(t *testing.T) {
+
 	db := Instance()
 
-	u := &user.User{}
-	u.Name = "test2"
-	u.Password = "foo"
-	u.Email = "foo@bar"
-	id, err := db.InsertAndSaltUser(u)
+	u := &token.Token{}
+	u.Key = "test2"
+	id, err := db.InsertToken(u)
 
 	if err != nil {
 		t.Fatal("Failed insert", err)
 	}
 
-	uu, _ := db.GetUser(id)
+	uu, _ := db.GetToken(id)
 
-	if uu.Name != u.Name {
-		t.Fatal("Failed insert (name differs)")
+	if uu.Key != u.Key {
+		t.Fatal("Failed insert (Key differs)")
 	}
 
-	uuu, err := db.GetUserByName("test2")
+	uuu, err := db.GetTokenByKey("test2")
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if uuu.Name != "test2" {
-		t.Fatal("Could not find the inserted user")
+	if uuu.Key != "test2" {
+		t.Fatal("Could not find the inserted token")
 	}
 
 }
 
-func TestLogin(t *testing.T) {
+func TestGetTokenByUid(t *testing.T) {
 	defer os.RemoveAll(setting.Configuration.DBPath)
 
 	db := Instance()
 
-	u, err := db.SignIn("test2", "foo")
+	u := &token.Token{}
+	u.Key = "test2"
+	u.UserId = "20"
+	id, err := db.InsertToken(u)
 
 	if err != nil {
-		t.Fatal("Failed login", err)
-	}
-	if u.Name != "test2" {
-		t.Fatal("Could not find the inserted user")
+		t.Fatal("Failed insert", err)
 	}
 
-	if count := db.CountUsers(); count != 1 {
-		t.Fatal("DB Count is (expected 1)", count)
+	uu, _ := db.GetToken(id)
+
+	if uu.Key != u.Key {
+		t.Fatal("Failed insert (Key differs)")
 	}
 
-	db.DeleteUser(u.ID)
+	uuu, err := db.GetTokenByKey("test2")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uuu.Key != "test2" {
+		t.Fatal("Could not find the inserted token")
+	}
+
+	uuuu, err := db.GetTokenByUserID(20)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uuuu.Key != "test2" {
+		t.Fatal("Could not find the inserted token")
+	}
 
 }

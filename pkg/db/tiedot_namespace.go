@@ -34,6 +34,10 @@ import (
 
 var NamespaceColl = "Namespaces"
 
+func (d *Database) IndexNamespace() {
+	d.AddIndex(NamespaceColl, []string{"name"})
+	d.AddIndex(NamespaceColl, []string{"path"})
+}
 func (d *Database) CreateNamespace(t map[string]interface{}) (int, error) {
 	return d.InsertDoc(NamespaceColl, t)
 }

@@ -30,6 +30,12 @@ import (
 
 var UserColl = "Users"
 
+func (d *Database) IndexUser() {
+	d.AddIndex(UserColl, []string{"name"})
+	d.AddIndex(UserColl, []string{"email"})
+	d.AddIndex(UserColl, []string{"is_admin"})
+}
+
 func (d *Database) InsertAndSaltUser(t *user.User) (int, error) {
 	if err := t.SaltPassword(); err != nil {
 		return 0, err

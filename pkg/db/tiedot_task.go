@@ -26,12 +26,19 @@ import (
 	"fmt"
 	"strconv"
 
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
-	"github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 var TaskColl = "Tasks"
 
+func (d *Database) IndexTask() {
+	d.AddIndex(TaskColl, []string{"status"})
+	d.AddIndex(TaskColl, []string{"queue"})
+	d.AddIndex(TaskColl, []string{"result"})
+	d.AddIndex(TaskColl, []string{"result", "status"})
+}
 func (d *Database) InsertTask(t *agenttasks.Task) (int, error) {
 	return d.CreateTask(t.ToMap())
 }

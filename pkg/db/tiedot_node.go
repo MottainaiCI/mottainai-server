@@ -26,10 +26,16 @@ import "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
 var NodeColl = "Nodes"
 
+func (d *Database) IndexNode() {
+	d.AddIndex(NodeColl, []string{"nodeid"})
+	d.AddIndex(NodeColl, []string{"key"})
+}
 func (d *Database) CreateNode(t map[string]interface{}) (int, error) {
 	return d.InsertDoc(NodeColl, t)
 }
-
+func (d *Database) InsertNode(n *nodes.Node) (int, error) {
+	return d.CreateNode(n.ToMap())
+}
 func (d *Database) DeleteNode(docID int) error {
 	return d.DeleteDoc(NodeColl, docID)
 }

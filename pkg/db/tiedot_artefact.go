@@ -26,6 +26,11 @@ import "github.com/MottainaiCI/mottainai-server/pkg/artefact"
 
 var ArtefactColl = "Artefacts"
 
+func (d *Database) IndexArtefacts() {
+	d.AddIndex(ArtefactColl, []string{"task"})
+	d.AddIndex(ArtefactColl, []string{"namespace"})
+}
+
 func (d *Database) CreateArtefact(t map[string]interface{}) (int, error) {
 	return d.InsertDoc(ArtefactColl, t)
 }

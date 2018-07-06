@@ -34,6 +34,11 @@ import (
 
 var StorageColl = "Storages"
 
+func (d *Database) IndexStorage() {
+	d.AddIndex(StorageColl, []string{"name"})
+	d.AddIndex(StorageColl, []string{"path"})
+}
+
 func (d *Database) CreateStorage(t map[string]interface{}) (int, error) {
 	return d.InsertDoc(StorageColl, t)
 }

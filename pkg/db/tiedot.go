@@ -31,90 +31,31 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
+var Collections = []string{TaskColl,
+	UserColl, PlansColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl}
+
 //var DBInstance *Interface{}
 /// POC
 func (d *Database) Init() {
 	d.DBPath = setting.Configuration.DBPath
 
 	colls := d.DB().AllCols()
-	if !utils.ArrayContainsString(colls, TaskColl) {
-		if err := d.DB().Create(TaskColl); err != nil {
-			return
+	for _, c := range Collections {
+		if !utils.ArrayContainsString(colls, c) {
+			if err := d.DB().Create(c); err != nil {
+				return
+			}
 		}
-		d.AddIndex(TaskColl, []string{"status"})
-		d.AddIndex(TaskColl, []string{"result"})
-		d.AddIndex(TaskColl, []string{"queue"})
-
-		d.AddIndex(TaskColl, []string{"result", "status"})
-
 	}
 
-	if !utils.ArrayContainsString(colls, UserColl) {
-		if err := d.DB().Create(UserColl); err != nil {
-			return
-		}
-		d.AddIndex(UserColl, []string{"name"})
-		d.AddIndex(UserColl, []string{"email"})
-		d.AddIndex(UserColl, []string{"is_admin"})
-	}
-	if !utils.ArrayContainsString(colls, "Plans") {
-		if err := d.DB().Create("Plans"); err != nil {
-			return
-		}
-		d.AddIndex("Plans", []string{"status"})
-		d.AddIndex("Plans", []string{"result"})
-		d.AddIndex("Plans", []string{"result", "status"})
-	}
-	if !utils.ArrayContainsString(colls, "Nodes") {
-		if err := d.DB().Create("Nodes"); err != nil {
-			return
-		}
-		d.AddIndex("Nodes", []string{"nodeid"})
-		d.AddIndex("Nodes", []string{"key"})
-	}
-	if !utils.ArrayContainsString(colls, NamespaceColl) {
-
-		if err := d.DB().Create(NamespaceColl); err != nil {
-			return
-		}
-		d.AddIndex(NamespaceColl, []string{"name"})
-		d.AddIndex(NamespaceColl, []string{"path"})
-	}
-	if !utils.ArrayContainsString(colls, ArtefactColl) {
-
-		if err := d.DB().Create(ArtefactColl); err != nil {
-			return
-		}
-		d.AddIndex(ArtefactColl, []string{"task"})
-		d.AddIndex(ArtefactColl, []string{"namespace"})
-	}
-
-	if !utils.ArrayContainsString(colls, StorageColl) {
-
-		if err := d.DB().Create(StorageColl); err != nil {
-			return
-		}
-		d.AddIndex(StorageColl, []string{"name"})
-		d.AddIndex(StorageColl, []string{"path"})
-	}
-	d.AddIndex("Plans", []string{"status"})
-	d.AddIndex("Plans", []string{"result"})
-	d.AddIndex("Plans", []string{"result", "status"})
-	d.AddIndex(TaskColl, []string{"status"})
-	d.AddIndex(TaskColl, []string{"queue"})
-	d.AddIndex(TaskColl, []string{"result"})
-	d.AddIndex(TaskColl, []string{"result", "status"})
-	d.AddIndex("Nodes", []string{"nodeid"})
-	d.AddIndex("Nodes", []string{"key"})
-	d.AddIndex(NamespaceColl, []string{"name"})
-	d.AddIndex(NamespaceColl, []string{"path"})
-	d.AddIndex(ArtefactColl, []string{"task"})
-	d.AddIndex(ArtefactColl, []string{"namespace"})
-	d.AddIndex(StorageColl, []string{"name"})
-	d.AddIndex(StorageColl, []string{"path"})
-	d.AddIndex(UserColl, []string{"name"})
-	d.AddIndex(UserColl, []string{"email"})
-	d.AddIndex(UserColl, []string{"is_admin"})
+	d.IndexPlan()
+	d.IndexTask()
+	d.IndexNode()
+	d.IndexNamespace()
+	d.IndexArtefacts()
+	d.IndexStorage()
+	d.IndexUser()
+	d.IndexToken()
 }
 
 var MyDbInstance *db.DB
