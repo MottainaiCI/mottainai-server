@@ -71,6 +71,7 @@ type Config struct {
 	AgentConcurrency    int            `mapstructure:"agent_concurrency"`
 	Queues              map[string]int `mapstructure:"queues"`
 	AgentKey            string         `mapstructure:"agent_key"`
+	ApiKey              string         `mapstructure:"api_key"`
 
 	TempWorkDir string `mapstructure:"work_dir"`
 
@@ -136,13 +137,14 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent_concurrency", 1)
 	viper.SetDefault("queues", map[string]int{})
 	viper.SetDefault("agent_key", "")
+	viper.SetDefault("api_key", "")
 
 	viper.SetDefault("work_dir", "/var/tmp/mottainai")
 
 	viper.SetDefault("docker_endpoint", "unix:///var/run/docker.sock")
 	viper.SetDefault("docker_keepimg", true)
-	viper.SetDefault("docker_privileged", true)
-	viper.SetDefault("docker_in_docker", true)
+	viper.SetDefault("docker_privileged", false)
+	viper.SetDefault("docker_in_docker", false)
 	viper.SetDefault("docker_in_docker_endpoint", "/var/run/docker.sock")
 	viper.SetDefault("docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("docker_caps_drop", []string{})
@@ -212,6 +214,7 @@ broker_binding_key: %s
 agent_concurrency: %d
 queues: %v
 agent_key: ***************
+api_key: ***************
 
 work_dir: %s
 

@@ -24,23 +24,19 @@ package client
 
 import (
 	"fmt"
-
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func (f *Fetcher) SetTaskField(field, value string) ([]byte, error) {
 	return f.GetOptions("/api/tasks/updatefield", map[string]string{
-		"id":     f.docID,
-		"apikey": setting.Configuration.AgentKey,
-		"field":  field,
-		"value":  value,
+		"id":    f.docID,
+		"field": field,
+		"value": value,
 	})
 }
 
 func (f *Fetcher) SetTaskStatus(status string) ([]byte, error) {
 	return f.GetOptions("/api/tasks/update", map[string]string{
 		"id":     f.docID,
-		"apikey": setting.Configuration.AgentKey,
 		"status": status,
 	})
 }
@@ -82,7 +78,6 @@ func (f *Fetcher) AllTasks() ([]byte, error) {
 func (f *Fetcher) SetTaskResult(result string) ([]byte, error) {
 	return f.GetOptions("/api/tasks/update", map[string]string{
 		"id":     f.docID,
-		"apikey": setting.Configuration.AgentKey,
 		"result": result,
 	})
 }
@@ -90,7 +85,6 @@ func (f *Fetcher) SetTaskResult(result string) ([]byte, error) {
 func (f *Fetcher) SetTaskOutput(output string) ([]byte, error) {
 	return f.GetOptions("/api/tasks/update", map[string]string{
 		"id":     f.docID,
-		"apikey": setting.Configuration.AgentKey,
 		"output": output,
 	})
 }
@@ -101,7 +95,6 @@ func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
 	}
 	return f.GetOptions("/api/tasks/append", map[string]string{
 		"id":     f.docID,
-		"apikey": setting.Configuration.AgentKey,
 		"output": output,
 	})
 }

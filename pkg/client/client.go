@@ -24,6 +24,8 @@ package client
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"io"
@@ -45,8 +47,15 @@ import (
 type Fetcher struct {
 	BaseURL       string
 	docID         string
+	Token         string
+	TrustedCert   string
+	Jar           *http.CookieJar
 	Agent         *anagent.Anagent
 	ActiveReports bool
+}
+
+func NewTokenClient(host, token string) *Fetcher {
+	return &Fetcher{BaseURL: host, Token: token}
 }
 
 func NewClient(host string) *Fetcher {
@@ -70,9 +79,54 @@ func (f *Fetcher) Doc(id string) {
 	f.docID = id
 }
 
+func (f *Fetcher) newHttpClient() *http.Client {
+
+	c := &http.Client{}
+
+	if len(f.TrustedCert) > 0 {
+		rootCAs, _ := x509.SystemCertPool()
+
+		if rootCAs == nil {
+			rootCAs = x509.NewCertPool()
+		}
+
+		// Read in the cert file
+		certs, err := ioutil.ReadFile(f.TrustedCert)
+		if err != nil {
+			log.Fatalf("Failed to append %q to RootCAs: %v", f.TrustedCert, err)
+		}
+
+		// Append our cert to the system pool
+		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
+			log.Println("No certs appended, using system certs only")
+		}
+
+		// Trust the augmented cert pool in our client
+		config := &tls.Config{
+			RootCAs: rootCAs,
+		}
+		tr := &http.Transport{TLSClientConfig: config}
+		c.Transport = tr
+	}
+
+	if f.Jar != nil {
+		c.Jar = *f.Jar
+	}
+	return c
+}
+
+func (f *Fetcher) setAuthHeader(r *http.Request) *http.Request {
+	if len(f.Token) > 0 {
+		r.Header.Add("Authorization", "token "+f.Token)
+	}
+	return r
+}
+
 func (f *Fetcher) GetJSONOptions(url string, option map[string]string, target interface{}) error {
-	hclient := &http.Client{}
+	hclient := f.newHttpClient()
 	request, err := http.NewRequest("GET", f.BaseURL+url, nil)
+	f.setAuthHeader(request)
+
 	if err != nil {
 		return err
 	}
@@ -96,8 +150,9 @@ func (f *Fetcher) GetJSONOptions(url string, option map[string]string, target in
 }
 
 func (f *Fetcher) GetOptions(url string, option map[string]string) ([]byte, error) {
-	hclient := &http.Client{}
+	hclient := f.newHttpClient()
 	request, err := http.NewRequest("GET", f.BaseURL+url, nil)
+	f.setAuthHeader(request)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -122,7 +177,7 @@ func (f *Fetcher) GetOptions(url string, option map[string]string) ([]byte, erro
 }
 
 func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte, error) {
-	hclient := &http.Client{}
+	hclient := f.newHttpClient()
 	form := url.Values{}
 	var InterfaceList []interface{}
 
@@ -137,6 +192,7 @@ func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte
 	}
 
 	request, err := http.NewRequest("POST", f.BaseURL+URL, strings.NewReader(form.Encode()))
+	f.setAuthHeader(request)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -154,7 +210,7 @@ func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte
 }
 
 func (f *Fetcher) Form(URL string, option map[string]string) ([]byte, error) {
-	hclient := &http.Client{}
+	hclient := f.newHttpClient()
 
 	form := url.Values{}
 	for k, v := range option {
@@ -162,6 +218,7 @@ func (f *Fetcher) Form(URL string, option map[string]string) ([]byte, error) {
 	}
 
 	request, err := http.NewRequest("POST", f.BaseURL+URL, strings.NewReader(form.Encode()))
+	f.setAuthHeader(request)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -189,7 +246,7 @@ func (f *Fetcher) Form(URL string, option map[string]string) ([]byte, error) {
 }
 
 func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, error) {
-	hclient := &http.Client{}
+	hclient := f.newHttpClient()
 
 	form := url.Values{}
 	for k, v := range option {
@@ -197,6 +254,8 @@ func (f *Fetcher) PostOptions(URL string, option map[string]string) ([]byte, err
 	}
 
 	request, err := http.NewRequest("POST", f.BaseURL+URL, strings.NewReader(form.Encode()))
+	f.setAuthHeader(request)
+
 	if err != nil {
 		return []byte{}, err
 	}
@@ -295,6 +354,8 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	if err != nil {
 		return err
 	}
+	f.setAuthHeader(req)
+
 	req.TransferEncoding = []string{"chunked"}
 
 	req.Header.Set("Content-Type", contentType)
@@ -304,7 +365,8 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	req.Header.Add("Connection", "keep-alive")
 
 	//process request
-	client := &http.Client{Timeout: 0}
+	client := f.newHttpClient()
+	client.Timeout = 0
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
@@ -356,6 +418,8 @@ func (f *Fetcher) Upload(uri string, params map[string]string, paramName, path s
 	}
 
 	request, err := http.NewRequest("POST", f.BaseURL+uri, body)
+	f.setAuthHeader(request)
+
 	if err != nil {
 		return request, nil
 	}

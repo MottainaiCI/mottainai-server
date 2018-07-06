@@ -27,6 +27,8 @@ import (
 	"errors"
 	"strconv"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	machinery "github.com/RichardKnop/machinery/v1"
 )
@@ -260,6 +262,7 @@ func (h *TaskHandler) FetchTask(fetcher *client.Fetcher) Task {
 
 func HandleSuccess(docID string, result int) error {
 	fetcher := client.NewFetcher(docID)
+	fetcher.Token = setting.Configuration.AgentKey
 
 	fetcher.SetTaskField("exit_status", strconv.Itoa(result))
 	if result != 0 {
@@ -281,6 +284,7 @@ func HandleSuccess(docID string, result int) error {
 
 func HandleErr(errstring, docID string) error {
 	fetcher := client.NewFetcher(docID)
+	fetcher.Token = setting.Configuration.AgentKey
 
 	fetcher.AppendTaskOutput(errstring)
 	fetcher.SetTaskResult("error")

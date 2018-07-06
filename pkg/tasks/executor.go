@@ -114,8 +114,14 @@ func (d *TaskExecutor) Fail(errstring string) {
 	d.MottainaiClient.FailTask(errstring)
 }
 
+func (d *TaskExecutor) ExitStatus(i int) {
+	d.MottainaiClient.SetTaskField("exit_status", strconv.Itoa(i))
+}
+
 func (d *TaskExecutor) Setup(docID string) error {
-	fetcher := client.NewFetcher(docID)
+
+	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.AgentKey)
+	fetcher.Doc(docID)
 	fetcher.SetupTask()
 	ID := utils.GenID()
 	hostname := utils.Hostname()

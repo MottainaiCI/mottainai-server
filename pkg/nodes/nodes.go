@@ -22,7 +22,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package nodes
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"reflect"
+)
 
 type Node struct {
 	ID         int    `json:"ID"`
@@ -84,4 +87,20 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		NodeID:     nodeid,
 	}
 	return node
+}
+
+func (t *Node) ToMap() map[string]interface{} {
+
+	ts := make(map[string]interface{})
+	val := reflect.ValueOf(t).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+
+		tag := typeField.Tag
+
+		ts[tag.Get("form")] = valueField.Interface()
+		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
+	}
+	return ts
 }

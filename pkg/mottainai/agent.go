@@ -55,7 +55,7 @@ func (m *MottainaiAgent) Run() error {
 	server := NewServer()
 	broker := server.Add(setting.Configuration.BrokerDefaultQueue)
 	th := agenttasks.DefaultTaskHandler()
-	fetcher := client.NewClient(setting.Configuration.AppURL)
+	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
 
 	m.Map(server)
 	m.Map(th)

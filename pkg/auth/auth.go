@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package auth
 
 import (
+	"strconv"
 	"strings"
 
 	log "gopkg.in/clog.v1"
@@ -43,6 +44,36 @@ func IsAPIPath(url string) bool {
 // SignedInID returns the id of signed in user.
 func SignedInID(c *macaron.Context, sess session.Store) int {
 	db := database.Instance()
+
+	// Check access token.
+	if IsAPIPath(c.Req.URL.Path) {
+		tokenSHA := c.Query("token")
+		if len(tokenSHA) <= 0 {
+			tokenSHA = c.Query("access_token")
+		}
+		if len(tokenSHA) == 0 {
+			// Well, check with header again.
+			auHead := c.Req.Header.Get("Authorization")
+			if len(auHead) > 0 {
+
+				auths := strings.Fields(auHead)
+				if len(auths) == 2 && auths[0] == "token" {
+					tokenSHA = auths[1]
+				}
+			}
+		}
+
+		// Let's see if token is valid.
+		if len(tokenSHA) > 0 {
+			t, err := db.GetTokenByKey(tokenSHA)
+			if err != nil {
+				log.Error(2, "GetTokenByKey: %v", err)
+				return 0
+			}
+			id, _ := strconv.Atoi(t.UserId)
+			return id
+		}
+	}
 
 	uid := sess.Get("uid")
 	if uid == nil {

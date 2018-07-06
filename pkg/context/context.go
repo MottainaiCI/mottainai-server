@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package context
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -82,7 +83,31 @@ func (c *Context) RenderWithInfo(msg, tpl string) {
 
 // ServerError renders the 500 page.
 func (c *Context) ServerError(title string, err error) {
+	// Restrict API calls with error message.
+	if auth.IsAPIPath(c.Req.URL.Path) {
+		c.JSON(500, map[string]string{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.Data["ErrorMsg"] = err
 	c.Handle(http.StatusInternalServerError, title, err)
+}
+
+func (c *Context) NotFound() {
+
+	// Restrict API calls with error message.
+	if auth.IsAPIPath(c.Req.URL.Path) {
+		c.JSON(404, map[string]string{
+			"message": "Not found",
+		})
+		return
+	}
+
+	err := "Page not found"
+	c.Data["Title"] = err
+	c.Handle(http.StatusNotFound, err, errors.New(err))
 }
 
 // Handle handles and logs error by given status.
@@ -199,6 +224,7 @@ func Contexter() macaron.Handler {
 			c.Data["LoggedUserID"] = 0
 			c.Data["LoggedUserName"] = ""
 			c.Data["IsAdmin"] = "no"
+
 		}
 
 		c.Data["CSRFToken"] = x.GetToken()
