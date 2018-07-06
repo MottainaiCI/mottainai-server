@@ -24,7 +24,6 @@ package apitoken
 
 import (
 	"errors"
-	"strconv"
 
 	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 
@@ -53,11 +52,11 @@ func Create(ctx *context.Context, db *database.Database) string {
 	if err != nil {
 		return ":("
 	}
-	id, err := db.InsertToken(t)
+	_, err = db.InsertToken(t)
 	if err != nil {
 		ctx.ServerError("Failed creating token", err)
 		return ":("
 	}
 
-	return strconv.Itoa(id)
+	return t.Key
 }

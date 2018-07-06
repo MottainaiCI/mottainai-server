@@ -27,9 +27,9 @@ import (
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
 	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
-
 	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
+	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
+	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -38,6 +38,7 @@ func Setup(m *macaron.Macaron) {
 	nodesapi.Setup(m)
 	tasksapi.Setup(m)
 	namespacesapi.Setup(m)
+	apitoken.Setup(m)
 	storagesapi.Setup(m)
 	stats.Setup(m)
 }

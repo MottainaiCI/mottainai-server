@@ -89,7 +89,19 @@ func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	err := db.DeleteUser(id)
+	user, err := db.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	tokens, _ := db.GetTokensByUserID(user.ID)
+
+	for _, t := range tokens {
+		db.DeleteToken(t.ID)
+	}
+
+	err = db.DeleteUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
