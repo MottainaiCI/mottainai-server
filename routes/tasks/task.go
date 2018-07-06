@@ -23,21 +23,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasks
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/go-macaron/binding"
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
 	bind := binding.BindIgnErr
-	m.Get("/tasks", ShowAll)
-	m.Get("/tasks/add", Add)
-	m.Post("/tasks", bind(agenttasks.Task{}), Create)
+	m.Get("/tasks", reqSignIn, ShowAll)
+	m.Get("/tasks/add", reqSignIn, Add)
+	m.Post("/tasks", reqSignIn, bind(agenttasks.Task{}), Create)
+	m.Get("/tasks/:id", reqSignIn, DisplayTask)
+	m.Get("/tasks/start/:id", reqSignIn, SendStartTask)
+	m.Get("/tasks/stop/:id", reqSignIn, Stop)
+	m.Get("/tasks/delete/:id", reqSignIn, Delete)
+	m.Get("/tasks/clone/:id", reqSignIn, Clone)
+
+	//Public
 	m.Get("/tasks/display/:id", DisplayTask)
-	m.Get("/tasks/:id", DisplayTask)
-	m.Get("/tasks/start/:id", SendStartTask)
-	m.Get("/tasks/stop/:id", Stop)
-	m.Get("/tasks/delete/:id", Delete)
-	m.Get("/tasks/clone/:id", Clone)
 	m.Get("/tasks/artefacts/:id", ShowArtefacts)
 }

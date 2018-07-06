@@ -30,6 +30,7 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
 
 	"github.com/go-macaron/captcha"
 	log "gopkg.in/clog.v1"
@@ -181,19 +182,9 @@ func SignUp(c *context.Context) {
 }
 
 func SetAdmin(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
-
-	u, err := db.GetUser(id)
+	err := userapi.SetAdmin(ctx, db)
 	if err != nil {
-		ctx.NotFound()
-		return
-	}
-
-	u.MakeAdmin()
-
-	err = db.UpdateUser(id, u.ToMap())
-	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError("Failed to make user admin", err)
 		return
 	}
 
@@ -201,19 +192,9 @@ func SetAdmin(ctx *context.Context, db *database.Database) {
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
-
-	u, err := db.GetUser(id)
+	err := userapi.UnSetAdmin(ctx, db)
 	if err != nil {
-		ctx.NotFound()
-		return
-	}
-
-	u.RemoveAdmin()
-
-	err = db.UpdateUser(id, u.ToMap())
-	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError("Failed removing user from admins", err)
 		return
 	}
 
@@ -221,11 +202,9 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) {
 }
 
 func DeleteUser(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
-
-	err := db.DeleteUser(id)
+	err := userapi.Delete(ctx, db)
 	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError("Failed deleting user", err)
 		return
 	}
 
@@ -271,7 +250,6 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 }
 
 func ListUsers(c *context.Context, db *database.Database) {
-	us := db.AllUsers()
-	c.Data["Users"] = us
+	c.Data["Users"] = userapi.List(c, db)
 	c.Success(LIST)
 }

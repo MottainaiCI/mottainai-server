@@ -23,8 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package routes
 
 import (
-	"errors"
-
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
@@ -34,6 +32,8 @@ import (
 	auth "github.com/MottainaiCI/mottainai-server/routes/auth"
 	namespaceroute "github.com/MottainaiCI/mottainai-server/routes/namespaces"
 	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
+	tokenroute "github.com/MottainaiCI/mottainai-server/routes/token"
+
 	"github.com/MottainaiCI/mottainai-server/routes/webhook"
 	macaron "gopkg.in/macaron.v1"
 
@@ -41,10 +41,11 @@ import (
 )
 
 func NotFound(c *context.Context) {
-	err := "Page not found"
-	c.Data["Title"] = err
-	c.Handle(404, err, errors.New(err))
-	//c.NotFound()
+	c.NotFound()
+}
+
+func ServerError(c *context.Context, e error) {
+	c.ServerError("Internal server error", e)
 }
 
 func SetupDaemon(m *mottainai.Mottainai) *mottainai.Mottainai {
@@ -72,21 +73,36 @@ func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 func Setup(m *macaron.Macaron) {
 
 	m.NotFound(NotFound)
+	m.InternalServerError(ServerError)
 
 	// setup templates
 	// m.Use(macaron.Renderer())
 
-	m.Get("/", func(ctx *context.Context, db *database.Database) {
-		//ctx.Data["Name"] = "jeremy"
-		rtasks, _ := db.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+	m.Get("/", func(ctx *context.Context, db *database.Database) error {
+		rtasks, e := db.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+		if e != nil {
+			return e
+		}
 		running_tasks := len(rtasks)
-		wtasks, _ := db.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+		wtasks, e := db.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+		if e != nil {
+			return e
+		}
 		waiting_tasks := len(wtasks)
-		etasks, _ := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+		etasks, e := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+		if e != nil {
+			return e
+		}
 		error_tasks := len(etasks)
-		ftasks, _ := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		ftasks, e := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		if e != nil {
+			return e
+		}
 		failed_tasks := len(ftasks)
-		stasks, _ := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		stasks, e := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		if e != nil {
+			return e
+		}
 		succeeded_tasks := len(stasks)
 
 		ctx.Data["TotalTasks"] = db.DB().Use("Tasks").ApproxDocCount()
@@ -100,10 +116,12 @@ func Setup(m *macaron.Macaron) {
 		ctx.Data["FailedTasks"] = failed_tasks
 
 		template.TemplatePreview(ctx, "index")
+		return nil
 	})
 
 	tasks.Setup(m)
 	nodesroute.Setup(m)
 	namespaceroute.Setup(m)
+	tokenroute.Setup(m)
 	api.Setup(m)
 }

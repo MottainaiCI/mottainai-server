@@ -103,7 +103,10 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 
 		if exists, _ := utils.Exists(path.Join(gitdir, "mottainai.json")); exists == true {
 
-			t := tasks.FromFile(path.Join(gitdir, "mottainai.json"))
+			t, err := tasks.FromFile(path.Join(gitdir, "mottainai.json"))
+			if err != nil {
+				panic(err)
+			}
 			t.Namespace = "" // do not allow automatic tag from PR
 			log.Println(t)
 
