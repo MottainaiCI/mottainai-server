@@ -433,6 +433,12 @@
   revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
 
 [[projects]]
+  name = "github.com/sethvargo/go-password"
+  packages = ["password"]
+  revision = "d207206009266fab3e355f1a0488b47ac24139c7"
+  version = "v0.1.1"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
@@ -638,6 +644,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "809b97a5265364cc6afce9b4ed639db6a6e3f2540c26bc5b29634b9f781a75ec"
+  inputs-digest = "3356de0d987cafa1a2ce329100d9d10739755cf880093eb7da23488b2a360ebf"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -6,8 +6,7 @@ env:
 before_install:
   - make deps
 script:
-  - make
-  - make test
+  - make build-test
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
