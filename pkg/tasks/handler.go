@@ -262,7 +262,7 @@ func (h *TaskHandler) FetchTask(fetcher *client.Fetcher) Task {
 
 func HandleSuccess(docID string, result int) error {
 	fetcher := client.NewFetcher(docID)
-	fetcher.Token = setting.Configuration.AgentKey
+	fetcher.Token = setting.Configuration.ApiKey
 
 	fetcher.SetTaskField("exit_status", strconv.Itoa(result))
 	if result != 0 {
@@ -284,7 +284,7 @@ func HandleSuccess(docID string, result int) error {
 
 func HandleErr(errstring, docID string) error {
 	fetcher := client.NewFetcher(docID)
-	fetcher.Token = setting.Configuration.AgentKey
+	fetcher.Token = setting.Configuration.ApiKey
 
 	fetcher.AppendTaskOutput(errstring)
 	fetcher.SetTaskResult("error")
