@@ -176,10 +176,15 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
 	var containerconfig = &docker.Config{Image: image, WorkingDir: git_build_root_path}
-
+	fetcher.AppendTaskOutput("Execute: " + execute_script)
 	if len(execute_script) > 0 {
 		containerconfig.Cmd = []string{"-c", "pwd;ls -liah;" + execute_script}
-		containerconfig.Entrypoint = []string{"/bin/sh"}
+		containerconfig.Entrypoint = []string{"/bin/bash"}
+	}
+
+	if len(task_info.Entrypoint) > 0 {
+		containerconfig.Entrypoint = task_info.Entrypoint
+		fetcher.AppendTaskOutput("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
 	}
 
 	if len(task_info.Environment) > 0 {

@@ -213,6 +213,15 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		cache_image = str
 	}
 
+	var entrypoint []string
+	entrypoint = make([]string, 0)
+
+	if arr, ok := t["entrypoint"].([]interface{}); ok {
+		for _, v := range arr {
+			entrypoint = append(entrypoint, v.(string))
+		}
+	}
+
 	task := Task{
 		Queue:        queue,
 		Source:       source,
@@ -221,6 +230,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		TaskName:     taskname,
 		Namespace:    namespace,
 		Commit:       commit,
+		Entrypoint:   entrypoint,
 		Output:       output,
 		Result:       result,
 		Status:       status,

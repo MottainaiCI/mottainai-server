@@ -48,6 +48,7 @@ type Task struct {
 	Status       string   `json:"status" form:"status"`
 	Output       string   `json:"output" form:"output"`
 	Result       string   `json:"result" form:"result"`
+	Entrypoint   []string `json:"entrypoint" form:"entrypoint"`
 	Namespace    string   `json:"namespace" form:"namespace"`
 	Commit       string   `json:"commit" form:"commit"`
 	PrivKey      string   `json:"privkey" form:"privkey"`

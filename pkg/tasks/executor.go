@@ -120,7 +120,7 @@ func (d *TaskExecutor) ExitStatus(i int) {
 
 func (d *TaskExecutor) Setup(docID string) error {
 
-	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.AgentKey)
+	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
 	fetcher.Doc(docID)
 	fetcher.SetupTask()
 	ID := utils.GenID()
