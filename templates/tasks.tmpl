@@ -11,6 +11,12 @@
                             <strong class="card-title">Tasks list</strong>
                         </div>
                         <div class="card-body">
+
+                          <div class="alert alert-secondary fade show">
+                            <span class="badge badge-pill badge-secondary">Tip</span>
+                            Create a new task with json file: <code>mottainai-cli --master {{AppSubURL}} task create --json task.json</code><br>
+                          </div>
+                          <a href="/tasks/add"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
                           {{template "tasks/single" .}}
                         </div>
                     </div>

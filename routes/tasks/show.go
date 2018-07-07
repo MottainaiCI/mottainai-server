@@ -24,6 +24,8 @@ package tasks
 
 import (
 	"sort"
+	"strconv"
+	"time"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -39,6 +41,25 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 		return
 	}
 	ctx.Data["Task"] = task
+	if len(task.CreatedTime) > 0 && len(task.StartTime) > 0 {
+		created, err := strconv.Atoi(task.CreatedTime)
+		if err == nil {
+			started, err := strconv.Atoi(task.StartTime)
+			if err == nil {
+				ctx.Data["WaitingTime"] = started - created
+			}
+		}
+	}
+
+	if len(task.StartTime) > 0 {
+		now, err := strconv.Atoi(time.Now().Format("20060102150405"))
+		if err == nil {
+			started, err := strconv.Atoi(task.StartTime)
+			if err == nil {
+				ctx.Data["RunningTime"] = now - started
+			}
+		}
+	}
 	ctx.Data["Artefacts"] = task.Artefacts()
 	template.TemplatePreview(ctx, "tasks/display")
 }

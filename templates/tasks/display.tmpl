@@ -127,38 +127,119 @@
 </div>
 
 
-<div class="col-lg-12 col-md-12">
-                    <div class="card">
-                        <div class='card-body bg-dark'>
 
-                          <div class="dropdown float-right">
-                             <button class="btn bg-dark dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton" data-toggle="dropdown">
-                                 <i class="fa fa-cog"></i>
-                             </button>
-                             <div class="dropdown-menu bg-dark" aria-labelledby="dropdownMenuButton">
-                                 <div class="dropdown-menu-content ">
-                                <a href="/tasks/delete/{{.Task.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
-                                <a href="/tasks/stop/{{.Task.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-stop-circle"></i>&nbsp; Stop</button></a>
-                                <a href="/tasks/start/{{.Task.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-play-circle"></i>&nbsp; Start</button></a>
-                                <a href="/tasks/clone/{{.Task.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-copy"></i>&nbsp; Clone</button></a>
 
-                                 </div>
-                             </div>
-                         </div>
 
-                            <div class="stat-widget-one">
-                                <div class="stat-icon dib"><i class="fa fa-info text-light"></i></div>
-                                <div class="stat-content dib">
-                                    <div class="stat-text">Result: <span class='badge badge-{{if eq .Task.Result "success"}}success{{end}}{{if eq .Task.Result "error"}}danger{{end}}'>{{.Task.Result}}</span> </div>
-                                    <div class="stat-text">Status: <span class="badge badge-info">{{.Task.Status}}</span> </div>
-                                    <div class="stat-text">Exit with: {{.Task.ExitStatus}}</div>
-                                    {{if .Task.Output}}<div class="stat-text">Output: <span class="badge badge-primary">{{.Task.Output}}</span></div>{{end}}
+                            <div class="col-md-12">
+                              <aside class="profile-nav alt">
+                                  <section class="card">
+                                      <div class="card-header user-header alt bg-dark">
+                                          <div class="media">
+                                              <a href="/tasks">
+                                                <i class="align-self-center rounded-circle mr-3  fa fa-info text-light"></i>
+                                              </a>
+                                              <div class="media-body">
+                                                  <h4 class="text-light display-6">{{if .Task.Source}}Source repository: {{.Task.Source}}{{end}} <span class="pull-right">{{if .Task.Directory}}Directory: {{.Task.Directory}}{{end}}</span></h4>
+                                              </div>
+                                          </div>
+                                          {{template "tasks/action" .Task}}
+                                      </div>
 
-                                </div>
+
+                                      <ul class="list-group list-group-flush">
+
+
+
+                                        {{if .Task.Status}}
+                                        <li class="list-group-item">
+                                            <i class="fa  fa-chevron-right"></i> Status: <span class="pull-right badge badge-info">{{.Task.Status}}</span>
+                                          </li>
+                                        {{end}}
+
+                                        {{if .Task.Result}}
+                                        <li class="list-group-item">
+                                            <i class="fa  fa-chevron-right"></i> Result: <span class='pull-right badge badge-{{if eq .Task.Result "success"}}success{{end}}{{if eq .Task.Result "error"}}danger{{end}}'>{{.Task.Result}}</span>
+                                        </li>
+                                        {{end}}
+
+                                        {{if .Task.ExitStatus}}
+                                        <li class="list-group-item">
+                                            <i class="fa  fa-chevron-right"></i> Exit with: <span class="pull-right badge badge-info">{{.Task.ExitStatus}}</span>
+                                          </li>
+                                        {{end}}
+
+                                        {{if .Task.Output}}
+                                        <li class="list-group-item">
+                                            <i class="fa  fa-chevron-right"></i> Extra output: <span class="pull-right badge badge-info">{{.Task.Output}}</span>
+                                          </li>
+                                        {{end}}
+
+                                        {{if .RunningTime}}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-clock-o"></i> Running since <span class="badge pull-right">{{.RunningTime}}s</span>
+                                        </li>
+                                        {{end}}
+                                        {{if .WaitingTime}}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-clock-o"></i> Waited for  <span class="badge pull-right">{{.WaitingTime}}s</span>
+                                        </li>
+                                        {{end}}
+                                        {{if .Task.CreatedTime}}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-clock-o"></i> Created <span class="badge  pull-right"><time class="timeago" datetime="{{.Task.CreatedTime}}">{{.Task.CreatedTime}}</time></span>
+                                        </li>
+                                        {{end}}
+
+                                        {{if .Task.EndTime}}
+
+                                        <li class="list-group-item">
+                                            <i class="fa fa-clock-o"></i> Finished <span class="badge pull-right"><time class="timeago" datetime="{{.Task.EndTime}}">{{.Task.EndTime}}</time></span>
+                                        </li>
+                                        {{end}}
+                                          {{if .Task.StartTime}}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-clock-o"></i> Started <span class="badge pull-right"><time class="timeago" datetime="{{.Task.StartTime}}">{{.Task.StartTime}}</time></span>
+                                        </li>
+                                        {{end}}
+                                        {{if .Task.TaskName}}
+                                         <li class="list-group-item">
+                                             <i class="fa fa-cogs"></i> Type <span class="badge  pull-right">{{.Task.TaskName}}</span>
+                                         </li>
+                                         {{end}}
+                                         {{if .Task.Image}}
+                                          <li class="list-group-item">
+                                               <i class="fa fa-cloud"></i> Image <span class="badge  pull-right">{{.Task.Image}}</span>
+                                          </li>
+                                          {{end}}
+
+                                          {{if .Task.Namespace}}
+
+                                          <li class="list-group-item">
+                                              <i class="fa fa-download"></i> Artifacts synced from namespace <span class="badge  pull-right"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span>
+                                          </li>
+                                          {{end}}
+
+                                          <li class="list-group-item">
+                                              <i class="fa fa-external-link"></i> Artefacts url <span class="badge pull-right r-activity"><code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></span>
+                                          </li>
+                                          {{if .Task.TagNamespace}}
+
+                                          <li class="list-group-item">
+                                              <i class="fa fa-tag"></i> Automatic tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span>
+                                          </li>
+                                          {{end}}
+
+                                        </ul>
+
+                                  </section>
+                              </aside>
                             </div>
-                        </div>
-                    </div>
-</div>
+                            <!-- /# column -->
+
+
+
+
+
 
 {{if eq .Task.Status "running"}}
   <div class="content mt-3">
@@ -193,56 +274,6 @@
 </div>
 {{end}}
 
-<div class="col-md-12">
-  <aside class="profile-nav alt">
-      <section class="card">
-          <div class="card-header user-header alt bg-dark">
-              <div class="media">
-                  <a href="/tasks">
-                      <i class="align-self-center rounded-circle mr-3 fa fa-cogs"></i>
-                  </a>
-                  <div class="media-body">
-                      <h3 class="text-light display-6">{{if .Task.Source}}{{.Task.Source}}{{end}}</h3>
-                      <p>{{if .Task.Directory}}{{.Task.Directory}}{{end}}</p>
-                  </div>
-              </div>
-          </div>
-
-
-          <ul class="list-group list-group-flush">
-            {{if .Task.TaskName}}
-             <li class="list-group-item">
-                 <i class="fa fa-cogs"></i> Type <span class="badge  pull-right">{{.Task.TaskName}}</span>
-             </li>
-             {{end}}
-             {{if .Task.Image}}
-              <li class="list-group-item">
-                   <i class="fa fa-cloud"></i> Image <span class="badge  pull-right">{{.Task.Image}}</span>
-              </li>
-              {{end}}
-
-              {{if .Task.Namespace}}
-
-              <li class="list-group-item">
-                  <i class="fa fa-download"></i> Artifacts synced from namespace <span class="badge  pull-right"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span>
-              </li>
-              {{end}}
-
-              <li class="list-group-item">
-                  <i class="fa fa-external-link"></i> Artefacts url <span class="badge pull-right r-activity"><code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></span>
-              </li>
-              {{if .Task.TagNamespace}}
-
-              <li class="list-group-item">
-                  <i class="fa fa-tag"></i> Automatic tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span>
-              </li>
-              {{end}}
-          </ul>
-
-      </section>
-  </aside>
-</div>
-<!-- /# column -->
 <div class="col-lg-12">
    <div class="card">
        <div class="card-header">
@@ -334,7 +365,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#bootstrap-data-table-export').DataTable();
-
+  $("time.timeago").timeago();
  $.ajax({
      url: "/api/tasks/{{.Task.ID}}",
    })

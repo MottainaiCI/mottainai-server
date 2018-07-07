@@ -1,59 +1,53 @@
 <table id="bootstrap-data-table" class="table table-striped table-bordered">
   <thead>
     <tr>
+
       <th>
-        Action
+        <i class="fa fa-circle-o" aria-hidden="true"></i>  Task id
       </th>
       <th>
-        ID
+        <i class="fa fa-code-fork" aria-hidden="true"></i>  Source
       </th>
       <th>
-        Source
+          <i class="fa fa-folder-o" aria-hidden="true"></i> Directory
       </th>
       <th>
-        Directory
+          <i class="fa fa-cloud" aria-hidden="true"></i> Image
       </th>
+      <th><i class="fa fa-clock-o" aria-hidden="true"></i> Started</th>
+
+      <th><i class="ti-check" aria-hidden="true"></i></th>
       <th>
-        Image
+      <i class="fa fa-bookmark" aria-hidden="true"></i>
       </th>
-      <th>
-        State
-      </th>
-      <th>
-        Result
-      </th>
-      <th>
+  <!--    <th>
         Created
       </th>
 
       <th>
         End
-      </th>
-    </tr>
+      </th>-->
+</tr>
   </thead>
   <tbody>
 
     {{range .Tasks}}
     <tr>
-      <td>
-        <a href="/tasks/delete/{{.ID}}">
-          <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
-        </a>
-        <a href="/tasks/stop/{{.ID}}">
-          <div class="ui primary button"><i class="fa fa-stop-circle" aria-hidden="true"></i></div>
-        </a>
-        <a href="/tasks/start/{{.ID}}">
-          <div class="ui primary button"><i class="fa fa-play-circle" aria-hidden="true"></i></div>
-        </a>
-      </td>
+
+
+
+
       <td>
         <a href="/tasks/display/{{.ID}}">
 
-      <span >{{.ID}}</span> </a></td>
+      <span class="badge badge-secondary" > <h6><i class="fa fa-info" aria-hidden="true"></i> {{.ID}} </h6></span> </a>  {{template "tasks/action" .}}</td>
 
       <td>{{.Source}}</td>
       <td>{{.Directory}}</td>
       <td>{{.Image}}</td>
+
+      <td><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time></td>
+
 
       <td>{{if eq .Status "running"}}
           <i class="ti-reload" aria-hidden="true"></i>
@@ -71,6 +65,7 @@
           <i class="fa fa-question" aria-hidden="true"></i>
           {{end}}
       </td>
+
       <td>
         {{if eq .Result "success"}}
             <i class="fa fa-check-circle" aria-hidden="true"></i>
@@ -82,8 +77,8 @@
             <i class="fa fa-question" aria-hidden="true"></i>
             {{end}}
           </td>
-      <td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
-      <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>
+      <!--<td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
+      <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>-->
     </tr>
     {{end}}
 
