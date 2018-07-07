@@ -113,9 +113,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		cache_image   string
 		cache_clean   string
 		queue         string
-
-		environment []string
-		binds       []string
+		owner, node   string
+		environment   []string
+		binds         []string
 	)
 
 	binds = make([]string, 0)
@@ -139,7 +139,12 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 			script = append(script, v.(string))
 		}
 	}
-
+	if i, ok := t["owner_id"].(string); ok {
+		owner = i
+	}
+	if i, ok := t["node_id"].(string); ok {
+		node = i
+	}
 	if str, ok := t["queue"].(string); ok {
 		queue = str
 	}
@@ -244,11 +249,13 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		EndTime:      end_time,
 		RootTask:     root_task,
 		TagNamespace: tag_namespace,
+		Node:         node,
 		Prune:        prune,
 		CacheImage:   cache_image,
 		Environment:  environment,
 		Binds:        binds,
 		CacheClean:   cache_clean,
+		Owner:        owner,
 	}
 	return task
 }

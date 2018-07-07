@@ -53,8 +53,8 @@ type Task struct {
 	Commit       string   `json:"commit" form:"commit"`
 	PrivKey      string   `json:"privkey" form:"privkey"`
 	AuthHosts    string   `json:"authhosts" form:"authhosts"`
-	Node         int      `json:"nodeid" form:"nodeid"`
-	Owner        int      `json:"ownerid" form:"ownerid"`
+	Node         string   `json:"node_id" form:"node_id"`
+	Owner        string   `json:"owner_id" form:"owner_id"`
 	Image        string   `json:"image" form:"image"`
 	ExitStatus   string   `json:"exit_status" form:"exit_status"`
 	Storage      string   `json:"storage" form:"storage"`
@@ -137,6 +137,8 @@ func (t *Task) Reset() {
 	t.ExitStatus = ""
 	t.CreatedTime = time.Now().Format("20060102150405")
 	t.EndTime = ""
+	t.Owner = ""
+	t.Node = ""
 	t.StartTime = ""
 }
 
