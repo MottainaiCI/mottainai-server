@@ -55,16 +55,30 @@ type Fetcher struct {
 }
 
 func NewTokenClient(host, token string) *Fetcher {
-	return &Fetcher{BaseURL: host, Token: token}
+	f := NewBasicClient()
+	f.BaseURL = host
+	f.Token = token
+	return f
 }
 
 func NewClient(host string) *Fetcher {
-	return &Fetcher{BaseURL: host}
+	f := NewBasicClient()
+	f.BaseURL = host
+	return f
 }
 
 func NewFetcher(docID string) *Fetcher {
 	f := NewClient(setting.Configuration.AppURL)
 	f.docID = docID
+	return f
+}
+
+func NewBasicClient() *Fetcher {
+	// Basic constructor
+	f := &Fetcher{}
+	if len(setting.Configuration.TLSCert) > 0 {
+		f.TrustedCert = setting.Configuration.TLSCert
+	}
 	return f
 }
 
