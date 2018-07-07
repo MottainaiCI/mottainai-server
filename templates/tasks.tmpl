@@ -1,25 +1,51 @@
 {{template "base/head" .}}
 {{template "base/menu" .}}
 
-        <div class="content mt-3">
-            <div class="animated fadeIn">
-                <div class="row">
 
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <strong class="card-title">Tasks list</strong>
-                        </div>
-                        <div class="card-body">
+<div class="col-lg-12">
+   <div class="card">
+       <div class="card-header">
+           <h4>Build list</h4>
+       </div>
+       <div class="card-body">
+           <div class="custom-tab">
 
-                          <div class="alert alert-secondary fade show">
-                            <span class="badge badge-pill badge-secondary">Tip</span>
-                            Create a new task with json file: <code>mottainai-cli --master {{AppSubURL}} task create --json task.json</code><br>
-                          </div>
-                          <a href="/tasks/add"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
-                          {{template "tasks/single" .}}
-                        </div>
-                    </div>
-                </div>
+               <nav>
+                   <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                       <a class="nav-item nav-link active" id="custom-nav-contact-tab" data-toggle="tab" href="#mine" role="tab" aria-controls="mine" aria-selected="false">Your tasks</a>
+                       <a class="nav-item nav-link " id="custom-nav-contact-tab" data-toggle="tab" href="#all" role="tab" aria-controls="all" aria-selected="false">All tasks</a>
+                   </div>
+               </nav>
+               <div class="tab-content pl-3 pt-2" id="nav-tabContent">
+
+                   <div class="tab-pane fade show active" id="mine" role="tabpanel" aria-labelledby="mine">
+                     <div class="alert alert-secondary fade show">
+                       <span class="badge badge-pill badge-secondary">Tip</span>
+                       Create a new task with json file: <code>mottainai-cli --master {{AppSubURL}} task create --json task.json</code><br>
+                     </div>
+                     <a href="/tasks/add"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
+                     {{template "tasks/user" .}}
+
+                 </div>
+
+
+                 <div class="tab-pane fade show " id="all" aria-labelledby="all">
+                   <div class="alert alert-secondary fade show">
+                     <span class="badge badge-pill badge-secondary">Tip</span>
+                     Create a new task with json file: <code>mottainai-cli --master {{AppSubURL}} task create --json task.json</code><br>
+                   </div>
+                   <a href="/tasks/add"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
+                   {{template "tasks/single" .}}
+
+               </div>
+
+               </div>
+
+           </div>
+       </div>
+   </div>
+</div>
+<!-- /# column -->
+
 
 		{{template "base/footer" .}}

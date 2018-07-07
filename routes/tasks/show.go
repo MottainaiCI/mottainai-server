@@ -23,11 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasks
 
 import (
-	"sort"
 	"strconv"
 	"time"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
@@ -65,13 +65,10 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	tasks_info := db.AllTasks()
+	all, mine := tasksapi.All(ctx, db)
 
-	sort.Slice(tasks_info[:], func(i, j int) bool {
-		return tasks_info[i].CreatedTime > tasks_info[j].CreatedTime
-	})
-
-	ctx.Data["Tasks"] = tasks_info
+	ctx.Data["Tasks"] = all
+	ctx.Data["UserTasks"] = mine
 
 	template.TemplatePreview(ctx, "tasks")
 }

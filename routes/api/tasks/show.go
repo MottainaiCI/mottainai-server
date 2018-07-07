@@ -26,6 +26,7 @@ import (
 	"sort"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
@@ -64,12 +65,39 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 	return task.TailLog(pos)
 }
 
-func ShowAll(ctx *context.Context, db *database.Database) {
-	tasks_info := db.AllTasks()
+func All(ctx *context.Context, db *database.Database) ([]task.Task, []task.Task) {
 
-	sort.Slice(tasks_info[:], func(i, j int) bool {
-		return tasks_info[i].CreatedTime > tasks_info[j].CreatedTime
+	var all []task.Task
+	var mine []task.Task
+
+	if ctx.IsLogged {
+		if ctx.User.IsAdmin() {
+			all = db.AllTasks()
+		}
+		mine, _ = db.AllUserTask(ctx.User.ID)
+
+	}
+
+	sort.Slice(all[:], func(i, j int) bool {
+		return all[i].CreatedTime > all[j].CreatedTime
 	})
 
-	ctx.JSON(200, tasks_info)
+	sort.Slice(mine[:], func(i, j int) bool {
+		return mine[i].CreatedTime > mine[j].CreatedTime
+	})
+	return all, mine
+}
+
+func ShowAll(ctx *context.Context, db *database.Database) {
+
+	all, mine := All(ctx, db)
+
+	if ctx.IsLogged {
+		if ctx.User.IsAdmin() {
+			ctx.JSON(200, all)
+		} else {
+			ctx.JSON(200, mine)
+		}
+	}
+
 }
