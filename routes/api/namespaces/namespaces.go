@@ -32,14 +32,14 @@ import (
 func Setup(m *macaron.Macaron) {
 	//bind := binding.Bind
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
 	m.Get("/api/namespace/list", reqSignIn, NamespaceList)
 	m.Get("/api/namespace/:name/list", reqSignIn, NamespaceListArtefacts)
-	m.Get("/api/namespace/:name/create", reqSignIn, NamespaceCreate)
-	m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
-	m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
-	m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
-
-	m.Post("/api/namespace/upload", binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
+	m.Get("/api/namespace/:name/create", reqAdmin, reqSignIn, NamespaceCreate)
+	m.Get("/api/namespace/:name/delete", reqAdmin, reqSignIn, NamespaceDelete)
+	m.Get("/api/namespace/:name/tag/:taskid", reqAdmin, reqSignIn, NamespaceTag)
+	m.Get("/api/namespace/:name/clone/:from", reqAdmin, reqSignIn, NamespaceClone)
+	m.Post("/api/namespace/upload", reqAdmin, reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
 
 }
