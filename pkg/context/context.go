@@ -221,6 +221,11 @@ func Contexter() macaron.Handler {
 			c.Data["LoggedUserName"] = c.User.Name
 			c.Data["IsAdmin"] = c.User.Admin
 			c.Data["IsManager"] = c.User.Manager
+			if c.User.IsManager() || c.User.IsAdmin() {
+				c.Data["IsManagerOrAdmin"] = true
+			} else {
+				c.Data["IsManagerOrAdmin"] = false
+			}
 		} else {
 			c.Data["LoggedUserID"] = 0
 			c.Data["LoggedUserName"] = ""
