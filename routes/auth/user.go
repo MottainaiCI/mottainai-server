@@ -188,7 +188,7 @@ func SetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Success(LIST)
+	ctx.SubURLRedirect("/user/list")
 }
 
 func SetAdmin(ctx *context.Context, db *database.Database) {
@@ -198,7 +198,7 @@ func SetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Success(LIST)
+	ctx.SubURLRedirect("/user/list")
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) {
@@ -208,7 +208,7 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Success(LIST)
+	ctx.SubURLRedirect("/user/list")
 }
 
 func UnSetManager(ctx *context.Context, db *database.Database) {
@@ -218,7 +218,7 @@ func UnSetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Success(LIST)
+	ctx.SubURLRedirect("/user/list")
 }
 func DeleteUser(ctx *context.Context, db *database.Database) {
 	err := userapi.Delete(ctx, db)
@@ -227,7 +227,7 @@ func DeleteUser(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Success(LIST)
+	ctx.SubURLRedirect("/user/list")
 }
 
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
