@@ -44,18 +44,18 @@ func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 }
 
 func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
+	opts.Reset()
 
-	task := opts.ToMap()
-	task["output"] = ""
-	task["result"] = "none"
-	task["exit_status"] = ""
-	task["created_time"] = time.Now().Format("20060102150405")
+	opts.Output = ""
+	opts.Result = "none"
+	opts.ExitStatus = ""
+	opts.CreatedTime = time.Now().Format("20060102150405")
 
 	if ctx.IsLogged {
-		task["ownerid"] = ctx.User.ID
+		opts.Owner = strconv.Itoa(ctx.User.ID)
 	}
 
-	docID, err := db.CreateTask(task)
+	docID, err := db.InsertTask(&opts)
 	if err != nil {
 		return "", err
 	}
@@ -71,6 +71,13 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 	if err != nil {
 		return "", err
 	}
+
+	if ctx.IsLogged {
+		db.UpdateTask(docID, map[string]interface{}{
+			"owner_id": strconv.Itoa(ctx.User.ID),
+		})
+	}
+
 	m.SendTask(docID)
 
 	return strconv.Itoa(docID), nil
