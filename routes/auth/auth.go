@@ -203,6 +203,7 @@ func Setup(m *macaron.Macaron) {
 	bindIgnErr := binding.BindIgnErr
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
+	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
 	m.Group("/user", func() {
 		m.Group("/login", func() {
@@ -215,7 +216,7 @@ func Setup(m *macaron.Macaron) {
 
 	}, reqSignOut)
 
-	m.Get("/user/list", reqSignIn, reqAdmin, ListUsers)
+	m.Get("/user/list", reqSignIn, reqManager, ListUsers)
 	m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
 	m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
 	m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)

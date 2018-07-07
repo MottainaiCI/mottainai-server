@@ -185,8 +185,9 @@ func ListUsers(c *context.Context, db *database.Database) {
 func Setup(m *macaron.Macaron) {
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
+	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
-	m.Get("/api/user/list", reqAdmin, reqSignIn, ListUsers)
+	m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
 	m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
 	m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
 	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
