@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
-	"fmt"
 	"strconv"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -37,6 +36,8 @@ func (d *Database) IndexTask() {
 	d.AddIndex(TaskColl, []string{"status"})
 	d.AddIndex(TaskColl, []string{"queue"})
 	d.AddIndex(TaskColl, []string{"result"})
+	d.AddIndex(TaskColl, []string{"owner_id"})
+	d.AddIndex(TaskColl, []string{"node_id"})
 	d.AddIndex(TaskColl, []string{"result", "status"})
 }
 func (d *Database) InsertTask(t *agenttasks.Task) (int, error) {
@@ -99,11 +100,8 @@ func (d *Database) GetTaskArtefacts(id int) ([]artefact.Artefact, error) {
 		//return res, err
 	}
 
-	fmt.Println("Getting artefacts")
 	// Query result are document IDs
 	for docid := range queryResult {
-		fmt.Println("Got", docid)
-
 		// Read document
 		art, err := d.GetArtefact(docid)
 		if err != nil {
@@ -132,4 +130,23 @@ func (d *Database) AllTasks() []agenttasks.Task {
 		return true
 	})
 	return tasks_id
+}
+
+func (d *Database) AllUserTask(id int) ([]agenttasks.Task, error) {
+	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+strconv.Itoa(id)+`", "in": ["owner_id"]}]`)
+	var res []agenttasks.Task
+	if err != nil {
+		return res, err
+	}
+	for docid := range queryResult {
+
+		// Read document
+		t, err := d.GetTask(docid)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, t)
+	}
+	return res, nil
 }
