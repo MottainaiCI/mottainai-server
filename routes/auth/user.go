@@ -181,6 +181,16 @@ func SignUp(c *context.Context) {
 	c.Success(SIGNUP)
 }
 
+func SetManager(ctx *context.Context, db *database.Database) {
+	err := userapi.SetManager(ctx, db)
+	if err != nil {
+		ctx.ServerError("Failed to make user manager", err)
+		return
+	}
+
+	ctx.Success(LIST)
+}
+
 func SetAdmin(ctx *context.Context, db *database.Database) {
 	err := userapi.SetAdmin(ctx, db)
 	if err != nil {
@@ -201,6 +211,15 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) {
 	ctx.Success(LIST)
 }
 
+func UnSetManager(ctx *context.Context, db *database.Database) {
+	err := userapi.UnSetManager(ctx, db)
+	if err != nil {
+		ctx.ServerError("Failed removing user from managers", err)
+		return
+	}
+
+	ctx.Success(LIST)
+}
 func DeleteUser(ctx *context.Context, db *database.Database) {
 	err := userapi.Delete(ctx, db)
 	if err != nil {

@@ -220,11 +220,11 @@ func Contexter() macaron.Handler {
 			c.Data["LoggedUserID"] = c.User.ID
 			c.Data["LoggedUserName"] = c.User.Name
 			c.Data["IsAdmin"] = c.User.Admin
+			c.Data["IsManager"] = c.User.Manager
 		} else {
 			c.Data["LoggedUserID"] = 0
 			c.Data["LoggedUserName"] = ""
 			c.Data["IsAdmin"] = "no"
-
 		}
 
 		c.Data["CSRFToken"] = x.GetToken()

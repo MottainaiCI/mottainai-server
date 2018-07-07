@@ -37,6 +37,22 @@ type User struct {
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
 	Admin    string `json:"is_admin" form:"is_admin"`
+	Manager  string `json:"is_manager" form:"is_manager"`
+}
+
+func (u *User) IsManager() bool {
+	if u.Manager == "yes" {
+		return true
+	}
+	return false
+}
+
+func (u *User) MakeManager() {
+	u.Manager = "yes"
+}
+
+func (u *User) RemoveManager() {
+	u.Manager = "no"
 }
 
 func (u *User) IsAdmin() bool {

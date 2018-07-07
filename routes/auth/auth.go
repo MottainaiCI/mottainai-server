@@ -216,8 +216,10 @@ func Setup(m *macaron.Macaron) {
 	}, reqSignOut)
 
 	m.Get("/user/list", reqSignIn, reqAdmin, ListUsers)
-	m.Get("/user/setadmin/:id", reqSignIn, reqAdmin, SetAdmin)
-	m.Get("/user/unsetadmin/:id", reqSignIn, reqAdmin, UnSetAdmin)
+	m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
+	m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
+	m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)
+	m.Get("/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManager)
 	m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
 
 	m.Group("/user", func() {

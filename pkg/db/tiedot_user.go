@@ -33,8 +33,9 @@ var UserColl = "Users"
 func (d *Database) IndexUser() {
 	d.AddIndex(UserColl, []string{"name"})
 	d.AddIndex(UserColl, []string{"email"})
-	d.AddIndex(UserColl, []string{"ownerid"}) // TODO: Display MY tasks and public (global) if admin
+	d.AddIndex(UserColl, []string{"ownerid"}) // TODO: Display MY tasks and public (global) if admin0
 	d.AddIndex(UserColl, []string{"is_admin"})
+	d.AddIndex(UserColl, []string{"is_manager"})
 }
 
 func (d *Database) InsertAndSaltUser(t *user.User) (int, error) {

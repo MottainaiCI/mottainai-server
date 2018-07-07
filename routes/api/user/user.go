@@ -30,6 +30,25 @@ import (
 	macaron "gopkg.in/macaron.v1"
 )
 
+func SetManager(ctx *context.Context, db *database.Database) error {
+	id := ctx.ParamsInt(":id")
+
+	u, err := db.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	u.MakeManager()
+
+	err = db.UpdateUser(id, u.ToMap())
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	return nil
+}
 func SetAdmin(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
@@ -50,6 +69,15 @@ func SetAdmin(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
+func SetManagerUser(ctx *context.Context, db *database.Database) string {
+	err := SetManager(ctx, db)
+	if err != nil {
+		return ":("
+	}
+
+	return "OK"
+}
+
 func SetAdminUser(ctx *context.Context, db *database.Database) string {
 	err := SetAdmin(ctx, db)
 	if err != nil {
@@ -57,6 +85,25 @@ func SetAdminUser(ctx *context.Context, db *database.Database) string {
 	}
 
 	return "OK"
+}
+
+func UnSetManager(ctx *context.Context, db *database.Database) error {
+	id := ctx.ParamsInt(":id")
+
+	u, err := db.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	u.RemoveManager()
+
+	err = db.UpdateUser(id, u.ToMap())
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+	return nil
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) error {
@@ -85,7 +132,14 @@ func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 
 	return "OK"
 }
+func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
+	err := UnSetManager(ctx, db)
+	if err != nil {
+		return ":("
+	}
 
+	return "OK"
+}
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
@@ -133,7 +187,9 @@ func Setup(m *macaron.Macaron) {
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
 	m.Get("/api/user/list", reqAdmin, reqSignIn, ListUsers)
-	m.Get("/api/user/setadmin/:id", reqSignIn, reqAdmin, SetAdminUser)
-	m.Get("/api/user/unsetadmin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
+	m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
+	m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
+	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
+	m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 	m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
 }

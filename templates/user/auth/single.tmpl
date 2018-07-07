@@ -13,6 +13,9 @@
       <th>
         Admin
       </th>
+      <th>
+        Manager
+      </th>
     </tr>
   </thead>
   <tbody>
@@ -22,16 +25,23 @@
         <a href="/user/delete/{{.ID}}">
           <div class="ui primary button"><i class="fa fa-trash" aria-hidden="true"></i></div>
         </a>
-        <a href="/user/setadmin/{{.ID}}">
+        <a href="/user/set/admin/{{.ID}}">
           <div class="ui primary button"><i class="fa fa-shield" aria-hidden="true"></i></div>
         </a>
-        <a href="/user/unsetadmin/{{.ID}}">
+        <a href="/user/unset/admin/{{.ID}}">
+          <div class="ui primary button"><i class="fa fa-ban" aria-hidden="true"></i></div>
+        </a>
+        <a href="/user/set/manager/{{.ID}}">
+          <div class="ui primary button"><i class="fa fa-shield" aria-hidden="true"></i></div>
+        </a>
+        <a href="/user/unset/manager/{{.ID}}">
           <div class="ui primary button"><i class="fa fa-ban" aria-hidden="true"></i></div>
         </a>
       </td>
       <td><span >{{.Name}}</span></a></td>
       <td>{{.Email}}</td>
       <td>{{.IsAdmin}}</td>
+      <td>{{.IsManager}}</td>
     </tr>
     {{end}}
   </tbody>

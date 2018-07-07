@@ -36,6 +36,7 @@ type ToggleOptions struct {
 	SignInRequired  bool
 	SignOutRequired bool
 	AdminRequired   bool
+	ManagerRequired bool
 	DisableCSRF     bool
 }
 
@@ -76,6 +77,14 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 			c.SetCookie("redirect_to", url.QueryEscape(setting.Configuration.AppSubURL+c.Req.RequestURI), 0, setting.Configuration.AppSubURL)
 			c.Redirect(setting.Configuration.AppSubURL + "/user/login")
 			return
+		}
+
+		if options.ManagerRequired {
+			if !c.User.IsManager() && !c.User.IsAdmin() {
+				c.Error(403)
+				return
+			}
+			c.Data["PageIsManager"] = true
 		}
 
 		if options.AdminRequired {
