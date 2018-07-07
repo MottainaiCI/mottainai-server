@@ -91,7 +91,7 @@
                           </a>
 
                           <div class="user-menu dropdown-menu">
-                            <a class="nav-link" href="/user/list"><i class="fa fa-users"></i> List</a>
+                            {{if .IsManagerOrAdmin}}<a class="nav-link" href="/user/list"><i class="fa fa-users"></i> List</a>{{end}}
                             <a class="nav-link" href="/user/logout"><i class="fa fa-power-off"></i> Logout</a>
                           </div>
                         {{end}}

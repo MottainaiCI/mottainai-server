@@ -98,8 +98,11 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+
  $("time.timeago").timeago();
  $("#bootstrap-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
  $('#bootstrap-data-table-export').DataTable();
+ $("#taskuser-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+ $('#taskuser-data-table').DataTable();
 } );
 </script>
