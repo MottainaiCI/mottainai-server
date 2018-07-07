@@ -51,6 +51,10 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	task["exit_status"] = ""
 	task["created_time"] = time.Now().Format("20060102150405")
 
+	if ctx.IsLogged {
+		task["ownerid"] = ctx.User.ID
+	}
+
 	docID, err := db.CreateTask(task)
 	if err != nil {
 		return "", err
