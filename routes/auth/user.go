@@ -42,6 +42,7 @@ const (
 	LOGIN  = "user/auth/login"
 	SIGNUP = "user/auth/signup"
 	LIST   = "user/auth/list"
+	SHOW   = "user/show"
 )
 
 // AutoLogin reads cookie and try to auto-login.
@@ -271,4 +272,15 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 func ListUsers(c *context.Context, db *database.Database) {
 	c.Data["Users"] = userapi.List(c, db)
 	c.Success(LIST)
+}
+
+func Show(c *context.Context, db *database.Database) {
+
+	u, err := userapi.Show(c, db)
+	if err != nil {
+		c.NotFound()
+		return
+	}
+	c.Data["User"] = u
+	c.Success(SHOW)
 }

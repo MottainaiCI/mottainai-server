@@ -217,6 +217,8 @@ func Setup(m *macaron.Macaron) {
 	}, reqSignOut)
 
 	m.Get("/user/list", reqSignIn, reqManager, ListUsers)
+	m.Get("/user/show/:id", reqSignIn, reqManager, Show)
+
 	m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
 	m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
 	m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)

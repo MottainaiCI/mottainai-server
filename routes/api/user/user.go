@@ -178,6 +178,27 @@ func List(c *context.Context, db *database.Database) []user.User {
 	return us
 }
 
+func Show(c *context.Context, db *database.Database) (user.User, error) {
+	id := c.ParamsInt(":id")
+	u, err := db.GetUser(id)
+	u.Password = ""
+	if err != nil {
+		return u, nil
+	}
+	return u, nil
+}
+
+func ShowUser(c *context.Context, db *database.Database) {
+	u, err := Show(c, db)
+
+	if err != nil {
+		c.NotFound()
+		return
+	}
+	c.JSON(200, u)
+
+}
+
 func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
@@ -188,6 +209,8 @@ func Setup(m *macaron.Macaron) {
 	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
 	m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
+	m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
+
 	m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
 	m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
 	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)

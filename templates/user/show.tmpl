@@ -1,0 +1,38 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+                <div class="col-md-12">
+                        <aside class="profile-nav alt">
+                            <section class="card">
+                                <div class="card-header user-header alt bg-dark">
+                                  {{if .IsAdmin}}{{template "user/auth/action" .}}{{end}}
+                                    <div class="media">
+                                        <a href="/nodes">
+                                          <i class="align-self-center rounded-circle mr-3 fa fa-cogs"></i>
+                                        </a>
+                                        <div class="media-body">
+                                            <h2 class="text-light display-6">{{.User.Name}}</h2>
+                                            <p>ID: {{.User.ID}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <ul class="list-group list-group-flush">
+                                   <li class="list-group-item">
+                                       <i class="fa fa-envelope"></i> E-mail <span class="badge  pull-right">{{.User.Email}}</span>
+                                   </li>
+                                    <li class="list-group-item">
+                                         <i class="fa fa-group"></i> Role <span class="badge  pull-right"> {{if eq .User.Admin "yes"}}<i class="fa fa-rocket"></i>&nbsp; Admin {{else if eq .User.Manager "yes" }}<i class="fa fa-group"></i>&nbsp; Manager{{else}} <i class="fa fa-user"></i>&nbsp;User {{end}} </span>
+                                    </li>
+
+                                </ul>
+
+                            </section>
+                        </aside>
+                    </div>
+
+
+
+
+{{template "base/footer" .}}
