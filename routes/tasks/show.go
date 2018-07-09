@@ -41,6 +41,18 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 		return
 	}
 	ctx.Data["Task"] = task
+
+	if ctx.IsLogged && (ctx.User.IsAdmin() || ctx.User.IsManager()) {
+		uid, err := strconv.Atoi(task.Owner)
+		if err == nil {
+			u, err := db.GetUser(uid)
+			if err == nil {
+				u.Password = ""
+				ctx.Data["TaskOwner"] = u
+			}
+		}
+	}
+
 	if len(task.CreatedTime) > 0 && len(task.StartTime) > 0 {
 		created, err := strconv.Atoi(task.CreatedTime)
 		if err == nil {

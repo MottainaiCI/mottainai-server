@@ -148,7 +148,11 @@
 
                                       <ul class="list-group list-group-flush">
 
-
+                                        {{if .TaskOwner }}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-user-o"></i> Created by: <span class="pull-right badge "><a href="/user/show/{{.TaskOwner.ID}}" target="_blank"> {{.TaskOwner.Name}} </a></span>
+                                          </li>
+                                        {{end}}
 
                                         {{if .Task.Status}}
                                         <li class="list-group-item">

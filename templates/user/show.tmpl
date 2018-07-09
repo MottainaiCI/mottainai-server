@@ -7,9 +7,7 @@
                                 <div class="card-header user-header alt bg-dark">
                                   {{if .IsAdmin}}{{template "user/auth/action" .}}{{end}}
                                     <div class="media">
-                                        <a href="/nodes">
-                                          <i class="align-self-center rounded-circle mr-3 fa fa-cogs"></i>
-                                        </a>
+                                        <i class="align-self-center mr-3 fa fa-2x fa-user-o"></i>
                                         <div class="media-body">
                                             <h2 class="text-light display-6">{{.User.Name}}</h2>
                                             <p>ID: {{.User.ID}}</p>
