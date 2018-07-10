@@ -79,7 +79,7 @@ func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Datab
 	}
 
 	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) || !ctx.CheckPlanPermissions(&plan) {
-		errors.New("Moar permissions are required for this user")
+		return errors.New("Moar permissions are required for this user")
 	}
 
 	err = db.DeletePlan(id)
