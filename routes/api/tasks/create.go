@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -55,6 +56,10 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 		opts.Owner = strconv.Itoa(ctx.User.ID)
 	}
 
+	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
 	docID, err := db.InsertTask(&opts)
 	if err != nil {
 		return "", err
@@ -66,6 +71,15 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 
 func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.ParamsInt(":id")
+
+	task, err := db.GetTask(id)
+	if err != nil {
+		return "", err
+	}
+
+	if !ctx.CheckNamespaceBelongs(task.TagNamespace) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
 
 	docID, err := db.CloneTask(id)
 	if err != nil {

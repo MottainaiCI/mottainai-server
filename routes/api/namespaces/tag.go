@@ -23,8 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"errors"
+
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
@@ -38,10 +41,15 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 		return ":( No namespace name given", nil
 	}
 
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
 	task, err := db.GetTask(taskid)
 	if err != nil {
 		return "", err
 	}
+
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
 	err = ns.Tag(task.ID)
 	if err != nil {
@@ -88,7 +96,9 @@ func NamespaceClone(ctx *context.Context, db *database.Database) (string, error)
 	if len(name) == 0 {
 		return ":( No namespace name given", nil
 	}
-
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
 	err := ns.Clone(namespace.NewFromMap(map[string]interface{}{"name": from, "path": from}))
 	if err != nil {

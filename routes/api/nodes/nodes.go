@@ -31,10 +31,11 @@ import (
 func Setup(m *macaron.Macaron) {
 	bind := binding.Bind
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
 	m.Get("/api/nodes", reqSignIn, ShowAll)
-	m.Get("/api/nodes/add", reqSignIn, APICreate)
-	m.Get("/api/nodes/show/:id", reqSignIn, Show)
-	m.Get("/api/nodes/delete/:id", reqSignIn, APIRemove)
-	m.Post("/api/nodes/register", reqSignIn, bind(NodeUpdate{}), Register)
+	m.Get("/api/nodes/add", reqSignIn, reqManager, APICreate)
+	m.Get("/api/nodes/show/:id", reqSignIn, reqManager, Show)
+	m.Get("/api/nodes/delete/:id", reqSignIn, reqManager, APIRemove)
+	m.Post("/api/nodes/register", reqSignIn, reqManager, bind(NodeUpdate{}), Register)
 }

@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
+
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -39,7 +41,15 @@ func APIDelete(ctx *context.Context, db *database.Database) string {
 
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
-	err := db.DeleteTask(id)
+
+	task, err := db.GetTask(id)
+	if err != nil {
+		return err
+	}
+	if !ctx.CheckTaskPermissions(&task) {
+		return errors.New("Moar permissions are required for this user")
+	}
+	err = db.DeleteTask(id)
 	if err != nil {
 		return err
 	}

@@ -30,7 +30,6 @@ import (
 )
 
 func Setup(m *macaron.Macaron) {
-
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 
 	//bind := binding.Bind
@@ -40,7 +39,5 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
 	m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
 	m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
-
 	m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
-
 }

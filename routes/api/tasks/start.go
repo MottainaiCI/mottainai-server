@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
 	"fmt"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -34,7 +35,7 @@ import (
 )
 
 func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) string {
-	_, err := SendStartTask(m, th, ctx, db)
+	err := SendStartTask(m, th, ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return ":("
@@ -42,22 +43,26 @@ func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *c
 	return "OK"
 }
 
-func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
+func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 	fmt.Println("Starting task ", id)
 
 	mytask, err := db.GetTask(id)
 	if err != nil {
-		return "", err
+		return err
 	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return errors.New("Moar permissions are required for this user")
+	}
+
 	if mytask.IsWaiting() || mytask.IsRunning() {
-		return "WAITING/RUNNING", nil
+		return errors.New("Waiting/running - can't start")
 	}
 
 	_, err = m.SendTask(id)
 	if err != nil {
-		return ":( ", err
-	} else {
-		return "OK", nil
+		return err
 	}
+
+	return nil
 }

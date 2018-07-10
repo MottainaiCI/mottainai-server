@@ -23,11 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storagesapi
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
@@ -38,6 +40,10 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 	storage, err := db.GetStorage(id)
 	if err != nil {
 		return ":(", err
+	}
+
+	if !ctx.CheckStoragePermissions(&storage) {
+		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
 	err = db.DeleteStorage(id)

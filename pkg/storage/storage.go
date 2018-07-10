@@ -27,8 +27,10 @@ import "encoding/json"
 type Storage struct {
 	ID int `json:"ID"`
 	//Key  string `form:"key" json:"key"`
-	Name string `form:"name" json:"name"`
-	Path string `json:"path" form:"path"`
+	Name  string `form:"name" json:"name"`
+	Path  string `json:"path" form:"path"`
+	Owner string `json:"owner_id" form:"owner_id"`
+
 	//TaskID string `json:"taskid" form:"taskid"`
 }
 
@@ -41,8 +43,9 @@ func NewFromJson(data []byte) Storage {
 func NewFromMap(t map[string]interface{}) Storage {
 
 	var (
-		name string
-		path string
+		name  string
+		path  string
+		owner string
 	//	key  string
 	)
 
@@ -55,10 +58,13 @@ func NewFromMap(t map[string]interface{}) Storage {
 	if str, ok := t["path"].(string); ok {
 		path = str
 	}
-
+	if str, ok := t["owner_id"].(string); ok {
+		owner = str
+	}
 	Storage := Storage{
-		Name: name,
-		Path: path,
+		Name:  name,
+		Path:  path,
+		Owner: owner,
 		//	Key:  key,
 	}
 	return Storage

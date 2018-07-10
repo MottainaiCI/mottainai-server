@@ -37,6 +37,7 @@ var StorageColl = "Storages"
 func (d *Database) IndexStorage() {
 	d.AddIndex(StorageColl, []string{"name"})
 	d.AddIndex(StorageColl, []string{"path"})
+	d.AddIndex(StorageColl, []string{"owner_id"})
 }
 
 func (d *Database) CreateStorage(t map[string]interface{}) (int, error) {

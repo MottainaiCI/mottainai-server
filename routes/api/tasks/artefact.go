@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
 	"io"
 	"mime/multipart"
 	"os"
@@ -59,7 +60,9 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	// 	ctx.JSON(200, ns)
 	// }
 	t, err := db.GetTask(id)
-
+	if !ctx.CheckTaskPermissions(&t) {
+		return
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -68,14 +71,18 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, artefacts)
 }
 
-func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) string {
+func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) error {
 
 	file, err := uf.FileUpload.Open()
+	defer file.Close()
 
 	task, err := db.GetTask(uf.TaskID)
-	defer file.Close()
 	if err != nil {
-		return err.Error()
+		return err
+	}
+
+	if !ctx.CheckTaskPermissions(&task) {
+		return errors.New("Insufficient permissions")
 	}
 
 	os.MkdirAll(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID), uf.Path), os.ModePerm)
@@ -90,5 +97,5 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 		"task": task.ID,
 		//"namespace": task.Namespace,
 	})
-	return "OK"
+	return nil
 }

@@ -40,6 +40,9 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
+	if !ctx.CheckTaskPermissions(&task) {
+		return
+	}
 	ctx.Data["Task"] = task
 
 	if ctx.IsLogged && (ctx.User.IsAdmin() || ctx.User.IsManager()) {

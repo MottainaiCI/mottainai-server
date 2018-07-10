@@ -23,21 +23,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storagesapi
 
 import (
+	"errors"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 func StorageCreate(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
+
+	if !ctx.CheckStorageBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
 
 	docID, err := db.CreateStorage(map[string]interface{}{
 		"name": name,
@@ -62,14 +68,17 @@ type StorageForm struct {
 	FileUpload *multipart.FileHeader `form:"file"`
 }
 
-func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) string {
+func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) error {
 
 	file, err := uf.FileUpload.Open()
 
 	storage, err := db.GetStorage(uf.ID)
 	defer file.Close()
 	if err != nil {
-		return err.Error()
+		return err
+	}
+	if !ctx.CheckStorageBelongs(storage.Path) {
+		errors.New("Moar permissions are required for this user")
 	}
 
 	os.MkdirAll(filepath.Join(setting.Configuration.StoragePath, storage.Path, uf.Path), os.ModePerm)
@@ -78,5 +87,5 @@ func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) 
 	defer f.Close()
 	io.Copy(f, file)
 
-	return "OK"
+	return nil
 }

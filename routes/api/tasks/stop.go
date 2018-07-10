@@ -23,8 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
+
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
 func APIStop(ctx *context.Context, db *database.Database) string {
@@ -45,8 +48,14 @@ func Stop(ctx *context.Context, db *database.Database) error {
 	// 	return ":( "
 	// }
 	id := ctx.ParamsInt(":id")
-
-	err := db.UpdateTask(id, map[string]interface{}{
+	mytask, err := db.GetTask(id)
+	if err != nil {
+		return err
+	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return errors.New("Moar permissions are required for this user")
+	}
+	err = db.UpdateTask(id, map[string]interface{}{
 		"status": "stop",
 	})
 	//ctx.Redirect("/tasks")

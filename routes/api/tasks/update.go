@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,15 +43,21 @@ type UpdateTaskForm struct {
 	Value      string `form:"value"`
 }
 
-func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
-
+func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) error {
+	mytask, err := db.GetTask(f.Id)
+	if err != nil {
+		return err
+	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return errors.New("Moar permissions are required for this user")
+	}
 	if len(f.Field) > 0 && len(f.Value) > 0 {
 		db.UpdateTask(f.Id, map[string]interface{}{
 			f.Field: f.Value,
 		})
 	}
 
-	return "OK"
+	return nil
 }
 
 func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {

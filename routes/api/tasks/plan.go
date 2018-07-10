@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
 	"strconv"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -53,6 +54,10 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	opts.Reset()
 	fields := opts.ToMap()
 
+	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
 	docID, err := db.CreatePlan(fields)
 	if err != nil {
 		return "", err
@@ -64,7 +69,16 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 
 func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.ParamsInt(":id")
-	err := db.DeletePlan(id)
+	plan, err := db.GetPlan(id)
+	if err != nil {
+		ctx.NotFound()
+	}
+
+	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) {
+		errors.New("Moar permissions are required for this user")
+	}
+
+	err = db.DeletePlan(id)
 	if err != nil {
 		return err
 	}

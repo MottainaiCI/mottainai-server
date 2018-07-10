@@ -56,7 +56,14 @@ func (u *User) RemoveManager() {
 }
 
 func (u *User) IsAdmin() bool {
-	if u.Admin == "yes" {
+	if len(u.Admin) > 0 && u.Admin == "yes" {
+		return true
+	}
+	return false
+}
+
+func (u *User) IsManagerOrAdmin() bool {
+	if u.IsAdmin() || u.IsManager() {
 		return true
 	}
 	return false

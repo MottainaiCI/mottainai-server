@@ -38,6 +38,9 @@ func GetTaskJson(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
+	if !ctx.CheckTaskPermissions(&task) {
+		return
+	}
 	ctx.JSON(200, task)
 }
 
@@ -48,6 +51,9 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 	task, err := db.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
+		return ""
+	}
+	if !ctx.CheckTaskPermissions(&task) {
 		return ""
 	}
 	return task.GetLogPart(pos)
@@ -61,6 +67,9 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 	if err != nil {
 		ctx.NotFound()
 		return ""
+	}
+	if !ctx.CheckTaskPermissions(&task) {
+		return "Moar permissions are required for this user"
 	}
 	return task.TailLog(pos)
 }

@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"errors"
 	"io"
 	"mime/multipart"
 	"os"
@@ -34,9 +35,15 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
+const NameSpacesPrefix = "::"
+
 func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
+
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
 
 	// docID, _ := db.CreateNamespace(map[string]interface{}{
 	// 	"name": name,
@@ -58,22 +65,26 @@ type NamespaceForm struct {
 	FileUpload *multipart.FileHeader `form:"file"`
 }
 
-func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Database) string {
+func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Database) error {
 
 	file, err := uf.FileUpload.Open()
 	defer file.Close()
 
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	if !ctx.CheckNamespaceBelongs(uf.Namespace) {
+		errors.New("Moar permissions are required for this user")
 	}
 
 	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
 	f, err := os.OpenFile(filepath.Join(setting.Configuration.NamespacePath, uf.Namespace, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer f.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	io.Copy(f, file)
 
-	return "OK"
+	return nil
 }

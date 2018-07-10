@@ -23,11 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
@@ -35,6 +37,10 @@ import (
 func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
+
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
 
 	//err := db.DeleteNamespace(id)
 	err := os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, name))

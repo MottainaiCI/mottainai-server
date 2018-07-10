@@ -57,6 +57,7 @@ func TestUpload(t *testing.T) {
 	u.Name = "test"
 	u.Password = "foo"
 	u.Email = "foo@bar"
+	u.MakeAdmin()
 	id, err := db.InsertAndSaltUser(u)
 	if err != nil {
 		t.Error(err)

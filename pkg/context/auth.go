@@ -81,7 +81,12 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 
 		if options.ManagerRequired {
 			if !c.User.IsManager() && !c.User.IsAdmin() {
-				c.Error(403)
+
+				if auth.IsAPIPath(c.Req.URL.Path) {
+					c.JSON(403, noperm)
+				} else {
+					c.Error(403)
+				}
 				return
 			}
 			c.Data["PageIsManager"] = true
@@ -89,7 +94,12 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 
 		if options.AdminRequired {
 			if !c.User.IsAdmin() {
-				c.Error(403)
+
+				if auth.IsAPIPath(c.Req.URL.Path) {
+					c.JSON(403, noperm)
+				} else {
+					c.Error(403)
+				}
 				return
 			}
 			c.Data["PageIsAdmin"] = true

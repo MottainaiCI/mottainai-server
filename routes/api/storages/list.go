@@ -25,10 +25,10 @@ package storagesapi
 import (
 	"path/filepath"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	"github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
@@ -44,8 +44,12 @@ func StorageList(ctx *context.Context, db *database.Database) {
 func StorageShow(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
 	ns, err := db.GetStorage(id)
+
 	if err != nil {
 		ctx.NotFound()
+		return
+	}
+	if !ctx.CheckStoragePermissions(&ns) {
 		return
 	}
 	//source := filepath.Join(setting.Configuration.StoragePath)
@@ -60,6 +64,9 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 	st, err := db.GetStorage(id)
 	if err != nil {
 		ctx.NotFound()
+		return
+	}
+	if !ctx.CheckStoragePermissions(&st) {
 		return
 	}
 	// ns, err := db.SearchStorage(name)
