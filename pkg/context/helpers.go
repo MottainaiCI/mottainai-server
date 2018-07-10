@@ -38,6 +38,10 @@ var noperm = map[string]string{
 	"message": "It seems you don't have enough permissions to perform this operation, i'm sorry.",
 }
 
+func (c *Context) CheckPlanPermissions(plan *task.Plan) bool {
+	return c.CheckTaskPermissions(plan.Task)
+}
+
 func (c *Context) CheckTaskPermissions(task *task.Task) bool {
 	uid, err := strconv.Atoi(task.Owner)
 	if err != nil {

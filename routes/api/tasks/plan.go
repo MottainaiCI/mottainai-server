@@ -40,21 +40,25 @@ func PlannedTasks(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, plans)
 }
 
-func PlannedTask(ctx *context.Context, db *database.Database) {
+func PlannedTask(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 	plan, err := db.GetPlan(id)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	if !ctx.CheckPlanPermissions(&plan) {
+		return errors.New("Moar permissions are required for this user")
 	}
 
 	ctx.JSON(200, plan)
+	return nil
 }
 
 func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Plan) (string, error) {
 	opts.Reset()
 	fields := opts.ToMap()
 
-	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
+	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) || !ctx.CheckPlanPermissions(&opts) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
@@ -74,7 +78,7 @@ func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Datab
 		ctx.NotFound()
 	}
 
-	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) {
+	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) || !ctx.CheckPlanPermissions(&plan) {
 		errors.New("Moar permissions are required for this user")
 	}
 
