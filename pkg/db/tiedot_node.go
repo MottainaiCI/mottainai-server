@@ -54,6 +54,28 @@ func (d *Database) GetNode(docID int) (nodes.Node, error) {
 	return t, err
 }
 
+func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
+	var res []nodes.Node
+
+	nodesfound, err := d.FindDoc(NodeColl, `[{"eq": "`+key+`", "in": ["key"]}]`)
+	if err != nil || len(nodesfound) != 1 {
+		return nodes.Node{}, nil
+	}
+
+	for docid := range nodesfound {
+
+		u, err := d.GetNode(docid)
+		u.ID = docid
+		if err != nil {
+			return nodes.Node{}, err
+		}
+		res = append(res, u)
+
+	}
+
+	return res[0], nil
+}
+
 func (d *Database) ListNodes() []DocItem {
 	return d.ListDocs(NodeColl)
 }

@@ -154,6 +154,12 @@
                                           </li>
                                         {{end}}
 
+                                        {{if .TaskNode }}
+                                        <li class="list-group-item">
+                                            <i class="fa fa-sitemap"></i> Node used: <span class="pull-right badge "><a href="/nodes/show/{{.TaskNode.ID}}" target="_blank"> {{if .TaskNode.Hostname}} {{.TaskNode.Hostname}} {{else}} {{.TaskNode.ID}}  {{end}}</a></span>
+                                          </li>
+                                        {{end}}
+
                                         {{if .Task.Status}}
                                         <li class="list-group-item">
                                             <i class="fa  fa-chevron-right"></i> Status: <span class="pull-right badge badge-info">{{.Task.Status}}</span>

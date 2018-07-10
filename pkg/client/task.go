@@ -53,6 +53,10 @@ func (f *Fetcher) FailTask(e string) {
 
 func (f *Fetcher) SetupTask() {
 	f.SetTaskStatus("setup")
+	f.GetOptions("/api/tasks/update/node", map[string]string{
+		"id":  f.docID,
+		"key": setting.Configuration.AgentKey,
+	})
 }
 
 func (f *Fetcher) RunTask() {

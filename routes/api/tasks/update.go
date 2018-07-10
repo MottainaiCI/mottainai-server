@@ -25,6 +25,7 @@ package tasksapi
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -41,6 +42,7 @@ type UpdateTaskForm struct {
 	ExitStatus string `form:"exit_status"`
 	Field      string `form:"field"`
 	Value      string `form:"value"`
+	Key        string ` form:"key"`
 }
 
 func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) error {
@@ -56,6 +58,25 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 			f.Field: f.Value,
 		})
 	}
+
+	return nil
+}
+
+func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
+	mytask, err := db.GetTask(f.Id)
+	if err != nil {
+		return err
+	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return errors.New("Moar permissions are required for this user")
+	}
+	node, err := db.GetNodeByKey(f.Key)
+	if err != nil {
+		return err
+	}
+	db.UpdateTask(f.Id, map[string]interface{}{
+		"node_id": strconv.Itoa(node.ID),
+	})
 
 	return nil
 }
