@@ -131,8 +131,6 @@ func (fs staticFileSystem) Open(name string) (http.File, error) {
 }
 
 func staticHandler(ctx *context.Context, log *log.Logger, opt macaron.StaticOptions, fn func(*context.Context) bool) bool {
-	ctx.Invoke(context.Contexter())
-
 	if ctx.Req.Method != "GET" && ctx.Req.Method != "HEAD" {
 		return false
 	}
