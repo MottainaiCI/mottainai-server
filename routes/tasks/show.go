@@ -48,17 +48,17 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 	if ctx.IsLogged && (ctx.User.IsAdmin() || ctx.User.IsManager()) {
 		uid, err := strconv.Atoi(task.Owner)
 		if err == nil {
-			nid, err := strconv.Atoi(task.Node)
+			u, err := db.GetUser(uid)
 			if err == nil {
-				u, err := db.GetUser(uid)
-				if err == nil {
-					u.Password = ""
-					ctx.Data["TaskOwner"] = u
-				}
-				n, err := db.GetNode(nid)
-				if err == nil {
-					ctx.Data["TaskNode"] = n
-				}
+				u.Password = ""
+				ctx.Data["TaskOwner"] = u
+			}
+		}
+		nid, err := strconv.Atoi(task.Node)
+		if err == nil {
+			n, err := db.GetNode(nid)
+			if err == nil {
+				ctx.Data["TaskNode"] = n
 			}
 		}
 	}
