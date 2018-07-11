@@ -218,6 +218,11 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		cache_image = str
 	}
 
+	var timeout float64
+	if str, ok := t["timeout"].(float64); ok {
+		timeout = str
+	}
+
 	var entrypoint []string
 	entrypoint = make([]string, 0)
 
@@ -256,6 +261,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		Binds:        binds,
 		CacheClean:   cache_clean,
 		Owner:        owner,
+		TimeOut:      timeout,
 	}
 	return task
 }

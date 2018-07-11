@@ -227,14 +227,21 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 	fetcher.AppendTaskOutput("Started Container " + container.ID)
 
+	starttime := time.Now()
+
 	for {
 		time.Sleep(1 * time.Second)
+		now := time.Now()
 		task_info = th.FetchTask(fetcher)
-		if task_info.Status != "running" {
+		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
+		if task_info.Status != "running" || timedout {
+			if timedout {
+				fetcher.AppendTaskOutput("Task timeout!")
+			}
 			fetcher.AppendTaskOutput("Aborting execution")
 			docker_client.StopContainer(container.ID, uint(20))
 			fetcher.AbortTask()
-			return 0, nil
+			return 1, errors.New("Task aborted")
 		}
 		c_data, err := docker_client.InspectContainer(container.ID) // update our container information
 		if err != nil {
