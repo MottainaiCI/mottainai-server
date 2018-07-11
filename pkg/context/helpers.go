@@ -26,10 +26,11 @@ import (
 	"strconv"
 	"strings"
 
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
+
 	storage "github.com/MottainaiCI/mottainai-server/pkg/storage"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
-	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
 )
 
 const NameSpacesPrefix = "::"
@@ -43,40 +44,37 @@ func (c *Context) CheckPlanPermissions(plan *task.Plan) bool {
 }
 
 func (c *Context) CheckTaskPermissions(task *task.Task) bool {
+	if c.User.IsManagerOrAdmin() {
+		return true
+	}
 	uid, err := strconv.Atoi(task.Owner)
 	if err != nil {
 		return false
 	}
 
 	// Return true if Admin or Owner of it
-	if c.User.IsManagerOrAdmin() || c.User.ID == uid {
+	if c.User.ID == uid {
 		return true
 	}
 
-	if auth.IsAPIPath(c.Req.URL.Path) {
-		c.JSON(403, noperm)
-	} else {
-		c.Error(403)
-	}
+	c.NoPermission()
 	return false
 }
 
 func (c *Context) CheckStoragePermissions(storage *storage.Storage) bool {
+	if c.User.IsManagerOrAdmin() {
+		return true
+	}
 	uid, err := strconv.Atoi(storage.Owner)
 	if err != nil {
 		return false
 	}
 
 	// Return true if Admin or Owner of it
-	if c.User.IsManagerOrAdmin() || c.User.ID == uid {
+	if c.User.ID == uid {
 		return true
 	}
 
-	if auth.IsAPIPath(c.Req.URL.Path) {
-		c.JSON(403, noperm)
-	} else {
-		c.Error(403)
-	}
 	return false
 }
 
@@ -86,11 +84,7 @@ func (c *Context) CheckStorageBelongs(storage string) bool {
 		!c.User.IsManagerOrAdmin() &&
 		!strings.HasPrefix(storage, c.User.Name+NameSpacesPrefix) {
 
-		if auth.IsAPIPath(c.Req.URL.Path) {
-			c.JSON(403, noperm)
-		} else {
-			c.Error(403)
-		}
+		c.NoPermission()
 		return false
 	}
 
@@ -102,11 +96,77 @@ func (c *Context) CheckNamespaceBelongs(namespace string) bool {
 		!c.User.IsManagerOrAdmin() &&
 		!strings.HasPrefix(namespace, c.User.Name+NameSpacesPrefix) {
 
-		if auth.IsAPIPath(c.Req.URL.Path) {
-			c.JSON(403, noperm)
-		} else {
-			c.Error(403)
-		}
+		c.NoPermission()
+		return false
+	}
+
+	return true
+}
+
+// STATIC ROUTES AUTH CHECK
+func CheckArtefactPermission(ctx *Context) bool {
+	file := ctx.Req.URL.Path
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return false
+	}
+	db := database.Instance()
+	segments := strings.Split(file, "/")
+
+	r := utils.NoEmptySlice(segments)
+	if len(r) < 2 {
+		return false
+	}
+	id := r[1]
+
+	uid, err := strconv.Atoi(id)
+	if err != nil {
+		ctx.ServerError(err.Error(), err)
+		return false
+	}
+	task, err := db.GetTask(uid)
+	if err != nil {
+		ctx.ServerError(err.Error(), err)
+		return false
+	}
+
+	if !task.IsOwner(ctx.User.ID) && !ctx.User.IsManagerOrAdmin() {
+		ctx.NoPermission()
+		return false
+	}
+
+	return true
+}
+
+func CheckNamespacePermission(ctx *Context) bool {
+	if ctx.IsLogged {
+		return true
+	}
+	return false
+}
+
+func CheckStoragePermission(ctx *Context) bool {
+	file := ctx.Req.URL.Path
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return false
+	}
+	db := database.Instance()
+	segments := strings.Split(file, "/")
+
+	r := utils.NoEmptySlice(segments)
+	if len(r) < 2 {
+		return false
+	}
+	name := r[1]
+
+	storage, err := db.SearchStorage(name)
+	if err != nil {
+		ctx.NotFound()
+		return false
+	}
+	if !storage.IsOwner(ctx.User.ID) && !ctx.User.IsManagerOrAdmin() {
+		ctx.NoPermission()
 		return false
 	}
 

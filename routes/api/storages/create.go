@@ -44,10 +44,14 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	if !ctx.CheckStorageBelongs(name) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
+	if _, err := db.SearchStorage(name); err == nil {
+		return "Storage with same name already present", err
+	}
 
 	docID, err := db.CreateStorage(map[string]interface{}{
-		"name": name,
-		"path": name,
+		"name":     name,
+		"path":     name,
+		"owner_id": strconv.Itoa(ctx.User.ID),
 	})
 	//
 	if err != nil {

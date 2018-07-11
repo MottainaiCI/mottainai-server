@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -76,6 +77,9 @@ func (d *Database) SearchStorage(name string) (storage.Storage, error) {
 			return storage.Storage{}, err
 		}
 		res = append(res, storage.NewFromMap(readBack))
+	}
+	if len(res) == 0 {
+		return storage.Storage{}, errors.New("No storages found")
 	}
 	return res[0], nil
 }

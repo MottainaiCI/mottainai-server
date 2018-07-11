@@ -143,6 +143,14 @@ func (c *Context) HasError() bool {
 	return hasErr.(bool)
 }
 
+func (c *Context) NoPermission() {
+	if auth.IsAPIPath(c.Req.URL.Path) {
+		c.JSON(403, noperm)
+	} else {
+		c.Error(403)
+	}
+}
+
 // PageIs sets "PageIsxxx" field in template data.
 func (c *Context) PageIs(name string) {
 	c.Data["PageIs"+name] = true
@@ -212,7 +220,6 @@ func Contexter() macaron.Handler {
 
 		// Get user from session if logined.
 		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)
-
 		if c.User != nil {
 			c.IsLogged = true
 			c.Data["IsLogged"] = c.IsLogged

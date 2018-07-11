@@ -143,6 +143,15 @@ func (t *Task) Reset() {
 	t.StartTime = ""
 }
 
+func (t *Task) IsOwner(id int) bool {
+
+	if strconv.Itoa(id) == t.Owner {
+		return true
+	}
+
+	return false
+}
+
 func (t *Task) IsRunning() bool {
 
 	if t.Status == "running" {

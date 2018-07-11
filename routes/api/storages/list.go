@@ -46,12 +46,15 @@ func StorageShow(ctx *context.Context, db *database.Database) {
 	ns, err := db.GetStorage(id)
 
 	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError(err.Error(), err)
+		//ctx.NotFound()
 		return
 	}
 	if !ctx.CheckStoragePermissions(&ns) {
+		ctx.NoPermission()
 		return
 	}
+
 	//source := filepath.Join(setting.Configuration.StoragePath)
 	//ns, _ := utils.ListDirs(source)
 
@@ -63,10 +66,11 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 
 	st, err := db.GetStorage(id)
 	if err != nil {
-		ctx.NotFound()
+		ctx.ServerError(err.Error(), err)
 		return
 	}
 	if !ctx.CheckStoragePermissions(&st) {
+		ctx.NoPermission()
 		return
 	}
 	// ns, err := db.SearchStorage(name)
@@ -74,7 +78,6 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 	// 	ctx.JSON(200, ns)
 	// }
 	source := filepath.Join(setting.Configuration.StoragePath, st.Path)
-
 	artefacts := utils.TreeList(source)
 
 	// artefacts, err := db.GetStorageArtefacts(ns.ID)

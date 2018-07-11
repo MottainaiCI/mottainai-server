@@ -22,7 +22,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package storage
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strconv"
+)
 
 type Storage struct {
 	ID int `json:"ID"`
@@ -34,6 +37,14 @@ type Storage struct {
 	//TaskID string `json:"taskid" form:"taskid"`
 }
 
+func (t *Storage) IsOwner(id int) bool {
+
+	if strconv.Itoa(id) == t.Owner {
+		return true
+	}
+
+	return false
+}
 func NewFromJson(data []byte) Storage {
 	var t Storage
 	json.Unmarshal(data, &t)

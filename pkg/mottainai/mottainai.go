@@ -30,9 +30,12 @@ import (
 
 	log "log"
 
+	template "github.com/MottainaiCI/mottainai-server/pkg/template"
+
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	static "github.com/MottainaiCI/mottainai-server/pkg/static"
+
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
@@ -60,6 +63,7 @@ func New() *Mottainai {
 func Classic() *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
+
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
 
@@ -129,6 +133,7 @@ func Classic() *Mottainai {
 	if os.Getenv("TMPDIR") == "" {
 		os.Setenv("TMPDIR", "/var/tmp")
 	}
+	template.Setup(m.Macaron)
 
 	m.Invoke(func(l *log.Logger) {
 		l.SetPrefix("[ Mottainai ] ")
@@ -136,25 +141,28 @@ func Classic() *Mottainai {
 	m.Use(captcha.Captchaer(captcha.Options{
 		SubURL: setting.Configuration.AppSubURL,
 	}))
+
 	m.Use(context.Contexter())
+	m.SetStatic()
+
 	return m
 }
 
 func (m *Mottainai) SetStatic() {
-	m.Use(macaron.Static(
+	m.Use(static.AuthStatic(context.CheckArtefactPermission,
 		path.Join(setting.Configuration.ArtefactPath),
 		macaron.StaticOptions{
 			Prefix: "artefact",
 		},
 	))
 
-	m.Use(macaron.Static(
+	m.Use(static.AuthStatic(context.CheckNamespacePermission,
 		path.Join(setting.Configuration.NamespacePath),
 		macaron.StaticOptions{
 			Prefix: "namespace",
 		},
 	))
-	m.Use(macaron.Static(
+	m.Use(static.AuthStatic(context.CheckStoragePermission,
 		path.Join(setting.Configuration.StoragePath),
 		macaron.StaticOptions{
 			Prefix: "storage",
@@ -169,7 +177,6 @@ func (m *Mottainai) SetStatic() {
 
 func (m *Mottainai) Start() error {
 
-	m.SetStatic()
 	m.SetAutoHead(true)
 
 	server := NewServer()

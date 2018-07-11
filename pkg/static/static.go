@@ -28,6 +28,7 @@ import (
 	"path"
 	"path/filepath"
 
+	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"strings"
@@ -35,6 +36,9 @@ import (
 
 	macaron "gopkg.in/macaron.v1"
 )
+
+//TODO: Handle auth view permission
+// Also add to task / namespaces the visibility : public, internal(signed in), group(in org/group/project), user (only the owner)
 
 // FIXME: to be deleted.
 type staticMap struct {
@@ -83,8 +87,16 @@ func newStaticFileSystem(directory string) staticFileSystem {
 func Static(directory string, staticOpt ...macaron.StaticOptions) macaron.Handler {
 	opt := prepareStaticOptions(directory, staticOpt)
 
-	return func(ctx *macaron.Context, log *log.Logger) {
-		staticHandler(ctx, log, opt)
+	return func(ctx *context.Context, log *log.Logger) {
+		staticHandler(ctx, log, opt, func(ctx *context.Context) bool { return true })
+	}
+}
+
+func AuthStatic(fn func(*context.Context) bool, directory string, staticOpt ...macaron.StaticOptions) macaron.Handler {
+	opt := prepareStaticOptions(directory, staticOpt)
+
+	return func(ctx *context.Context, log *log.Logger) {
+		staticHandler(ctx, log, opt, fn)
 	}
 }
 
@@ -118,7 +130,9 @@ func (fs staticFileSystem) Open(name string) (http.File, error) {
 	return fs.dir.Open(name)
 }
 
-func staticHandler(ctx *macaron.Context, log *log.Logger, opt macaron.StaticOptions) bool {
+func staticHandler(ctx *context.Context, log *log.Logger, opt macaron.StaticOptions, fn func(*context.Context) bool) bool {
+	ctx.Invoke(context.Contexter())
+
 	if ctx.Req.Method != "GET" && ctx.Req.Method != "HEAD" {
 		return false
 	}
@@ -134,7 +148,9 @@ func staticHandler(ctx *macaron.Context, log *log.Logger, opt macaron.StaticOpti
 			return false
 		}
 	}
-
+	if !fn(ctx) {
+		return false
+	}
 	f, err := opt.FileSystem.Open(file)
 	if err != nil {
 		return false

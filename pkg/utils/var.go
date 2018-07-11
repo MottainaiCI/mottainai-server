@@ -41,6 +41,16 @@ import (
 	"github.com/jaypipes/ghw"
 )
 
+func NoEmptySlice(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}
+
 func RecurringTimer(what func(), delay time.Duration) chan bool {
 	stop := make(chan bool)
 

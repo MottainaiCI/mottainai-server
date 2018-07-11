@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
+	"os"
 	"testing"
 
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
@@ -31,7 +32,7 @@ import (
 )
 
 func TestInsertOrganization(t *testing.T) {
-	//defer os.RemoveAll(setting.Configuration.DBPath)
+	defer os.RemoveAll(setting.Configuration.DBPath)
 
 	setting.Configuration.DBPath = "./DB"
 	db := NewDatabase("")
