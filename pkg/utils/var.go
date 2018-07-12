@@ -80,7 +80,11 @@ func GetBytes(key interface{}) ([]byte, error) {
 
 func Hostname() string {
 	if name, err := os.Hostname(); err == nil {
-		return name
+		n, err := StrictStrip(name)
+		if err != nil {
+			return "unknown"
+		}
+		return n
 	}
 	return "unknown"
 }
