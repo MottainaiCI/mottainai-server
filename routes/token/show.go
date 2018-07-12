@@ -32,12 +32,13 @@ import (
 )
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	tokens, err := apitoken.GetTokens(ctx, db)
+	all, mine, err := apitoken.GetTokens(ctx, db)
 	if err != nil {
 		ctx.ServerError("Failed finding token", err)
 		return
 	}
 
-	ctx.Data["Tokens"] = tokens
+	ctx.Data["AllTokens"] = all
+	ctx.Data["UserTokens"] = mine
 	template.TemplatePreview(ctx, "tokens")
 }

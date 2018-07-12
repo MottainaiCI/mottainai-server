@@ -29,29 +29,32 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-func GetTokens(ctx *context.Context, db *database.Database) ([]token.Token, error) {
-	var tokens []token.Token
+func GetTokens(ctx *context.Context, db *database.Database) ([]token.Token, []token.Token, error) {
+	var all []token.Token
+	var mine []token.Token
+
 	var err error
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			tokens = db.AllTokens()
-		} else {
-			tokens, err = db.GetTokensByUserID(ctx.User.ID)
-			if err != nil {
-				ctx.ServerError("Failed finding token", err)
-				return tokens, err
-			}
+			all = db.AllTokens()
+		}
+		mine, err = db.GetTokensByUserID(ctx.User.ID)
+		if err != nil {
+			ctx.ServerError("Failed finding token", err)
+			return all, mine, err
 		}
 	}
-	return tokens, nil
+	return all, mine, nil
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	tokens, err := GetTokens(ctx, db)
+	all, mine, err := GetTokens(ctx, db)
 	if err != nil {
 		ctx.ServerError("Failed finding token", err)
 		return
 	}
 
-	ctx.JSON(200, tokens)
+	all = append(all, mine...)
+
+	ctx.JSON(200, all)
 }
