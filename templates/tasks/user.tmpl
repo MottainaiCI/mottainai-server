@@ -46,7 +46,7 @@
       <td>{{.Directory}}</td>
       <td>{{.Image}}</td>
 
-      <td><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time></td>
+      <td data-order="{{.StartTime}}"><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time></td>
 
 
       <td>{{if eq .Status "running"}}
