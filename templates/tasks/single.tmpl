@@ -95,6 +95,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
+ $.extend( true, $.fn.dataTable.defaults, { "language": { "search": "Filter (regex)" }, "bFilter": true, "oSearch": { "sSearch": "", "bRegex": true } });
  $("time.timeago").timeago();
  $("#all-tasks").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
  $('#all-tasks').DataTable( {"order": [[ 4, 'desc' ]]});
