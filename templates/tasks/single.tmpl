@@ -32,7 +32,10 @@
   <tbody>
 
     {{range .Tasks}}
-    <tr>
+    <tr  class='table-{{if eq .Result "success"}}success
+        {{else if eq .Result "error"}}warning
+          {{else if eq .Result "failed"}}danger
+          {{else}}info{{end}}' >
       <td>
         <a href="/tasks/display/{{.ID}}">
 
