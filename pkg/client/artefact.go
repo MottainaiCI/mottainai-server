@@ -289,29 +289,10 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 		//	"namespace": dir,
 	}
 
-	//request, err := f.Upload("/api/tasks/artefact/upload", opts, "file", fullpath)
-	err := f.UploadLargeFile("/api/tasks/artefact/upload", opts, "file", fullpath, 1024)
-	//
-	if err != nil {
+	if err := f.UploadLargeFile("/api/tasks/artefact/upload", opts, "file", fullpath, 1024); err != nil {
 		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
 		return err
 	}
-	// client := &http.Client{}
-	// resp, err := client.Do(request)
-	// if err != nil {
-	// 	f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
-	// 	return err
-	// } else {
-	// 	var bodyContent []byte
-	// 	f.AppendTaskOutput("[Upload] " + file + " response status : " + strconv.Itoa(resp.StatusCode))
-	// 	resp.Body.Read(bodyContent)
-	// 	resp.Body.Close()
-	// 	f.AppendTaskOutput("[Upload] " + file + " response : " + string(bodyContent))
-	//
-	// 	if resp.StatusCode != 200 {
-	// 		return errors.New("[Upload] Error while uploading artefact " + file + ": " + strconv.Itoa(resp.StatusCode))
-	// 	}
-	// }
 	return nil
 }
 

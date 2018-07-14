@@ -90,7 +90,8 @@ func (d *Database) GetStorage(docID int) (storage.Storage, error) {
 		return storage.Storage{}, err
 	}
 	t := storage.NewFromMap(doc)
-	t.ID = docID
+	id := strconv.Itoa(docID) // ARM
+	t.ID = id
 	return t, err
 }
 
@@ -124,7 +125,8 @@ func (d *Database) AllStorages() []storage.Storage {
 
 	Storages.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := storage.NewFromJson(docContent)
-		t.ID = id
+		did := strconv.Itoa(id)
+		t.ID = did
 		Storages_id = append(Storages_id, t)
 		return true
 	})

@@ -28,7 +28,7 @@ import (
 )
 
 type Storage struct {
-	ID int `json:"ID"`
+	ID string `json:"ID"`
 	//Key  string `form:"key" json:"key"`
 	Name  string `form:"name" json:"name"`
 	Path  string `json:"path" form:"path"`
