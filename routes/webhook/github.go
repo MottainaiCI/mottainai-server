@@ -77,7 +77,7 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 
 	m.Invoke(func(client *ggithub.Client, db *database.Database) {
 
-		gitdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "git"+pl.PullRequest.Head.Sha)
+		gitdir, err := ioutil.TempDir(setting.Configuration.BuildPath, "git"+pl.PullRequest.Head.Sha)
 		if err != nil {
 			panic(err)
 		}
