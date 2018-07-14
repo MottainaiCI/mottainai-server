@@ -128,9 +128,27 @@
 
 
 
+{{if eq .Task.Status "running"}}
+  <div class="content mt-3">
+     <div class="animated fadeIn">
+         <div class="card">
+             <div class="card-header">
+                 <i class="mr-2 fa fa-align-justify"></i>
+                 <strong class="card-title">Log</strong>
+             </div>
+             <div class="card-body ">
+               <p>
+                 Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
+               </p>
+             <div class="ui row" id="terminal"></div>
+             </div>
+         </div>
+      </div><!-- .animated -->
+   </div><!-- .content -->
+ {{end}}
 
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                               <aside class="profile-nav alt">
                                   <section class="card">
                                       <div class="card-header user-header alt bg-dark">
@@ -246,48 +264,29 @@
                             </div>
                             <!-- /# column -->
 
-
-
-
-
-
-{{if eq .Task.Status "running"}}
-  <div class="content mt-3">
-     <div class="animated fadeIn">
-         <div class="card">
-             <div class="card-header">
-                 <i class="mr-2 fa fa-align-justify"></i>
-                 <strong class="card-title">Log</strong>
-             </div>
-             <div class="card-body ">
-               <p>
-                 Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
-               </p>
-             <div class="ui row" id="terminal"></div>
-             </div>
-         </div>
-      </div><!-- .animated -->
-   </div><!-- .content -->
- {{end}}
-
  {{if .Task.Script}}
- <div class="col-lg-12">
+ <div class="col-lg-6">
     <div class="card">
         <div class="card-header">
-            <h4>Script</h4>
+            <h4><span class="badge badge-dark badge-pill"><i class="fa fa-terminal"></i></span> Commands</h4>
         </div>
         <div class="card-body">
 
-      <i class="fa fa-terminal"></i> Script <p><code>{{.Task.Script}}</code></p>
+
+      <ul class="list-group list-group-flush">
+      {{range .Task.Script}}
+          <li class="list-group-item"><i class="fa fa-caret-right"></i> <code>{{.}}</code></li>
+      {{end}}
+    </ul>
 </div>
 </div>
 </div>
 {{end}}
 
-<div class="col-lg-12">
+<div class="col-lg-6">
    <div class="card">
        <div class="card-header">
-           <h4>Details</h4>
+           <h4><span class="badge badge-dark badge-pill"><i class="fa fa-briefcase"></i></span> Details</h4>
        </div>
        <div class="card-body">
            <div class="custom-tab">
