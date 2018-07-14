@@ -24,7 +24,6 @@ package mottainai
 
 import (
 	"errors"
-	"os"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -73,8 +72,6 @@ func (m *MottainaiAgent) Run() error {
 		log.INFO.Println("Listening on private queue: " + privqueue)
 		go w.Launch()
 	}
-
-	os.MkdirAll(setting.Configuration.TempWorkDir, os.ModePerm)
 
 	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
 	fetcher.RegisterNode(ID, hostname)

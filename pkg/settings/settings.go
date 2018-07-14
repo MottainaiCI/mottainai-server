@@ -77,8 +77,6 @@ type Config struct {
 	AgentKey string `mapstructure:"agent_key"`
 	ApiKey   string `mapstructure:"api_key"`
 
-	TempWorkDir string `mapstructure:"work_dir"`
-
 	DockerEndpoint    string   `mapstructure:"docker_endpoint"`
 	DockerKeepImg     bool     `mapstructure:"docker_keepimg"`
 	DockerPriviledged bool     `mapstructure:"docker_privileged"`
@@ -144,8 +142,6 @@ func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("agent_key", "")
 	viper.SetDefault("api_key", "")
-
-	viper.SetDefault("work_dir", "/var/tmp/mottainai")
 
 	viper.SetDefault("docker_endpoint", "unix:///var/run/docker.sock")
 	viper.SetDefault("docker_keepimg", true)
@@ -223,8 +219,6 @@ cache_registry: %v
 agent_key: ***************
 api_key: ***************
 
-work_dir: %s
-
 docker_endpoint: %s
 docker_keepimg: %t
 docker_privileged: %t
@@ -249,7 +243,7 @@ access_control_allow_origin: %s
 		c.ResultsExpireIn,
 		c.Broker, c.BrokerType, c.BrokerDefaultQueue, c.BrokerResultBackend,
 		c.BrokerURI, c.BrokerPass, c.BrokerUser, c.BrokerExchange, c.BrokerExchangeType,
-		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.CacheRegistryCredentials, c.TempWorkDir,
+		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.CacheRegistryCredentials,
 		c.DockerEndpoint, c.DockerKeepImg, c.DockerPriviledged, c.DockerInDocker,
 		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue, c.StandAlone,
 		c.WebHookGitHubToken, c.TLSCert, c.AccessControlAllowOrigin)

@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -141,37 +140,38 @@ func (d *TaskExecutor) Setup(docID string) error {
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("> Build started!\n")
 
-	dir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, docID)
-	if err != nil {
+	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
+	tmp_buildpath := path.Join(d.Context.RootTaskDir, "temp")
+	dir := path.Join(tmp_buildpath, "root")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 
-	artdir, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "artefact")
-	if err != nil {
+	artdir := path.Join(tmp_buildpath, "artefact")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 
-	storagetmp, err := ioutil.TempDir(setting.Configuration.TempWorkDir, "storage")
-	if err != nil {
+	storagetmp := path.Join(tmp_buildpath, "storage")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 
 	d.Context.BuildDir = dir
 	d.Context.ArtefactDir = artdir
 	d.Context.StorageDir = storagetmp
-	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
 
 	// Fetch git repo (for now only one supported) and checkout commit
-	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source + " in : " + d.Context.BuildDir)
+	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source + " in : " + tmp_buildpath)
 	if len(task_info.Source) > 0 {
-		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, d.Context.BuildDir)
+		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, tmp_buildpath)
 		fetcher.AppendTaskOutput(out)
 		if err != nil {
 			return err
 		}
 	}
 
-	d.Context.SourceDir = filepath.Join(d.Context.BuildDir, "target_repo")
+	d.Context.SourceDir = filepath.Join(tmp_buildpath, "target_repo")
 
 	//cwd, _ := os.Getwd()
 	os.Chdir(d.Context.SourceDir)

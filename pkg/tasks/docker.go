@@ -174,7 +174,6 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	if setting.Configuration.DockerInDocker {
 		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
-		ContainerBinds = append(ContainerBinds, "/tmp:/tmp")
 		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, artefact_path)+":"+path.Join(git_build_root_path, artefact_path))
 		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
 
