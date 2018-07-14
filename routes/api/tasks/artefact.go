@@ -28,7 +28,6 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -85,8 +84,8 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 		return errors.New("Insufficient permissions")
 	}
 
-	os.MkdirAll(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID), uf.Path), os.ModePerm)
-	f, err := os.OpenFile(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(task.ID), uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	os.MkdirAll(filepath.Join(setting.Configuration.ArtefactPath, task.ID, uf.Path), os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(setting.Configuration.ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 
 	defer f.Close()
 	io.Copy(f, file)
