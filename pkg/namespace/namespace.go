@@ -26,16 +26,16 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 type Namespace struct {
-	ID   int    `json:"ID"`
-	Name string `form:"name" json:"name"`
-	Path string `json:"path" form:"path"`
+	ID         int    `json:"ID"`
+	Name       string `form:"name" json:"name"`
+	Path       string `json:"path" form:"path"`
+	Visibility string `json:"visbility" form:"visbility"`
 	//TaskID string `json:"taskid" form:"taskid"`
 }
 
@@ -48,8 +48,9 @@ func NewFromJson(data []byte) Namespace {
 func NewFromMap(t map[string]interface{}) Namespace {
 
 	var (
-		name string
-		path string
+		name       string
+		path       string
+		visibility string
 	)
 
 	if str, ok := t["name"].(string); ok {
@@ -58,10 +59,14 @@ func NewFromMap(t map[string]interface{}) Namespace {
 	if str, ok := t["path"].(string); ok {
 		path = str
 	}
+	if str, ok := t["visibility"].(string); ok {
+		visibility = str
+	}
 
 	Namespace := Namespace{
-		Name: name,
-		Path: path,
+		Name:       name,
+		Path:       path,
+		Visibility: visibility,
 	}
 	return Namespace
 }
@@ -82,11 +87,11 @@ func (n *Namespace) Wipe() {
 	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name), os.ModePerm)
 }
 
-func (n *Namespace) Tag(from int) error {
+func (n *Namespace) Tag(from string) error {
 
 	n.Wipe()
 
-	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(from))
+	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, from)
 	namespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
 	return utils.DeepCopy(taskArtefact, namespace)
 }

@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
+	"strconv"
+
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -66,7 +68,7 @@ func (d *Database) GetPlan(docID int) (agenttasks.Plan, error) {
 	}
 	th := agenttasks.DefaultTaskHandler()
 	t := th.NewPlanFromMap(doc)
-	t.ID = docID
+	t.ID = strconv.Itoa(docID)
 	return t, err
 }
 
@@ -84,7 +86,7 @@ func (d *Database) AllPlans() []agenttasks.Plan {
 		if t.Task == nil {
 			t.Task = &agenttasks.Task{}
 		}
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		tasks_id = append(tasks_id, t)
 		return true
 	})

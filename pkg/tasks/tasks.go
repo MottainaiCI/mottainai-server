@@ -40,7 +40,7 @@ import (
 )
 
 type Task struct {
-	ID           int      `json:"ID"`
+	ID           string   `json:"ID"` // ARMv7l overflows :(
 	Source       string   `json:"source" form:"source"`
 	Script       []string `json:"script" form:"script"`
 	Directory    string   `json:"directory" form:"directory"`
@@ -168,18 +168,18 @@ func (t *Task) IsWaiting() bool {
 }
 
 func (t *Task) ClearBuildLog() {
-	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
+	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
 }
 
 func (t *Task) Clear() {
-	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)))
-	os.RemoveAll(path.Join(setting.Configuration.LockPath, strconv.Itoa(t.ID)+".lock"))
+	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, t.ID))
+	os.RemoveAll(path.Join(setting.Configuration.LockPath, t.ID+".lock"))
 }
 
 func (t *Task) GetLogPart(pos int) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
 		if err != nil {
 			return err
 		}
@@ -210,7 +210,7 @@ func (t *Task) GetLogPart(pos int) string {
 func (t *Task) TailLog(pos int) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"))
+		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
 		if err != nil {
 			return err
 		}
@@ -247,7 +247,7 @@ func (t *Task) TailLog(pos int) string {
 
 func (t *Task) LockSection(f func() error) error {
 	os.MkdirAll(setting.Configuration.LockPath, os.ModePerm)
-	lockfile := path.Join(setting.Configuration.LockPath, strconv.Itoa(t.ID)+".lock")
+	lockfile := path.Join(setting.Configuration.LockPath, t.ID+".lock")
 	fileLock := flock.NewFlock(lockfile)
 
 	locked, err := fileLock.TryLock()
@@ -265,10 +265,10 @@ func (t *Task) LockSection(f func() error) error {
 
 func (t *Task) AppendBuildLog(s string) error {
 
-	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)), os.ModePerm)
+	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, t.ID), os.ModePerm)
 	return t.LockSection(func() error {
 
-		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID), "build_"+strconv.Itoa(t.ID)+".log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -319,7 +319,7 @@ func (t *Task) HandleStatus() {
 }
 
 func (t *Task) Artefacts() []string {
-	return utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, strconv.Itoa(t.ID)))
+	return utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, t.ID))
 }
 
 func (t *Task) Done() {

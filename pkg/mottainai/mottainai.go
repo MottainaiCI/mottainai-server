@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 
 	log "log"
 
@@ -291,7 +292,8 @@ func (m *Mottainai) LoadPlans() {
 			fmt.Println("Loading plan: ", plan.Task, plan)
 			id := plan.ID
 			c.AddFunc(plan.Planned, func() {
-				plan, _ := d.GetPlan(id)
+				uid, _ := strconv.Atoi(id)
+				plan, _ := d.GetPlan(uid)
 				plan.Task.Reset()
 				docID, _ := d.CreateTask(plan.Task.ToMap())
 				m.SendTask(docID)

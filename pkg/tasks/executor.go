@@ -140,7 +140,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("> Build started!\n")
 
-	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, strconv.Itoa(task_info.ID))
+	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, task_info.ID)
 	tmp_buildpath := path.Join(d.Context.RootTaskDir, "temp")
 	dir := path.Join(tmp_buildpath, "root")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {

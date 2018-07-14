@@ -55,7 +55,7 @@ func (d *Database) CloneTask(t int) (int, error) {
 		return 0, err
 	}
 	tdata.Reset()
-	tdata.ID = 0
+	tdata.ID = ""
 	return d.InsertTask(&tdata)
 }
 
@@ -88,7 +88,7 @@ func (d *Database) GetTask(docID int) (agenttasks.Task, error) {
 	}
 	th := agenttasks.DefaultTaskHandler()
 	t := th.NewTaskFromMap(doc)
-	t.ID = docID
+	t.ID = strconv.Itoa(docID)
 	return t, err
 }
 
@@ -125,7 +125,7 @@ func (d *Database) AllTasks() []agenttasks.Task {
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := th.NewTaskFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		tasks_id = append(tasks_id, t)
 		return true
 	})
