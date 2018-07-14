@@ -415,6 +415,8 @@ func (d *DockerExecutor) PushImage(image string) error {
 			}
 			return d.DockerClient.PushImage(imageopts, auth)
 		}
+	} else {
+		return errors.New("No cache registry set - only local cache is available")
 	}
 	return nil
 }
