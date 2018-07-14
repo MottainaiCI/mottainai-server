@@ -1,7 +1,8 @@
 $.noConflict();
+window.onload = function () { NProgress.done(); }
 
 jQuery(document).ready(function($) {
-
+	 NProgress.start();
 	"use strict";
 
 	[].slice.call( document.querySelectorAll( 'select.cs-select' ) ).forEach( function(el) {
