@@ -49,7 +49,7 @@ func (f *Fetcher) AbortTask() {
 }
 
 func (f *Fetcher) FailTask(e string) {
-	f.SetTaskStatus("failure")
+	f.SetTaskStatus("failed")
 	f.AppendTaskOutput(e)
 }
 
@@ -63,6 +63,18 @@ func (f *Fetcher) SetupTask() {
 
 func (f *Fetcher) RunTask() {
 	f.SetTaskStatus("running")
+}
+
+func (f *Fetcher) ErrorTask() {
+	f.SetTaskResult("error")
+}
+
+func (f *Fetcher) FinishTask() {
+	f.SetTaskStatus("done")
+}
+
+func (f *Fetcher) SuccessTask() {
+	f.SetTaskResult("success")
 }
 
 func (f *Fetcher) GetTask() ([]byte, error) {

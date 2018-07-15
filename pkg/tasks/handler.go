@@ -286,21 +286,21 @@ func (h *TaskHandler) FetchTask(fetcher *client.Fetcher) Task {
 func HandleSuccess(docID string, result int) error {
 	fetcher := client.NewFetcher(docID)
 	fetcher.Token = setting.Configuration.ApiKey
-
-	fetcher.SetTaskField("exit_status", strconv.Itoa(result))
+	res := strconv.Itoa(result)
+	fetcher.SetTaskField("exit_status", res)
 	if result != 0 {
-		fetcher.SetTaskResult("failed")
+		fetcher.FailTask("Exited with " + res)
 	} else {
-		fetcher.SetTaskResult("success")
+		fetcher.SuccessTask()
 	}
 
 	th := DefaultTaskHandler()
 
 	task_info := th.FetchTask(fetcher)
 	if task_info.Status != "stop" {
-		fetcher.SetTaskStatus("done")
+		fetcher.FinishTask()
 	} else {
-		fetcher.SetTaskStatus("stopped")
+		fetcher.AbortTask()
 	}
 	return nil
 }
@@ -310,15 +310,16 @@ func HandleErr(errstring, docID string) error {
 	fetcher.Token = setting.Configuration.ApiKey
 
 	fetcher.AppendTaskOutput(errstring)
-	fetcher.SetTaskResult("error")
 
 	th := DefaultTaskHandler()
 
 	task_info := th.FetchTask(fetcher)
 	if task_info.Status != "stop" {
-		fetcher.SetTaskStatus("done")
+		fetcher.FinishTask()
 	} else {
-		fetcher.SetTaskStatus("stopped")
+		fetcher.AbortTask()
 	}
+
+	fetcher.ErrorTask()
 	return nil
 }
