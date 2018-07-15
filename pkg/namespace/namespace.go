@@ -36,7 +36,62 @@ type Namespace struct {
 	Name       string `form:"name" json:"name"`
 	Path       string `json:"path" form:"path"`
 	Visibility string `json:"visbility" form:"visbility"`
+	Owner      string `json:"owner_id" form:"owner_id"`
 	//TaskID string `json:"taskid" form:"taskid"`
+}
+
+func (u *Namespace) IsPublic() bool {
+	if u.Visibility == "public" {
+		return true
+	}
+	return false
+}
+
+func (u *Namespace) IsPrivate() bool {
+	if u.Visibility == "private" {
+		return true
+	}
+	return false
+}
+
+func (u *Namespace) IsOrganization() bool {
+	if u.Visibility == "organization" {
+		return true
+	}
+	return false
+}
+
+func (u *Namespace) IsGroupVisibile() bool {
+	if u.Visibility == "group" {
+		return true
+	}
+	return false
+}
+
+func (u *Namespace) IsInternal() bool {
+	if u.Visibility == "internal" {
+		return true
+	}
+	return false
+}
+func (u *Namespace) MakePublic() {
+	u.Visibility = "public"
+}
+
+func (u *Namespace) MakeInternal() {
+	u.Visibility = "internal"
+}
+
+func (u *Namespace) MakeGroupVisible() {
+	u.Visibility = "group"
+}
+
+func (u *Namespace) MakeOrganizationVisible() {
+	u.Visibility = "organization"
+}
+
+func (u *Namespace) MakePrivate() {
+	u.Visibility = "private"
 }
 
 func NewFromJson(data []byte) Namespace {
@@ -51,8 +106,11 @@ func NewFromMap(t map[string]interface{}) Namespace {
 		name       string
 		path       string
 		visibility string
+		owner      string
 	)
-
+	if str, ok := t["owner_id"].(string); ok {
+		owner = str
+	}
 	if str, ok := t["name"].(string); ok {
 		name = str
 	}
@@ -67,6 +125,7 @@ func NewFromMap(t map[string]interface{}) Namespace {
 		Name:       name,
 		Path:       path,
 		Visibility: visibility,
+		Owner:      owner,
 	}
 	return Namespace
 }
