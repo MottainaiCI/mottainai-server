@@ -98,6 +98,11 @@ func TestGetSettingByKey(t *testing.T) {
 		t.Fatal("Could not find the inserted setting")
 	}
 
+	err = db.DeleteSetting(uuu.ID)
+	if err != nil {
+		t.Fatal("Failed Remove")
+	}
+
 }
 
 func TestGetSettingByUid(t *testing.T) {
