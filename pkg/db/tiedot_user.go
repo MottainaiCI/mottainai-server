@@ -47,6 +47,17 @@ func (d *Database) InsertAndSaltUser(t *user.User) (int, error) {
 }
 
 func (d *Database) InsertUser(t *user.User) (int, error) {
+	if len(t.Name) == 0 || len(t.Password) == 0 {
+		return 0, errors.New("No username or password for user")
+	}
+	if u, e := d.GetUserByName(t.Name); e == nil && len(u.Name) != 0 {
+		return 0, errors.New("User already exist")
+	}
+
+	if u, e := d.GetUserByEmail(t.Email); e == nil && len(u.Name) != 0 {
+		return 0, errors.New("User already exist")
+	}
+
 	return d.CreateUser(t.ToMap())
 }
 
@@ -102,6 +113,37 @@ func (d *Database) GetUserByName(name string) (user.User, error) {
 	} else {
 		return res[0], nil
 	}
+}
+
+func (d *Database) GetUserByEmail(email string) (user.User, error) {
+	res, err := d.GetUsersByEmail(email)
+	if err != nil {
+		return user.User{}, err
+	} else if len(res) == 0 {
+		return user.User{}, errors.New("No username found")
+	} else {
+		return res[0], nil
+	}
+}
+
+func (d *Database) GetUsersByEmail(email string) ([]user.User, error) {
+	var res []user.User
+
+	queryResult, err := d.FindDoc(UserColl, `[{"eq": "`+email+`", "in": ["email"]}]`)
+	if err != nil {
+		return res, err
+	}
+
+	for docid := range queryResult {
+
+		u, err := d.GetUser(docid)
+		u.ID = docid
+		if err != nil {
+			return res, err
+		}
+		res = append(res, u)
+	}
+	return res, nil
 }
 
 func (d *Database) GetUsersByName(name string) ([]user.User, error) {

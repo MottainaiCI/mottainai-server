@@ -50,6 +50,11 @@ func TestInsertUser(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
+	_, err = db.InsertAndSaltUser(u)
+	if err == nil {
+		t.Fatal("User could have been created twice")
+	}
+
 	db.DeleteUser(id)
 
 	_, err = db.GetUser(id)

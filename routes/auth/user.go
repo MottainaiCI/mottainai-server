@@ -251,6 +251,13 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 		return
 	}
 
+	//check := namespace.Namespace{Name: f.UserName}
+
+	//if check.Exists() {
+	//		c.RenderWithErr("Username taken as namespace, pick another one", SIGNUP)
+	//		return
+	//	}
+
 	u := &user.User{
 		Name:     f.UserName,
 		Email:    f.Email,
