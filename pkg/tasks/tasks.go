@@ -133,7 +133,7 @@ func FromFile(file string) (*Task, error) {
 
 func (t *Task) Reset() {
 	t.Output = ""
-	t.Result = "none"
+	t.Result = setting.TASK_RESULT_UNKNOWN
 	t.Status = ""
 	t.ExitStatus = ""
 	t.CreatedTime = time.Now().Format("20060102150405")
@@ -154,14 +154,14 @@ func (t *Task) IsOwner(id int) bool {
 
 func (t *Task) IsRunning() bool {
 
-	if t.Status == "running" {
+	if t.Status == setting.TASK_STATE_RUNNING {
 		return true
 	}
 	return false
 }
 func (t *Task) IsWaiting() bool {
 
-	if t.Status == "waiting" {
+	if t.Status == setting.TASK_STATE_WAIT {
 		return true
 	}
 	return false
@@ -283,7 +283,7 @@ func (t *Task) AppendBuildLog(s string) error {
 
 }
 func (t *Task) IsDone() bool {
-	if t.Status == "done" {
+	if t.Status == setting.TASK_STATE_DONE {
 		return true
 	}
 
@@ -308,7 +308,7 @@ func (t *Task) IsSuccess() bool {
 
 func (t *Task) HandleStatus() {
 	fmt.Println("Handlestatus called")
-	if t.Status == "done" {
+	if t.Status == setting.TASK_STATE_DONE {
 		if t.ExitStatus == "0" {
 			t.OnSuccess()
 		} else {

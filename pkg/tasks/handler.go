@@ -297,7 +297,7 @@ func HandleSuccess(docID string, result int) error {
 	th := DefaultTaskHandler()
 
 	task_info := th.FetchTask(fetcher)
-	if task_info.Status != "stop" {
+	if task_info.Status != setting.TASK_STATE_ASK_STOP {
 		fetcher.FinishTask()
 	} else {
 		fetcher.AbortTask()
@@ -314,7 +314,7 @@ func HandleErr(errstring, docID string) error {
 	th := DefaultTaskHandler()
 
 	task_info := th.FetchTask(fetcher)
-	if task_info.Status != "stop" {
+	if task_info.Status != setting.TASK_STATE_ASK_STOP {
 		fetcher.FinishTask()
 	} else {
 		fetcher.AbortTask()

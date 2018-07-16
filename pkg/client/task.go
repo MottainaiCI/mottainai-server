@@ -45,11 +45,11 @@ func (f *Fetcher) SetTaskStatus(status string) ([]byte, error) {
 
 func (f *Fetcher) AbortTask() {
 	f.SetTaskResult("")
-	f.SetTaskStatus("stopped")
+	f.SetTaskStatus(setting.TASK_STATE_STOPPED)
 }
 
 func (f *Fetcher) FailTask(e string) {
-	f.SetTaskStatus("failed")
+	f.SetTaskResult(setting.TASK_RESULT_FAILED)
 	f.AppendTaskOutput(e)
 }
 
@@ -62,19 +62,19 @@ func (f *Fetcher) SetupTask() {
 }
 
 func (f *Fetcher) RunTask() {
-	f.SetTaskStatus("running")
+	f.SetTaskStatus(setting.TASK_STATE_RUNNING)
 }
 
 func (f *Fetcher) ErrorTask() {
-	f.SetTaskResult("error")
+	f.SetTaskResult(setting.TASK_RESULT_ERROR)
 }
 
 func (f *Fetcher) FinishTask() {
-	f.SetTaskStatus("done")
+	f.SetTaskStatus(setting.TASK_STATE_DONE)
 }
 
 func (f *Fetcher) SuccessTask() {
-	f.SetTaskResult("success")
+	f.SetTaskResult(setting.TASK_RESULT_SUCCESS)
 }
 
 func (f *Fetcher) GetTask() ([]byte, error) {
