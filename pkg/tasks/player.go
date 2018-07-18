@@ -32,6 +32,7 @@ type Executor interface {
 	Setup(string) error
 	Clean() error
 	Fail(string)
+	Success(int)
 	ExitStatus(int)
 }
 
@@ -50,16 +51,16 @@ func (p *Player) Start(e Executor) (int, error) {
 	}
 
 	res, err := e.Play(p.TaskID)
+
 	if err != nil {
 		errmsg := "Play phase error (Exit with: " + strconv.Itoa(res) + ") : " + err.Error()
-		HandleErr(errmsg, p.TaskID)
+		e.Fail(errmsg)
 		return 1, errors.New(errmsg)
 	} else {
-		HandleSuccess(p.TaskID, res)
+		e.Success(res)
 	}
-	// err = e.Clean()
-	// if err != nil {
-	// 	return 1, errors.New("Clean phase error: " + err.Error())
-	// }
+
+	e.ExitStatus(res)
+
 	return res, err
 }

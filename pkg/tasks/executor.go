@@ -32,6 +32,8 @@ import (
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -39,11 +41,13 @@ import (
 
 //TODO:
 type ExecutorContext struct {
-	ArtefactDir, StorageDir, NamespaceDir, BuildDir, SourceDir, RootTaskDir, RealRootDir string
+	ArtefactDir, StorageDir, NamespaceDir         string
+	BuildDir, SourceDir, RootTaskDir, RealRootDir string
+	DocID                                         string
 }
 
 func NewExecutorContext() *ExecutorContext {
-	return &ExecutorContext{ArtefactDir: "", StorageDir: "", NamespaceDir: "", BuildDir: "", SourceDir: "", RootTaskDir: "", RealRootDir: ""}
+	return &ExecutorContext{}
 }
 
 type TaskExecutor struct {
@@ -111,6 +115,11 @@ func (d *TaskExecutor) Clean() error {
 
 func (d *TaskExecutor) Fail(errstring string) {
 	d.MottainaiClient.FailTask(errstring)
+	HandleErr(d.Context.DocID, errstring)
+}
+
+func (d *TaskExecutor) Success(status int) {
+	HandleSuccess(d.Context.DocID, status)
 }
 
 func (d *TaskExecutor) ExitStatus(i int) {
@@ -118,7 +127,7 @@ func (d *TaskExecutor) ExitStatus(i int) {
 }
 
 func (d *TaskExecutor) Setup(docID string) error {
-
+	d.Context.DocID = docID
 	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
 	fetcher.Doc(docID)
 	fetcher.SetupTask()
@@ -163,25 +172,40 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	// Fetch git repo (for now only one supported) and checkout commit
 	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source + " in : " + tmp_buildpath)
+
 	if len(task_info.Source) > 0 {
-		out, err := utils.Git([]string{"clone", task_info.Source, "target_repo"}, tmp_buildpath)
-		fetcher.AppendTaskOutput(out)
+		d.Context.SourceDir = path.Join(tmp_buildpath, "target_repo")
+
+		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
+			return err
+		}
+		r, err := git.PlainClone(d.Context.SourceDir, false, &git.CloneOptions{
+			URL:      task_info.Source,
+			Progress: os.Stdout,
+		})
 		if err != nil {
 			return err
 		}
-	}
 
-	d.Context.SourceDir = filepath.Join(tmp_buildpath, "target_repo")
+		if len(task_info.Commit) > 0 {
+
+			w, err := r.Worktree()
+			if err != nil {
+				return err
+			}
+
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash: plumbing.NewHash(task_info.Commit),
+			})
+			if err != nil {
+				return err
+			}
+
+		}
+	}
 
 	//cwd, _ := os.Getwd()
 	os.Chdir(d.Context.SourceDir)
-	if len(task_info.Commit) > 0 {
-		out, err := utils.Git([]string{"checkout", task_info.Commit}, d.Context.SourceDir)
-		fetcher.AppendTaskOutput(out)
-		if err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
