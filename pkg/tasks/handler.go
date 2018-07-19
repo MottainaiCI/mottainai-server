@@ -54,14 +54,16 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 func DefaultTaskHandler() *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
 		"docker_execute": DockerPlayer,
-		"error":          HandleErr,
-		"success":        HandleSuccess,
+		//	"error":          HandleErr,
+		//	"success":        HandleSuccess,
 	}}
 }
 
 func DockerPlayer(docID string) (int, error) {
 	player := NewPlayer(docID)
-	return player.Start(NewDockerExecutor())
+	executor := NewDockerExecutor()
+	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	return player.Start(executor)
 }
 
 func (h *TaskHandler) NewPlanFromJson(data []byte) Plan {
@@ -274,7 +276,7 @@ func (h *TaskHandler) RegisterTasks(m *machinery.Server) {
 	}
 }
 
-func (h *TaskHandler) FetchTask(fetcher *client.Fetcher) Task {
+func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 	task_data, err := fetcher.GetTask()
 
 	if err != nil {

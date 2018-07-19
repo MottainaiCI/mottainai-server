@@ -51,7 +51,7 @@ func NewExecutorContext() *ExecutorContext {
 }
 
 type TaskExecutor struct {
-	MottainaiClient *client.Fetcher
+	MottainaiClient client.HttpClient
 	Context         *ExecutorContext
 }
 
@@ -128,7 +128,7 @@ func (d *TaskExecutor) ExitStatus(i int) {
 
 func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.DocID = docID
-	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	fetcher := d.MottainaiClient
 	fetcher.Doc(docID)
 	fetcher.SetupTask()
 	ID := utils.GenID()
@@ -136,7 +136,6 @@ func (d *TaskExecutor) Setup(docID string) error {
 	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + " ) ")
 	fetcher.SetTaskField("nodeid", ID)
 
-	d.MottainaiClient = fetcher
 	th := DefaultTaskHandler()
 	task_info := th.FetchTask(fetcher)
 	if task_info.Status == "running" {

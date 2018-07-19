@@ -44,6 +44,22 @@ import (
 	"github.com/mudler/anagent"
 )
 
+type HttpClient interface {
+	AppendTaskOutput(string) ([]byte, error)
+
+	GetTask() ([]byte, error)
+	AbortTask()
+	DownloadArtefactsFromTask(string, string)
+	DownloadArtefactsFromNamespace(string, string)
+	DownloadArtefactsFromStorage(string, string)
+	UploadFile(string, string) error
+	FailTask(string)
+	SetTaskField(string, string) ([]byte, error)
+	Doc(string)
+	SetupTask()
+	RunTask()
+}
+
 type Fetcher struct {
 	BaseURL       string
 	docID         string
