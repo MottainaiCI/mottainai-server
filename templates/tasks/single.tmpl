@@ -1,86 +1,10 @@
-<table id="all-tasks" class="table table-striped table-bordered">
-  <thead>
-    <tr>
 
-      <th>
-        <i class="fa fa-circle-o" aria-hidden="true"></i>  Task id
-      </th>
-      <th>
-        <i class="fa fa-code-fork" aria-hidden="true"></i>  Source
-      </th>
-      <th>
-          <i class="fa fa-folder-o" aria-hidden="true"></i> Directory
-      </th>
-      <th>
-          <i class="fa fa-cloud" aria-hidden="true"></i> Image
-      </th>
-      <th><i class="fa fa-clock-o" aria-hidden="true"></i> Started</th>
-
-      <th><i class="ti-check" aria-hidden="true"></i></th>
-      <th>
-      <i class="fa fa-bookmark" aria-hidden="true"></i>
-      </th>
-  <!--    <th>
-        Created
-      </th>
-
-      <th>
-        End
-      </th>-->
-</tr>
-  </thead>
+<table id="all-tasks" class="table">
+  {{template "tasks/table_head" .}}
   <tbody>
-
     {{range .Tasks}}
-    <tr  class='table-{{if eq .Result "success"}}success
-        {{else if eq .Result "error"}}warning
-          {{else if eq .Result "failed"}}danger
-          {{else}}info{{end}}' >
-      <td>
-        <a href="/tasks/display/{{.ID}}">
-
-      <span class="badge badge-secondary" > <h6><i class="fa fa-info" aria-hidden="true"></i> {{.ID}} </h6></span> </a>  {{template "tasks/action" .}}</td>
-
-      <td>{{.Source}}</td>
-      <td>{{.Directory}}</td>
-      <td>{{.Image}}</td>
-
-      <td  data-order="{{.StartTime}}"><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time></td>
-
-
-      <td>{{if eq .Status "running"}}
-          <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
-        {{else if eq .Status "waiting"}}
-          <i class="ti-control-pause" aria-hidden="true"></i>
-          {{else if eq .Status "stop"}}
-          <i class="ti-hand-stop" aria-hidden="true"></i>
-          {{else if eq .Status "stopped"}}
-          <i class="ti-control-stop" aria-hidden="true"></i>
-          {{else if eq .Status "done"}}
-          <i class="fa fa-thumbs-up" aria-hidden="true"></i>
-          {{else if eq .Status "setup"}}
-          <i class="ti-loop" aria-hidden="true"></i>
-          {{else}}
-          <i class="fa fa-question" aria-hidden="true"></i>
-          {{end}}
-      </td>
-
-      <td>
-        {{if eq .Result "success"}}
-            <i class="fa fa-check-circle" aria-hidden="true"></i>
-          {{else if eq .Result "error"}}
-            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-            {{else if eq .Result "failed"}}
-            <i class="fa fa-thumbs-down" aria-hidden="true"></i>
-            {{else}}
-            <i class="fa fa-question" aria-hidden="true"></i>
-            {{end}}
-          </td>
-      <!--<td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
-      <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>-->
-    </tr>
+      {{template "tasks/row" .}}
     {{end}}
-
   </tbody>
 </table>
 <script src="/assets/js/lib/data-table/datatables.min.js"></script>
