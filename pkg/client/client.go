@@ -40,6 +40,7 @@ import (
 	"strings"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/mudler/anagent"
 )
@@ -210,12 +211,20 @@ func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte
 	hclient := f.newHttpClient()
 	form := url.Values{}
 	var InterfaceList []interface{}
+	var Strings []string
 
 	for k, v := range option {
 		if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
 			for _, el := range v.([]interface{}) {
 				form.Add(k, el.(string))
 			}
+		} else if reflect.TypeOf(v) == reflect.TypeOf(Strings) {
+			for _, el := range v.([]string) {
+				form.Add(k, el)
+			}
+
+		} else if reflect.TypeOf(v) == reflect.TypeOf(float64(0)) {
+			form.Add(k, utils.FloatToString(v.(float64)))
 		} else {
 			form.Add(k, v.(string))
 		}
