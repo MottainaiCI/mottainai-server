@@ -311,7 +311,9 @@
                    <div class="tab-pane fade" id="custom-nav-profile" role="tabpanel" aria-labelledby="custom-nav-profile-tab">
                     <p id="as_json"></p>
                     <a href="/api/tasks/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
-                   </div>
+
+                    <a href="/api/tasks/{{.Task.ID}}.yaml" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get YAML</button> </a>
+                    </div>
                    <div class="tab-pane fade" id="custom-nav-contact" role="tabpanel" aria-labelledby="custom-nav-contact-tab">
                      <p>
                        {{if eq .Task.Status "running"}}

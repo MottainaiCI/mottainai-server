@@ -36,7 +36,8 @@ func Setup(m *macaron.Macaron) {
 	bind := binding.Bind
 	m.Get("/api/tasks", ShowAll)
 	m.Post("/api/tasks", reqSignIn, bind(agenttasks.Task{}), APICreate)
-	m.Get("/api/tasks/:id", GetTaskJson) // TEMP: For now, as js  calls aren't with auth
+	m.Get("/api/tasks/:id", GetTaskJson)      // TEMP: For now, as js  calls aren't with auth
+	m.Get("/api/tasks/:id.yaml", GetTaskYaml) // TEMP: For now, as js  calls aren't with auth
 	m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
 	m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
 	m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)

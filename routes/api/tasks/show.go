@@ -27,9 +27,30 @@ import (
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/ghodss/yaml"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
+
+func GetTaskYaml(ctx *context.Context, db *database.Database) string {
+	id := ctx.ParamsInt(":id")
+	task, err := db.GetTask(id)
+	if err != nil {
+		ctx.NotFound()
+		return ""
+	}
+	if !ctx.CheckTaskPermissions(&task) {
+		return ""
+	}
+
+	y, err := yaml.Marshal(task)
+	if err != nil {
+		ctx.ServerError(err.Error(), err)
+		return ""
+	}
+
+	return string(y)
+}
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
