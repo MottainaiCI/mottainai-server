@@ -54,7 +54,7 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 func DefaultTaskHandler() *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
 		"docker_execute": DockerPlayer,
-		//	"error":          HandleErr,
+		"error":          HandleErr,
 		//	"success":        HandleSuccess,
 	}}
 }

@@ -23,6 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package client
 
 import (
+	"bufio"
+	"io"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"fmt"
@@ -105,6 +108,20 @@ func (f *Fetcher) SetTaskOutput(output string) ([]byte, error) {
 		"id":     f.docID,
 		"output": output,
 	})
+}
+
+func (f *Fetcher) StreamOutput(r io.Reader) {
+
+	go func(reader io.Reader) {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			f.AppendTaskOutput(scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			f.AppendTaskOutput("There was an error with the scanner in attached container " + err.Error())
+		}
+	}(r)
+
 }
 
 func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {

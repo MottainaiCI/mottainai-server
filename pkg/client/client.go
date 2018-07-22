@@ -58,6 +58,10 @@ type HttpClient interface {
 	SetTaskField(string, string) ([]byte, error)
 	Doc(string)
 	SetupTask()
+	FinishTask()
+	ErrorTask()
+	SuccessTask()
+	StreamOutput(io.Reader)
 	RunTask()
 }
 

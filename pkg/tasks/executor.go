@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -32,7 +33,7 @@ import (
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
@@ -114,12 +115,29 @@ func (d *TaskExecutor) Clean() error {
 }
 
 func (d *TaskExecutor) Fail(errstring string) {
-	d.MottainaiClient.FailTask(errstring)
-	HandleErr(d.Context.DocID, errstring)
+
+	task_info := DefaultTaskHandler().FetchTask(d.MottainaiClient)
+	if task_info.Status != setting.TASK_STATE_ASK_STOP {
+		d.MottainaiClient.FinishTask()
+	} else {
+		d.MottainaiClient.AbortTask()
+	}
+	d.MottainaiClient.ErrorTask()
+
 }
 
 func (d *TaskExecutor) Success(status int) {
-	HandleSuccess(d.Context.DocID, status)
+	task_info := DefaultTaskHandler().FetchTask(d.MottainaiClient)
+	if task_info.Status != setting.TASK_STATE_ASK_STOP {
+		d.MottainaiClient.FinishTask()
+		if status != 0 {
+			d.MottainaiClient.FailTask("Exited with " + strconv.Itoa(status))
+		} else {
+			d.MottainaiClient.SuccessTask()
+		}
+	} else {
+		d.MottainaiClient.AbortTask()
+	}
 }
 
 func (d *TaskExecutor) ExitStatus(i int) {
@@ -179,17 +197,19 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	if len(task_info.Source) > 0 {
 		d.Context.SourceDir = path.Join(tmp_buildpath, "target_repo")
-
+		read, w := io.Pipe()
 		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
 			return err
 		}
+		// TODO: This should go in a go routine and wait for ending
 		r, err := git.PlainClone(d.Context.SourceDir, false, &git.CloneOptions{
 			URL:      task_info.Source,
-			Progress: os.Stdout,
+			Progress: w,
 		})
 		if err != nil {
 			return err
 		}
+		fetcher.StreamOutput(read)
 
 		if len(task_info.Commit) > 0 {
 
