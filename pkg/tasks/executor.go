@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"errors"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -197,19 +196,17 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	if len(task_info.Source) > 0 {
 		d.Context.SourceDir = path.Join(tmp_buildpath, "target_repo")
-		read, w := io.Pipe()
 		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
 			return err
 		}
 		// TODO: This should go in a go routine and wait for ending
 		r, err := git.PlainClone(d.Context.SourceDir, false, &git.CloneOptions{
 			URL:      task_info.Source,
-			Progress: w,
+			Progress: os.Stdout,
 		})
 		if err != nil {
 			return err
 		}
-		fetcher.StreamOutput(read)
 
 		if len(task_info.Commit) > 0 {
 
