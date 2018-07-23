@@ -161,11 +161,6 @@ func (d *TaskExecutor) Setup(docID string) error {
 		return errors.New(msg)
 	}
 
-	if task_info.Status == "stop" {
-		fetcher.AbortTask()
-		return errors.New("Task aborted, asked to stop")
-	}
-
 	fetcher.RunTask()
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
 	fetcher.AppendTaskOutput("> Build started!\n")

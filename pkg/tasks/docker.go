@@ -269,7 +269,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			fetcher.AppendTaskOutput("Aborting execution")
 			docker_client.StopContainer(container.ID, uint(20))
 			fetcher.AbortTask()
-			return 1, errors.New("Task aborted")
+			return 0, nil
 		}
 		c_data, err := docker_client.InspectContainer(container.ID) // update our container information
 		if err != nil {
@@ -288,7 +288,9 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			}
 
 			err = d.UploadArtefacts(to_upload)
-
+			if err != nil {
+				return 1, err
+			}
 			fetcher.AppendTaskOutput("Container execution terminated")
 
 			if len(task_info.CacheImage) > 0 {
@@ -307,9 +309,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 				fetcher.AppendTaskOutput("Pruning unused docker resources")
 				d.Prune()
 			}
-			if err != nil {
-				return 1, err
-			}
+
 			return c_data.State.ExitCode, nil
 		}
 	}
