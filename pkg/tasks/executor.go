@@ -127,16 +127,17 @@ func (d *TaskExecutor) Fail(errstring string) {
 
 func (d *TaskExecutor) Success(status int) {
 	task_info := DefaultTaskHandler().FetchTask(d.MottainaiClient)
-	if task_info.Status != setting.TASK_STATE_ASK_STOP {
-		d.MottainaiClient.FinishTask()
-		if status != 0 {
-			d.MottainaiClient.FailTask("Exited with " + strconv.Itoa(status))
-		} else {
-			d.MottainaiClient.SuccessTask()
-		}
-	} else {
+	if task_info.Status == setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.AbortTask()
+		return
 	}
+
+	if status != 0 {
+		d.MottainaiClient.FailTask("Exited with " + strconv.Itoa(status))
+	} else {
+		d.MottainaiClient.SuccessTask()
+	}
+
 }
 
 func (d *TaskExecutor) ExitStatus(i int) {

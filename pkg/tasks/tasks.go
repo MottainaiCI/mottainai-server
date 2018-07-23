@@ -318,6 +318,14 @@ func (t *Task) HandleStatus() {
 	}
 }
 
+func (t *Task) DecodeStatus(state string) string {
+	if state == "0" {
+		return setting.TASK_RESULT_SUCCESS
+	}
+
+	return setting.TASK_RESULT_FAILED
+}
+
 func (t *Task) Artefacts() []string {
 	return utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, t.ID))
 }

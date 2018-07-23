@@ -54,6 +54,7 @@ func (f *Fetcher) AbortTask() {
 func (f *Fetcher) FailTask(e string) {
 	f.SetTaskResult(setting.TASK_RESULT_FAILED)
 	f.AppendTaskOutput(e)
+	f.FinishTask()
 }
 
 func (f *Fetcher) SetupTask() {
@@ -78,6 +79,7 @@ func (f *Fetcher) FinishTask() {
 
 func (f *Fetcher) SuccessTask() {
 	f.SetTaskResult(setting.TASK_RESULT_SUCCESS)
+	f.FinishTask()
 }
 
 func (f *Fetcher) GetTask() ([]byte, error) {
