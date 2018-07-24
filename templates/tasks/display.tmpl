@@ -72,7 +72,7 @@
       });
       getData();
       if (task_status != "done" && task_status != "error" && task_status != "stop") {
-            setInterval(getData, 6000);
+            setInterval(getData, 1000);
       }
 
       function getData() {
@@ -91,7 +91,7 @@
           });
 
         $.ajax({
-            url: "/api/tasks/tail_output/{{.Task.ID}}/"+1500,
+            url: "/api/tasks/tail_output/{{.Task.ID}}/"+3000,
             beforeSend: function( xhr ) {
               xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
             }
