@@ -72,6 +72,7 @@ type Task struct {
 	EndTime     string `json:"end_time" form:"end_time"`
 	Queue       string `json:"queue" form:"queue"`
 
+	Delayed     string   `json:"eta" form:"eta"`
 	TimeOut     float64  `json:"timeout" form:"timeout"`
 	Binds       []string `json:"binds" form:"binds"`
 	Environment []string `json:"environment" form:"environment"`

@@ -224,7 +224,10 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["timeout"].(float64); ok {
 		timeout = str
 	}
-
+	var delayed string
+	if str, ok := t["string"].(string); ok {
+		delayed = str
+	}
 	var entrypoint []string
 	entrypoint = make([]string, 0)
 
@@ -238,6 +241,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		Queue:        queue,
 		Source:       source,
 		Script:       script,
+		Delayed:      delayed,
 		Directory:    directory,
 		TaskName:     taskname,
 		Namespace:    namespace,

@@ -24,6 +24,7 @@ package mottainai
 
 import (
 	"strconv"
+	"time"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	machinery "github.com/RichardKnop/machinery/v1"
@@ -34,6 +35,12 @@ import (
 type Broker struct {
 	Queue  string
 	Server *machinery.Server
+}
+
+type BrokerSendOptions struct {
+	Delayed  string
+	TaskName string
+	TaskID   int
 }
 
 type MottainaiServer struct {
@@ -68,8 +75,9 @@ func (b *Broker) NewWorker(ID string, parallel int) *machinery.Worker {
 	return b.Server.NewWorker(ID, parallel)
 }
 
-func (b *Broker) SendTask(taskname string, taskid int) (*results.AsyncResult, error) {
-
+func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error) {
+	taskname := opts.TaskName
+	taskid := opts.TaskID
 	onErr := make([]*machinerytask.Signature, 0)
 
 	onErr = append(onErr, &machinerytask.Signature{
@@ -94,8 +102,9 @@ func (b *Broker) SendTask(taskname string, taskid int) (*results.AsyncResult, er
 		},
 	})
 
-	return b.Server.SendTask(&machinerytask.Signature{
-		Name: taskname,
+	signature := &machinerytask.Signature{
+		Name:       taskname,
+		RetryCount: 0,
 		Args: []machinerytask.Arg{
 			{
 				Type:  "string",
@@ -104,6 +113,14 @@ func (b *Broker) SendTask(taskname string, taskid int) (*results.AsyncResult, er
 		},
 		OnError:   onErr,
 		OnSuccess: onSuccess,
-	})
+	}
+	if len(opts.Delayed) > 0 {
+		if secs, err := strconv.Atoi(opts.Delayed); err != nil {
+			t := time.Now().UTC().Add(time.Duration(secs) * time.Second)
+			signature.ETA = &t
+		}
+	}
+
+	return b.Server.SendTask(signature)
 
 }

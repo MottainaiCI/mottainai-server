@@ -269,7 +269,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 			return
 		}
 
-		_, err = broker.SendTask(task.TaskName, docID)
+		_, err = broker.SendTask(&BrokerSendOptions{Delayed: task.Delayed, TaskName: task.TaskName, TaskID: docID})
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
 			d.UpdateTask(docID, map[string]interface{}{
