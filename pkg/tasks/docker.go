@@ -104,15 +104,15 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		if len(task_info.CacheImage) > 0 {
 
 			if img, err := d.FindImage(sharedName); err == nil {
-				fetcher.AppendTaskOutput("Cached image found: " + img + " " + sharedName)
+				d.Report("Cached image found: " + img + " " + sharedName)
 				if len(task_info.CacheClean) > 0 {
-					fetcher.AppendTaskOutput("Not using previously cached image - deleting image: " + sharedName)
+					d.Report("Not using previously cached image - deleting image: " + sharedName)
 					d.RemoveImage(sharedName)
 				} else {
 					image = img
 				}
 			} else {
-				fetcher.AppendTaskOutput("No cached image found locally for '" + sharedName + "'")
+				d.Report("No cached image found locally for '" + sharedName + "'")
 			}
 
 			if len(task_info.CacheClean) == 0 {
@@ -123,7 +123,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 					if e, ok := setting.Configuration.CacheRegistryCredentials["entity"]; ok {
 						toPull = e + "/" + toPull
 					}
-					fetcher.AppendTaskOutput("Try to pull cache (" + toPull + ") image from defined registry or from dockerhub")
+					d.Report("Try to pull cache (" + toPull + ") image from defined registry or from dockerhub")
 
 					if baseUrl, okb := setting.Configuration.CacheRegistryCredentials["baseurl"]; okb {
 						toPull = baseUrl + toPull
@@ -131,20 +131,20 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 					if e := d.PullImage(toPull); e == nil {
 						image = toPull
-						fetcher.AppendTaskOutput("Using pulled image:  " + image)
+						d.Report("Using pulled image:  " + image)
 					} else {
-						fetcher.AppendTaskOutput("No image could be fetched by cache registry")
+						d.Report("No image could be fetched by cache registry")
 					}
 				}
 			}
 
 		}
 
-		fetcher.AppendTaskOutput("Pulling image: " + task_info.Image)
+		d.Report("Pulling image: " + task_info.Image)
 		if err := d.PullImage(task_info.Image); err != nil {
 			return 1, err
 		}
-		fetcher.AppendTaskOutput("Pulling image: DONE!")
+		d.Report("Pulling image: DONE!")
 	}
 	//var args []string
 	var git_root_path = d.Context.RootTaskDir
@@ -192,8 +192,9 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 
 	//ContainerVolumes = append(ContainerVolumes, git_repo_dir+":/build")
-
-	ContainerBinds = append(ContainerBinds, git_repo_dir+":"+git_root_path)
+	if len(git_repo_dir) > 0 {
+		ContainerBinds = append(ContainerBinds, git_repo_dir+":"+git_root_path)
+	}
 
 	createContHostConfig := docker.HostConfig{
 		Privileged: setting.Configuration.DockerPriviledged,
@@ -203,7 +204,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
 	var containerconfig = &docker.Config{Image: image, WorkingDir: git_build_root_path}
-	fetcher.AppendTaskOutput("Execute: " + execute_script)
+	d.Report("Execute: " + execute_script)
 	if len(execute_script) > 0 {
 		containerconfig.Cmd = []string{"-c", "pwd;ls -liah;" + execute_script}
 		containerconfig.Entrypoint = []string{"/bin/bash"}
@@ -211,24 +212,24 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	if len(task_info.Entrypoint) > 0 {
 		containerconfig.Entrypoint = task_info.Entrypoint
-		fetcher.AppendTaskOutput("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
+		d.Report("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
 	}
 
 	if len(task_info.Environment) > 0 {
 		containerconfig.Env = task_info.Environment
-		//	fetcher.AppendTaskOutput("Env: ")
+		//	d.Report("Env: ")
 		//	for _, e := range task_info.Environment {
-		//		fetcher.AppendTaskOutput("- " + e)
+		//		d.Report("- " + e)
 		//	}
 	}
 
-	fetcher.AppendTaskOutput("Binds: ")
+	d.Report("Binds: ")
 	for _, v := range ContainerBinds {
-		fetcher.AppendTaskOutput("- " + v)
+		d.Report("- " + v)
 	}
 
-	fetcher.AppendTaskOutput("Container working dir: " + git_build_root_path)
-	fetcher.AppendTaskOutput("Image: " + containerconfig.Image)
+	d.Report("Container working dir: " + git_build_root_path)
+	d.Report("Image: " + containerconfig.Image)
 
 	container, err := docker_client.CreateContainer(docker.CreateContainerOptions{
 		Config:     containerconfig,
@@ -240,20 +241,20 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 
 	utils.ContainerOutputAttach(func(s string) {
-		fetcher.AppendTaskOutput(s)
+		d.Report(s)
 	}, docker_client, container)
 	defer d.CleanUpContainer(container.ID)
 	if setting.Configuration.DockerKeepImg == false {
 		defer d.RemoveImage(task_info.Image)
 	}
 
-	fetcher.AppendTaskOutput("Created container ID: " + container.ID)
+	d.Report("Created container ID: " + container.ID)
 
 	err = docker_client.StartContainer(container.ID, &createContHostConfig)
 	if err != nil {
 		panic(err)
 	}
-	fetcher.AppendTaskOutput("Started Container " + container.ID)
+	d.Report("Started Container " + container.ID)
 
 	starttime := time.Now()
 
@@ -264,9 +265,9 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.Status != "running" || timedout {
 			if timedout {
-				fetcher.AppendTaskOutput("Task timeout!")
+				d.Report("Task timeout!")
 			}
-			fetcher.AppendTaskOutput("Aborting execution")
+			d.Report("Aborting execution")
 			docker_client.StopContainer(container.ID, uint(20))
 			fetcher.AbortTask()
 			return 0, nil
@@ -275,7 +276,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		if err != nil {
 			//fetcher.SetTaskResult("error")
 			//fetcher.SetTaskStatus("done")
-			fetcher.AppendTaskOutput(err.Error())
+			d.Report(err.Error())
 			return 0, nil
 		}
 		if c_data.State.Running == false {
@@ -291,22 +292,22 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			if err != nil {
 				return 1, err
 			}
-			fetcher.AppendTaskOutput("Container execution terminated")
+			d.Report("Container execution terminated")
 
 			if len(task_info.CacheImage) > 0 {
-				fetcher.AppendTaskOutput("Saving container to " + sharedName)
+				d.Report("Saving container to " + sharedName)
 				d.CommitImage(container.ID, sharedName, "latest")
 
 				// Push image, if a cache_registry is configured in the node
 				if err := d.PushImage(sharedName); err != nil {
-					fetcher.AppendTaskOutput("Failed pushing image to cache registry: " + err.Error())
+					d.Report("Failed pushing image to cache registry: " + err.Error())
 				} else {
-					fetcher.AppendTaskOutput("Image pushed to cache registry successfully")
+					d.Report("Image pushed to cache registry successfully")
 				}
 			}
 
 			if len(task_info.Prune) > 0 {
-				fetcher.AppendTaskOutput("Pruning unused docker resources")
+				d.Report("Pruning unused docker resources")
 				d.Prune()
 			}
 

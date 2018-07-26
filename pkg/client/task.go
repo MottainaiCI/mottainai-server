@@ -27,8 +27,6 @@ import (
 	"io"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-
-	"fmt"
 )
 
 func (f *Fetcher) SetTaskField(field, value string) ([]byte, error) {
@@ -127,9 +125,6 @@ func (f *Fetcher) StreamOutput(r io.Reader) {
 }
 
 func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
-	if f.docID == "" {
-		fmt.Println(output)
-	}
 	return f.GetOptions("/api/tasks/append", map[string]string{
 		"id":     f.docID,
 		"output": output,

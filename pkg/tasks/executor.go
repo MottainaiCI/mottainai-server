@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -44,10 +45,11 @@ type ExecutorContext struct {
 	ArtefactDir, StorageDir, NamespaceDir         string
 	BuildDir, SourceDir, RootTaskDir, RealRootDir string
 	DocID                                         string
+	StandardOutput                                bool
 }
 
 func NewExecutorContext() *ExecutorContext {
-	return &ExecutorContext{}
+	return &ExecutorContext{StandardOutput: true}
 }
 
 type TaskExecutor struct {
@@ -144,6 +146,17 @@ func (d *TaskExecutor) ExitStatus(i int) {
 	d.MottainaiClient.SetTaskField("exit_status", strconv.Itoa(i))
 }
 
+func (d *TaskExecutor) Report(v ...interface{}) {
+	for _, val := range v {
+		if out, ok := val.(string); ok {
+			d.MottainaiClient.AppendTaskOutput(out)
+		}
+	}
+	if d.Context.StandardOutput {
+		log.Println(v)
+	}
+}
+
 func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.DocID = docID
 	fetcher := d.MottainaiClient
@@ -151,7 +164,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	fetcher.SetupTask()
 	ID := utils.GenID()
 	hostname := utils.Hostname()
-	fetcher.AppendTaskOutput("Node: " + ID + " ( " + hostname + " ) ")
+	d.Report("Node: " + ID + " ( " + hostname + " ) ")
 	fetcher.SetTaskField("nodeid", ID)
 
 	th := DefaultTaskHandler()
@@ -164,7 +177,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	fetcher.RunTask()
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
-	fetcher.AppendTaskOutput("> Build started!\n")
+	d.Report("> Build started!\n")
 
 	d.Context.RootTaskDir = path.Join(setting.Configuration.BuildPath, task_info.ID)
 	tmp_buildpath := path.Join(d.Context.RootTaskDir, "temp")
@@ -188,9 +201,9 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.StorageDir = storagetmp
 
 	// Fetch git repo (for now only one supported) and checkout commit
-	fetcher.AppendTaskOutput("> Cloning git repo: " + task_info.Source + " in : " + tmp_buildpath)
-
 	if len(task_info.Source) > 0 {
+		d.Report("> Cloning git repo: " + task_info.Source + " in : " + tmp_buildpath)
+
 		d.Context.SourceDir = path.Join(tmp_buildpath, "target_repo")
 		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
 			return err
