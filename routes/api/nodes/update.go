@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -47,6 +49,8 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 		return ":("
 	}
 
+	n := db.AllNodes()
+
 	nodesfound, err := db.FindDoc("Nodes", `[{"eq": "`+key+`", "in": ["key"]}]`)
 	if err != nil || len(nodesfound) > 1 || len(nodesfound) == 0 {
 		ctx.NotFound()
@@ -60,6 +64,12 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 		//	mynode, _ = db.GetNode(id)
 		mynodeid = id
 	}
+	var pos int
+	for p, i := range n {
+		if i.ID == mynodeid {
+			pos = p
+		}
+	}
 
 	hb := time.Now().Format("20060102150405")
 	db.UpdateNode(mynodeid, map[string]interface{}{
@@ -68,5 +78,5 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 		"last_report": hb,
 	})
 
-	return "OK"
+	return strings.Join([]string{strconv.Itoa(len(n)), strconv.Itoa(pos)}, ",")
 }

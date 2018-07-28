@@ -24,6 +24,9 @@ package mottainai
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"time"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -37,6 +40,7 @@ import (
 
 type MottainaiAgent struct {
 	*anagent.Anagent
+	Client client.HttpClient
 }
 
 func NewAgent() *MottainaiAgent {
@@ -49,13 +53,53 @@ func (m *MottainaiAgent) HealthCheckRun() {
 	m.Anagent.Start()
 }
 
+const MAXTIMER = 720
+const MINTIMER = 50
+const R = 3.81199961
+const STEPS = 215
+
+func (m *MottainaiAgent) SetKeepAlive(ID, hostname string) {
+	m.Client.RegisterNode(ID, hostname)
+
+	var tid anagent.TimerID = "keepalive"
+
+	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true, func(a *anagent.Anagent, c *client.Fetcher) {
+		if res, err := c.RegisterNode(ID, hostname); err == nil {
+			d := time.Duration(MINTIMER * time.Second)
+			data := string(res)
+			population := strings.Split(data, ",")
+			if len(population) == 2 {
+				nodes, e := strconv.Atoi(population[0])
+				if e != nil {
+					return
+				}
+				i, e := strconv.Atoi(population[1])
+				if e != nil {
+					return
+				}
+				// Readjust keepalive timer based on how many nodes are in the cluster.
+				pop := utils.FeatureScaling(float64(i), float64(nodes), 0, 1)
+				scale_factor := float64(nodes)
+				timer := utils.FeatureScaling(utils.LogisticMapSteps(STEPS, R, pop)*scale_factor, float64(nodes), MINTIMER, MAXTIMER)
+				//fmt.Println("Timer set to", timer)
+				if timer < MAXTIMER && timer > MINTIMER {
+					d = time.Duration(timer) * time.Second
+				}
+				m.GetTimer(tid).After(d)
+			}
+
+		}
+
+	})
+}
+
 func (m *MottainaiAgent) Run() error {
 
 	server := NewServer()
 	broker := server.Add(setting.Configuration.BrokerDefaultQueue)
 	th := agenttasks.DefaultTaskHandler()
 	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
-
+	m.Client = fetcher
 	m.Map(server)
 	m.Map(th)
 	m.Map(fetcher)
@@ -74,11 +118,7 @@ func (m *MottainaiAgent) Run() error {
 	}
 
 	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
-	fetcher.RegisterNode(ID, hostname)
-
-	m.TimerSeconds(int64(200), true, func(c *client.Fetcher) {
-		c.RegisterNode(ID, hostname)
-	})
+	m.SetKeepAlive(ID, hostname)
 
 	for q, concurrent := range setting.Configuration.Queues {
 		log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)

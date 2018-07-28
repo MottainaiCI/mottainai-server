@@ -56,6 +56,7 @@ type HttpClient interface {
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) ([]byte, error)
+	RegisterNode(string, string) ([]byte, error)
 	Doc(string)
 	SetupTask()
 	FinishTask()
