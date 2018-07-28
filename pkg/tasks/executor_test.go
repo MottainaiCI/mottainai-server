@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -45,6 +46,11 @@ func (f *FakeClient) DownloadArtefactsFromNamespace(string, string) {}
 func (f *FakeClient) DownloadArtefactsFromStorage(string, string)   {}
 func (f *FakeClient) UploadFile(string, string) error               { return nil }
 func (f *FakeClient) FailTask(string)                               {}
+func (f *FakeClient) ErrorTask()                                    {}
+func (f *FakeClient) RegisterNode(string, string) ([]byte, error)   { return []byte{}, nil }
+func (f *FakeClient) FinishTask()                                   {}
+func (f *FakeClient) SuccessTask()                                  {}
+func (f *FakeClient) StreamOutput(io.Reader)                        {}
 func (f *FakeClient) SetTaskField(a string, b string) ([]byte, error) {
 	f.Taskfield1 = a
 	f.Taskfield2 = b
