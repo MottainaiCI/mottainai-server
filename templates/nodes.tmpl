@@ -17,7 +17,7 @@
                               </div>
                               <a href="/nodes/add"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
 
-                      <table id="bootstrap-data-table" class="table table-striped table-bordered">
+                      <table id="node-list-all" class="table table-striped table-bordered">
                         <thead>
                           <tr>
 
@@ -54,16 +54,13 @@
 
             <script src="/assets/js/lib/data-table/datatables.min.js"></script>
             <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
-            <script src="/assets/js/lib/data-table/dataTables.buttons.min.js"></script>
-            <script src="/assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
-      
 
 
             <script type="text/javascript">
                 $(document).ready(function() {
                   $("time.timeago").timeago();
-                  $("#bootstrap-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
-                  $('#bootstrap-data-table-export').DataTable();
+                  $("#node-list-all").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+                  $('#node-list-all').DataTable();
                 } );
             </script>
 

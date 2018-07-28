@@ -328,7 +328,7 @@
                        <span class="badge badge-pill badge-secondary">Tip</span>
                        Create or tag a namespace with this content: <code>mottainai-cli --master {{AppSubURL}} namespace tag mybeautifulpony --from {{.Task.ID}}</code><br>
                      </div>
-                     <table id="bootstrap-data-table" class="table table-striped table-bordered">
+                     <table id="artefacts-table" class="table table-striped table-bordered">
                        <thead>
                          <tr>
                            <th>
@@ -361,14 +361,12 @@
 
 
 
- <script src="/assets/js/lib/data-table/datatables.min.js"></script>
- <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
- <script src="/assets/js/lib/data-table/dataTables.buttons.min.js"></script>
- <script src="/assets/js/lib/data-table/buttons.bootstrap.min.js"></script>
+<script src="/assets/js/lib/data-table/datatables.min.js"></script>
+<script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#bootstrap-data-table-export').DataTable();
+  $('#artefacts-table').DataTable();
   $("time.timeago").timeago();
  $.ajax({
      url: "/api/tasks/{{.Task.ID}}",
