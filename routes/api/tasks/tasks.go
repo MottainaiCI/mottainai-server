@@ -54,9 +54,16 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/artefacts", reqSignIn, AllArtefactList)
 
 	m.Post("/api/tasks/plan", reqSignIn, bind(agenttasks.Plan{}), Plan)
+
 	m.Get("/api/tasks/planned", reqSignIn, PlannedTasks)
 	m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
 	m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
+
+	m.Post("/api/tasks/pipeline", reqSignIn, bind(PipelineForm{}), Pipeline)
+	m.Get("/api/tasks/pipelines", reqSignIn, ShowAllPipelines)
+	m.Get("/api/tasks/pipelines/delete/:id", reqSignIn, PipelineDelete)
+	m.Get("/api/tasks/pipeline/:id", reqSignIn, PipelineShow)
+	m.Get("/api/tasks/pipeline/:id.yaml", reqSignIn, PipelineYaml) // TEMP: For now, as js  calls aren't with auth
 
 	m.Post("/api/tasks/artefact/upload", reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
 }

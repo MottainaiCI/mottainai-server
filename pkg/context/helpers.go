@@ -43,6 +43,24 @@ func (c *Context) CheckPlanPermissions(plan *task.Plan) bool {
 	return c.CheckTaskPermissions(plan.Task)
 }
 
+func (c *Context) CheckPipelinePermissions(pip *task.Pipeline) bool {
+	if c.User.IsManagerOrAdmin() {
+		return true
+	}
+	uid, err := strconv.Atoi(pip.Owner)
+	if err != nil {
+		return false
+	}
+
+	// Return true if Admin or Owner of it
+	if c.User.ID == uid {
+		return true
+	}
+
+	c.NoPermission()
+	return false
+}
+
 func (c *Context) CheckTaskPermissions(task *task.Task) bool {
 	if c.User.IsManagerOrAdmin() {
 		return true

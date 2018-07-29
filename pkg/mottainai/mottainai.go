@@ -236,6 +236,124 @@ func (m *Mottainai) WrapH(h http.Handler) macaron.Handler {
 		h.ServeHTTP(c.Resp, c.Req.Request)
 	}
 }
+func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
+	result := true
+	var rerr error
+	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
+		pip, err := d.GetPipeline(docID)
+		if err != nil {
+			rerr = err
+			result = false
+			return
+		}
+		var broker *Broker
+		if len(pip.Queue) > 0 {
+			broker = server.Get(pip.Queue)
+			log.Println("Sending pipeline to queue ", pip.Queue)
+
+		} else {
+			broker = server.Get(setting.Configuration.BrokerDefaultQueue)
+			log.Println("Sending pipeline to queue ", setting.Configuration.BrokerDefaultQueue)
+		}
+
+		if len(pip.Chord) > 0 {
+			tt := make(map[string]string)
+			for _, m := range pip.Group {
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+			}
+			cc := make(map[string]string)
+			for _, m := range pip.Chord {
+				cc[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+			}
+			log.Println("Sending chord ")
+
+			_, err := broker.SendChord(&BrokerSendOptions{ChordGroup: cc, Group: tt, Concurrency: pip.Concurrency})
+			if err != nil {
+				rerr = err
+				fmt.Printf("Could not send task: %s", err.Error())
+				for _, t := range pip.Tasks {
+					id, err := strconv.Atoi(t.ID)
+					if err != nil {
+						rerr = err
+						result = false
+						return
+					}
+					d.UpdateTask(id, map[string]interface{}{
+						"result": "error",
+						"status": "done",
+						"output": "Backend error, could not send task to broker: " + err.Error(),
+					})
+				}
+
+				result = false
+				return
+			}
+			return
+			return
+		}
+
+		if len(pip.Group) > 0 {
+			tt := make(map[string]string)
+			for _, m := range pip.Group {
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+			}
+			log.Println("Sending group ")
+
+			_, err := broker.SendGroup(&BrokerSendOptions{Group: tt, Concurrency: pip.Concurrency})
+			if err != nil {
+				rerr = err
+				fmt.Printf("Could not send task: %s", err.Error())
+				for _, t := range pip.Tasks {
+					id, err := strconv.Atoi(t.ID)
+					if err != nil {
+						rerr = err
+						result = false
+						return
+					}
+					d.UpdateTask(id, map[string]interface{}{
+						"result": "error",
+						"status": "done",
+						"output": "Backend error, could not send task to broker: " + err.Error(),
+					})
+				}
+
+				result = false
+				return
+			}
+			return
+		}
+
+		if len(pip.Chain) > 0 {
+			tt := make(map[string]string)
+			for _, m := range pip.Chain {
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+			}
+			log.Println("Sending chain ")
+
+			_, err := broker.SendChain(&BrokerSendOptions{Group: tt, Concurrency: pip.Concurrency})
+			if err != nil {
+				rerr = err
+				log.Println("Could not send task: %s", err.Error())
+
+				for _, t := range pip.Tasks {
+					id, _ := strconv.Atoi(t.ID)
+					d.UpdateTask(id, map[string]interface{}{
+						"result": "error",
+						"status": "done",
+						"output": "Backend error, could not send task to broker: " + err.Error(),
+					})
+				}
+
+				result = false
+				return
+			}
+			return
+		}
+
+	})
+
+	return result, nil
+}
 
 func (m *Mottainai) SendTask(docID int) (bool, error) {
 	result := true

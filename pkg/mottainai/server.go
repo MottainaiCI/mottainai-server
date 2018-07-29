@@ -38,9 +38,12 @@ type Broker struct {
 }
 
 type BrokerSendOptions struct {
-	Delayed  string
-	TaskName string
-	TaskID   int
+	Delayed           string
+	TaskName          string
+	TaskID            int
+	Group, ChordGroup map[string]string
+
+	Concurrency string
 }
 
 type MottainaiServer struct {
@@ -73,6 +76,197 @@ func (s *MottainaiServer) Get(queue string) *Broker {
 }
 func (b *Broker) NewWorker(ID string, parallel int) *machinery.Worker {
 	return b.Server.NewWorker(ID, parallel)
+}
+func (b *Broker) SendChain(opts *BrokerSendOptions) (*results.ChainAsyncResult, error) {
+
+	group := make([]*machinerytask.Signature, 0)
+
+	for i, task_type := range opts.Group {
+		onErr := make([]*machinerytask.Signature, 0)
+
+		onErr = append(onErr, &machinerytask.Signature{
+			Name: "error",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		onSuccess := make([]*machinerytask.Signature, 0)
+
+		onSuccess = append(onSuccess, &machinerytask.Signature{
+			Name: "success",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		signature := &machinerytask.Signature{
+			Name:       task_type,
+			RetryCount: 0,
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+			OnError:   onErr,
+			OnSuccess: onSuccess,
+		}
+
+		group = append(group, signature)
+	}
+
+	g, _ := machinerytask.NewChain(group...)
+	return b.Server.SendChain(g)
+}
+
+func (b *Broker) SendGroup(opts *BrokerSendOptions) ([]*results.AsyncResult, error) {
+
+	group := make([]*machinerytask.Signature, 0)
+
+	for i, task_type := range opts.Group {
+		onErr := make([]*machinerytask.Signature, 0)
+
+		onErr = append(onErr, &machinerytask.Signature{
+			Name: "error",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		onSuccess := make([]*machinerytask.Signature, 0)
+
+		onSuccess = append(onSuccess, &machinerytask.Signature{
+			Name: "success",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		signature := &machinerytask.Signature{
+			Name:       task_type,
+			RetryCount: 0,
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+			OnError:   onErr,
+			OnSuccess: onSuccess,
+		}
+
+		group = append(group, signature)
+	}
+	ci, _ := strconv.Atoi(opts.Concurrency)
+	g, _ := machinerytask.NewGroup(group...)
+	return b.Server.SendGroup(g, ci)
+}
+
+func (b *Broker) SendChord(opts *BrokerSendOptions) (*results.ChordAsyncResult, error) {
+
+	group := make([]*machinerytask.Signature, 0)
+	chord := make([]*machinerytask.Signature, 0)
+
+	for i, task_type := range opts.Group {
+		onErr := make([]*machinerytask.Signature, 0)
+
+		onErr = append(onErr, &machinerytask.Signature{
+			Name: "error",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		onSuccess := make([]*machinerytask.Signature, 0)
+
+		onSuccess = append(onSuccess, &machinerytask.Signature{
+			Name: "success",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		signature := &machinerytask.Signature{
+			Name:       task_type,
+			RetryCount: 0,
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+			OnError:   onErr,
+			OnSuccess: onSuccess,
+		}
+
+		group = append(group, signature)
+	}
+
+	for i, task_type := range opts.ChordGroup {
+		onErr := make([]*machinerytask.Signature, 0)
+
+		onErr = append(onErr, &machinerytask.Signature{
+			Name: "error",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		onSuccess := make([]*machinerytask.Signature, 0)
+
+		onSuccess = append(onSuccess, &machinerytask.Signature{
+			Name: "success",
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+		})
+
+		signature := &machinerytask.Signature{
+			Name:       task_type,
+			RetryCount: 0,
+			Args: []machinerytask.Arg{
+				{
+					Type:  "string",
+					Value: i,
+				},
+			},
+			OnError:   onErr,
+			OnSuccess: onSuccess,
+		}
+
+		chord = append(chord, signature)
+	}
+
+	g, _ := machinerytask.NewGroup(group...)
+	cc, _ := machinerytask.NewChord(g, chord[0]) // Only one is supported..
+	ci, _ := strconv.Atoi(opts.Concurrency)
+
+	return b.Server.SendChord(cc, ci)
 }
 
 func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error) {

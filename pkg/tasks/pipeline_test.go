@@ -23,52 +23,32 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"errors"
-	"strconv"
+	"fmt"
+	"testing"
 )
 
-type Executor interface {
-	Play(string) (int, error)
-	Setup(string) error
-	Clean() error
-	Fail(string)
-	Success(int)
-	ExitStatus(int)
-}
+func TestPipeline(t *testing.T) {
 
-type Player struct{ TaskID string }
+	pipe := &Pipeline{}
+	pipe.Group = []string{"test", "test1"}
 
-func NewPlayer(taskid string) *Player {
-	return &Player{TaskID: taskid}
-}
+	m := make(map[string]*Task)
+	test := &Task{Namespace: "boh"}
+	test1 := &Task{Namespace: "bar"}
+	m["test"] = test
+	m["test1"] = test1
 
-func (p *Player) EarlyFail(e Executor, TaskID, reason string) {
-	err := e.Setup(p.TaskID)
-	if err != nil {
-		e.Fail("Setup phase error: " + err.Error())
+	pipe.Tasks = m
+
+	test_res := pipe.ToMap()
+	fmt.Println(test_res)
+
+	pipe2 := DefaultTaskHandler().NewPipelineFromMap(test_res)
+
+	if pipe2.Tasks["test"].Namespace != "boh" {
+		t.Error("Invalid namespace for ", pipe2.Tasks["test"])
 	}
-	e.Fail(reason)
-}
-
-func (p *Player) Start(e Executor) (int, error) {
-	defer e.Clean()
-	err := e.Setup(p.TaskID)
-	if err != nil {
-		e.Fail("Setup phase error: " + err.Error())
-		return 1, errors.New("Setup phase error: " + err.Error())
+	if pipe2.Tasks["test1"].Namespace != "bar" {
+		t.Error("Invalid namespace for ", pipe2.Tasks["test1"])
 	}
-
-	res, err := e.Play(p.TaskID)
-
-	if err != nil {
-		errmsg := "Play phase error (Exit with: " + strconv.Itoa(res) + ") : " + err.Error()
-		e.Fail(errmsg)
-		return 1, errors.New(errmsg)
-	} else {
-		e.Success(res)
-	}
-
-	e.ExitStatus(res)
-
-	return res, err
 }

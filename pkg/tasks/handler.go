@@ -59,10 +59,33 @@ func DefaultTaskHandler() *TaskHandler {
 	}}
 }
 
-func DockerPlayer(docID string) (int, error) {
+func HandleArgs(args ...interface{}) (string, int, error) {
+	var docID string
+	if len(args) > 1 {
+		docID = args[0].(string)
+
+		for _, v := range args[1:] { // If other tasks in the chain failed, propagate same error
+			if v.(int) != 0 {
+				return docID, v.(int), errors.New("Other tasks in the chain failed!")
+			}
+
+		}
+	} else {
+		docID = args[len(args)-1].(string)
+	}
+	return docID, 0, nil
+}
+
+func DockerPlayer(args ...interface{}) (int, error) {
+	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
 	executor := NewDockerExecutor()
 	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	if err != nil {
+		player.EarlyFail(executor, docID, err.Error())
+		return e, err
+	}
+
 	return player.Start(executor)
 }
 
@@ -236,8 +259,14 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 			entrypoint = append(entrypoint, v.(string))
 		}
 	}
+	var id string
+
+	if str, ok := t["ID"].(string); ok {
+		id = str
+	}
 
 	task := Task{
+		ID:           id,
 		Queue:        queue,
 		Source:       source,
 		Script:       script,

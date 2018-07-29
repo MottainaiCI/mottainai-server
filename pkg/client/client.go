@@ -26,6 +26,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"io"
@@ -217,6 +218,7 @@ func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte
 	form := url.Values{}
 	var InterfaceList []interface{}
 	var Strings []string
+	var String string
 
 	for k, v := range option {
 		if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
@@ -230,8 +232,16 @@ func (f *Fetcher) GenericForm(URL string, option map[string]interface{}) ([]byte
 
 		} else if reflect.TypeOf(v) == reflect.TypeOf(float64(0)) {
 			form.Add(k, utils.FloatToString(v.(float64)))
-		} else {
+
+		} else if reflect.TypeOf(v) == reflect.TypeOf(String) {
 			form.Add(k, v.(string))
+		} else {
+			var b bytes.Buffer
+			e := gob.NewEncoder(&b)
+			if err := e.Encode(v); err != nil {
+				panic(err)
+			}
+			form.Add(k, b.String())
 		}
 	}
 

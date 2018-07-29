@@ -40,7 +40,7 @@ import (
 )
 
 type Task struct {
-	ID           string   `json:"ID"` // ARMv7l overflows :(
+	ID           string   `json:"ID" form:"ID"` // ARMv7l overflows :(
 	Source       string   `json:"source" form:"source"`
 	Script       []string `json:"script" form:"script"`
 	Directory    string   `json:"directory" form:"directory"`

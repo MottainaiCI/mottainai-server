@@ -32,7 +32,7 @@ import (
 )
 
 var Collections = []string{TaskColl,
-	UserColl, PlansColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
+	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
 
 //var DBInstance *Interface{}
 /// POC
@@ -58,6 +58,7 @@ func (d *Database) Init() {
 	d.IndexToken()
 	d.IndexOrganization()
 	d.IndexSetting()
+	d.IndexPipeline()
 }
 
 var MyDbInstance *db.DB
