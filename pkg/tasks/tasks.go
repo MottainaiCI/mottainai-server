@@ -283,6 +283,14 @@ func (t *Task) AppendBuildLog(s string) error {
 	})
 
 }
+
+func (t *Task) IsStopped() bool {
+	if t.Status == setting.TASK_STATE_STOPPED || t.Status == setting.TASK_STATE_ASK_STOP {
+		return true
+	}
+
+	return false
+}
 func (t *Task) IsDone() bool {
 	if t.Status == setting.TASK_STATE_DONE {
 		return true

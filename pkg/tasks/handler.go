@@ -68,7 +68,6 @@ func HandleArgs(args ...interface{}) (string, int, error) {
 			if v.(int) != 0 {
 				return docID, v.(int), errors.New("Other tasks in the chain failed!")
 			}
-
 		}
 	} else {
 		docID = args[len(args)-1].(string)

@@ -60,8 +60,17 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 		// Set state once we have task's exit status
 		if f.Field == "exit_status" {
 
+			// TODO: To change to properly handling of fields as well, but for now
+			// we can cope with it.
+
+			if !mytask.IsStopped() {
+				db.UpdateTask(f.Id, map[string]interface{}{
+					"result": mytask.DecodeStatus(f.Value),
+				})
+			}
+
 			db.UpdateTask(f.Id, map[string]interface{}{
-				"result": mytask.DecodeStatus(f.Value),
+				"exit_status": f.Value,
 			})
 
 			t, err := db.GetTask(f.Id)
