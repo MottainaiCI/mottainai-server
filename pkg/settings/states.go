@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package setting
 
+const TASK_PUBLISH_MODE_APPEND = "append"
 const TASK_STATE_RUNNING = "running"
 const TASK_STATE_DONE = "done"
 const TASK_STATE_STOPPED = "stopped"

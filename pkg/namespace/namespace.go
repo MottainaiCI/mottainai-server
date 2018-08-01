@@ -155,6 +155,13 @@ func (n *Namespace) Tag(from string) error {
 	return utils.DeepCopy(taskArtefact, namespace)
 }
 
+func (n *Namespace) Append(from string) error {
+
+	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, from)
+	namespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	return utils.DeepCopy(taskArtefact, namespace)
+}
+
 func (n *Namespace) Clone(old Namespace) error {
 
 	n.Wipe()
