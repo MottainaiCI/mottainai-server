@@ -83,8 +83,21 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 	if err != nil {
 		return err
 	}
+
 	if !ctx.CheckPipelinePermissions(&pip) {
 		return errors.New("Moar permissions are required for this user")
+	}
+
+	for k, t := range pip.Tasks {
+		uid, err := strconv.Atoi(t.ID)
+		if err != nil {
+			return err
+		}
+		ta, err := db.GetTask(uid)
+		if err != nil {
+			return err
+		}
+		pip.Tasks[k] = ta
 	}
 
 	ctx.JSON(200, pip)
