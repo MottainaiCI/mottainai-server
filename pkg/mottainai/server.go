@@ -42,8 +42,8 @@ type BrokerSendOptions struct {
 	TaskName          string
 	TaskID            int
 	Group, ChordGroup map[string]string
-
-	Concurrency string
+	Retry             int
+	Concurrency       string
 }
 
 type MottainaiServer struct {
@@ -108,7 +108,7 @@ func (b *Broker) SendChain(opts *BrokerSendOptions) (*results.ChainAsyncResult, 
 
 		signature := &machinerytask.Signature{
 			Name:       task_type,
-			RetryCount: 0,
+			RetryCount: opts.Retry,
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
@@ -157,7 +157,7 @@ func (b *Broker) SendGroup(opts *BrokerSendOptions) ([]*results.AsyncResult, err
 
 		signature := &machinerytask.Signature{
 			Name:       task_type,
-			RetryCount: 0,
+			RetryCount: opts.Retry,
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
@@ -207,7 +207,7 @@ func (b *Broker) SendChord(opts *BrokerSendOptions) (*results.ChordAsyncResult, 
 
 		signature := &machinerytask.Signature{
 			Name:       task_type,
-			RetryCount: 0,
+			RetryCount: opts.Retry,
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
@@ -248,7 +248,7 @@ func (b *Broker) SendChord(opts *BrokerSendOptions) (*results.ChordAsyncResult, 
 
 		signature := &machinerytask.Signature{
 			Name:       task_type,
-			RetryCount: 0,
+			RetryCount: opts.Retry,
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
@@ -298,7 +298,7 @@ func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error)
 
 	signature := &machinerytask.Signature{
 		Name:       taskname,
-		RetryCount: 0,
+		RetryCount: opts.Retry,
 		Args: []machinerytask.Arg{
 			{
 				Type:  "string",

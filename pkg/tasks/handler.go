@@ -267,8 +267,13 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["ID"].(string); ok {
 		id = str
 	}
+	var retry string
 
+	if str, ok := t["retry"].(string); ok {
+		retry = str
+	}
 	task := Task{
+		Retry:        retry,
 		ID:           id,
 		Queue:        queue,
 		Source:       source,

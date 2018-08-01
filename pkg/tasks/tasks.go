@@ -72,6 +72,7 @@ type Task struct {
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
 	Queue       string `json:"queue" form:"queue"`
+	Retry       string `json:"retry" form:"retry"`
 
 	Delayed     string   `json:"eta" form:"eta"`
 	TimeOut     float64  `json:"timeout" form:"timeout"`
@@ -119,6 +120,16 @@ func (t *Task) ToMap() map[string]interface{} {
 		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
+}
+
+func (t *Task) Trials() int {
+
+	ret, err := strconv.Atoi(t.Retry)
+	if err != nil {
+		return 0
+	}
+
+	return ret
 }
 
 func FromFile(file string) (*Task, error) {

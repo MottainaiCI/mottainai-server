@@ -267,7 +267,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 			}
 			log.Println("Sending chord ")
 
-			_, err := broker.SendChord(&BrokerSendOptions{ChordGroup: cc, Group: tt, Concurrency: pip.Concurrency})
+			_, err := broker.SendChord(&BrokerSendOptions{Retry: pip.Trials(), ChordGroup: cc, Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
 				fmt.Printf("Could not send task: %s", err.Error())
@@ -299,7 +299,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 			}
 			log.Println("Sending group ")
 
-			_, err := broker.SendGroup(&BrokerSendOptions{Group: tt, Concurrency: pip.Concurrency})
+			_, err := broker.SendGroup(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
 				fmt.Printf("Could not send task: %s", err.Error())
@@ -330,7 +330,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 			}
 			log.Println("Sending chain ")
 
-			_, err := broker.SendChain(&BrokerSendOptions{Group: tt, Concurrency: pip.Concurrency})
+			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
 				log.Println("Could not send task: %s", err.Error())
@@ -387,7 +387,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 			return
 		}
 
-		_, err = broker.SendTask(&BrokerSendOptions{Delayed: task.Delayed, TaskName: task.TaskName, TaskID: docID})
+		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, TaskName: task.TaskName, TaskID: docID})
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
 			d.UpdateTask(docID, map[string]interface{}{

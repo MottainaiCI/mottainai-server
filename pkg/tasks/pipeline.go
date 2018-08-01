@@ -25,6 +25,7 @@ package agenttasks
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -39,6 +40,7 @@ type Pipeline struct {
 	Queue string `json:"queue" form:"queue"`
 	//Status       string   `json:"status" form:"status"`
 	//Result       string   `json:"result" form:"result"`
+	Retry string `json:"retry" form:"retry"`
 
 	Owner       string `json:"pipeline_owner_id" form:"pipeline_owner_id"`
 	Name        string `json:"pipeline_name" form:"pipeline_name"`
@@ -46,6 +48,16 @@ type Pipeline struct {
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
 	Concurrency string `json:"concurrency" form:"concurrency"`
+}
+
+func (t *Pipeline) Trials() int {
+
+	ret, err := strconv.Atoi(t.Retry)
+	if err != nil {
+		return 0
+	}
+
+	return ret
 }
 
 func (t *Pipeline) Reset() {
