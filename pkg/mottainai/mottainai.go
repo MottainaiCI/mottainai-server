@@ -176,6 +176,14 @@ func (m *Mottainai) SetStatic() {
 	))
 }
 
+func (m *Mottainai) listenAddr() string {
+	return fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
+}
+
+func (m *Mottainai) url() string {
+	return fmt.Sprintf("%s://%s", setting.Configuration.Protocol, m.listenAddr())
+}
+
 func (m *Mottainai) Start() error {
 
 	m.SetAutoHead(true)
@@ -207,15 +215,14 @@ func (m *Mottainai) Start() error {
 
 	m.LoadPlans()
 
-	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
-	log.Printf("Listen: %v://%s", setting.Configuration.Protocol, listenAddr)
+	log.Printf("Listen: ", m.url())
 
 	//m.Run()
 	var err error
 	if len(setting.Configuration.TLSCert) > 0 && len(setting.Configuration.TLSKey) > 0 {
-		err = http.ListenAndServeTLS(listenAddr, setting.Configuration.TLSCert, setting.Configuration.TLSKey, m)
+		err = http.ListenAndServeTLS(m.listenAddr(), setting.Configuration.TLSCert, setting.Configuration.TLSKey, m)
 	} else {
-		err = http.ListenAndServe(listenAddr, m)
+		err = http.ListenAndServe(m.listenAddr(), m)
 	}
 
 	if err != nil {
