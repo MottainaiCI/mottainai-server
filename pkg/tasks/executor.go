@@ -48,6 +48,8 @@ type ExecutorContext struct {
 	StandardOutput                                bool
 }
 
+const ABORT_EXECUTION_ERROR = "Aborting execution"
+
 func NewExecutorContext() *ExecutorContext {
 	return &ExecutorContext{StandardOutput: true}
 }
@@ -60,24 +62,25 @@ type TaskExecutor struct {
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	fetcher := d.MottainaiClient
 	task_info := DefaultTaskHandler().FetchTask(fetcher)
+	var err error
 	if len(task_info.RootTask) > 0 {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
-			fetcher.DownloadArtefactsFromTask(f, artefactdir)
+			err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
 		}
 	}
 
 	if len(task_info.Namespace) > 0 {
 		for _, f := range strings.Split(task_info.Namespace, ",") {
-			fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
+			err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
 		}
 	}
 
 	if len(task_info.Storage) > 0 {
 		for _, f := range strings.Split(task_info.Storage, ",") {
-			fetcher.DownloadArtefactsFromStorage(f, storagedir)
+			err = fetcher.DownloadArtefactsFromStorage(f, storagedir)
 		}
 	}
-	return nil
+	return err
 }
 
 func (d *TaskExecutor) UploadArtefacts(folder string) error {

@@ -63,21 +63,21 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 			// TODO: To change to properly handling of fields as well, but for now
 			// we can cope with it.
 
-			if !mytask.IsStopped() {
-				db.UpdateTask(f.Id, map[string]interface{}{
-					"result": mytask.DecodeStatus(f.Value),
-				})
-			}
-
 			db.UpdateTask(f.Id, map[string]interface{}{
 				"exit_status": f.Value,
 			})
 
-			t, err := db.GetTask(f.Id)
-			if err != nil {
-				return err
+			if !mytask.IsStopped() {
+				db.UpdateTask(f.Id, map[string]interface{}{
+					"result": mytask.DecodeStatus(f.Value),
+				})
+
+				t, err := db.GetTask(f.Id)
+				if err != nil {
+					return err
+				}
+				t.HandleStatus()
 			}
-			t.HandleStatus()
 		}
 	}
 

@@ -267,10 +267,10 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			if timedout {
 				d.Report("Task timeout!")
 			}
-			d.Report("Aborting execution")
+			d.Report(ABORT_EXECUTION_ERROR)
 			docker_client.StopContainer(container.ID, uint(20))
 			fetcher.AbortTask()
-			return 0, nil
+			return 0, errors.New(ABORT_EXECUTION_ERROR)
 		}
 		c_data, err := docker_client.InspectContainer(container.ID) // update our container information
 		if err != nil {
