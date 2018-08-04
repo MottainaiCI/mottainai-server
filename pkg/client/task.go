@@ -24,6 +24,7 @@ package client
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -125,6 +126,9 @@ func (f *Fetcher) StreamOutput(r io.Reader) {
 }
 
 func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
+	if f.ActiveReports {
+		fmt.Println(output)
+	}
 	return f.GetOptions("/api/tasks/append", map[string]string{
 		"id":     f.docID,
 		"output": output,

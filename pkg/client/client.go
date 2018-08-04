@@ -51,9 +51,9 @@ type HttpClient interface {
 
 	GetTask() ([]byte, error)
 	AbortTask()
-	DownloadArtefactsFromTask(string, string)
-	DownloadArtefactsFromNamespace(string, string)
-	DownloadArtefactsFromStorage(string, string)
+	DownloadArtefactsFromTask(string, string) error
+	DownloadArtefactsFromNamespace(string, string) error
+	DownloadArtefactsFromStorage(string, string) error
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) ([]byte, error)
