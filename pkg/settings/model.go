@@ -33,6 +33,18 @@ type Setting struct {
 	Value string `json:"value" form:"value"`
 }
 
+func (s *Setting) IsEnabled() bool {
+
+	if s.Value == "yes" || s.Value == "true" {
+		return true
+	}
+	return false
+
+}
+func (s *Setting) IsDisabled() bool {
+	return !s.IsEnabled()
+}
+
 func (s *Setting) Clear() {
 	s.Key = ""
 	s.Value = ""

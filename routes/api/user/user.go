@@ -208,6 +208,11 @@ func Setup(m *macaron.Macaron) {
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
+	// TODO: Move from Here
+	// goth.UseProviders(
+	// 	github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, m.url()+"/auth/github/callback"),
+	// )
+
 	m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
 	m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
 

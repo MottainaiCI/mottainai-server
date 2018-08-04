@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -20,29 +20,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package api
+package settingsapi
 
 import (
-	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
-	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
-	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
-	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/go-macaron/binding"
 
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
 	macaron "gopkg.in/macaron.v1"
 )
 
-func Setup(m *macaron.Macaron) {
-	userapi.Setup(m)
-	nodesapi.Setup(m)
-	tasksapi.Setup(m)
-	namespacesapi.Setup(m)
-	apitoken.Setup(m)
-	storagesapi.Setup(m)
-	stats.Setup(m)
-	settingsroute.Setup(m)
+type Setting struct {
+	Key   string `form:"key"`
+	Value string `form:"value"`
+}
 
+func Setup(m *macaron.Macaron) {
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
+	bind := binding.Bind
+	m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
+	m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
+	m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
+	m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
 }

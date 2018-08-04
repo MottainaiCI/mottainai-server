@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -117,6 +118,12 @@ func Login(c *context.Context, db *database.Database) {
 		c.SetCookie("redirect_to", "", -1, setting.Configuration.AppSubURL)
 		return
 	}
+	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.Data["NoSignUp"] = "yes"
+		}
+	}
 
 	c.Success(LOGIN)
 }
@@ -174,7 +181,16 @@ func SignOut(c *context.Context) {
 	c.SubURLRedirect("/")
 }
 
-func SignUp(c *context.Context) {
+func SignUp(c *context.Context, db *database.Database) {
+
+	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.ServerError("Signup disabled", errors.New("Signup disabled"))
+			return
+		}
+	}
+
 	c.Title("Sign up")
 
 	c.Data["EnableCaptcha"] = true
@@ -232,6 +248,13 @@ func DeleteUser(ctx *context.Context, db *database.Database) {
 }
 
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
+	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.ServerError("Signup disabled", errors.New("Signup disabled"))
+			return
+		}
+	}
 	c.Title("Sign Up")
 
 	c.Data["EnableCaptcha"] = true

@@ -89,6 +89,7 @@ type Config struct {
 
 	WebHookGitHubToken  string `mapstructure:"github_token"`
 	WebHookGitHubSecret string `mapstructure:"github_secret"`
+	WebHookDefaultQueue string `mapstructure:"webhook_default_queue"`
 
 	TLSCert string `mapstructure:"tls_cert"`
 	TLSKey  string `mapstructure:"tls_key"`
@@ -154,7 +155,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("standalone", false)
 	viper.SetDefault("github_token", "")
 	viper.SetDefault("github_secret", "")
-
+	viper.SetDefault("webhook_default_queue", "webhooks")
 	viper.SetDefault("tls_cert", "")
 	viper.SetDefault("tls_key", "")
 

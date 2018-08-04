@@ -30,10 +30,15 @@
 
                         </div>
                         <button type="submit" class="btn btn-success btn-flat m-b-30 m-t-30">Sign in</button>
-
+                        {{ if .NoSignUp }}
+                        <div class="register-link m-t-15 text-center">
+                            <p>Signup disabled - contact infrastructure administrator</p>
+                        </div>
+                        {{ else }}
                         <div class="register-link m-t-15 text-center">
                             <p>Don't have account ? <a href="/user/sign_up"> Sign Up Here</a></p>
                         </div>
+                        {{ end }}
                     </form>
                 </div>
             </div>

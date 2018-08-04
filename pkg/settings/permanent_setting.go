@@ -20,29 +20,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package api
+package setting
 
-import (
-	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
-	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
-	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
-	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
-
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
-	macaron "gopkg.in/macaron.v1"
-)
-
-func Setup(m *macaron.Macaron) {
-	userapi.Setup(m)
-	nodesapi.Setup(m)
-	tasksapi.Setup(m)
-	namespacesapi.Setup(m)
-	apitoken.Setup(m)
-	storagesapi.Setup(m)
-	stats.Setup(m)
-	settingsroute.Setup(m)
-
-}
+const SYSTEM_SIGNUP_ENABLED = "system.signup"
