@@ -5,6 +5,7 @@
 <script src="{{AppSubURL}}/assets/js/vendor/jquery.terminal.min.js"></script>
 <script src="{{AppSubURL}}/assets/js/vendor/unix_formatting.js"></script>
 <link rel="stylesheet" href="{{AppSubURL}}/assets/css/jquery.terminal.min.css">
+{{end}}
 <style>
 @keyframes blink {
     50% {
@@ -58,18 +59,20 @@
       var save_state = [];
       var task_status = "{{.Task.Status}}";
 
-      var term = $('#terminal').terminal(function(command, term) {},{
-          greetings: '',
-          name: 'build',
-          height: 250,
-      });
-      term.pause();
-      save_state.push(term.export_view()); // save initial state
-      $(window).on('popstate', function(e) {
-          if (save_state.length) {
-              term.import_view(save_state[history.state || 0]);
-          }
-      });
+     {{if eq .Task.Status "running"}}
+        var term = $('#terminal').terminal(function(command, term) {},{
+            greetings: '',
+            name: 'build',
+            height: 250,
+        });
+        term.pause();
+        save_state.push(term.export_view()); // save initial state
+        $(window).on('popstate', function(e) {
+            if (save_state.length) {
+                term.import_view(save_state[history.state || 0]);
+            }
+        });
+      {{end}}
       getData();
       if (task_status != "done" && task_status != "error" && task_status != "stop") {
             setInterval(getData, 1000);
@@ -89,7 +92,7 @@
                   location.reload();
                }
           });
-
+          {{if eq .Task.Status "running"}}
         $.ajax({
             url: "/api/tasks/tail_output/{{.Task.ID}}/"+3000,
             beforeSend: function( xhr ) {
@@ -102,10 +105,11 @@
                   term.echo(" "+data.trim());
                }
           });
+          {{end}}
         }
 		});
 </script>
-{{end}}
+
 
 <div class="breadcrumbs">
     <div class="col-sm-4">
