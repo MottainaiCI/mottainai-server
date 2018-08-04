@@ -69,6 +69,8 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 
 	pl := payload.(github.PullRequestPayload)
 	repo := pl.PullRequest.Base.Repo.CloneURL
+	//gh_user := pl.PullRequest.User.Login
+
 	//commit := pl.PullRequest.Head.Sha
 	number := pl.PullRequest.Number
 	pruid := pl.PullRequest.Head.Sha + strconv.FormatInt(number, 10) + repo
@@ -108,6 +110,7 @@ func HandlePullRequest(payload interface{}, header webhooks.Header, m *mottainai
 				panic(err)
 			}
 			t.Namespace = "" // do not allow automatic tag from PR
+			t.Queue = setting.Configuration.WebHookDefaultQueue
 			log.Println(t)
 
 			docID, err := db.CreateTask(t.ToMap())
