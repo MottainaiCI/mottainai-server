@@ -373,6 +373,15 @@
   version = "v1.8.0"
 
 [[projects]]
+  name = "github.com/markbates/goth"
+  packages = [
+    ".",
+    "providers/github"
+  ]
+  revision = "5fad70a91bce59cc5ff8a84c01e1da5f49f31e6b"
+  version = "v1.45.9"
+
+[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -791,6 +800,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d5c73815498015266e6c519c2db622285e3192dc43db20c7597f55c61d247a1c"
+  inputs-digest = "3afd9a1b204ba7af8d109436c80da99e3bbdbdd2bdc84142fa341d7cbbca09c5"
   solver-name = "gps-cdcl"
   solver-version = 1
