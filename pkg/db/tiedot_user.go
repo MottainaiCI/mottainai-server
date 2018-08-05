@@ -166,6 +166,24 @@ func (d *Database) GetUsersByName(name string) ([]user.User, error) {
 	return res, nil
 }
 
+// TODO: To replace with a specific collection to index search
+func (d *Database) GetUserByIdentity(identity_type, id string) (user.User, error) {
+	all := d.AllUsers()
+	var res []user.User
+	for _, u := range all {
+		if i, ok := u.Identities[identity_type]; ok && i.ID == id {
+			res = append(res, u)
+		}
+	}
+	if len(res) > 1 {
+		return user.User{}, errors.New("More than one user match with same id")
+	}
+	if len(res) == 0 {
+		return user.User{}, errors.New("No user id found")
+	}
+	return res[0], nil
+}
+
 func (d *Database) GetUser(docID int) (user.User, error) {
 	doc, err := d.GetDoc(UserColl, docID)
 	if err != nil {

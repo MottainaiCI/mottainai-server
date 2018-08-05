@@ -93,6 +93,41 @@ func TestGetUserByName(t *testing.T) {
 		t.Fatal("Could not find the inserted user")
 	}
 
+	uuu.AddIdentity("github", &user.Identity{ID: "foo"})
+	err = db.UpdateUser(id, uuu.ToMap())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	users, err := db.GetUserByIdentity("github", "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if users.Identities["github"].ID != "foo" {
+		t.Fatal("Failed decoding identities")
+	}
+	uu, _ = db.GetUser(id)
+	if uu.Identities["github"].ID != "foo" {
+		t.Fatal("Failed decoding identities")
+	}
+
+	uu.RemoveIdentity("github")
+
+	err = db.UpdateUser(id, uu.ToMap())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	uu, _ = db.GetUser(id)
+	if _, ok := uu.Identities["github"]; ok {
+		t.Fatal("Failed removing identities")
+	}
+
+	users, err = db.GetUserByIdentity("github", "foo")
+	if err == nil {
+		t.Fatal("Found identity even if removed")
+	}
+
 }
 
 func TestLogin(t *testing.T) {
