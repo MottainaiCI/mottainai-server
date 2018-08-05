@@ -87,9 +87,11 @@ type Config struct {
 	PrivateQueue      int      `mapstructure:"private_queue"`
 	StandAlone        bool     `mapstructure:"standalone"`
 
-	WebHookGitHubToken  string `mapstructure:"github_token"`
-	WebHookGitHubSecret string `mapstructure:"github_secret"`
-	WebHookDefaultQueue string `mapstructure:"webhook_default_queue"`
+	WebHookGitHubToken     string `mapstructure:"github_token"`
+	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
+	WebHookToken           string `mapstructure:"webhook_token"`
+	WebHookGitHubSecret    string `mapstructure:"github_secret"`
+	WebHookDefaultQueue    string `mapstructure:"webhook_default_queue"`
 
 	TLSCert string `mapstructure:"tls_cert"`
 	TLSKey  string `mapstructure:"tls_key"`
@@ -156,6 +158,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("github_token", "")
 	viper.SetDefault("github_secret", "")
 	viper.SetDefault("webhook_default_queue", "webhooks")
+	viper.SetDefault("webhook_token", "")
+	viper.SetDefault("github_token_user", "")
 	viper.SetDefault("tls_cert", "")
 	viper.SetDefault("tls_key", "")
 
@@ -231,6 +235,7 @@ private_queue: %d
 standalone: %t
 github_token: %s
 github_secret: *****************
+github_token_user: *****************
 
 tls_cert: %s
 tls_key: ***********************

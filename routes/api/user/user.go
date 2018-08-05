@@ -23,10 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package userapi
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -207,11 +208,6 @@ func Setup(m *macaron.Macaron) {
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
-
-	// TODO: Move from Here
-	// goth.UseProviders(
-	// 	github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, m.url()+"/auth/github/callback"),
-	// )
 
 	m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
 	m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)

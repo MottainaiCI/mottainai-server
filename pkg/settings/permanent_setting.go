@@ -23,3 +23,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package setting
 
 const SYSTEM_SIGNUP_ENABLED = "system.signup"
+const SYSTEM_WEBHOOK_ENABLED = "system.webhook"
+const SYSTEM_THIRDPARTY_INTEGRATION_ENABLED = "system.thirdparty_integration"

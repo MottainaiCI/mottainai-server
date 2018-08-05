@@ -5,7 +5,9 @@
                         <aside class="profile-nav alt">
                             <section class="card">
                                 <div class="card-header user-header alt bg-dark">
+                                  {{ if ne .LoggedUserID .User.ID }}
                                   {{if .IsAdmin}}{{template "user/auth/action" .}}{{end}}
+                                  {{end}}
                                     <div class="media">
                                         <i class="align-self-center mr-3 fa fa-2x fa-user-o"></i>
                                         <div class="media-body">
@@ -30,7 +32,41 @@
                         </aside>
                     </div>
 
+                {{ if eq .LoggedUserID .User.ID }}
+                <div class="col-md-12">
+                        <aside class="profile-nav alt">
+                            <section class="card">
+                              <div class="card-header user-header alt bg-dark text-light ">
+                              Integrate your account with Third-party services
 
+
+                              </div>
+
+                              <div class="card-header ">
+
+                              Login: <a target="_blank" href="/auth/github"><i class="fa fa-github"></i> </a>
+
+                              </div>
+
+                              <div class="card-header user-header alt bg-dark text-light ">
+                              Current integrations:
+
+
+                              </div>
+                                <ul class="list-group list-group-flush">
+
+                                  {{range .User.Identities}}
+                                  <li class="list-group-item">
+                                      <i class="fa fa-key"></i> {{.Provider}} <span class="badge  pull-right">{{.ID}}</span> <a target="_blank" href="/logout/{{.Provider}}"> Logout </a>
+                                  </li>
+                                  {{end}}
+
+                                </ul>
+
+                            </section>
+                        </aside>
+                    </div>
+              {{ end }}
 
 
 {{template "base/footer" .}}

@@ -29,9 +29,14 @@ import (
 	"regexp"
 	"strings"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	com "github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
+	"github.com/markbates/goth"
+
+	"github.com/markbates/goth/providers/github"
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -193,6 +198,7 @@ func validate(errs binding.Errors, data map[string]interface{}, f Form, l macaro
 	}
 	return errs
 }
+
 func Setup(m *macaron.Macaron) {
 	// ***** START: User *****
 	//
@@ -215,6 +221,15 @@ func Setup(m *macaron.Macaron) {
 		m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
 
 	}, reqSignOut)
+
+	// TODO: Move from Here
+	goth.UseProviders(
+		github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, fmt.Sprintf("%s://%s:%s", setting.Configuration.Protocol, setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)+"/auth/github/callback"),
+	)
+
+	m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
+	m.Get("/logout/github", RequiresIntegrationSetting, reqSignIn, GithubLogout)
+	m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
 
 	m.Get("/user/list", reqSignIn, reqManager, ListUsers)
 	m.Get("/user/show/:id", reqSignIn, reqManager, Show)
