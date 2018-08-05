@@ -27,6 +27,10 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/ghodss/yaml"
+
+	"io/ioutil"
 )
 
 type Pipeline struct {
@@ -48,6 +52,30 @@ type Pipeline struct {
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
 	Concurrency string `json:"concurrency" form:"concurrency"`
+}
+
+func PipelineFromJsonFile(file string) (*Pipeline, error) {
+	var t *Pipeline
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := json.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+
+func PipelineFromYamlFile(file string) (*Pipeline, error) {
+	var t *Pipeline
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := yaml.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
 }
 
 func (t *Pipeline) Trials() int {

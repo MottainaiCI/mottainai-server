@@ -25,10 +25,14 @@ package agenttasks
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/ghodss/yaml"
+
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+
 	"reflect"
 	"strconv"
 	"time"
@@ -139,6 +143,18 @@ func FromFile(file string) (*Task, error) {
 		return t, err
 	}
 	if err := json.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+
+func FromYamlFile(file string) (*Task, error) {
+	var t *Task
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := yaml.Unmarshal(content, &t); err != nil {
 		return t, err
 	}
 	return t, nil
