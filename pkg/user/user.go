@@ -29,15 +29,38 @@ import (
 	passlib "github.com/MottainaiCI/passlib"
 )
 
+type Identity struct {
+	ID        string `json:"identity_id" form:"identity_id"`
+	Provider  string `json:"provider" form:"provider"`
+	AvatarURL string `json:"avatar_url" form:"avatar_url"`
+}
+
 type User struct {
 	ID   int    `json:"id" form:"id"`
 	Name string `json:"name" form:"name"`
 
+	Identities map[string]Identity `json:"identities" form:"identities"`
 	// Auth
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
 	Admin    string `json:"is_admin" form:"is_admin"`
 	Manager  string `json:"is_manager" form:"is_manager"`
+}
+
+func (u *User) AddIdentity(t string, i *Identity) {
+	if len(u.Identities) == 0 {
+		u.Identities = make(map[string]Identity)
+	}
+
+	u.Identities[t] = *i
+}
+
+func (u *User) RemoveIdentity(t string) {
+	if len(u.Identities) == 0 {
+		u.Identities = make(map[string]Identity)
+		return
+	}
+	delete(u.Identities, t)
 }
 
 func (u *User) IsManager() bool {
@@ -124,6 +147,58 @@ func NewUserFromMap(t map[string]interface{}) User {
 				valueField.SetBool(b)
 			}
 		}
+
+		if typeField.Type.Kind() == reflect.ValueOf(u.Identities).Kind() {
+			if b, ok := t[tag.Get("form")].(map[string]interface{}); ok {
+
+				m := make(map[string]Identity)
+				for k, v := range b {
+					//fmt.Println("TIPO", , k)
+					m[k] = NewIdentityFromMap(v.(map[string]interface{}))
+				}
+
+				valueField.Set(reflect.ValueOf(m))
+			} else if b, ok := t[tag.Get("form")].([]interface{}); ok {
+				// convert all to string before set
+				var r []string
+				for _, f := range b {
+					r = append(r, f.(string))
+				}
+				valueField.Set(reflect.ValueOf(r))
+			}
+		}
+		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
+	}
+	return *u
+}
+
+// TODO: Port NewUserFromMap Task to same or make it common func
+func NewIdentityFromMap(t map[string]interface{}) Identity {
+	u := &Identity{}
+	val := reflect.ValueOf(u).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+		tag := typeField.Tag
+
+		if typeField.Type.Name() == "string" {
+			if str, ok := t[tag.Get("form")].(string); ok {
+				valueField.SetString(str)
+			}
+		}
+		if typeField.Type.Name() == "int64" {
+
+			if i, ok := t[tag.Get("form")].(int64); ok {
+				valueField.SetInt(i)
+			}
+		}
+
+		if typeField.Type.Name() == "bool" {
+			if b, ok := t[tag.Get("form")].(bool); ok {
+				valueField.SetBool(b)
+			}
+		}
+
 		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return *u

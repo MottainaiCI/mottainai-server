@@ -53,3 +53,17 @@ func TestPasswordSalt(t *testing.T) {
 		t.Error("Password Not verified", ok, newHash)
 	}
 }
+
+func TestIdentities(t *testing.T) {
+	u := NewUserFromMap(map[string]interface{}{"name": "test", "password": "test2"})
+	u.AddIdentity("github", &Identity{ID: "foo"})
+	if u.Identities["github"].ID != "foo" {
+		t.Fatal("Identity not added", u.Identities)
+	}
+	u.RemoveIdentity("github")
+
+	if _, ok := u.Identities["github"]; ok {
+		t.Fatal("Identity still present")
+	}
+	u.RemoveIdentity("github")
+}
