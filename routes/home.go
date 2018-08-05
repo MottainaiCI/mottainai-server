@@ -55,13 +55,13 @@ func SetupDaemon(m *mottainai.Mottainai) *mottainai.Mottainai {
 
 func SetupWebHookServer(m *mottainai.WebHookServer) *mottainai.WebHookServer {
 
-	webhook.Setup(m.Mottainai.Macaron)
-
 	return m
 }
 
 func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 	Setup(m.Macaron)
+	webhook.Setup(m)
+	m.Invoke(webhook.GlobalWatcher)
 	auth.Setup(m.Macaron)
 	return m
 }

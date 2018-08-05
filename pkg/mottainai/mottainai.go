@@ -38,12 +38,12 @@ import (
 	static "github.com/MottainaiCI/mottainai-server/pkg/static"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	machinery "github.com/RichardKnop/machinery/v1"
+	config "github.com/RichardKnop/machinery/v1/config"
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
-
-	machinery "github.com/RichardKnop/machinery/v1"
-	config "github.com/RichardKnop/machinery/v1/config"
+	"github.com/mudler/anagent"
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
@@ -64,10 +64,16 @@ func New() *Mottainai {
 func Classic() *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
+	SetupWebHook(m)
 
+	database.NewDatabase("tiedot")
+
+	m.Map(database.DBInstance)
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
-
+	a := anagent.New()
+	m.Map(a)
+	a.Map(m)
 	// TODO: This down deserve config section. Note for _csrf is duplicated in auth
 
 	m.Use(cache.Cacher(cache.Options{ // Name of adapter. Default is "memory".
@@ -80,7 +86,7 @@ func Classic() *Mottainai {
 		Section: "cache",
 	}))
 
-	m.Use(session.Sessioner(session.Options{
+	sesopts := session.Options{
 		// Name of provider. Default is "memory".
 		Provider: "memory",
 		// Provider configuration, it's corresponding to provider.
@@ -103,8 +109,9 @@ func Classic() *Mottainai {
 		IDLength: 16,
 		// Configuration section name. Default is "session".
 		Section: "session",
-	}))
-	m.Use(csrf.Csrfer(csrf.Options{ // HTTP header used to set and get token. Default is "X-CSRFToken".
+	}
+
+	csrfopts := csrf.Options{ // HTTP header used to set and get token. Default is "X-CSRFToken".
 		Header: "X-CSRFToken",
 		// Form value used to set and get token. Default is "_csrf".
 		Form: "_csrf",
@@ -126,7 +133,17 @@ func Classic() *Mottainai {
 		ErrorFunc: func(w http.ResponseWriter) {
 			http.Error(w, "Invalid csrf token.", http.StatusBadRequest)
 		},
-	}))
+	}
+
+	if setting.Configuration.Protocol == "https" {
+		m.Invoke(func(s session.Store) {
+			sesopts.Secure = true
+			csrfopts.Secure = true
+		})
+	}
+
+	m.Use(session.Sessioner(sesopts))
+	m.Use(csrf.Csrfer())
 
 	// XXX: Workaround
 	// Set TMPDIR to /var/tmp by default
@@ -179,6 +196,9 @@ func (m *Mottainai) SetStatic() {
 func (m *Mottainai) listenAddr() string {
 	return fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
 }
+func (m *Mottainai) Url() string {
+	return m.url()
+}
 
 func (m *Mottainai) url() string {
 	return fmt.Sprintf("%s://%s", setting.Configuration.Protocol, m.listenAddr())
@@ -202,17 +222,21 @@ func (m *Mottainai) Start() error {
 	th := agenttasks.DefaultTaskHandler()
 	fmt.Println("DB  with " + setting.Configuration.DBPath)
 
-	database.NewDatabase("tiedot")
-
 	c := cron.New()
 
-	m.Map(database.DBInstance)
 	m.Map(server)
 	m.Map(th)
 	m.Map(c)
 	m.Map(m)
 	c.Start()
+	m.Invoke(func(a *anagent.Anagent) {
+		a.TimerSeconds(int64(5), true, func() {})
 
+		go func(a *anagent.Anagent) {
+			a.Start()
+		}(a)
+
+	})
 	m.LoadPlans()
 
 	log.Printf("Listen: ", m.url())
@@ -309,7 +333,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 			_, err := broker.SendGroup(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
-				fmt.Printf("Could not send task: %s", err.Error())
+				fmt.Printf("Could not send group: %s", err.Error())
 				for _, t := range pip.Tasks {
 					id, err := strconv.Atoi(t.ID)
 					if err != nil {
@@ -359,7 +383,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 
 	})
 
-	return result, nil
+	return result, rerr
 }
 
 func (m *Mottainai) SendTask(docID int) (bool, error) {

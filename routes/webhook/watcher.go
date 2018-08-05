@@ -21,12 +21,3 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package webhook
-
-import (
-	mottainai "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-)
-
-func Setup(m *mottainai.Mottainai) {
-
-	SetupGitHub(m)
-}

@@ -49,14 +49,23 @@ func ClassicWebHookServer() *WebHookServer {
 	return &WebHookServer{Mottainai: Classic()}
 }
 
+func SetupWebHook(m *Mottainai) {
+
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: setting.Configuration.WebHookGitHubTokenUser})
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
+
+	// Get a client instance from github
+	client := github.NewClient(tc)
+
+	m.Map(tc)
+	m.Map(client)
+}
+
 func (m *WebHookServer) Start() error {
 	database.NewDatabase("tiedot")
 	a := anagent.New()
 
-	a.TimerSeconds(int64(200), true, func() {
-		fmt.Println("Health check")
-		// XXX: TODO
-	})
+	a.TimerSeconds(int64(5), true, func() {})
 
 	m.Map(database.DBInstance)
 	m.Map(m)
@@ -68,14 +77,7 @@ func (m *WebHookServer) Start() error {
 		a.Start()
 	}(a)
 
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: setting.Configuration.WebHookGitHubToken})
-	tc := oauth2.NewClient(oauth2.NoContext, ts)
-
-	// Get a client instance from github
-	client := github.NewClient(tc)
-
-	m.Map(tc)
-	m.Map(client)
+	SetupWebHook(m.Mottainai)
 
 	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
 	log.Printf("Listen: %v://%s", setting.Configuration.Protocol, listenAddr)
