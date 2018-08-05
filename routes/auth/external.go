@@ -25,115 +25,112 @@ package auth
 // TODO: Factor out in external/github.go
 
 import (
-  "errors"
-  gothic "github.com/MottainaiCI/mottainai-server/pkg/providers"
-  setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"errors"
+	gothic "github.com/MottainaiCI/mottainai-server/pkg/providers"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
-  "github.com/go-macaron/session"
+	"github.com/go-macaron/session"
 
-  "github.com/MottainaiCI/mottainai-server/pkg/context"
-  ciuser "github.com/MottainaiCI/mottainai-server/pkg/user"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	ciuser "github.com/MottainaiCI/mottainai-server/pkg/user"
 
- "net/http"
+	"net/http"
 
-
-  database "github.com/MottainaiCI/mottainai-server/pkg/db"
-
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-
-func GithubLogout(c *context.Context, db *database.Database) error{
-    c.Session.Delete("github")
-    if c.IsLogged {
-    gothic.GetProviderName = func (req *http.Request) (string, error) { return "github",nil}
-      u, err := db.GetUser(c.User.ID)
-      if err != nil {
-        return err
-      }
-      u.RemoveIdentity("github")
-      err=db.UpdateUser(c.User.ID, u.ToMap())
-      if err != nil {
-        return err
-      }
-      u.Password= ""
-    c.Data["User"] = u
-    c.Success(SHOW)
-    return nil
-  }
-    return errors.New("User not logged")
+func GithubLogout(c *context.Context, db *database.Database) error {
+	c.Session.Delete("github")
+	if c.IsLogged {
+		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
+		u, err := db.GetUser(c.User.ID)
+		if err != nil {
+			return err
+		}
+		u.RemoveIdentity("github")
+		err = db.UpdateUser(c.User.ID, u.ToMap())
+		if err != nil {
+			return err
+		}
+		u.Password = ""
+		c.Data["User"] = u
+		c.Success(SHOW)
+		return nil
+	}
+	return errors.New("User not logged")
 }
 
 func GithubLogin(c *context.Context, db *database.Database) error {
-		// try to get the user without re-authenticating
-    if c.IsLogged {
-      //c.Session.Set("provider", interface{})
-      gothic.GetProviderName = func (req *http.Request) (string, error) { return "github",nil}
+	// try to get the user without re-authenticating
+	if c.IsLogged {
+		//c.Session.Set("provider", interface{})
+		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
 		if gothUser, err := gothic.CompleteUserAuth(c); err == nil {
-      u, err := db.GetUser(c.User.ID)
+			u, err := db.GetUser(c.User.ID)
 
-      if err != nil {
-        return err
-      }
+			if err != nil {
+				return err
+			}
 
-
-      u.AddIdentity("github", &ciuser.Identity{ID: gothUser.UserID, Provider: "github"})
-      err=db.UpdateUser(c.User.ID, u.ToMap())
-      if err != nil {
-        return err
-      }
-            u.Password = ""
-      c.Data["User"] = u
-      c.Success(SHOW)
-      return nil
+			u.AddIdentity("github", &ciuser.Identity{ID: gothUser.UserID, Provider: "github"})
+			err = db.UpdateUser(c.User.ID, u.ToMap())
+			if err != nil {
+				return err
+			}
+			u.Password = ""
+			c.Data["User"] = u
+			c.Success(SHOW)
+			return nil
 		} else {
-       gothic.BeginAuthHandler(c)
-      return nil
+			gothic.BeginAuthHandler(c)
+			return nil
 		}
 
-  }
-  return errors.New("User not logged")
+	}
+	return errors.New("User not logged")
 }
+
 // TODO: factor out in unique require check function from DB settings.
 // in ctx/auth.go
 // this is duplicated in webhook/github now
-func RequiresIntegrationSetting(c *context.Context, db *database.Database)  error {
-  // Check setting if we have to process this.
-  err := errors.New("Third party integration disabled")
-  uuu, err := db.GetSettingByKey(setting.SYSTEM_THIRDPARTY_INTEGRATION_ENABLED)
-  if err == nil {
-    if uuu.IsDisabled() {
-      c.ServerError("Third party integration disabled", err)
-      return err
-    }
-  }
-  return nil
+func RequiresIntegrationSetting(c *context.Context, db *database.Database) error {
+	// Check setting if we have to process this.
+	err := errors.New("Third party integration disabled")
+	uuu, err := db.GetSettingByKey(setting.SYSTEM_THIRDPARTY_INTEGRATION_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.ServerError("Third party integration disabled", err)
+			return err
+		}
+	}
+	return nil
 }
-func GithubAuthCallback(s session.Store,c *context.Context, db *database.Database) error {
+func GithubAuthCallback(s session.Store, c *context.Context, db *database.Database) error {
 
-  if c.IsLogged {
+	if c.IsLogged {
 
-    gothic.GetProviderName = func (req *http.Request) (string, error) { return "github",nil}
-    user, err := gothic.CompleteUserAuth(c)
-    if err != nil {
-  return err
-    }
-    u, err := db.GetUser(c.User.ID)
+		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
+		user, err := gothic.CompleteUserAuth(c)
+		if err != nil {
+			return err
+		}
+		u, err := db.GetUser(c.User.ID)
 
-    if err != nil {
-      return err
-    }
+		if err != nil {
+			return err
+		}
 
-    u.AddIdentity("github", &ciuser.Identity{ID: user.UserID, Provider: "github"})
-    err=db.UpdateUser(c.User.ID, u.ToMap())
-    if err != nil {
-      return err
-    }
-          u.Password = ""
-    c.Data["User"] = u
-    c.Success(SHOW)
-    return nil
-}
+		u.AddIdentity("github", &ciuser.Identity{ID: user.UserID, Provider: "github"})
+		err = db.UpdateUser(c.User.ID, u.ToMap())
+		if err != nil {
+			return err
+		}
+		u.Password = ""
+		c.Data["User"] = u
+		c.Success(SHOW)
+		return nil
+	}
 
-    return errors.New("User not logged")
+	return errors.New("User not logged")
 
 }
