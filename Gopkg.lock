@@ -424,6 +424,12 @@
   revision = "a44327bef7535c7813ce4330b7488f872e780472"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mxk/go-flowrate"
+  packages = ["flowrate"]
+  revision = "cca7078d478f8520f85629ad7c68962d31ed7682"
+
+[[projects]]
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
   revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
@@ -800,6 +806,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3afd9a1b204ba7af8d109436c80da99e3bbdbdd2bdc84142fa341d7cbbca09c5"
+  inputs-digest = "19f4b2251f41db16bf22983af6741f46bdaae3ccc7cde8629293fd94bf4ccc07"
   solver-name = "gps-cdcl"
   solver-version = 1
