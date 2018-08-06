@@ -224,7 +224,7 @@ func Setup(m *macaron.Macaron) {
 
 	// TODO: Move from Here
 	goth.UseProviders(
-		github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, fmt.Sprintf("%s://%s:%s", setting.Configuration.Protocol, setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)+"/auth/github/callback"),
+		github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, setting.Configuration.AppURL+"/auth/github/callback"),
 	)
 
 	m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
