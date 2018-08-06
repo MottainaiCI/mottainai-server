@@ -40,6 +40,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mxk/go-flowrate/flowrate"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
@@ -353,6 +355,7 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 
 	//part: parameters
 	mpWriter := multipart.NewWriter(byteBuf)
+
 	for key, value := range params {
 		err = mpWriter.WriteField(key, value)
 		if err != nil {
@@ -408,6 +411,18 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	if err != nil {
 		return err
 	}
+
+	// XXX: Yeah, this is just a fancier way of reading slowly from kernel buffers, i know.
+	if setting.Configuration.UploadRateLimit != 0 {
+		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*setting.Configuration.UploadRateLimit, 10))
+		reader := flowrate.NewReader(io.Reader(rd), 1024*setting.Configuration.UploadRateLimit)
+		req, err = http.NewRequest("POST", f.BaseURL+uri, reader)
+		if err != nil {
+			return err
+		}
+
+	}
+
 	f.setAuthHeader(req)
 
 	req.TransferEncoding = []string{"chunked"}

@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package client
 
 import (
+	"github.com/mxk/go-flowrate/flowrate"
+
 	"errors"
 	"fmt"
 	"io"
@@ -31,6 +33,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	storageci "github.com/MottainaiCI/mottainai-server/pkg/storage"
 )
@@ -199,7 +203,12 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 		return false, err
 	}
 	defer response.Body.Close()
-
+	body := response.Body
+	if setting.Configuration.DownloadRateLimit != 0 {
+		// KB
+		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*setting.Configuration.DownloadRateLimit, 10))
+		body = flowrate.NewReader(response.Body, 1024*setting.Configuration.DownloadRateLimit)
+	}
 	if !responseSuccess(response) {
 		return false, errors.New("Error: " + response.Status)
 	}
@@ -210,7 +219,7 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	}
 	defer output.Close()
 
-	_, err = io.Copy(output, response.Body)
+	_, err = io.Copy(output, body)
 	if err != nil {
 		return false, err
 	}

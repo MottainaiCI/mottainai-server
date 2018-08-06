@@ -92,6 +92,8 @@ type Config struct {
 	WebHookToken           string `mapstructure:"webhook_token"`
 	WebHookGitHubSecret    string `mapstructure:"github_secret"`
 	WebHookDefaultQueue    string `mapstructure:"webhook_default_queue"`
+	DownloadRateLimit      int64  `mapstructure:"download_speed_limit"`
+	UploadRateLimit        int64  `mapstructure:"upload_speed_limit"`
 
 	TLSCert string `mapstructure:"tls_cert"`
 	TLSKey  string `mapstructure:"tls_key"`
@@ -117,6 +119,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("application_url", "http://127.0.0.1:9090")
 	viper.SetDefault("secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
 
+	viper.SetDefault("upload_speed_limit", 0)
+	viper.SetDefault("download_speed_limit", 0)
 	viper.SetDefault("root_path", "./")
 	viper.SetDefault("custom_path", "./")
 	viper.SetDefault("db_engine", "tiedot")
