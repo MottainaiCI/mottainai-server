@@ -37,7 +37,7 @@ func (d *Database) IndexPipeline() {
 }
 
 func (d *Database) InsertPipeline(t *agenttasks.Pipeline) (int, error) {
-	return d.CreatePipeline(t.ToMap())
+	return d.CreatePipeline(t.ToMap(false))
 }
 
 func (d *Database) CreatePipeline(t map[string]interface{}) (int, error) {

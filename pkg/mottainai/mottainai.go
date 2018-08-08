@@ -239,7 +239,7 @@ func (m *Mottainai) Start() error {
 	})
 	m.LoadPlans()
 
-	log.Printf("Listen: ", m.url())
+	log.Println("Listen: ", m.url())
 
 	//m.Run()
 	var err error
@@ -364,7 +364,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
-				log.Println("Could not send task: %s", err.Error())
+				log.Println("Could not send task: ", err.Error())
 
 				for _, t := range pip.Tasks {
 					id, _ := strconv.Atoi(t.ID)

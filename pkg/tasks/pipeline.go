@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 	"time"
@@ -94,7 +95,7 @@ func (t *Pipeline) Reset() {
 	t.EndTime = ""
 	t.StartTime = ""
 }
-func (t *Pipeline) ToMap() map[string]interface{} {
+func (t *Pipeline) ToMap(serialize bool) map[string]interface{} {
 
 	ts := make(map[string]interface{})
 	val := reflect.ValueOf(t).Elem()
@@ -104,20 +105,20 @@ func (t *Pipeline) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		// XXX: Otherwise gob is confused
-		// fmt.Println(valueField.Type(), reflect.ValueOf(t.Tasks).Kind())
-		// if valueField.Kind() == reflect.ValueOf(t.Tasks).Kind() {
-		// 	m := make(map[string]interface{})
-		// 	elem, _ := valueField.Interface().(map[string]Task)
-		//
-		// 	for i, o := range elem {
-		// 		f := &o
-		// 		m[i] = f.ToMap()
-		// 	}
-		//
-		// 	ts[tag.Get("form")] = m
-		// } else {
-		ts[tag.Get("form")] = valueField.Interface()
-		//}
+		fmt.Println(valueField.Type(), reflect.ValueOf(t.Tasks).Kind())
+		if valueField.Kind() == reflect.ValueOf(t.Tasks).Kind() && serialize {
+			m := make(map[string]interface{})
+			elem, _ := valueField.Interface().(map[string]Task)
+
+			for i, o := range elem {
+				f := &o
+				m[i] = f.ToMap()
+			}
+
+			ts[tag.Get("form")] = m
+		} else {
+			ts[tag.Get("form")] = valueField.Interface()
+		}
 
 		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
@@ -161,7 +162,6 @@ func (h *TaskHandler) NewPipelineFromMap(t map[string]interface{}) Pipeline {
 
 				m := make(map[string]Task)
 				for k, v := range b {
-					//fmt.Println("TIPO", , k)
 					m[k] = h.NewTaskFromMap(v.(map[string]interface{}))
 				}
 

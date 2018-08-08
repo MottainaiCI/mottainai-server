@@ -161,7 +161,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 		opts.Owner = strconv.Itoa(ctx.User.ID)
 	}
 
-	fields := opts.ToMap()
+	fields := opts.ToMap(false)
 
 	docID, err := db.CreatePipeline(fields)
 	if err != nil {

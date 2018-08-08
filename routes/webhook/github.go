@@ -316,7 +316,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 		}
 		t.Queue = setting.Configuration.WebHookDefaultQueue
 
-		docID, err := db.CreatePipeline(t.ToMap())
+		docID, err := db.CreatePipeline(t.ToMap(false))
 		if err != nil {
 			return err
 		}
@@ -466,7 +466,8 @@ func SetupGitHub(m *mottainai.Mottainai) {
 		fmt.Println("Received webhook for push")
 		m.Invoke(func(mo *mottainai.Mottainai) { HandlePush(payload, header, mo) })
 	}, github.PushEvent)
-
+	// TODO: Generate tokens for  each user.
+	// Let user add repo in specific collection, and check against that
 	m.Post("/webhook/github", RequiresWebHookSetting, func(ctx *context.Context, db *database.Database, resp http.ResponseWriter, req *http.Request) {
 		hook.ParsePayload(resp, req)
 	})
