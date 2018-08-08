@@ -54,7 +54,7 @@ lint:
 
 test:
 	# Running tests... ${TOTEST}
-	go test -v -cover -race ./...
+	go test -v -tags all -cover -race ./...
 
 install:
 	install -d $(DESTDIR)$(LOCKDIR)

@@ -1,3 +1,5 @@
+// +build !all
+
 /*
 
 Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
@@ -35,22 +37,22 @@ type FakeClient struct {
 	Taskfield2 string
 }
 
-func (f *FakeClient) RunTask()                                      {}
-func (f *FakeClient) SetupTask()                                    {}
-func (f *FakeClient) Doc(string)                                    {}
-func (f *FakeClient) AppendTaskOutput(string) ([]byte, error)       { return []byte{}, nil }
-func (f *FakeClient) GetTask() ([]byte, error)                      { return []byte{}, nil }
-func (f *FakeClient) AbortTask()                                    {}
-func (f *FakeClient) DownloadArtefactsFromTask(string, string)      {}
-func (f *FakeClient) DownloadArtefactsFromNamespace(string, string) {}
-func (f *FakeClient) DownloadArtefactsFromStorage(string, string)   {}
-func (f *FakeClient) UploadFile(string, string) error               { return nil }
-func (f *FakeClient) FailTask(string)                               {}
-func (f *FakeClient) ErrorTask()                                    {}
-func (f *FakeClient) RegisterNode(string, string) ([]byte, error)   { return []byte{}, nil }
-func (f *FakeClient) FinishTask()                                   {}
-func (f *FakeClient) SuccessTask()                                  {}
-func (f *FakeClient) StreamOutput(io.Reader)                        {}
+func (f *FakeClient) RunTask()                                            {}
+func (f *FakeClient) SetupTask()                                          {}
+func (f *FakeClient) Doc(string)                                          {}
+func (f *FakeClient) AppendTaskOutput(string) ([]byte, error)             { return []byte{}, nil }
+func (f *FakeClient) GetTask() ([]byte, error)                            { return []byte{}, nil }
+func (f *FakeClient) AbortTask()                                          {}
+func (f *FakeClient) DownloadArtefactsFromTask(string, string) error      { return nil }
+func (f *FakeClient) DownloadArtefactsFromNamespace(string, string) error { return nil }
+func (f *FakeClient) DownloadArtefactsFromStorage(string, string) error   { return nil }
+func (f *FakeClient) UploadFile(string, string) error                     { return nil }
+func (f *FakeClient) FailTask(string)                                     {}
+func (f *FakeClient) ErrorTask()                                          {}
+func (f *FakeClient) RegisterNode(string, string) ([]byte, error)         { return []byte{}, nil }
+func (f *FakeClient) FinishTask()                                         {}
+func (f *FakeClient) SuccessTask()                                        {}
+func (f *FakeClient) StreamOutput(io.Reader)                              {}
 func (f *FakeClient) SetTaskField(a string, b string) ([]byte, error) {
 	f.Taskfield1 = a
 	f.Taskfield2 = b
@@ -58,7 +60,7 @@ func (f *FakeClient) SetTaskField(a string, b string) ([]byte, error) {
 }
 
 func TestTaskExecutor(t *testing.T) {
-
+	t.Parallel()
 	ctx := NewExecutorContext()
 
 	dir := os.TempDir()

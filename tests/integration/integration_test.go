@@ -43,6 +43,7 @@ import (
 )
 
 func TestUpload(t *testing.T) {
+	//t.Parallel()
 	binding.MaxMemory = int64(1024 * 1024 * 1)
 	s.Configuration.GenDefault()
 	s.Configuration.Unmarshal()

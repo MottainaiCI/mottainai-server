@@ -32,15 +32,15 @@ func TestPipeline(t *testing.T) {
 	pipe := &Pipeline{}
 	pipe.Group = []string{"test", "test1"}
 
-	m := make(map[string]*Task)
-	test := &Task{Namespace: "boh"}
-	test1 := &Task{Namespace: "bar"}
+	m := make(map[string]Task)
+	test := Task{Namespace: "boh"}
+	test1 := Task{Namespace: "bar"}
 	m["test"] = test
 	m["test1"] = test1
 
 	pipe.Tasks = m
 
-	test_res := pipe.ToMap()
+	test_res := pipe.ToMap(true)
 	fmt.Println(test_res)
 
 	pipe2 := DefaultTaskHandler().NewPipelineFromMap(test_res)
