@@ -43,7 +43,6 @@ import (
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
-	"github.com/mudler/anagent"
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
@@ -64,18 +63,13 @@ func New() *Mottainai {
 func Classic() *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
-	SetupWebHook(m)
-
 	database.NewDatabase("tiedot")
 
 	m.Map(database.DBInstance)
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
-	a := anagent.New()
-	m.Map(a)
-	a.Map(m)
-	// TODO: This down deserve config section. Note for _csrf is duplicated in auth
 
+	// TODO: This down deserve config section. Note for _csrf is duplicated in auth
 	m.Use(cache.Cacher(cache.Options{ // Name of adapter. Default is "memory".
 		Adapter: "memory",
 		// Adapter configuration, it's corresponding to adapter.
@@ -229,14 +223,6 @@ func (m *Mottainai) Start() error {
 	m.Map(c)
 	m.Map(m)
 	c.Start()
-	m.Invoke(func(a *anagent.Anagent) {
-		a.TimerSeconds(int64(5), true, func() {})
-
-		go func(a *anagent.Anagent) {
-			a.Start()
-		}(a)
-
-	})
 	m.LoadPlans()
 
 	log.Println("Listen: ", m.url())
