@@ -47,7 +47,7 @@ func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *cont
 	id := ctx.ParamsInt(":id")
 	fmt.Println("Starting task ", id)
 
-	mytask, err := db.GetTask(id)
+	mytask, err := db.Driver.GetTask(id)
 	if err != nil {
 		return err
 	}

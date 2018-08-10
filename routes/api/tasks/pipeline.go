@@ -47,9 +47,9 @@ func AllPipelines(ctx *context.Context, db *database.Database) ([]task.Pipeline,
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			all = db.AllPipelines()
+			all = db.Driver.AllPipelines()
 		}
-		mine, _ = db.AllUserPipelines(ctx.User.ID)
+		mine, _ = db.Driver.AllUserPipelines(ctx.User.ID)
 
 	}
 
@@ -79,7 +79,7 @@ func ShowAllPipelines(ctx *context.Context, db *database.Database) {
 
 func PipelineShow(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
-	pip, err := db.GetPipeline(id)
+	pip, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 		if err != nil {
 			return err
 		}
-		ta, err := db.GetTask(uid)
+		ta, err := db.Driver.GetTask(uid)
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 
 func PipelineYaml(ctx *context.Context, db *database.Database) string {
 	id := ctx.ParamsInt(":id")
-	task, err := db.GetPipeline(id)
+	task, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -150,7 +150,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 		}
 		f.Status = setting.TASK_STATE_WAIT
 
-		id, err := db.CreateTask(f.ToMap())
+		id, err := db.Driver.CreateTask(f.ToMap())
 		if err != nil {
 			return "", err
 		}
@@ -163,7 +163,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 
 	fields := opts.ToMap(false)
 
-	docID, err := db.CreatePipeline(fields)
+	docID, err := db.Driver.CreatePipeline(fields)
 	if err != nil {
 		return "", err
 	}
@@ -174,7 +174,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 
 func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.ParamsInt(":id")
-	pips, err := db.GetPipeline(id)
+	pips, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		ctx.NotFound()
 	}
@@ -183,7 +183,7 @@ func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.D
 		return errors.New("Moar permissions are required for this user")
 	}
 
-	err = db.DeletePipeline(id)
+	err = db.Driver.DeletePipeline(id)
 	if err != nil {
 		return err
 	}

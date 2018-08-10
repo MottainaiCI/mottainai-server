@@ -20,38 +20,47 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"os"
 	"testing"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 )
 
-func TestInsertToken(t *testing.T) {
+var dbtestt *Database
+
+func TestInsertSetting(t *testing.T) {
 
 	setting.Configuration.DBPath = "./DB"
-	db := NewDatabase("")
-	u := &token.Token{}
+	setting.Configuration.DBPath = "./DB"
+	db := New(setting.Configuration.DBPath)
+	db.Init()
+	dbtestt = db
+	u := &setting.Setting{}
 	u.Key = "test"
+	u.Value = "foo"
 
-	id, err := db.InsertToken(u)
+	id, err := db.InsertSetting(u)
 
 	if err != nil {
 		t.Fatal("Failed insert")
 	}
 
-	uu, _ := db.GetToken(id)
+	uu, _ := db.GetSetting(id)
 
 	if uu.Key != u.Key {
 		t.Fatal("Failed insert")
 	}
 
-	db.DeleteToken(id)
+	if uu.Value != u.Value {
+		t.Fatal("Failed insert")
+	}
 
-	err = db.DeleteToken(id)
+	db.DeleteSetting(id)
+
+	err = db.DeleteSetting(id)
 
 	if err == nil {
 		t.Fatal("Failed Remove")
@@ -59,71 +68,83 @@ func TestInsertToken(t *testing.T) {
 
 }
 
-func TestGetTokenByKey(t *testing.T) {
+func TestGetSettingByKey(t *testing.T) {
 
-	db := Instance()
+	db := dbtestt
 
-	u := &token.Token{}
+	u := &setting.Setting{}
 	u.Key = "test2"
-	id, err := db.InsertToken(u)
+	u.Value = "bar"
+	id, err := db.InsertSetting(u)
 
 	if err != nil {
 		t.Fatal("Failed insert", err)
 	}
 
-	uu, _ := db.GetToken(id)
+	uu, _ := db.GetSetting(id)
 
 	if uu.Key != u.Key {
 		t.Fatal("Failed insert (Key differs)")
 	}
 
-	uuu, err := db.GetTokenByKey("test2")
+	if uu.Value != u.Value {
+		t.Fatal("Failed insert (Key differs)")
+	}
+
+	uuu, err := db.GetSettingByKey("test2")
 
 	if err != nil {
 		t.Fatal(err)
 	}
 	if uuu.Key != "test2" {
-		t.Fatal("Could not find the inserted token")
+		t.Fatal("Could not find the inserted setting")
+	}
+	if uuu.Value != "bar" {
+		t.Fatal("Could not find the inserted setting")
+	}
+
+	err = db.DeleteSetting(uuu.ID)
+	if err != nil {
+		t.Fatal("Failed Remove")
 	}
 
 }
 
-func TestGetTokenByUid(t *testing.T) {
+func TestGetSettingByUid(t *testing.T) {
 	defer os.RemoveAll(setting.Configuration.DBPath)
 
-	db := Instance()
+	db := dbtestt
 
-	u := &token.Token{}
+	u := &setting.Setting{}
 	u.Key = "test2"
-	u.UserId = "20"
-	id, err := db.InsertToken(u)
+	u.Value = "20"
+	id, err := db.InsertSetting(u)
 
 	if err != nil {
 		t.Fatal("Failed insert", err)
 	}
 
-	uu, _ := db.GetToken(id)
+	_, err = db.InsertSetting(u)
+	if err == nil {
+		t.Fatal("Cannot insert same setting twice", err)
+	}
+
+	uu, _ := db.GetSetting(id)
 
 	if uu.Key != u.Key {
 		t.Fatal("Failed insert (Key differs)")
 	}
 
-	uuu, err := db.GetTokenByKey("test2")
+	uuu, err := db.GetSettingByKey("test2")
 
 	if err != nil {
 		t.Fatal(err)
 	}
 	if uuu.Key != "test2" {
-		t.Fatal("Could not find the inserted token")
+		t.Fatal("Could not find the inserted setting")
 	}
 
-	uuuu, err := db.GetTokenByUserID(20)
-
-	if err != nil {
-		t.Fatal(err)
+	if uuu.Value != "20" {
+		t.Fatal("Could not find the inserted setting")
 	}
-	if uuuu.Key != "test2" {
-		t.Fatal("Could not find the inserted token")
-	}
-
 }

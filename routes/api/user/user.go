@@ -34,7 +34,7 @@ import (
 func SetManager(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	u, err := db.GetUser(id)
+	u, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -42,7 +42,7 @@ func SetManager(ctx *context.Context, db *database.Database) error {
 
 	u.MakeManager()
 
-	err = db.UpdateUser(id, u.ToMap())
+	err = db.Driver.UpdateUser(id, u.ToMap())
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -53,7 +53,7 @@ func SetManager(ctx *context.Context, db *database.Database) error {
 func SetAdmin(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	u, err := db.GetUser(id)
+	u, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -61,7 +61,7 @@ func SetAdmin(ctx *context.Context, db *database.Database) error {
 
 	u.MakeAdmin()
 
-	err = db.UpdateUser(id, u.ToMap())
+	err = db.Driver.UpdateUser(id, u.ToMap())
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -91,7 +91,7 @@ func SetAdminUser(ctx *context.Context, db *database.Database) string {
 func UnSetManager(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	u, err := db.GetUser(id)
+	u, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -99,7 +99,7 @@ func UnSetManager(ctx *context.Context, db *database.Database) error {
 
 	u.RemoveManager()
 
-	err = db.UpdateUser(id, u.ToMap())
+	err = db.Driver.UpdateUser(id, u.ToMap())
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -110,7 +110,7 @@ func UnSetManager(ctx *context.Context, db *database.Database) error {
 func UnSetAdmin(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	u, err := db.GetUser(id)
+	u, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -118,7 +118,7 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) error {
 
 	u.RemoveAdmin()
 
-	err = db.UpdateUser(id, u.ToMap())
+	err = db.Driver.UpdateUser(id, u.ToMap())
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -144,19 +144,19 @@ func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	user, err := db.GetUser(id)
+	user, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
 	}
 
-	tokens, _ := db.GetTokensByUserID(user.ID)
+	tokens, _ := db.Driver.GetTokensByUserID(user.ID)
 
 	for _, t := range tokens {
-		db.DeleteToken(t.ID)
+		db.Driver.DeleteToken(t.ID)
 	}
 
-	err = db.DeleteUser(id)
+	err = db.Driver.DeleteUser(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -175,13 +175,13 @@ func DeleteUser(ctx *context.Context, db *database.Database) string {
 }
 
 func List(c *context.Context, db *database.Database) []user.User {
-	us := db.AllUsers()
+	us := db.Driver.AllUsers()
 	return us
 }
 
 func Show(c *context.Context, db *database.Database) (user.User, error) {
 	id := c.ParamsInt(":id")
-	u, err := db.GetUser(id)
+	u, err := db.Driver.GetUser(id)
 	u.Password = ""
 	if err != nil {
 		return u, nil

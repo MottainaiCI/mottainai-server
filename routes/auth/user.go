@@ -64,7 +64,7 @@ func AutoLogin(c *context.Context, db *database.Database) (bool, error) {
 		}
 	}()
 
-	u, err := db.GetUserByName(uname)
+	u, err := db.Driver.GetUserByName(uname)
 	if err != nil {
 
 		return false, fmt.Errorf("GetUserByName: %v", err)
@@ -118,7 +118,7 @@ func Login(c *context.Context, db *database.Database) {
 		c.SetCookie("redirect_to", "", -1, setting.Configuration.AppSubURL)
 		return
 	}
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			c.Data["NoSignUp"] = "yes"
@@ -159,7 +159,7 @@ func LoginPost(c *context.Context, f SignIn, db *database.Database) {
 		return
 	}
 
-	u, err := db.SignIn(f.UserName, f.Password)
+	u, err := db.Driver.SignIn(f.UserName, f.Password)
 	if err != nil {
 		c.RenderWithErr(err.Error(), LOGIN)
 
@@ -183,7 +183,7 @@ func SignOut(c *context.Context) {
 
 func SignUp(c *context.Context, db *database.Database) {
 
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			c.ServerError("Signup disabled", errors.New("Signup disabled"))
@@ -248,7 +248,7 @@ func DeleteUser(ctx *context.Context, db *database.Database) {
 }
 
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			c.ServerError("Signup disabled", errors.New("Signup disabled"))
@@ -287,10 +287,10 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 		Password: f.Password,
 		//IsActive: !setting.Service.RegisterEmailConfirm,
 	}
-	if db.CountUsers() == 0 {
+	if db.Driver.CountUsers() == 0 {
 		u.MakeAdmin() // XXX: ugly, also fix error
 	}
-	if _, err := db.InsertAndSaltUser(u); err != nil {
+	if _, err := db.Driver.InsertAndSaltUser(u); err != nil {
 		c.RenderWithErr("Failed creating new user "+err.Error(), SIGNUP)
 		return
 	}

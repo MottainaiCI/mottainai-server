@@ -52,7 +52,7 @@ func Create(ctx *context.Context, db *database.Database) string {
 	if err != nil {
 		return ":("
 	}
-	_, err = db.InsertToken(t)
+	_, err = db.Driver.InsertToken(t)
 	if err != nil {
 		ctx.ServerError("Failed creating token", err)
 		return ":("

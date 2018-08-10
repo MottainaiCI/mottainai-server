@@ -35,14 +35,14 @@ import (
 )
 
 func PlannedTasks(ctx *context.Context, db *database.Database) {
-	plans := db.AllPlans()
+	plans := db.Driver.AllPlans()
 
 	ctx.JSON(200, plans)
 }
 
 func PlannedTask(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
-	plan, err := db.GetPlan(id)
+	plan, err := db.Driver.GetPlan(id)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	docID, err := db.CreatePlan(fields)
+	docID, err := db.Driver.CreatePlan(fields)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 
 func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.ParamsInt(":id")
-	plan, err := db.GetPlan(id)
+	plan, err := db.Driver.GetPlan(id)
 	if err != nil {
 		ctx.NotFound()
 	}
@@ -82,7 +82,7 @@ func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Datab
 		return errors.New("Moar permissions are required for this user")
 	}
 
-	err = db.DeletePlan(id)
+	err = db.Driver.DeletePlan(id)
 	if err != nil {
 		return err
 	}

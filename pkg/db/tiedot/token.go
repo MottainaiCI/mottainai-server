@@ -20,11 +20,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"errors"
 	"strconv"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 )
@@ -118,7 +120,7 @@ func (d *Database) GetToken(docID int) (token.Token, error) {
 	return t, err
 }
 
-func (d *Database) ListTokens() []DocItem {
+func (d *Database) ListTokens() []dbcommon.DocItem {
 	return d.ListDocs(TokenColl)
 }
 

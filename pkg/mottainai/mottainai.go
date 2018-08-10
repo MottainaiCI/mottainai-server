@@ -257,7 +257,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 	result := true
 	var rerr error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
-		pip, err := d.GetPipeline(docID)
+		pip, err := d.Driver.GetPipeline(docID)
 		if err != nil {
 			rerr = err
 			result = false
@@ -295,7 +295,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 						result = false
 						return
 					}
-					d.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(id, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -327,7 +327,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 						result = false
 						return
 					}
-					d.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(id, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -354,7 +354,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 
 				for _, t := range pip.Tasks {
 					id, _ := strconv.Atoi(t.ID)
-					d.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(id, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -377,7 +377,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 	var err error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
 
-		task, err := d.GetTask(docID)
+		task, err := d.Driver.GetTask(docID)
 		if err != nil {
 			result = false
 			return
@@ -394,7 +394,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 
 		}
 
-		d.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
 		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Directory, task.TaskName)
 
@@ -407,7 +407,7 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, TaskName: task.TaskName, TaskID: docID})
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
-			d.UpdateTask(docID, map[string]interface{}{
+			d.Driver.UpdateTask(docID, map[string]interface{}{
 				"result": "error",
 				"status": "done",
 				"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -423,14 +423,14 @@ func (m *Mottainai) SendTask(docID int) (bool, error) {
 func (m *Mottainai) LoadPlans() {
 	m.Invoke(func(c *cron.Cron, d *database.Database) {
 
-		for _, plan := range d.AllPlans() {
+		for _, plan := range d.Driver.AllPlans() {
 			fmt.Println("Loading plan: ", plan.Task, plan)
 			id := plan.ID
 			c.AddFunc(plan.Planned, func() {
 				uid, _ := strconv.Atoi(id)
-				plan, _ := d.GetPlan(uid)
+				plan, _ := d.Driver.GetPlan(uid)
 				plan.Task.Reset()
-				docID, _ := d.CreateTask(plan.Task.ToMap())
+				docID, _ := d.Driver.CreateTask(plan.Task.ToMap())
 				m.SendTask(docID)
 			})
 		}

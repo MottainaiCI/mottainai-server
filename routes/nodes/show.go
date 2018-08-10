@@ -34,7 +34,7 @@ import (
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	//tasks := db.ListTasks()
-	nodes := db.AllNodes()
+	nodes := db.Driver.AllNodes()
 	//ctx.Data["TasksIDs"] = tasks
 	ctx.Data["Nodes"] = nodes
 	template.TemplatePreview(ctx, "nodes")
@@ -43,7 +43,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 func Show(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
 
-	node, err := db.GetNode(id)
+	node, err := db.Driver.GetNode(id)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -51,10 +51,10 @@ func Show(ctx *context.Context, db *database.Database) {
 	p_queue := node.Hostname + node.NodeID
 
 	ctx.Data["Node"] = node
-	tasks, _ := db.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
+	tasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
 	var node_tasks = make([]agenttasks.Task, 0)
 	for i, _ := range tasks {
-		t, _ := db.GetTask(i)
+		t, _ := db.Driver.GetTask(i)
 		node_tasks = append(node_tasks, t)
 	}
 	sort.Slice(node_tasks[:], func(i, j int) bool {

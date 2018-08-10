@@ -20,9 +20,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
-import "github.com/MottainaiCI/mottainai-server/pkg/artefact"
+import (
+	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+)
 
 var ArtefactColl = "Artefacts"
 
@@ -73,7 +76,7 @@ func (d *Database) SearchArtefact(name string) (artefact.Artefact, error) {
 	return res[0], nil
 }
 
-func (d *Database) ListArtefacts() []DocItem {
+func (d *Database) ListArtefacts() []dbcommon.DocItem {
 	return d.ListDocs(ArtefactColl)
 }
 

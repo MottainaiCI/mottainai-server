@@ -43,7 +43,7 @@ func IsAPIPath(url string) bool {
 
 // SignedInID returns the id of signed in user.
 func SignedInID(c *macaron.Context, sess session.Store) int {
-	db := database.Instance()
+	db := database.Instance().Driver
 	// Check access token.
 	//if IsAPIPath(c.Req.URL.Path) {
 	tokenSHA := c.Query("token")
@@ -93,7 +93,7 @@ func SignedInID(c *macaron.Context, sess session.Store) int {
 // SignedInUser returns the user object of signed user.
 // It returns a bool value to indicate whether user uses basic auth or not.
 func SignedInUser(ctx *macaron.Context, sess session.Store) (*user.User, bool) {
-	db := database.Instance()
+	db := database.Instance().Driver
 
 	uid := SignedInID(ctx, sess)
 

@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"os"
@@ -30,10 +30,14 @@ import (
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 )
 
+var dbtest4 *Database
+
 func TestInsertUser(t *testing.T) {
 
 	setting.Configuration.DBPath = "./DB"
-	db := NewDatabase("")
+	db := New(setting.Configuration.DBPath)
+	db.Init()
+	dbtest4 = db
 	u := &user.User{}
 	u.Name = "test"
 	u.Password = "foo"
@@ -66,7 +70,7 @@ func TestInsertUser(t *testing.T) {
 }
 
 func TestGetUserByName(t *testing.T) {
-	db := Instance()
+	db := dbtest4
 
 	u := &user.User{}
 	u.Name = "test2"
@@ -133,7 +137,7 @@ func TestGetUserByName(t *testing.T) {
 func TestLogin(t *testing.T) {
 	defer os.RemoveAll(setting.Configuration.DBPath)
 
-	db := Instance()
+	db := dbtest4
 
 	u, err := db.SignIn("test2", "foo")
 

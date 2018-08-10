@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"os"
@@ -31,10 +31,14 @@ import (
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
+var dbtest *Database
+
 func TestInsertTask(t *testing.T) {
 
 	setting.Configuration.DBPath = "./DB"
-	db := NewDatabase("")
+	db := New(setting.Configuration.DBPath)
+	db.Init()
+	dbtest = db
 	u := &task.Task{}
 	u.Namespace = "docker_execute"
 	u.Owner = "20"
@@ -81,7 +85,7 @@ func TestInsertTask(t *testing.T) {
 func TestUpdateTask(t *testing.T) {
 	defer os.RemoveAll(setting.Configuration.DBPath)
 
-	db := Instance()
+	db := dbtest
 	u := &task.Task{}
 	u.Namespace = "docker_execute"
 	//u.Node = "20"

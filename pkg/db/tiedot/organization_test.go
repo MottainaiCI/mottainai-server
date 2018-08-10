@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"os"
@@ -31,11 +31,15 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
+var DB *Database
+
 func TestInsertOrganization(t *testing.T) {
 	defer os.RemoveAll(setting.Configuration.DBPath)
 
 	setting.Configuration.DBPath = "./DB"
-	db := NewDatabase("")
+	db := New(setting.Configuration.DBPath)
+	db.Init()
+	DB = db
 	u := &organization.Organization{}
 	u.Name = "test"
 	u.AddMember("fakemember")

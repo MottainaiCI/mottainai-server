@@ -20,10 +20,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"errors"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
 )
@@ -99,7 +101,7 @@ func (d *Database) GetOrganization(docID int) (organization.Organization, error)
 	return t, err
 }
 
-func (d *Database) ListOrganizations() []DocItem {
+func (d *Database) ListOrganizations() []dbcommon.DocItem {
 	return d.ListDocs(OrganizationColl)
 }
 

@@ -128,7 +128,7 @@ func CheckArtefactPermission(ctx *Context) bool {
 		ctx.NoPermission()
 		return false
 	}
-	db := database.Instance()
+	db := database.Instance().Driver
 	segments := strings.Split(file, "/")
 
 	r := utils.NoEmptySlice(segments)
@@ -169,7 +169,7 @@ func CheckStoragePermission(ctx *Context) bool {
 		ctx.NoPermission()
 		return false
 	}
-	db := database.Instance()
+	db := database.Instance().Driver
 	segments := strings.Split(file, "/")
 
 	r := utils.NoEmptySlice(segments)

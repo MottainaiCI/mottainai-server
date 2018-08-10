@@ -135,7 +135,7 @@ func SendTask(kind string, client *ggithub.Client, db *database.Database, m *mot
 		t.Commit = commit
 		t.Queue = setting.Configuration.WebHookDefaultQueue
 
-		docID, err := db.CreateTask(t.ToMap())
+		docID, err := db.Driver.CreateTask(t.ToMap())
 		if err != nil {
 			return err
 		}
@@ -213,7 +213,7 @@ func prepareTemp(kind string, client *ggithub.Client, db *database.Database, m *
 	ctx := &GitContext{Uid: pruid, Commit: commit, Owner: owner, UserRepo: user_repo, Checkout: checkout, Repo: repo, Ref: ref, User: gh_user}
 
 	// Check setting if we have to process this.
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			fmt.Println("Webhooks disabled from system settings")
@@ -223,7 +223,7 @@ func prepareTemp(kind string, client *ggithub.Client, db *database.Database, m *
 
 	// TODO: Check in users the enabled repository hooks
 	// Later, with organizations and projects will be easier to link them.
-	u, err := db.GetUserByIdentity("github", gh_user)
+	u, err := db.Driver.GetUserByIdentity("github", gh_user)
 	if err != nil {
 		status2 := &ggithub.RepoStatus{State: &failure, Description: &noPermDesc, Context: &appName}
 		client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status2)
@@ -307,7 +307,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 
 			p.Status = setting.TASK_STATE_WAIT
 
-			id, err := db.CreateTask(p.ToMap())
+			id, err := db.Driver.CreateTask(p.ToMap())
 			if err != nil {
 				return err
 			}
@@ -316,7 +316,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 		}
 		t.Queue = setting.Configuration.WebHookDefaultQueue
 
-		docID, err := db.CreatePipeline(t.ToMap(false))
+		docID, err := db.Driver.CreatePipeline(t.ToMap(false))
 		if err != nil {
 			return err
 		}
@@ -353,7 +353,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 func RequiresWebHookSetting(c *context.Context, db *database.Database) error {
 	// Check setting if we have to process this.
 	err := errors.New("Webhook integration disabled")
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			c.ServerError("Webhook integration disabled", err)
@@ -381,7 +381,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 
 			if data[4] == "pipeline" {
 
-				pip, err := db.GetPipeline(uuid)
+				pip, err := db.Driver.GetPipeline(uuid)
 				if err != nil { // XXX:
 					delete(w, k)
 					return
@@ -395,7 +395,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 						delete(w, k)
 						return
 					}
-					ta, err := db.GetTask(uuid)
+					ta, err := db.Driver.GetTask(uuid)
 					if err != nil {
 						delete(w, k)
 						return
@@ -425,7 +425,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				}
 			} else {
 
-				task, err := db.GetTask(uuid)
+				task, err := db.Driver.GetTask(uuid)
 				if err == nil {
 					if task.IsDone() || task.IsStopped() {
 						if task.IsSuccess() {

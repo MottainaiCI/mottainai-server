@@ -37,7 +37,7 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 	id := ctx.ParamsInt(":id")
 	//name, _ = utils.Strip(name)
 
-	storage, err := db.GetStorage(id)
+	storage, err := db.Driver.GetStorage(id)
 	if err != nil {
 		return ":(", err
 	}
@@ -46,7 +46,7 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	err = db.DeleteStorage(id)
+	err = db.Driver.DeleteStorage(id)
 	if err != nil {
 		return ":(", err
 	}

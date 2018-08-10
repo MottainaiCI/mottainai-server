@@ -36,9 +36,9 @@ func GetTokens(ctx *context.Context, db *database.Database) ([]token.Token, []to
 	var err error
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			all = db.AllTokens()
+			all = db.Driver.AllTokens()
 		}
-		mine, err = db.GetTokensByUserID(ctx.User.ID)
+		mine, err = db.Driver.GetTokensByUserID(ctx.User.ID)
 		if err != nil {
 			ctx.ServerError("Failed finding token", err)
 			return all, mine, err

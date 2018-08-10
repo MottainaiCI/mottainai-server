@@ -20,25 +20,30 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"encoding/json"
 
 	"github.com/HouzuoGuo/tiedot/db"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
+type Database struct {
+	DBPath string
+	DBName string
+}
+
 var Collections = []string{TaskColl,
 	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
 
-//var DBInstance *Interface{}
-/// POC
-func (d *Database) Init() {
-	d.DBPath = setting.Configuration.DBPath
+func New(path string) *Database {
+	return &Database{DBPath: path}
+}
 
+func (d *Database) Init() {
 	colls := d.DB().AllCols()
 	for _, c := range Collections {
 		if !utils.ArrayContainsString(colls, c) {
@@ -125,16 +130,11 @@ func (d *Database) GetDoc(coll string, docID int) (map[string]interface{}, error
 	return d.DB().Use(coll).Read(docID)
 }
 
-type DocItem struct {
-	Id      int
-	Content interface{}
-}
-
-func (d *Database) ListDocs(coll string) []DocItem {
+func (d *Database) ListDocs(coll string) []dbcommon.DocItem {
 	tasks := d.DB().Use(coll)
-	tasks_id := make([]DocItem, 0)
+	tasks_id := make([]dbcommon.DocItem, 0)
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		tasks_id = append(tasks_id, DocItem{Id: id, Content: string(docContent)})
+		tasks_id = append(tasks_id, dbcommon.DocItem{Id: id, Content: string(docContent)})
 		return true
 	})
 	return tasks_id

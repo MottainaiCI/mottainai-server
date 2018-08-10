@@ -33,7 +33,7 @@ import (
 )
 
 func StorageList(ctx *context.Context, db *database.Database) {
-	ns := db.AllStorages()
+	ns := db.Driver.AllStorages()
 
 	//source := filepath.Join(setting.Configuration.StoragePath)
 	//ns, _ := utils.ListDirs(source)
@@ -43,7 +43,7 @@ func StorageList(ctx *context.Context, db *database.Database) {
 
 func StorageShow(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	ns, err := db.GetStorage(id)
+	ns, err := db.Driver.GetStorage(id)
 
 	if err != nil {
 		ctx.ServerError(err.Error(), err)
@@ -64,7 +64,7 @@ func StorageShow(ctx *context.Context, db *database.Database) {
 func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
 
-	st, err := db.GetStorage(id)
+	st, err := db.Driver.GetStorage(id)
 	if err != nil {
 		ctx.ServerError(err.Error(), err)
 		return
@@ -73,14 +73,14 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 		ctx.NoPermission()
 		return
 	}
-	// ns, err := db.SearchStorage(name)
+	// ns, err := db.Driver.SearchStorage(name)
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
 	source := filepath.Join(setting.Configuration.StoragePath, st.Path)
 	artefacts := utils.TreeList(source)
 
-	// artefacts, err := db.GetStorageArtefacts(ns.ID)
+	// artefacts, err := db.Driver.GetStorageArtefacts(ns.ID)
 	// if err != nil {
 	// 	ctx.JSON(200, artefacts)
 	// }

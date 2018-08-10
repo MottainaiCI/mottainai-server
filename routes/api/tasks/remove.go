@@ -42,14 +42,14 @@ func APIDelete(ctx *context.Context, db *database.Database) string {
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		return err
 	}
 	if !ctx.CheckTaskPermissions(&task) {
 		return errors.New("Moar permissions are required for this user")
 	}
-	err = db.DeleteTask(id)
+	err = db.Driver.DeleteTask(id)
 	if err != nil {
 		return err
 	}

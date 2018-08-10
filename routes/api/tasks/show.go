@@ -34,7 +34,7 @@ import (
 
 func GetTaskYaml(ctx *context.Context, db *database.Database) string {
 	id := ctx.ParamsInt(":id")
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -54,7 +54,7 @@ func GetTaskYaml(ctx *context.Context, db *database.Database) string {
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -69,7 +69,7 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 	id := ctx.ParamsInt(":id")
 	pos := ctx.ParamsInt(":pos")
 
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -84,7 +84,7 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 	id := ctx.ParamsInt(":id")
 	pos := ctx.ParamsInt(":pos")
 
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -102,9 +102,9 @@ func All(ctx *context.Context, db *database.Database) ([]task.Task, []task.Task)
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			all = db.AllTasks()
+			all = db.Driver.AllTasks()
 		}
-		mine, _ = db.AllUserTask(ctx.User.ID)
+		mine, _ = db.Driver.AllUserTask(ctx.User.ID)
 
 	}
 

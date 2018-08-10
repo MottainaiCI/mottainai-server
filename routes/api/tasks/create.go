@@ -60,7 +60,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	docID, err := db.InsertTask(&opts)
+	docID, err := db.Driver.InsertTask(&opts)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.ParamsInt(":id")
 
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		return "", err
 	}
@@ -81,13 +81,13 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	docID, err := db.CloneTask(id)
+	docID, err := db.Driver.CloneTask(id)
 	if err != nil {
 		return "", err
 	}
 
 	if ctx.IsLogged {
-		db.UpdateTask(docID, map[string]interface{}{
+		db.Driver.UpdateTask(docID, map[string]interface{}{
 			"owner_id": strconv.Itoa(ctx.User.ID),
 		})
 	}

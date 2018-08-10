@@ -20,9 +20,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
-import "github.com/MottainaiCI/mottainai-server/pkg/nodes"
+import (
+	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+)
 
 var NodeColl = "Nodes"
 
@@ -76,7 +80,7 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
 	return res[0], nil
 }
 
-func (d *Database) ListNodes() []DocItem {
+func (d *Database) ListNodes() []dbcommon.DocItem {
 	return d.ListDocs(NodeColl)
 }
 

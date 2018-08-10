@@ -20,10 +20,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"strconv"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
@@ -72,7 +74,7 @@ func (d *Database) GetPlan(docID int) (agenttasks.Plan, error) {
 	return t, err
 }
 
-func (d *Database) ListPlans() []DocItem {
+func (d *Database) ListPlans() []dbcommon.DocItem {
 	return d.ListDocs(PlansColl)
 }
 

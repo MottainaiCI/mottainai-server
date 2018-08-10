@@ -45,7 +45,7 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	task, err := db.GetTask(taskid)
+	task, err := db.Driver.GetTask(taskid)
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +55,7 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	if err != nil {
 		return ":(", err
 	}
-	// artefacts, err := db.GetTaskArtefacts(taskid)
+	// artefacts, err := db.Driver.GetTaskArtefacts(taskid)
 	// if err != nil {
 	// 	return "", err
 	// }

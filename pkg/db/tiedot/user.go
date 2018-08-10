@@ -20,10 +20,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"errors"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 )
@@ -194,7 +196,7 @@ func (d *Database) GetUser(docID int) (user.User, error) {
 	return t, err
 }
 
-func (d *Database) ListUsers() []DocItem {
+func (d *Database) ListUsers() []dbcommon.DocItem {
 	return d.ListDocs(UserColl)
 }
 

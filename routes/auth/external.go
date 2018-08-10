@@ -43,12 +43,12 @@ func GithubLogout(c *context.Context, db *database.Database) error {
 	c.Session.Delete("github")
 	if c.IsLogged {
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		u, err := db.GetUser(c.User.ID)
+		u, err := db.Driver.GetUser(c.User.ID)
 		if err != nil {
 			return err
 		}
 		u.RemoveIdentity("github")
-		err = db.UpdateUser(c.User.ID, u.ToMap())
+		err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
 		if err != nil {
 			return err
 		}
@@ -66,14 +66,14 @@ func GithubLogin(c *context.Context, db *database.Database) error {
 		//c.Session.Set("provider", interface{})
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
 		if gothUser, err := gothic.CompleteUserAuth(c); err == nil {
-			u, err := db.GetUser(c.User.ID)
+			u, err := db.Driver.GetUser(c.User.ID)
 
 			if err != nil {
 				return err
 			}
 
 			u.AddIdentity("github", &ciuser.Identity{ID: gothUser.UserID, Provider: "github"})
-			err = db.UpdateUser(c.User.ID, u.ToMap())
+			err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
 			if err != nil {
 				return err
 			}
@@ -96,7 +96,7 @@ func GithubLogin(c *context.Context, db *database.Database) error {
 func RequiresIntegrationSetting(c *context.Context, db *database.Database) error {
 	// Check setting if we have to process this.
 	err := errors.New("Third party integration disabled")
-	uuu, err := db.GetSettingByKey(setting.SYSTEM_THIRDPARTY_INTEGRATION_ENABLED)
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_THIRDPARTY_INTEGRATION_ENABLED)
 	if err == nil {
 		if uuu.IsDisabled() {
 			c.ServerError("Third party integration disabled", err)
@@ -114,14 +114,14 @@ func GithubAuthCallback(s session.Store, c *context.Context, db *database.Databa
 		if err != nil {
 			return err
 		}
-		u, err := db.GetUser(c.User.ID)
+		u, err := db.Driver.GetUser(c.User.ID)
 
 		if err != nil {
 			return err
 		}
 
 		u.AddIdentity("github", &ciuser.Identity{ID: user.UserID, Provider: "github"})
-		err = db.UpdateUser(c.User.ID, u.ToMap())
+		err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
 		if err != nil {
 			return err
 		}

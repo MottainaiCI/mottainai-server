@@ -49,9 +49,9 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 		return ":("
 	}
 
-	n := db.AllNodes()
+	n := db.Driver.AllNodes()
 
-	nodesfound, err := db.FindDoc("Nodes", `[{"eq": "`+key+`", "in": ["key"]}]`)
+	nodesfound, err := db.Driver.FindDoc("Nodes", `[{"eq": "`+key+`", "in": ["key"]}]`)
 	if err != nil || len(nodesfound) > 1 || len(nodesfound) == 0 {
 		ctx.NotFound()
 		return ":("
@@ -61,7 +61,7 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 	var mynodeid int
 	// Query result are document IDs
 	for id := range nodesfound {
-		//	mynode, _ = db.GetNode(id)
+		//	mynode, _ = db.Driver.GetNode(id)
 		mynodeid = id
 	}
 	var pos int
@@ -72,7 +72,7 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 	}
 
 	hb := time.Now().Format("20060102150405")
-	db.UpdateNode(mynodeid, map[string]interface{}{
+	db.Driver.UpdateNode(mynodeid, map[string]interface{}{
 		"nodeid":      nodeid,
 		"hostname":    hostname,
 		"last_report": hb,

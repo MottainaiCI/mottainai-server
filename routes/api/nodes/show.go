@@ -31,7 +31,7 @@ import (
 func Show(ctx *context.Context, db *database.Database) {
 
 	id := ctx.ParamsInt(":id")
-	node, err := db.GetNode(id)
+	node, err := db.Driver.GetNode(id)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -42,7 +42,7 @@ func Show(ctx *context.Context, db *database.Database) {
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	//tasks := db.ListTasks()
-	nodes := db.AllNodes()
+	nodes := db.Driver.AllNodes()
 
 	ctx.JSON(200, nodes)
 }

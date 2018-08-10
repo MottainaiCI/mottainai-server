@@ -44,11 +44,11 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	if !ctx.CheckStorageBelongs(name) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
-	if _, err := db.SearchStorage(name); err == nil {
+	if _, err := db.Driver.SearchStorage(name); err == nil {
 		return "Storage with same name already present", err
 	}
 
-	docID, err := db.CreateStorage(map[string]interface{}{
+	docID, err := db.Driver.CreateStorage(map[string]interface{}{
 		"name":     name,
 		"path":     name,
 		"owner_id": strconv.Itoa(ctx.User.ID),
@@ -76,7 +76,7 @@ func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) 
 
 	file, err := uf.FileUpload.Open()
 
-	storage, err := db.GetStorage(uf.ID)
+	storage, err := db.Driver.GetStorage(uf.ID)
 	defer file.Close()
 	if err != nil {
 		return err

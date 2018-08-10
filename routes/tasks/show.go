@@ -35,7 +35,7 @@ import (
 
 func DisplayTask(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	task, err := db.GetTask(id)
+	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -48,7 +48,7 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 	if ctx.IsLogged && (ctx.User.IsAdmin() || ctx.User.IsManager()) {
 		uid, err := strconv.Atoi(task.Owner)
 		if err == nil {
-			u, err := db.GetUser(uid)
+			u, err := db.Driver.GetUser(uid)
 			if err == nil {
 				u.Password = ""
 				ctx.Data["TaskOwner"] = u
@@ -56,7 +56,7 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 		}
 		nid, err := strconv.Atoi(task.Node)
 		if err == nil {
-			n, err := db.GetNode(nid)
+			n, err := db.Driver.GetNode(nid)
 			if err == nil {
 				ctx.Data["TaskNode"] = n
 			}
@@ -98,7 +98,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 func ShowArtefacts(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
 
-	tasks_info, err := db.GetTask(id)
+	tasks_info, err := db.Driver.GetTask(id)
 
 	if err != nil {
 		panic(err)

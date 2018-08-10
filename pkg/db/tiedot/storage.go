@@ -20,13 +20,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -95,7 +97,7 @@ func (d *Database) GetStorage(docID int) (storage.Storage, error) {
 	return t, err
 }
 
-func (d *Database) ListStorages() []DocItem {
+func (d *Database) ListStorages() []dbcommon.DocItem {
 	return d.ListDocs(StorageColl)
 }
 

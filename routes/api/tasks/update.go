@@ -46,7 +46,7 @@ type UpdateTaskForm struct {
 }
 
 func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) error {
-	mytask, err := db.GetTask(f.Id)
+	mytask, err := db.Driver.GetTask(f.Id)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 		return errors.New("Moar permissions are required for this user")
 	}
 	if len(f.Field) > 0 && len(f.Value) > 0 {
-		db.UpdateTask(f.Id, map[string]interface{}{
+		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			f.Field: f.Value,
 		})
 		// Set state once we have task's exit status
@@ -63,16 +63,16 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 			// TODO: To change to properly handling of fields as well, but for now
 			// we can cope with it.
 
-			db.UpdateTask(f.Id, map[string]interface{}{
+			db.Driver.UpdateTask(f.Id, map[string]interface{}{
 				"exit_status": f.Value,
 			})
 
 			if !mytask.IsStopped() {
-				db.UpdateTask(f.Id, map[string]interface{}{
+				db.Driver.UpdateTask(f.Id, map[string]interface{}{
 					"result": mytask.DecodeStatus(f.Value),
 				})
 
-				t, err := db.GetTask(f.Id)
+				t, err := db.Driver.GetTask(f.Id)
 				if err != nil {
 					return err
 				}
@@ -85,18 +85,18 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 }
 
 func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
-	mytask, err := db.GetTask(f.Id)
+	mytask, err := db.Driver.GetTask(f.Id)
 	if err != nil {
 		return err
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
 		return errors.New("Moar permissions are required for this user")
 	}
-	node, err := db.GetNodeByKey(f.Key)
+	node, err := db.Driver.GetNodeByKey(f.Key)
 	if err != nil {
 		return err
 	}
-	db.UpdateTask(f.Id, map[string]interface{}{
+	db.Driver.UpdateTask(f.Id, map[string]interface{}{
 		"node_id": strconv.Itoa(node.ID),
 	})
 
@@ -107,7 +107,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 
 	if len(f.Output) > 0 {
 
-		mytask, err := db.GetTask(f.Id)
+		mytask, err := db.Driver.GetTask(f.Id)
 		if err != nil {
 			return ":("
 		}
@@ -123,25 +123,25 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
 
 	if len(f.Status) > 0 {
-		db.UpdateTask(f.Id, map[string]interface{}{
+		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			"status": f.Status,
 		})
 	}
 
 	if len(f.Output) > 0 {
-		db.UpdateTask(f.Id, map[string]interface{}{
+		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			"output": f.Output,
 		})
 	}
 
 	if len(f.Result) > 0 {
-		db.UpdateTask(f.Id, map[string]interface{}{
+		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			"result":   f.Result,
 			"end_time": time.Now().Format("20060102150405"),
 		})
 	}
 
-	t, err := db.GetTask(f.Id)
+	t, err := db.Driver.GetTask(f.Id)
 	if err != nil {
 		return ":( "
 	}

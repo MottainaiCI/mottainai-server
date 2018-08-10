@@ -52,14 +52,14 @@ func TestUpload(t *testing.T) {
 	defer os.RemoveAll(s.Configuration.DBPath)
 	defer os.RemoveAll(s.Configuration.ArtefactPath)
 
-	db := database.NewDatabase("")
+	db := database.NewDatabase("tiedot")
 
 	u := &user.User{}
 	u.Name = "test"
 	u.Password = "foo"
 	u.Email = "foo@bar"
 	u.MakeAdmin()
-	id, err := db.InsertAndSaltUser(u)
+	id, err := db.Driver.InsertAndSaltUser(u)
 	if err != nil {
 		t.Error(err)
 	}
@@ -70,11 +70,11 @@ func TestUpload(t *testing.T) {
 	}
 
 	node := &node.Node{Key: "test"}
-	nodeid, err := db.InsertNode(node)
+	nodeid, err := db.Driver.InsertNode(node)
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = db.InsertToken(tok)
+	_, err = db.Driver.InsertToken(tok)
 	if err != nil {
 		t.Error(err)
 	}
@@ -115,7 +115,7 @@ func TestUpload(t *testing.T) {
 	s.Configuration.AgentKey = node.Key
 	fetcher.RegisterNode("foo", "bar")
 
-	nd, err := db.GetNode(nodeid)
+	nd, err := db.Driver.GetNode(nodeid)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

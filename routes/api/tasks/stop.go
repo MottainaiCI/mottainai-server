@@ -48,14 +48,14 @@ func Stop(ctx *context.Context, db *database.Database) error {
 	// 	return ":( "
 	// }
 	id := ctx.ParamsInt(":id")
-	mytask, err := db.GetTask(id)
+	mytask, err := db.Driver.GetTask(id)
 	if err != nil {
 		return err
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
 		return errors.New("Moar permissions are required for this user")
 	}
-	err = db.UpdateTask(id, map[string]interface{}{
+	err = db.Driver.UpdateTask(id, map[string]interface{}{
 		"status": "stop",
 	})
 	//ctx.Redirect("/tasks")

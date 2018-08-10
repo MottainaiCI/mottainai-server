@@ -48,46 +48,43 @@ type Stats struct {
 }
 
 func Info(ctx *context.Context, db *database.Database) {
-	rtasks, _ := db.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+	rtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
 	running_tasks := len(rtasks)
-	wtasks, _ := db.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+	wtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
 	waiting_tasks := len(wtasks)
-	etasks, _ := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+	etasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
 	error_tasks := len(etasks)
-	ftasks, _ := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+	ftasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
 	failed_tasks := len(ftasks)
-	stasks, _ := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+	stasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
 	succeeded_tasks := len(stasks)
 
 	var fail_task = make([]agenttasks.Task, 0)
 	for i, _ := range ftasks {
-		t, _ := db.GetTask(i)
+		t, _ := db.Driver.GetTask(i)
 		fail_task = append(fail_task, t)
 	}
 	var failed = GetStats(fail_task)
 
 	var err_tasks = make([]agenttasks.Task, 0)
 	for i, _ := range etasks {
-		t, _ := db.GetTask(i)
+		t, _ := db.Driver.GetTask(i)
 		err_tasks = append(err_tasks, t)
 	}
 	var errored = GetStats(err_tasks)
 
 	var suc_tasks = make([]agenttasks.Task, 0)
 	for i, _ := range stasks {
-		t, _ := db.GetTask(i)
+		t, _ := db.Driver.GetTask(i)
 		suc_tasks = append(suc_tasks, t)
 	}
 	var succeded = GetStats(suc_tasks)
 
-	atasks := db.AllTasks()
+	atasks := db.Driver.AllTasks()
 	var created = GetStats(atasks)
 
 	s := &Stats{}
-	total := db.DB().Use("Tasks").ApproxDocCount()
-	if total == 0 {
-		total = len(db.ListDocs("Tasks"))
-	}
+	total := len(atasks)
 	s.Errored = error_tasks
 	s.Running = running_tasks
 	s.Total = total
@@ -105,7 +102,7 @@ func Info(ctx *context.Context, db *database.Database) {
 func GetStats(atasks []agenttasks.Task) map[string]int {
 	var created = make(map[string]int)
 	for _, t := range atasks {
-		//t, _ := db.GetTask(i)
+		//t, _ := db.Driver.GetTask(i)
 		t1, _ := time.Parse(
 			"20060102150405",
 			t.CreatedTime)

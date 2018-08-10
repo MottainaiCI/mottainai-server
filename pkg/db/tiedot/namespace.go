@@ -20,12 +20,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
@@ -95,7 +97,7 @@ func (d *Database) GetNamespace(docID int) (namespace.Namespace, error) {
 	return t, err
 }
 
-func (d *Database) ListNamespaces() []DocItem {
+func (d *Database) ListNamespaces() []dbcommon.DocItem {
 	return d.ListDocs(NamespaceColl)
 }
 

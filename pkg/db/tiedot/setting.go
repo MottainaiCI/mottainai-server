@@ -20,11 +20,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package database
+package tiedot
 
 import (
 	"errors"
 	"strconv"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
@@ -122,7 +124,7 @@ func (d *Database) GetSetting(docID int) (setting.Setting, error) {
 	return t, err
 }
 
-func (d *Database) ListSettings() []DocItem {
+func (d *Database) ListSettings() []dbcommon.DocItem {
 	return d.ListDocs(SettingColl)
 }
 

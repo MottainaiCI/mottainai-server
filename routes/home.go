@@ -74,36 +74,34 @@ func Setup(m *macaron.Macaron) {
 	// m.Use(macaron.Renderer())
 
 	m.Get("/", func(ctx *context.Context, db *database.Database) error {
-		rtasks, e := db.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+		rtasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
 		if e != nil {
 			return e
 		}
 		running_tasks := len(rtasks)
-		wtasks, e := db.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+		wtasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
 		if e != nil {
 			return e
 		}
 		waiting_tasks := len(wtasks)
-		etasks, e := db.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+		etasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
 		if e != nil {
 			return e
 		}
 		error_tasks := len(etasks)
-		ftasks, e := db.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		ftasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
 		if e != nil {
 			return e
 		}
 		failed_tasks := len(ftasks)
-		stasks, e := db.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		stasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
 		if e != nil {
 			return e
 		}
 		succeeded_tasks := len(stasks)
 
-		ctx.Data["TotalTasks"] = db.DB().Use("Tasks").ApproxDocCount()
-		if ctx.Data["TotalTasks"] == 0 {
-			ctx.Data["TotalTasks"] = len(db.ListDocs("Tasks"))
-		}
+		ctx.Data["TotalTasks"] = len(db.Driver.ListDocs("Tasks"))
+
 		ctx.Data["RunningTasks"] = running_tasks
 		ctx.Data["WaitingTasks"] = waiting_tasks
 		ctx.Data["ErroredTasks"] = error_tasks

@@ -46,7 +46,7 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 	pass, _ := utils.RandomString(10)
 	key, _ := utils.RandomString(30)
 
-	docID, _ := db.CreateNode(map[string]interface{}{
+	docID, _ := db.Driver.CreateNode(map[string]interface{}{
 		"owner": 0,
 		"user":  user,
 		"pass":  pass,

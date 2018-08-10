@@ -43,13 +43,13 @@ type ArtefactForm struct {
 }
 
 func AllArtefactList(ctx *context.Context, db *database.Database) {
-	artefacts := db.AllArtefacts()
+	artefacts := db.Driver.AllArtefacts()
 	ctx.JSON(200, artefacts)
 }
 
 func ArtefactList(ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
-	// artefacts, err := db.GetTaskArtefacts(id)
+	// artefacts, err := db.Driver.GetTaskArtefacts(id)
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -58,7 +58,7 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
-	t, err := db.GetTask(id)
+	t, err := db.Driver.GetTask(id)
 	if !ctx.CheckTaskPermissions(&t) {
 		return
 	}
@@ -75,7 +75,7 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	file, err := uf.FileUpload.Open()
 	defer file.Close()
 
-	task, err := db.GetTask(uf.TaskID)
+	task, err := db.Driver.GetTask(uf.TaskID)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	defer f.Close()
 	io.Copy(f, file)
 
-	db.CreateArtefact(map[string]interface{}{
+	db.Driver.CreateArtefact(map[string]interface{}{
 		"name": uf.Name,
 		"path": uf.Path,
 		"task": task.ID,

@@ -34,7 +34,7 @@ import (
 func RemoveToken(ctx *context.Context, db *database.Database) error {
 	id := ctx.ParamsInt(":id")
 
-	token, err := db.GetToken(id)
+	token, err := db.Driver.GetToken(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
@@ -54,7 +54,7 @@ func RemoveToken(ctx *context.Context, db *database.Database) error {
 		return e
 	}
 
-	err = db.DeleteToken(id)
+	err = db.Driver.DeleteToken(id)
 	if err != nil {
 		ctx.ServerError("Failed removing token", err)
 		return err
