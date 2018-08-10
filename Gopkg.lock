@@ -421,7 +421,7 @@
   branch = "master"
   name = "github.com/mudler/anagent"
   packages = ["."]
-  revision = "a44327bef7535c7813ce4330b7488f872e780472"
+  revision = "626d9ac35e3e4b5af2735542ac49a511784b4bc8"
 
 [[projects]]
   branch = "master"
