@@ -263,7 +263,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		now := time.Now()
 		task_info = th.FetchTask(fetcher)
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
-		if task_info.Status != "running" || timedout {
+		if task_info.IsStopped() || timedout {
 			if timedout {
 				d.Report("Task timeout!")
 			}
