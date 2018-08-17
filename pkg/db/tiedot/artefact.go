@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"strconv"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 )
@@ -34,19 +36,19 @@ func (d *Database) IndexArtefacts() {
 	d.AddIndex(ArtefactColl, []string{"namespace"})
 }
 
-func (d *Database) CreateArtefact(t map[string]interface{}) (int, error) {
+func (d *Database) CreateArtefact(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(ArtefactColl, t)
 }
 
-func (d *Database) DeleteArtefact(docID int) error {
+func (d *Database) DeleteArtefact(docID string) error {
 	return d.DeleteDoc(ArtefactColl, docID)
 }
 
-func (d *Database) UpdateArtefact(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateArtefact(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(ArtefactColl, docID, t)
 }
 
-func (d *Database) GetArtefact(docID int) (artefact.Artefact, error) {
+func (d *Database) GetArtefact(docID string) (artefact.Artefact, error) {
 	doc, err := d.GetDoc(ArtefactColl, docID)
 	if err != nil {
 		return artefact.Artefact{}, err
@@ -86,7 +88,7 @@ func (d *Database) AllArtefacts() []artefact.Artefact {
 
 	Artefacts.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := artefact.NewFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Artefacts_id = append(Artefacts_id, t)
 		return true
 	})

@@ -121,7 +121,7 @@ func TestGetTokenByUid(t *testing.T) {
 		t.Fatal("Could not find the inserted token")
 	}
 
-	uuuu, err := db.GetTokenByUserID(20)
+	uuuu, err := db.GetTokenByUserID("20")
 
 	if err != nil {
 		t.Fatal(err)

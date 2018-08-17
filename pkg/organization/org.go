@@ -28,7 +28,7 @@ import (
 )
 
 type Organization struct {
-	ID   int    `json:"id" form:"id"`
+	ID   string `json:"id" form:"id"`
 	Name string `json:"name" form:"name"`
 
 	Projects []string `json:"projects" form:"projects"`

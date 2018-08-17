@@ -32,7 +32,7 @@ import (
 )
 
 type Artefact struct {
-	ID        int    `json:"ID"`
+	ID        string `json:"ID"`
 	Name      string `form:"name" json:"name"`
 	Path      string `json:"path" form:"path"`
 	Task      int    `json:"task" form:"task"`

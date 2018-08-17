@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"strconv"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
@@ -34,21 +36,21 @@ func (d *Database) IndexNode() {
 	d.AddIndex(NodeColl, []string{"nodeid"})
 	d.AddIndex(NodeColl, []string{"key"})
 }
-func (d *Database) CreateNode(t map[string]interface{}) (int, error) {
+func (d *Database) CreateNode(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(NodeColl, t)
 }
-func (d *Database) InsertNode(n *nodes.Node) (int, error) {
+func (d *Database) InsertNode(n *nodes.Node) (string, error) {
 	return d.CreateNode(n.ToMap())
 }
-func (d *Database) DeleteNode(docID int) error {
+func (d *Database) DeleteNode(docID string) error {
 	return d.DeleteDoc(NodeColl, docID)
 }
 
-func (d *Database) UpdateNode(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateNode(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(NodeColl, docID, t)
 }
 
-func (d *Database) GetNode(docID int) (nodes.Node, error) {
+func (d *Database) GetNode(docID string) (nodes.Node, error) {
 	doc, err := d.GetDoc(NodeColl, docID)
 	if err != nil {
 		return nodes.Node{}, err
@@ -90,7 +92,7 @@ func (d *Database) AllNodes() []nodes.Node {
 
 	nodec.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := nodes.NewFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		node_list = append(node_list, t)
 		return true
 	})

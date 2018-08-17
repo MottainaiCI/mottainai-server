@@ -34,7 +34,7 @@ import (
 )
 
 func DisplayTask(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
@@ -46,20 +46,16 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 	ctx.Data["Task"] = task
 
 	if ctx.IsLogged && (ctx.User.IsAdmin() || ctx.User.IsManager()) {
-		uid, err := strconv.Atoi(task.Owner)
+
+		u, err := db.Driver.GetUser(task.Owner)
 		if err == nil {
-			u, err := db.Driver.GetUser(uid)
-			if err == nil {
-				u.Password = ""
-				ctx.Data["TaskOwner"] = u
-			}
+			u.Password = ""
+			ctx.Data["TaskOwner"] = u
 		}
-		nid, err := strconv.Atoi(task.Node)
+
+		n, err := db.Driver.GetNode(task.Node)
 		if err == nil {
-			n, err := db.Driver.GetNode(nid)
-			if err == nil {
-				ctx.Data["TaskNode"] = n
-			}
+			ctx.Data["TaskNode"] = n
 		}
 	}
 
@@ -96,7 +92,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 }
 
 func ShowArtefacts(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	tasks_info, err := db.Driver.GetTask(id)
 

@@ -26,7 +26,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"strconv"
 
 	"github.com/sethvargo/go-password/password"
 
@@ -34,18 +33,18 @@ import (
 )
 
 type Token struct {
-	ID  int    `json:"id" form:"id"`
+	ID  string `json:"id" form:"id"`
 	Key string `json:"key" form:"key"`
 
 	UserId string `json:"user_id" form:"user_id"`
 }
 
-func GenerateUserToken(id int) (*Token, error) {
+func GenerateUserToken(id string) (*Token, error) {
 	t, err := GenerateToken()
 	if err != nil {
 		return t, err
 	}
-	t.UserId = strconv.Itoa(id)
+	t.UserId = id
 
 	return t, nil
 }

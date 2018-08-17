@@ -30,7 +30,7 @@ import (
 
 func Show(ctx *context.Context, db *database.Database) {
 
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	node, err := db.Driver.GetNode(id)
 	if err != nil {
 		ctx.NotFound()

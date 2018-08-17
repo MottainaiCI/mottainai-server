@@ -28,7 +28,7 @@ import (
 )
 
 type Setting struct {
-	ID    int    `json:"id" form:"id"`
+	ID    string `json:"id" form:"id"`
 	Key   string `json:"key" form:"key"`
 	Value string `json:"value" form:"value"`
 }
@@ -48,7 +48,7 @@ func (s *Setting) IsDisabled() bool {
 func (s *Setting) Clear() {
 	s.Key = ""
 	s.Value = ""
-	s.ID = 0
+	s.ID = ""
 }
 
 // TODO: Port NewUserFromMap Task to same or make it common func

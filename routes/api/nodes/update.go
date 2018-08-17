@@ -58,7 +58,7 @@ func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context
 	}
 
 	//var mynode nodes.Node
-	var mynodeid int
+	var mynodeid string
 	// Query result are document IDs
 	for id := range nodesfound {
 		//	mynode, _ = db.Driver.GetNode(id)

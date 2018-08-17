@@ -41,137 +41,127 @@ import (
 
 type DatabaseDriver interface {
 	Init()
-	InsertDoc(string, map[string]interface{}) (int, error)
-	FindDoc(string, string) (map[int]struct{}, error)
-	DeleteDoc(string, int) error
-	UpdateDoc(string, int, map[string]interface{}) error
-	ReplaceDoc(string, int, map[string]interface{}) error
-	GetDoc(string, int) (map[string]interface{}, error)
+	InsertDoc(string, map[string]interface{}) (string, error)
+	FindDoc(string, string) (map[string]struct{}, error)
+	DeleteDoc(string, string) error
+	UpdateDoc(string, string, map[string]interface{}) error
+	ReplaceDoc(string, string, map[string]interface{}) error
+	GetDoc(string, string) (map[string]interface{}, error)
 	DropColl(string) error
 	ListDocs(string) []dbcommon.DocItem
 	// Artefacts
-	IndexArtefacts()
-	CreateArtefact(map[string]interface{}) (int, error)
-	DeleteArtefact(int) error
-	UpdateArtefact(int, map[string]interface{}) error
-	GetArtefact(int) (artefact.Artefact, error)
+	CreateArtefact(map[string]interface{}) (string, error)
+	DeleteArtefact(string) error
+	UpdateArtefact(string, map[string]interface{}) error
+	GetArtefact(string) (artefact.Artefact, error)
 	SearchArtefact(string) (artefact.Artefact, error)
 	ListArtefacts() []dbcommon.DocItem
 	AllArtefacts() []artefact.Artefact
 
 	// Namespaces
-	IndexNamespace()
-	CreateNamespace(t map[string]interface{}) (int, error)
-	DeleteNamespace(docID int) error
-	UpdateNamespace(docID int, t map[string]interface{}) error
+	CreateNamespace(t map[string]interface{}) (string, error)
+	DeleteNamespace(docID string) error
+	UpdateNamespace(docID string, t map[string]interface{}) error
 	SearchNamespace(name string) (namespace.Namespace, error)
-	GetNamespace(docID int) (namespace.Namespace, error)
+	GetNamespace(docID string) (namespace.Namespace, error)
 	ListNamespaces() []dbcommon.DocItem
-	GetNamespaceArtefacts(id int) ([]artefact.Artefact, error)
+	GetNamespaceArtefacts(id string) ([]artefact.Artefact, error)
 	AllNamespaces() []namespace.Namespace
 
 	// nodes
-	IndexNode()
-	CreateNode(t map[string]interface{}) (int, error)
-	InsertNode(n *nodes.Node) (int, error)
-	DeleteNode(docID int) error
-	UpdateNode(docID int, t map[string]interface{}) error
-	GetNode(docID int) (nodes.Node, error)
+	CreateNode(t map[string]interface{}) (string, error)
+	InsertNode(n *nodes.Node) (string, error)
+	DeleteNode(docID string) error
+	UpdateNode(docID string, t map[string]interface{}) error
+	GetNode(docID string) (nodes.Node, error)
 	GetNodeByKey(key string) (nodes.Node, error)
 	ListNodes() []dbcommon.DocItem
 	AllNodes() []nodes.Node
 
 	// Organization
-	IndexOrganization()
-	InsertOrganization(t *organization.Organization) (int, error)
-	CreateOrganization(t map[string]interface{}) (int, error)
-	DeleteOrganization(docID int) error
-	UpdateOrganization(docID int, t map[string]interface{}) error
+	InsertOrganization(t *organization.Organization) (string, error)
+	CreateOrganization(t map[string]interface{}) (string, error)
+	DeleteOrganization(docID string) error
+	UpdateOrganization(docID string, t map[string]interface{}) error
 	GetOrganizationByName(name string) (organization.Organization, error)
 	GetOrganizationsByName(name string) ([]organization.Organization, error)
-	GetOrganization(docID int) (organization.Organization, error)
+	GetOrganization(docID string) (organization.Organization, error)
 	ListOrganizations() []dbcommon.DocItem
 	// TODO: Change it, expensive for now
 	CountOrganizations() int
 	AllOrganizations() []organization.Organization
 
 	// Pipelines
-	IndexPipeline()
-	InsertPipeline(t *agenttasks.Pipeline) (int, error)
-	CreatePipeline(t map[string]interface{}) (int, error)
-	ClonePipeline(t int) (int, error)
-	DeletePipeline(docID int) error
-	AllUserPipelines(id int) ([]agenttasks.Pipeline, error)
-	UpdatePipeline(docID int, t map[string]interface{}) error
-	GetPipeline(docID int) (agenttasks.Pipeline, error)
+	InsertPipeline(t *agenttasks.Pipeline) (string, error)
+	CreatePipeline(t map[string]interface{}) (string, error)
+	ClonePipeline(t string) (string, error)
+	DeletePipeline(docID string) error
+	AllUserPipelines(id string) ([]agenttasks.Pipeline, error)
+	UpdatePipeline(docID string, t map[string]interface{}) error
+	GetPipeline(docID string) (agenttasks.Pipeline, error)
 	ListPipelines() []dbcommon.DocItem
 	AllPipelines() []agenttasks.Pipeline
 
 	// settings
-	IndexSetting()
-	InsertSetting(t *setting.Setting) (int, error)
-	CreateSetting(t map[string]interface{}) (int, error)
-	DeleteSetting(docID int) error
-	UpdateSetting(docID int, t map[string]interface{}) error
+	InsertSetting(t *setting.Setting) (string, error)
+	CreateSetting(t map[string]interface{}) (string, error)
+	DeleteSetting(docID string) error
+	UpdateSetting(docID string, t map[string]interface{}) error
 	GetSettingByKey(name string) (setting.Setting, error)
-	GetSettingByUserID(id int) (setting.Setting, error)
+	GetSettingByUserID(id string) (setting.Setting, error)
 	GetSettingsByField(field, name string) ([]setting.Setting, error)
 	GetSettingsByKey(name string) ([]setting.Setting, error)
-	GetSettingsByUserID(id int) ([]setting.Setting, error)
-	GetSetting(docID int) (setting.Setting, error)
+	GetSettingsByUserID(id string) ([]setting.Setting, error)
+	GetSetting(docID string) (setting.Setting, error)
 	ListSettings() []dbcommon.DocItem
 	// TODO: Change it, expensive for now
 	CountSettings() int
 	AllSettings() []setting.Setting
 
 	// Storages
-	IndexStorage()
-	CreateStorage(t map[string]interface{}) (int, error)
-	DeleteStorage(docID int) error
-	UpdateStorage(docID int, t map[string]interface{}) error
+	CreateStorage(t map[string]interface{}) (string, error)
+	DeleteStorage(docID string) error
+	UpdateStorage(docID string, t map[string]interface{}) error
 	SearchStorage(name string) (storage.Storage, error)
-	GetStorage(docID int) (storage.Storage, error)
+	GetStorage(docID string) (storage.Storage, error)
 	ListStorages() []dbcommon.DocItem
-	GetStorageArtefacts(id int) ([]artefact.Artefact, error)
+	GetStorageArtefacts(id string) ([]artefact.Artefact, error)
 	AllStorages() []storage.Storage
 
 	// Tasks
-	IndexTask()
-	InsertTask(t *agenttasks.Task) (int, error)
-	CreateTask(t map[string]interface{}) (int, error)
-	CloneTask(t int) (int, error)
-	DeleteTask(docID int) error
-	UpdateTask(docID int, t map[string]interface{}) error
-	GetTask(docID int) (agenttasks.Task, error)
-	GetTaskArtefacts(id int) ([]artefact.Artefact, error)
+	InsertTask(t *agenttasks.Task) (string, error)
+	CreateTask(t map[string]interface{}) (string, error)
+	CloneTask(t string) (string, error)
+	DeleteTask(docID string) error
+	UpdateTask(docID string, t map[string]interface{}) error
+	GetTask(docID string) (agenttasks.Task, error)
+	GetTaskArtefacts(id string) ([]artefact.Artefact, error)
 	ListTasks() []dbcommon.DocItem
 	AllTasks() []agenttasks.Task
-	AllUserTask(id int) ([]agenttasks.Task, error)
+	AllUserTask(id string) ([]agenttasks.Task, error)
 
 	// Token
-	IndexToken()
-	InsertToken(t *token.Token) (int, error)
-	CreateToken(t map[string]interface{}) (int, error)
-	DeleteToken(docID int) error
-	UpdateToken(docID int, t map[string]interface{}) error
+	InsertToken(t *token.Token) (string, error)
+	CreateToken(t map[string]interface{}) (string, error)
+	DeleteToken(docID string) error
+	UpdateToken(docID string, t map[string]interface{}) error
 	GetTokenByKey(name string) (token.Token, error)
-	GetTokenByUserID(id int) (token.Token, error)
+	GetTokenByUserID(id string) (token.Token, error)
 	GetTokensByField(field, name string) ([]token.Token, error)
 	GetTokensByKey(name string) ([]token.Token, error)
-	GetTokensByUserID(id int) ([]token.Token, error)
-	GetToken(docID int) (token.Token, error)
+	GetTokensByUserID(id string) ([]token.Token, error)
+	GetToken(docID string) (token.Token, error)
 	ListTokens() []dbcommon.DocItem
 	// TODO: Change it, expensive for now
 	CountTokens() int
 	AllTokens() []token.Token
 
 	// User
-	IndexUser()
-	InsertAndSaltUser(t *user.User) (int, error)
-	InsertUser(t *user.User) (int, error)
-	CreateUser(t map[string]interface{}) (int, error)
-	DeleteUser(docID int) error
-	UpdateUser(docID int, t map[string]interface{}) error
+	InsertAndSaltUser(t *user.User) (string, error)
+	InsertUser(t *user.User) (string, error)
+	CreateUser(t map[string]interface{}) (string, error)
+	DeleteUser(docID string) error
+	UpdateUser(docID string, t map[string]interface{}) error
 	SignIn(name, password string) (user.User, error)
 	GetUserByName(name string) (user.User, error)
 	GetUserByEmail(email string) (user.User, error)
@@ -179,20 +169,19 @@ type DatabaseDriver interface {
 	GetUsersByName(name string) ([]user.User, error)
 	// TODO: To replace with a specific collection to index search
 	GetUserByIdentity(identity_type, id string) (user.User, error)
-	GetUser(docID int) (user.User, error)
+	GetUser(docID string) (user.User, error)
 	ListUsers() []dbcommon.DocItem
 	// TODO: Change it, expensive for now
 	CountUsers() int
 	AllUsers() []user.User
 
 	// Plans
-	IndexPlan()
-	InsertPlan(t *agenttasks.Plan) (int, error)
-	CreatePlan(t map[string]interface{}) (int, error)
-	ClonePlan(t int) (int, error)
-	DeletePlan(docID int) error
-	UpdatePlan(docID int, t map[string]interface{}) error
-	GetPlan(docID int) (agenttasks.Plan, error)
+	InsertPlan(t *agenttasks.Plan) (string, error)
+	CreatePlan(t map[string]interface{}) (string, error)
+	ClonePlan(t string) (string, error)
+	DeletePlan(docID string) error
+	UpdatePlan(docID string, t map[string]interface{}) error
+	GetPlan(docID string) (agenttasks.Plan, error)
 	ListPlans() []dbcommon.DocItem
 	AllPlans() []agenttasks.Plan
 }

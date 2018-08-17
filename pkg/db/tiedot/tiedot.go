@@ -24,6 +24,7 @@ package tiedot
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/HouzuoGuo/tiedot/db"
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
@@ -93,48 +94,71 @@ func (d *Database) RemoveIndex(coll string, i []string) error {
 	return d.DB().Use(coll).Unindex(i)
 }
 
-func (d *Database) InsertDoc(coll string, t map[string]interface{}) (int, error) {
+func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, error) {
 	// Insert document (afterwards the docID uniquely identifies the document and will never change)
-	return d.DB().Use(coll).Insert(t)
+
+	id, err := d.DB().Use(coll).Insert(t)
+	return strconv.Itoa(id), err
 }
 
-func (d *Database) FindDoc(coll string, searchquery string) (map[int]struct{}, error) {
+func (d *Database) FindDoc(coll string, searchquery string) (map[string]struct{}, error) {
 
 	var query interface{}
 	json.Unmarshal([]byte(searchquery), &query)
 
 	queryResult := make(map[int]struct{}) // query result (document IDs) goes into map keys
+	res := make(map[string]struct{})      // query result (document IDs) goes into map keys
+
 	err := db.EvalQuery(query, d.DB().Use(coll), &queryResult)
 
-	return queryResult, err
+	for k, v := range queryResult {
+		res[strconv.Itoa(k)] = v
+	}
+
+	return res, err
 }
 
-func (d *Database) DeleteDoc(coll string, docID int) error {
-	return d.DB().Use(coll).Delete(docID)
+func (d *Database) DeleteDoc(coll string, docID string) error {
+	uuid, err := strconv.Atoi(docID)
+	if err != nil {
+		return err
+	}
+	return d.DB().Use(coll).Delete(uuid)
 }
 
-func (d *Database) UpdateDoc(coll string, docID int, t map[string]interface{}) error {
-
+func (d *Database) UpdateDoc(coll string, docID string, t map[string]interface{}) error {
+	uuid, err := strconv.Atoi(docID)
+	if err != nil {
+		return err
+	}
 	old, _ := d.GetDoc(coll, docID)
 	for k, v := range t {
 		old[k] = v
 	}
-	return d.DB().Use(coll).Update(docID, old)
+	return d.DB().Use(coll).Update(uuid, old)
 }
 
-func (d *Database) ReplaceDoc(coll string, docID int, t map[string]interface{}) error {
-	return d.DB().Use(coll).Update(docID, t)
+func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{}) error {
+	uuid, err := strconv.Atoi(docID)
+	if err != nil {
+		return err
+	}
+	return d.DB().Use(coll).Update(uuid, t)
 }
 
-func (d *Database) GetDoc(coll string, docID int) (map[string]interface{}, error) {
-	return d.DB().Use(coll).Read(docID)
+func (d *Database) GetDoc(coll string, docID string) (map[string]interface{}, error) {
+	uuid, err := strconv.Atoi(docID)
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+	return d.DB().Use(coll).Read(uuid)
 }
 
 func (d *Database) ListDocs(coll string) []dbcommon.DocItem {
 	tasks := d.DB().Use(coll)
 	tasks_id := make([]dbcommon.DocItem, 0)
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		tasks_id = append(tasks_id, dbcommon.DocItem{Id: id, Content: string(docContent)})
+		tasks_id = append(tasks_id, dbcommon.DocItem{Id: strconv.Itoa(id), Content: string(docContent)})
 		return true
 	})
 	return tasks_id

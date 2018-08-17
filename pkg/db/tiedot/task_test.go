@@ -58,7 +58,7 @@ func TestInsertTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	tasks, err := db.AllUserTask(20)
+	tasks, err := db.AllUserTask("20")
 
 	if err != nil {
 		t.Fatal(err)
@@ -108,7 +108,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	tasks, err := db.AllUserTask(20)
+	tasks, err := db.AllUserTask("20")
 
 	if err != nil {
 		t.Fatal(err)

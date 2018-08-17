@@ -28,7 +28,6 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -51,7 +50,7 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	docID, err := db.Driver.CreateStorage(map[string]interface{}{
 		"name":     name,
 		"path":     name,
-		"owner_id": strconv.Itoa(ctx.User.ID),
+		"owner_id": ctx.User.ID,
 	})
 	//
 	if err != nil {
@@ -62,11 +61,11 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 		return ":(", err
 	}
 
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }
 
 type StorageForm struct {
-	ID         int                   `form:"storageid" binding:"Required"`
+	ID         string                `form:"storageid" binding:"Required"`
 	Name       string                `form:"name"`
 	Path       string                `form:"path"`
 	FileUpload *multipart.FileHeader `form:"file"`

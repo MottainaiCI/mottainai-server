@@ -38,19 +38,19 @@ func (d *Database) IndexSetting() {
 	d.AddIndex(SettingColl, []string{"value"})
 }
 
-func (d *Database) InsertSetting(t *setting.Setting) (int, error) {
+func (d *Database) InsertSetting(t *setting.Setting) (string, error) {
 	if _, e := d.GetSettingByKey(t.Key); e == nil {
-		return 0, errors.New("Setting already exist")
+		return "", errors.New("Setting already exist")
 	}
 
 	return d.CreateSetting(t.ToMap())
 }
 
-func (d *Database) CreateSetting(t map[string]interface{}) (int, error) {
+func (d *Database) CreateSetting(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(SettingColl, t)
 }
 
-func (d *Database) DeleteSetting(docID int) error {
+func (d *Database) DeleteSetting(docID string) error {
 	t, err := d.GetSetting(docID)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (d *Database) DeleteSetting(docID int) error {
 	return d.DeleteDoc(SettingColl, docID)
 }
 
-func (d *Database) UpdateSetting(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateSetting(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(SettingColl, docID, t)
 }
 
@@ -75,7 +75,7 @@ func (d *Database) GetSettingByKey(name string) (setting.Setting, error) {
 	}
 }
 
-func (d *Database) GetSettingByUserID(id int) (setting.Setting, error) {
+func (d *Database) GetSettingByUserID(id string) (setting.Setting, error) {
 	res, err := d.GetSettingsByUserID(id)
 	if err != nil {
 		return setting.Setting{}, err
@@ -110,11 +110,11 @@ func (d *Database) GetSettingsByKey(name string) ([]setting.Setting, error) {
 	return d.GetSettingsByField("key", name)
 }
 
-func (d *Database) GetSettingsByUserID(id int) ([]setting.Setting, error) {
-	return d.GetSettingsByField("user_id", strconv.Itoa(id))
+func (d *Database) GetSettingsByUserID(id string) ([]setting.Setting, error) {
+	return d.GetSettingsByField("user_id", id)
 }
 
-func (d *Database) GetSetting(docID int) (setting.Setting, error) {
+func (d *Database) GetSetting(docID string) (setting.Setting, error) {
 	doc, err := d.GetDoc(SettingColl, docID)
 	if err != nil {
 		return setting.Setting{}, err
@@ -139,7 +139,7 @@ func (d *Database) AllSettings() []setting.Setting {
 
 	Settings.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := setting.NewSettingFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Settings_id = append(Settings_id, t)
 		return true
 	})

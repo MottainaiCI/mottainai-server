@@ -32,7 +32,7 @@ import (
 )
 
 func SetManager(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	u, err := db.Driver.GetUser(id)
 	if err != nil {
@@ -51,7 +51,7 @@ func SetManager(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 func SetAdmin(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	u, err := db.Driver.GetUser(id)
 	if err != nil {
@@ -89,7 +89,7 @@ func SetAdminUser(ctx *context.Context, db *database.Database) string {
 }
 
 func UnSetManager(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	u, err := db.Driver.GetUser(id)
 	if err != nil {
@@ -108,7 +108,7 @@ func UnSetManager(ctx *context.Context, db *database.Database) error {
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	u, err := db.Driver.GetUser(id)
 	if err != nil {
@@ -142,7 +142,7 @@ func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 	return "OK"
 }
 func Delete(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	user, err := db.Driver.GetUser(id)
 	if err != nil {
@@ -180,7 +180,7 @@ func List(c *context.Context, db *database.Database) []user.User {
 }
 
 func Show(c *context.Context, db *database.Database) (user.User, error) {
-	id := c.ParamsInt(":id")
+	id := c.Params(":id")
 	u, err := db.Driver.GetUser(id)
 	u.Password = ""
 	if err != nil {

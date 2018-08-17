@@ -24,7 +24,6 @@ package storage
 
 import (
 	"encoding/json"
-	"strconv"
 )
 
 type Storage struct {
@@ -37,9 +36,9 @@ type Storage struct {
 	//TaskID string `json:"taskid" form:"taskid"`
 }
 
-func (t *Storage) IsOwner(id int) bool {
+func (t *Storage) IsOwner(id string) bool {
 
-	if strconv.Itoa(id) == t.Owner {
+	if id == t.Owner {
 		return true
 	}
 

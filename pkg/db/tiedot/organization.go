@@ -24,6 +24,7 @@ package tiedot
 
 import (
 	"errors"
+	"strconv"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
@@ -36,16 +37,16 @@ func (d *Database) IndexOrganization() {
 	d.AddIndex(OrganizationColl, []string{"name"})
 }
 
-func (d *Database) InsertOrganization(t *organization.Organization) (int, error) {
+func (d *Database) InsertOrganization(t *organization.Organization) (string, error) {
 	return d.CreateOrganization(t.ToMap())
 }
 
-func (d *Database) CreateOrganization(t map[string]interface{}) (int, error) {
+func (d *Database) CreateOrganization(t map[string]interface{}) (string, error) {
 
 	return d.InsertDoc(OrganizationColl, t)
 }
 
-func (d *Database) DeleteOrganization(docID int) error {
+func (d *Database) DeleteOrganization(docID string) error {
 
 	t, err := d.GetOrganization(docID)
 	if err != nil {
@@ -56,7 +57,7 @@ func (d *Database) DeleteOrganization(docID int) error {
 	return d.DeleteDoc(OrganizationColl, docID)
 }
 
-func (d *Database) UpdateOrganization(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateOrganization(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(OrganizationColl, docID, t)
 }
 
@@ -91,7 +92,7 @@ func (d *Database) GetOrganizationsByName(name string) ([]organization.Organizat
 	return res, nil
 }
 
-func (d *Database) GetOrganization(docID int) (organization.Organization, error) {
+func (d *Database) GetOrganization(docID string) (organization.Organization, error) {
 	doc, err := d.GetDoc(OrganizationColl, docID)
 	if err != nil {
 		return organization.Organization{}, err
@@ -116,7 +117,7 @@ func (d *Database) AllOrganizations() []organization.Organization {
 
 	Organizations.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := organization.NewOrganizationFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Organizations_id = append(Organizations_id, t)
 		return true
 	})

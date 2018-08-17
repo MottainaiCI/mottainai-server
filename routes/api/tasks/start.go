@@ -44,7 +44,7 @@ func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *c
 }
 
 func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	fmt.Println("Starting task ", id)
 
 	mytask, err := db.Driver.GetTask(id)

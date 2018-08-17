@@ -34,7 +34,7 @@ import (
 )
 
 func StorageDelete(ctx *context.Context, db *database.Database) (string, error) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	//name, _ = utils.Strip(name)
 
 	storage, err := db.Driver.GetStorage(id)

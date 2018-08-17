@@ -36,7 +36,7 @@ import (
 )
 
 type ArtefactForm struct {
-	TaskID     int                   `form:"taskid" binding:"Required"`
+	TaskID     string                `form:"taskid" binding:"Required"`
 	Name       string                `form:"name"`
 	Path       string                `form:"path"`
 	FileUpload *multipart.FileHeader `form:"file"`
@@ -48,7 +48,7 @@ func AllArtefactList(ctx *context.Context, db *database.Database) {
 }
 
 func ArtefactList(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	// artefacts, err := db.Driver.GetTaskArtefacts(id)
 	// if err != nil {
 	// 	panic(err)

@@ -27,7 +27,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 
 	log "log"
 
@@ -253,7 +252,7 @@ func (m *Mottainai) WrapH(h http.Handler) macaron.Handler {
 		h.ServeHTTP(c.Resp, c.Req.Request)
 	}
 }
-func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
+func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	result := true
 	var rerr error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
@@ -289,13 +288,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 				rerr = err
 				fmt.Printf("Could not send task: %s", err.Error())
 				for _, t := range pip.Tasks {
-					id, err := strconv.Atoi(t.ID)
-					if err != nil {
-						rerr = err
-						result = false
-						return
-					}
-					d.Driver.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -321,13 +314,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 				rerr = err
 				fmt.Printf("Could not send group: %s", err.Error())
 				for _, t := range pip.Tasks {
-					id, err := strconv.Atoi(t.ID)
-					if err != nil {
-						rerr = err
-						result = false
-						return
-					}
-					d.Driver.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -353,8 +340,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 				log.Println("Could not send task: ", err.Error())
 
 				for _, t := range pip.Tasks {
-					id, _ := strconv.Atoi(t.ID)
-					d.Driver.UpdateTask(id, map[string]interface{}{
+					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
 						"status": "done",
 						"output": "Backend error, could not send task to broker: " + err.Error(),
@@ -372,7 +358,7 @@ func (m *Mottainai) ProcessPipeline(docID int) (bool, error) {
 	return result, rerr
 }
 
-func (m *Mottainai) SendTask(docID int) (bool, error) {
+func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := true
 	var err error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
@@ -427,8 +413,7 @@ func (m *Mottainai) LoadPlans() {
 			fmt.Println("Loading plan: ", plan.Task, plan)
 			id := plan.ID
 			c.AddFunc(plan.Planned, func() {
-				uid, _ := strconv.Atoi(id)
-				plan, _ := d.Driver.GetPlan(uid)
+				plan, _ := d.Driver.GetPlan(id)
 				plan.Task.Reset()
 				docID, _ := d.Driver.CreateTask(plan.Task.ToMap())
 				m.SendTask(docID)

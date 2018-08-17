@@ -38,15 +38,15 @@ func (d *Database) IndexToken() {
 	d.AddIndex(TokenColl, []string{"user_id"})
 }
 
-func (d *Database) InsertToken(t *token.Token) (int, error) {
+func (d *Database) InsertToken(t *token.Token) (string, error) {
 	return d.CreateToken(t.ToMap())
 }
 
-func (d *Database) CreateToken(t map[string]interface{}) (int, error) {
+func (d *Database) CreateToken(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(TokenColl, t)
 }
 
-func (d *Database) DeleteToken(docID int) error {
+func (d *Database) DeleteToken(docID string) error {
 	t, err := d.GetToken(docID)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (d *Database) DeleteToken(docID int) error {
 	return d.DeleteDoc(TokenColl, docID)
 }
 
-func (d *Database) UpdateToken(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateToken(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(TokenColl, docID, t)
 }
 
@@ -71,7 +71,7 @@ func (d *Database) GetTokenByKey(name string) (token.Token, error) {
 	}
 }
 
-func (d *Database) GetTokenByUserID(id int) (token.Token, error) {
+func (d *Database) GetTokenByUserID(id string) (token.Token, error) {
 	res, err := d.GetTokensByUserID(id)
 	if err != nil {
 		return token.Token{}, err
@@ -106,11 +106,11 @@ func (d *Database) GetTokensByKey(name string) ([]token.Token, error) {
 	return d.GetTokensByField("key", name)
 }
 
-func (d *Database) GetTokensByUserID(id int) ([]token.Token, error) {
-	return d.GetTokensByField("user_id", strconv.Itoa(id))
+func (d *Database) GetTokensByUserID(id string) ([]token.Token, error) {
+	return d.GetTokensByField("user_id", id)
 }
 
-func (d *Database) GetToken(docID int) (token.Token, error) {
+func (d *Database) GetToken(docID string) (token.Token, error) {
 	doc, err := d.GetDoc(TokenColl, docID)
 	if err != nil {
 		return token.Token{}, err
@@ -135,7 +135,7 @@ func (d *Database) AllTokens() []token.Token {
 
 	Tokens.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := token.NewTokenFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Tokens_id = append(Tokens_id, t)
 		return true
 	})

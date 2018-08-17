@@ -23,8 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
-	"strconv"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -61,5 +59,5 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 		return "", err
 	}
 
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }

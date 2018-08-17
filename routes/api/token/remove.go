@@ -24,7 +24,6 @@ package apitoken
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 
@@ -32,7 +31,7 @@ import (
 )
 
 func RemoveToken(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	token, err := db.Driver.GetToken(id)
 	if err != nil {
@@ -43,9 +42,7 @@ func RemoveToken(ctx *context.Context, db *database.Database) error {
 	e := errors.New("Insufficient permission to remove token")
 
 	if ctx.IsLogged {
-		tkiduser, _ := strconv.Atoi(token.UserId)
-
-		if tkiduser != ctx.User.ID && !ctx.User.IsAdmin() {
+		if token.UserId != ctx.User.ID && !ctx.User.IsAdmin() {
 			ctx.ServerError("Failed removing token", e)
 			return e
 		}

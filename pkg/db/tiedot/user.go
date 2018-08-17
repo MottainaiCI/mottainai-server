@@ -24,6 +24,7 @@ package tiedot
 
 import (
 	"errors"
+	"strconv"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
@@ -40,35 +41,35 @@ func (d *Database) IndexUser() {
 	d.AddIndex(UserColl, []string{"is_manager"})
 }
 
-func (d *Database) InsertAndSaltUser(t *user.User) (int, error) {
+func (d *Database) InsertAndSaltUser(t *user.User) (string, error) {
 	if err := t.SaltPassword(); err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return d.InsertUser(t)
 }
 
-func (d *Database) InsertUser(t *user.User) (int, error) {
+func (d *Database) InsertUser(t *user.User) (string, error) {
 	if len(t.Name) == 0 || len(t.Password) == 0 {
-		return 0, errors.New("No username or password for user")
+		return "", errors.New("No username or password for user")
 	}
 	if u, e := d.GetUserByName(t.Name); e == nil && len(u.Name) != 0 {
-		return 0, errors.New("User already exist")
+		return "", errors.New("User already exist")
 	}
 
 	if u, e := d.GetUserByEmail(t.Email); e == nil && len(u.Name) != 0 {
-		return 0, errors.New("User already exist")
+		return "", errors.New("User already exist")
 	}
 
 	return d.CreateUser(t.ToMap())
 }
 
-func (d *Database) CreateUser(t map[string]interface{}) (int, error) {
+func (d *Database) CreateUser(t map[string]interface{}) (string, error) {
 
 	return d.InsertDoc(UserColl, t)
 }
 
-func (d *Database) DeleteUser(docID int) error {
+func (d *Database) DeleteUser(docID string) error {
 
 	t, err := d.GetUser(docID)
 	if err != nil {
@@ -79,7 +80,7 @@ func (d *Database) DeleteUser(docID int) error {
 	return d.DeleteDoc(UserColl, docID)
 }
 
-func (d *Database) UpdateUser(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateUser(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(UserColl, docID, t)
 }
 
@@ -186,7 +187,7 @@ func (d *Database) GetUserByIdentity(identity_type, id string) (user.User, error
 	return res[0], nil
 }
 
-func (d *Database) GetUser(docID int) (user.User, error) {
+func (d *Database) GetUser(docID string) (user.User, error) {
 	doc, err := d.GetDoc(UserColl, docID)
 	if err != nil {
 		return user.User{}, err
@@ -211,7 +212,7 @@ func (d *Database) AllUsers() []user.User {
 
 	Users.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := user.NewUserFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Users_id = append(Users_id, t)
 		return true
 	})

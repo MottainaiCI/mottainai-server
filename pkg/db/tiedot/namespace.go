@@ -40,11 +40,11 @@ func (d *Database) IndexNamespace() {
 	d.AddIndex(NamespaceColl, []string{"name"})
 	d.AddIndex(NamespaceColl, []string{"path"})
 }
-func (d *Database) CreateNamespace(t map[string]interface{}) (int, error) {
+func (d *Database) CreateNamespace(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(NamespaceColl, t)
 }
 
-func (d *Database) DeleteNamespace(docID int) error {
+func (d *Database) DeleteNamespace(docID string) error {
 
 	ns, err := d.GetNamespace(docID)
 	if err != nil {
@@ -63,7 +63,7 @@ func (d *Database) DeleteNamespace(docID int) error {
 	return d.DeleteDoc(NamespaceColl, docID)
 }
 
-func (d *Database) UpdateNamespace(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateNamespace(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(NamespaceColl, docID, t)
 }
 
@@ -77,8 +77,12 @@ func (d *Database) SearchNamespace(name string) (namespace.Namespace, error) {
 
 	// Query result are document IDs
 	for id := range queryResult {
+		uuid, err := strconv.Atoi(id)
+		if err != nil {
+			return namespace.Namespace{}, err
+		}
 		// Read document
-		readBack, err := ns.Read(id)
+		readBack, err := ns.Read(uuid)
 		if err != nil {
 			return namespace.Namespace{}, err
 		}
@@ -87,7 +91,7 @@ func (d *Database) SearchNamespace(name string) (namespace.Namespace, error) {
 	return res[0], nil
 }
 
-func (d *Database) GetNamespace(docID int) (namespace.Namespace, error) {
+func (d *Database) GetNamespace(docID string) (namespace.Namespace, error) {
 	doc, err := d.GetDoc(NamespaceColl, docID)
 	if err != nil {
 		return namespace.Namespace{}, err
@@ -101,8 +105,8 @@ func (d *Database) ListNamespaces() []dbcommon.DocItem {
 	return d.ListDocs(NamespaceColl)
 }
 
-func (d *Database) GetNamespaceArtefacts(id int) ([]artefact.Artefact, error) {
-	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": "`+strconv.Itoa(id)+`", "in": ["namespace"]}]`)
+func (d *Database) GetNamespaceArtefacts(id string) ([]artefact.Artefact, error) {
+	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": "`+id+`", "in": ["namespace"]}]`)
 	var res []artefact.Artefact
 	if err != nil {
 		return res, err
@@ -127,7 +131,7 @@ func (d *Database) AllNamespaces() []namespace.Namespace {
 
 	Namespaces.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := namespace.NewFromJson(docContent)
-		t.ID = id
+		t.ID = strconv.Itoa(id)
 		Namespaces_id = append(Namespaces_id, t)
 		return true
 	})

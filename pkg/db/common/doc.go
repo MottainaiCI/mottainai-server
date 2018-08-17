@@ -23,6 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package dbcommon
 
 type DocItem struct {
-	Id      int
+	Id      string
 	Content interface{}
 }

@@ -28,7 +28,7 @@ import (
 )
 
 type Node struct {
-	ID         int    `json:"ID"`
+	ID         string `json:"ID"`
 	NodeID     string `form:"nodeid" json:"nodeid"`
 	Key        string `json:"key" form:"key"`
 	User       string `json:"user" form:"user"`
@@ -77,6 +77,10 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 	if str, ok := t["last_report"].(string); ok {
 		last_report = str
 	}
+	var id string
+	if str, ok := t["id"].(string); ok {
+		id = str
+	}
 	node := Node{
 		Owner:      owner,
 		Pass:       pass,
@@ -85,6 +89,7 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		Hostname:   hostname,
 		LastReport: last_report,
 		NodeID:     nodeid,
+		ID:         id,
 	}
 	return node
 }

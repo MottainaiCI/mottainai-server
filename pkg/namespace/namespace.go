@@ -32,7 +32,7 @@ import (
 )
 
 type Namespace struct {
-	ID         int    `json:"ID"`
+	ID         string `json:"ID"`
 	Name       string `form:"name" json:"name"`
 	Path       string `json:"path" form:"path"`
 	Visibility string `json:"visbility" form:"visbility"`
@@ -106,6 +106,7 @@ func NewFromMap(t map[string]interface{}) Namespace {
 		name       string
 		path       string
 		visibility string
+		id         string
 		owner      string
 	)
 	if str, ok := t["owner_id"].(string); ok {
@@ -120,12 +121,15 @@ func NewFromMap(t map[string]interface{}) Namespace {
 	if str, ok := t["visibility"].(string); ok {
 		visibility = str
 	}
-
+	if str, ok := t["id"].(string); ok {
+		id = str
+	}
 	Namespace := Namespace{
 		Name:       name,
 		Path:       path,
 		Visibility: visibility,
 		Owner:      owner,
+		ID:         id,
 	}
 	return Namespace
 }

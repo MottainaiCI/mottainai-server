@@ -42,7 +42,7 @@ func StorageList(ctx *context.Context, db *database.Database) {
 }
 
 func StorageShow(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	ns, err := db.Driver.GetStorage(id)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func StorageShow(ctx *context.Context, db *database.Database) {
 }
 
 func StorageListArtefacts(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	st, err := db.Driver.GetStorage(id)
 	if err != nil {

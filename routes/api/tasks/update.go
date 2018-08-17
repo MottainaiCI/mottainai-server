@@ -25,7 +25,6 @@ package tasksapi
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -35,7 +34,7 @@ import (
 )
 
 type UpdateTaskForm struct {
-	Id         int    `form:"id" binding:"Required"`
+	Id         string `form:"id" binding:"Required"`
 	Status     string `form:"status"`
 	Result     string `form:"result"`
 	Output     string `form:"output"`
@@ -97,7 +96,7 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 		return err
 	}
 	db.Driver.UpdateTask(f.Id, map[string]interface{}{
-		"node_id": strconv.Itoa(node.ID),
+		"node_id": node.ID,
 	})
 
 	return nil

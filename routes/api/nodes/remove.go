@@ -41,7 +41,7 @@ func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Datab
 }
 
 func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) (string, error) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	node, _ := db.Driver.GetNode(id)
 
 	err := db.Driver.DeleteNode(id)

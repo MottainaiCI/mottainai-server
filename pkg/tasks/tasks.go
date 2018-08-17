@@ -172,9 +172,9 @@ func (t *Task) Reset() {
 	t.StartTime = ""
 }
 
-func (t *Task) IsOwner(id int) bool {
+func (t *Task) IsOwner(id string) bool {
 
-	if strconv.Itoa(id) == t.Owner {
+	if id == t.Owner {
 		return true
 	}
 

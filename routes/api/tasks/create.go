@@ -24,7 +24,6 @@ package tasksapi
 
 import (
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -53,7 +52,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	opts.CreatedTime = time.Now().Format("20060102150405")
 
 	if ctx.IsLogged {
-		opts.Owner = strconv.Itoa(ctx.User.ID)
+		opts.Owner = ctx.User.ID
 	}
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
@@ -66,11 +65,11 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	}
 	m.SendTask(docID)
 
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }
 
 func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	task, err := db.Driver.GetTask(id)
 	if err != nil {
@@ -88,11 +87,11 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 
 	if ctx.IsLogged {
 		db.Driver.UpdateTask(docID, map[string]interface{}{
-			"owner_id": strconv.Itoa(ctx.User.ID),
+			"owner_id": ctx.User.ID,
 		})
 	}
 
 	m.SendTask(docID)
 
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }

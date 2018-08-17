@@ -47,7 +47,7 @@ func Stop(ctx *context.Context, db *database.Database) error {
 	// 	ctx.NotFound()
 	// 	return ":( "
 	// }
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	mytask, err := db.Driver.GetTask(id)
 	if err != nil {
 		return err

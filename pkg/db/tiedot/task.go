@@ -41,26 +41,26 @@ func (d *Database) IndexTask() {
 	d.AddIndex(TaskColl, []string{"node_id"})
 	d.AddIndex(TaskColl, []string{"result", "status"})
 }
-func (d *Database) InsertTask(t *agenttasks.Task) (int, error) {
+func (d *Database) InsertTask(t *agenttasks.Task) (string, error) {
 	return d.CreateTask(t.ToMap())
 }
 
-func (d *Database) CreateTask(t map[string]interface{}) (int, error) {
+func (d *Database) CreateTask(t map[string]interface{}) (string, error) {
 
 	return d.InsertDoc(TaskColl, t)
 }
 
-func (d *Database) CloneTask(t int) (int, error) {
+func (d *Database) CloneTask(t string) (string, error) {
 	tdata, err := d.GetTask(t)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	tdata.Reset()
 	tdata.ID = ""
 	return d.InsertTask(&tdata)
 }
 
-func (d *Database) DeleteTask(docID int) error {
+func (d *Database) DeleteTask(docID string) error {
 
 	t, err := d.GetTask(docID)
 	if err != nil {
@@ -78,27 +78,26 @@ func (d *Database) DeleteTask(docID int) error {
 	return d.DeleteDoc(TaskColl, docID)
 }
 
-func (d *Database) UpdateTask(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateTask(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(TaskColl, docID, t)
 }
 
-func (d *Database) GetTask(docID int) (agenttasks.Task, error) {
+func (d *Database) GetTask(docID string) (agenttasks.Task, error) {
 	doc, err := d.GetDoc(TaskColl, docID)
 	if err != nil {
 		return agenttasks.Task{}, err
 	}
 	th := agenttasks.DefaultTaskHandler()
 	t := th.NewTaskFromMap(doc)
-	t.ID = strconv.Itoa(docID)
+	t.ID = docID
 	return t, err
 }
 
-func (d *Database) GetTaskArtefacts(id int) ([]artefact.Artefact, error) {
-	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": `+strconv.Itoa(id)+`, "in": ["task"]}]`)
+func (d *Database) GetTaskArtefacts(id string) ([]artefact.Artefact, error) {
+	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": `+id+`, "in": ["task"]}]`)
 	var res []artefact.Artefact
 	if err != nil {
-		panic(err)
-		//return res, err
+		return []artefact.Artefact{}, err
 	}
 
 	// Query result are document IDs
@@ -106,8 +105,7 @@ func (d *Database) GetTaskArtefacts(id int) ([]artefact.Artefact, error) {
 		// Read document
 		art, err := d.GetArtefact(docid)
 		if err != nil {
-			panic(err)
-			//return res, err
+			return []artefact.Artefact{}, err
 		}
 
 		res = append(res, art)
@@ -133,8 +131,8 @@ func (d *Database) AllTasks() []agenttasks.Task {
 	return tasks_id
 }
 
-func (d *Database) AllUserTask(id int) ([]agenttasks.Task, error) {
-	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+strconv.Itoa(id)+`", "in": ["owner_id"]}]`)
+func (d *Database) AllUserTask(id string) ([]agenttasks.Task, error) {
+	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["owner_id"]}]`)
 	var res []agenttasks.Task
 	if err != nil {
 		return res, err

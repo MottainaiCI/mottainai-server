@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package context
 
 import (
-	"strconv"
 	"strings"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -47,13 +46,9 @@ func (c *Context) CheckPipelinePermissions(pip *task.Pipeline) bool {
 	if c.User.IsManagerOrAdmin() {
 		return true
 	}
-	uid, err := strconv.Atoi(pip.Owner)
-	if err != nil {
-		return false
-	}
 
 	// Return true if Admin or Owner of it
-	if c.User.ID == uid {
+	if c.User.ID == pip.Owner {
 		return true
 	}
 
@@ -65,13 +60,9 @@ func (c *Context) CheckTaskPermissions(task *task.Task) bool {
 	if c.User.IsManagerOrAdmin() {
 		return true
 	}
-	uid, err := strconv.Atoi(task.Owner)
-	if err != nil {
-		return false
-	}
 
 	// Return true if Admin or Owner of it
-	if c.User.ID == uid {
+	if c.User.ID == task.Owner {
 		return true
 	}
 
@@ -83,13 +74,9 @@ func (c *Context) CheckStoragePermissions(storage *storage.Storage) bool {
 	if c.User.IsManagerOrAdmin() {
 		return true
 	}
-	uid, err := strconv.Atoi(storage.Owner)
-	if err != nil {
-		return false
-	}
 
 	// Return true if Admin or Owner of it
-	if c.User.ID == uid {
+	if c.User.ID == storage.Owner {
 		return true
 	}
 
@@ -137,12 +124,7 @@ func CheckArtefactPermission(ctx *Context) bool {
 	}
 	id := r[1]
 
-	uid, err := strconv.Atoi(id)
-	if err != nil {
-		ctx.ServerError(err.Error(), err)
-		return false
-	}
-	task, err := db.GetTask(uid)
+	task, err := db.GetTask(id)
 	if err != nil {
 		ctx.ServerError(err.Error(), err)
 		return false

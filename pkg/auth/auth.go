@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package auth
 
 import (
-	"strconv"
 	"strings"
 
 	log "gopkg.in/clog.v1"
@@ -42,7 +41,7 @@ func IsAPIPath(url string) bool {
 }
 
 // SignedInID returns the id of signed in user.
-func SignedInID(c *macaron.Context, sess session.Store) int {
+func SignedInID(c *macaron.Context, sess session.Store) string {
 	db := database.Instance().Driver
 	// Check access token.
 	//if IsAPIPath(c.Req.URL.Path) {
@@ -67,27 +66,26 @@ func SignedInID(c *macaron.Context, sess session.Store) int {
 		t, err := db.GetTokenByKey(tokenSHA)
 		if err != nil {
 			log.Error(2, "GetTokenByKey: %v", err)
-			return 0
+			return ""
 		}
-		id, _ := strconv.Atoi(t.UserId)
-		return id
+		return t.UserId
 	}
 	//}
 
 	uid := sess.Get("uid")
 	if uid == nil {
-		return 0
+		return ""
 	}
-	if id, ok := uid.(int); ok {
+	if id, ok := uid.(string); ok {
 		if _, err := db.GetUser(id); err != nil {
 			//	if !errors.New("User not found" + err) {
 			log.Error(2, "GetUserByID: %v", err)
 			//	}
-			return 0
+			return ""
 		}
 		return id
 	}
-	return 0
+	return ""
 }
 
 // SignedInUser returns the user object of signed user.
@@ -97,7 +95,7 @@ func SignedInUser(ctx *macaron.Context, sess session.Store) (*user.User, bool) {
 
 	uid := SignedInID(ctx, sess)
 
-	if uid <= 0 {
+	if uid == "" {
 
 		// Check with basic auth.
 		baHead := ctx.Req.Header.Get("Authorization")

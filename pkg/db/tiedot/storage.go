@@ -43,11 +43,11 @@ func (d *Database) IndexStorage() {
 	d.AddIndex(StorageColl, []string{"owner_id"})
 }
 
-func (d *Database) CreateStorage(t map[string]interface{}) (int, error) {
+func (d *Database) CreateStorage(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(StorageColl, t)
 }
 
-func (d *Database) DeleteStorage(docID int) error {
+func (d *Database) DeleteStorage(docID string) error {
 
 	ns, err := d.GetStorage(docID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (d *Database) DeleteStorage(docID int) error {
 	return d.DeleteDoc(StorageColl, docID)
 }
 
-func (d *Database) UpdateStorage(docID int, t map[string]interface{}) error {
+func (d *Database) UpdateStorage(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(StorageColl, docID, t)
 }
 
@@ -73,8 +73,13 @@ func (d *Database) SearchStorage(name string) (storage.Storage, error) {
 
 	// Query result are document IDs
 	for id := range queryResult {
+
+		uuid, err := strconv.Atoi(id)
+		if err != nil {
+			return storage.Storage{}, err
+		}
 		// Read document
-		readBack, err := ns.Read(id)
+		readBack, err := ns.Read(uuid)
 		if err != nil {
 			return storage.Storage{}, err
 		}
@@ -86,13 +91,13 @@ func (d *Database) SearchStorage(name string) (storage.Storage, error) {
 	return res[0], nil
 }
 
-func (d *Database) GetStorage(docID int) (storage.Storage, error) {
+func (d *Database) GetStorage(docID string) (storage.Storage, error) {
 	doc, err := d.GetDoc(StorageColl, docID)
 	if err != nil {
 		return storage.Storage{}, err
 	}
 	t := storage.NewFromMap(doc)
-	id := strconv.Itoa(docID) // ARM
+	id := docID
 	t.ID = id
 	return t, err
 }
@@ -101,8 +106,8 @@ func (d *Database) ListStorages() []dbcommon.DocItem {
 	return d.ListDocs(StorageColl)
 }
 
-func (d *Database) GetStorageArtefacts(id int) ([]artefact.Artefact, error) {
-	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": "`+strconv.Itoa(id)+`", "in": ["storage"]}]`)
+func (d *Database) GetStorageArtefacts(id string) ([]artefact.Artefact, error) {
+	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": "`+id+`", "in": ["storage"]}]`)
 	var res []artefact.Artefact
 	if err != nil {
 		return res, err

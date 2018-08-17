@@ -128,7 +128,7 @@ func SendTask(kind string, client *ggithub.Client, db *database.Database, m *mot
 	}
 
 	if exists {
-		t.Owner = strconv.Itoa(gitc.StoredUser.ID)
+		t.Owner = gitc.StoredUser.ID
 		t.Namespace = "" // do not allow automatic tag from PR
 		t.TagNamespace = ""
 		t.Source = user_repo
@@ -140,7 +140,7 @@ func SendTask(kind string, client *ggithub.Client, db *database.Database, m *mot
 			return err
 		}
 
-		url := m.Url() + "/tasks/display/" + strconv.Itoa(docID)
+		url := m.Url() + "/tasks/display/" + docID
 		m.SendTask(docID)
 
 		// Create the 'pending' status and send it
@@ -149,7 +149,7 @@ func SendTask(kind string, client *ggithub.Client, db *database.Database, m *mot
 		client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
 
 		m.Invoke(func(a *anagent.Anagent) {
-			data := strings.Join([]string{kind, owner, repo, ref, "tasks", strconv.Itoa(docID)}, ",")
+			data := strings.Join([]string{kind, owner, repo, ref, "tasks", docID}, ",")
 			a.Invoke(func(w map[string]string) {
 				a.Lock()
 				defer a.Unlock()
@@ -295,13 +295,13 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 	}
 
 	if exists {
-		t.Owner = strconv.Itoa(gitc.StoredUser.ID)
+		t.Owner = gitc.StoredUser.ID
 		// XXX:
 		// do not allow automatic tag from PR
 		for i, p := range t.Tasks { // Duplicated in API.
 			p.Namespace = ""
 			p.TagNamespace = ""
-			p.Owner = strconv.Itoa(gitc.StoredUser.ID)
+			p.Owner = gitc.StoredUser.ID
 			p.Source = user_repo
 			p.Commit = commit
 
@@ -311,7 +311,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 			if err != nil {
 				return err
 			}
-			p.ID = strconv.Itoa(id)
+			p.ID = id
 			t.Tasks[i] = p
 		}
 		t.Queue = setting.Configuration.WebHookDefaultQueue
@@ -321,7 +321,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 			return err
 		}
 
-		url := m.Url() + "/tasks/display/" + strconv.Itoa(docID)
+		url := m.Url() + "/tasks/display/" + docID
 		fmt.Println("Sending pipeline", docID)
 		_, err = m.ProcessPipeline(docID)
 		if err != nil {
@@ -335,7 +335,7 @@ func SendPipeline(kind string, client *ggithub.Client, db *database.Database, m 
 		client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
 
 		m.Invoke(func(a *anagent.Anagent) {
-			data := strings.Join([]string{kind, owner, repo, ref, "pipeline", strconv.Itoa(docID)}, ",")
+			data := strings.Join([]string{kind, owner, repo, ref, "pipeline", docID}, ",")
 			a.Invoke(func(w map[string]string) {
 				fmt.Println("Add event to global watcher")
 				a.Lock()
@@ -375,13 +375,12 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 		// Checking for PR that needs update
 		for k, v := range w {
 			data := strings.Split(v, ",")
-			uuid, _ := strconv.Atoi(data[5])
 
 			turl := url + "/" + data[4] + "/display/" + data[5]
 
 			if data[4] == "pipeline" {
 
-				pip, err := db.Driver.GetPipeline(uuid)
+				pip, err := db.Driver.GetPipeline(data[5])
 				if err != nil { // XXX:
 					delete(w, k)
 					return
@@ -390,12 +389,8 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				done := 0
 				fail := false
 				for _, t := range pip.Tasks {
-					uuid, err := strconv.Atoi(t.ID)
-					if err != nil {
-						delete(w, k)
-						return
-					}
-					ta, err := db.Driver.GetTask(uuid)
+
+					ta, err := db.Driver.GetTask(t.ID)
 					if err != nil {
 						delete(w, k)
 						return
@@ -425,7 +420,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				}
 			} else {
 
-				task, err := db.Driver.GetTask(uuid)
+				task, err := db.Driver.GetTask(data[5])
 				if err == nil {
 					if task.IsDone() || task.IsStopped() {
 						if task.IsSuccess() {

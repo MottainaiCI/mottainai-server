@@ -40,7 +40,7 @@ type Broker struct {
 type BrokerSendOptions struct {
 	Delayed           string
 	TaskName          string
-	TaskID            int
+	TaskID            string
 	Group, ChordGroup map[string]string
 	Retry             int
 	Concurrency       string
@@ -279,7 +279,7 @@ func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error)
 		Args: []machinerytask.Arg{
 			{
 				Type:  "string",
-				Value: strconv.Itoa(taskid),
+				Value: taskid,
 			},
 		},
 	})
@@ -291,7 +291,7 @@ func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error)
 		Args: []machinerytask.Arg{
 			{
 				Type:  "string",
-				Value: strconv.Itoa(taskid),
+				Value: taskid,
 			},
 		},
 	})
@@ -302,7 +302,7 @@ func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error)
 		Args: []machinerytask.Arg{
 			{
 				Type:  "string",
-				Value: strconv.Itoa(taskid),
+				Value: taskid,
 			},
 		},
 		OnError:   onErr,

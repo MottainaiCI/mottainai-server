@@ -38,39 +38,39 @@ func (d *Database) IndexPlan() {
 	d.AddIndex(PlansColl, []string{"result", "status"})
 }
 
-func (d *Database) InsertPlan(t *agenttasks.Plan) (int, error) {
+func (d *Database) InsertPlan(t *agenttasks.Plan) (string, error) {
 	return d.CreatePlan(t.ToMap())
 }
 
-func (d *Database) CreatePlan(t map[string]interface{}) (int, error) {
+func (d *Database) CreatePlan(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(PlansColl, t)
 }
 
-func (d *Database) ClonePlan(t int) (int, error) {
+func (d *Database) ClonePlan(t string) (string, error) {
 	task, err := d.GetPlan(t)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return d.InsertPlan(&task)
 }
 
-func (d *Database) DeletePlan(docID int) error {
+func (d *Database) DeletePlan(docID string) error {
 	return d.DeleteDoc(PlansColl, docID)
 }
 
-func (d *Database) UpdatePlan(docID int, t map[string]interface{}) error {
+func (d *Database) UpdatePlan(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(PlansColl, docID, t)
 }
 
-func (d *Database) GetPlan(docID int) (agenttasks.Plan, error) {
+func (d *Database) GetPlan(docID string) (agenttasks.Plan, error) {
 	doc, err := d.GetDoc(PlansColl, docID)
 	if err != nil {
 		return agenttasks.Plan{}, err
 	}
 	th := agenttasks.DefaultTaskHandler()
 	t := th.NewPlanFromMap(doc)
-	t.ID = strconv.Itoa(docID)
+	t.ID = docID
 	return t, err
 }
 

@@ -23,8 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package settingsapi
 
 import (
-	"strconv"
-
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
@@ -42,7 +40,7 @@ func APICreate(ctx *context.Context, db *database.Database, s Setting) string {
 		ctx.ServerError("Failed insert", err)
 		return ""
 	}
-	return strconv.Itoa(id)
+	return id
 }
 
 func APIRemove(db *database.Database, ctx *context.Context) {

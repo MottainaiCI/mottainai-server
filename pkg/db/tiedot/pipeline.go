@@ -38,29 +38,29 @@ func (d *Database) IndexPipeline() {
 	d.AddIndex(PipelinesColl, []string{"result", "status"})
 }
 
-func (d *Database) InsertPipeline(t *agenttasks.Pipeline) (int, error) {
+func (d *Database) InsertPipeline(t *agenttasks.Pipeline) (string, error) {
 	return d.CreatePipeline(t.ToMap(false))
 }
 
-func (d *Database) CreatePipeline(t map[string]interface{}) (int, error) {
+func (d *Database) CreatePipeline(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(PipelinesColl, t)
 }
 
-func (d *Database) ClonePipeline(t int) (int, error) {
+func (d *Database) ClonePipeline(t string) (string, error) {
 	task, err := d.GetPipeline(t)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return d.InsertPipeline(&task)
 }
 
-func (d *Database) DeletePipeline(docID int) error {
+func (d *Database) DeletePipeline(docID string) error {
 	return d.DeleteDoc(PipelinesColl, docID)
 }
 
-func (d *Database) AllUserPipelines(id int) ([]agenttasks.Pipeline, error) {
-	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+strconv.Itoa(id)+`", "in": ["owner_id"]}]`)
+func (d *Database) AllUserPipelines(id string) ([]agenttasks.Pipeline, error) {
+	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["owner_id"]}]`)
 	var res []agenttasks.Pipeline
 	if err != nil {
 		return res, err
@@ -69,7 +69,7 @@ func (d *Database) AllUserPipelines(id int) ([]agenttasks.Pipeline, error) {
 
 		// Read document
 		t, err := d.GetPipeline(docid)
-		t.ID = strconv.Itoa(docid)
+		t.ID = docid
 		if err != nil {
 			return res, err
 		}
@@ -79,11 +79,11 @@ func (d *Database) AllUserPipelines(id int) ([]agenttasks.Pipeline, error) {
 	return res, nil
 }
 
-func (d *Database) UpdatePipeline(docID int, t map[string]interface{}) error {
+func (d *Database) UpdatePipeline(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(PipelinesColl, docID, t)
 }
 
-func (d *Database) GetPipeline(docID int) (agenttasks.Pipeline, error) {
+func (d *Database) GetPipeline(docID string) (agenttasks.Pipeline, error) {
 	doc, err := d.GetDoc(PipelinesColl, docID)
 	if err != nil {
 		return agenttasks.Pipeline{}, err
@@ -91,7 +91,7 @@ func (d *Database) GetPipeline(docID int) (agenttasks.Pipeline, error) {
 	th := agenttasks.DefaultTaskHandler()
 
 	t := th.NewPipelineFromMap(doc)
-	t.ID = strconv.Itoa(docID)
+	t.ID = docID
 	return t, err
 }
 

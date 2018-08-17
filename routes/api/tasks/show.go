@@ -33,7 +33,7 @@ import (
 )
 
 func GetTaskYaml(ctx *context.Context, db *database.Database) string {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
@@ -53,7 +53,7 @@ func GetTaskYaml(ctx *context.Context, db *database.Database) string {
 }
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	task, err := db.Driver.GetTask(id)
 	if err != nil {
 		ctx.NotFound()
@@ -66,7 +66,7 @@ func GetTaskJson(ctx *context.Context, db *database.Database) {
 }
 
 func StreamOutputTask(ctx *context.Context, db *database.Database) string {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	pos := ctx.ParamsInt(":pos")
 
 	task, err := db.Driver.GetTask(id)
@@ -81,7 +81,7 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 }
 
 func TailTask(ctx *context.Context, db *database.Database) string {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	pos := ctx.ParamsInt(":pos")
 
 	task, err := db.Driver.GetTask(id)

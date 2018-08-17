@@ -40,7 +40,7 @@ func APIDelete(ctx *context.Context, db *database.Database) string {
 }
 
 func Delete(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 
 	task, err := db.Driver.GetTask(id)
 	if err != nil {

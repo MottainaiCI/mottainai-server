@@ -24,7 +24,6 @@ package tasksapi
 
 import (
 	"errors"
-	"strconv"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -41,7 +40,7 @@ func PlannedTasks(ctx *context.Context, db *database.Database) {
 }
 
 func PlannedTask(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	plan, err := db.Driver.GetPlan(id)
 	if err != nil {
 		return err
@@ -68,11 +67,11 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	}
 
 	m.ReloadCron()
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }
 
 func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	plan, err := db.Driver.GetPlan(id)
 	if err != nil {
 		ctx.NotFound()

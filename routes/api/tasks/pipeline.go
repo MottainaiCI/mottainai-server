@@ -27,7 +27,6 @@ import (
 	"encoding/gob"
 	"errors"
 	"sort"
-	"strconv"
 
 	"github.com/ghodss/yaml"
 
@@ -78,7 +77,7 @@ func ShowAllPipelines(ctx *context.Context, db *database.Database) {
 }
 
 func PipelineShow(ctx *context.Context, db *database.Database) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	pip, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		return err
@@ -89,11 +88,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 	}
 
 	for k, t := range pip.Tasks {
-		uid, err := strconv.Atoi(t.ID)
-		if err != nil {
-			return err
-		}
-		ta, err := db.Driver.GetTask(uid)
+		ta, err := db.Driver.GetTask(t.ID)
 		if err != nil {
 			return err
 		}
@@ -105,7 +100,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 }
 
 func PipelineYaml(ctx *context.Context, db *database.Database) string {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	task, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		ctx.NotFound()
@@ -143,7 +138,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 		f := opts.Tasks[i]
 
 		if ctx.IsLogged {
-			f.Owner = strconv.Itoa(ctx.User.ID)
+			f.Owner = ctx.User.ID
 		}
 		if !ctx.CheckNamespaceBelongs(t.TagNamespace) {
 			return ":(", errors.New("Moar permissions are required for this user")
@@ -154,11 +149,11 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 		if err != nil {
 			return "", err
 		}
-		f.ID = strconv.Itoa(id)
+		f.ID = id
 		opts.Tasks[i] = f
 	}
 	if ctx.IsLogged {
-		opts.Owner = strconv.Itoa(ctx.User.ID)
+		opts.Owner = ctx.User.ID
 	}
 
 	fields := opts.ToMap(false)
@@ -169,11 +164,11 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 	}
 	m.ProcessPipeline(docID)
 
-	return strconv.Itoa(docID), nil
+	return docID, nil
 }
 
 func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
-	id := ctx.ParamsInt(":id")
+	id := ctx.Params(":id")
 	pips, err := db.Driver.GetPipeline(id)
 	if err != nil {
 		ctx.NotFound()
