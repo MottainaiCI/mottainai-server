@@ -137,7 +137,10 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 		// Later, with organizations and projects will be easier to link them.
 		ctx.StoredUser = u
 	}
-
+	err = os.MkdirAll(path.Join(setting.Configuration.BuildPath, "webhook_fetch", repo), os.ModePerm)
+	if err != nil {
+		return ctx, errors.New("Failed creating webhook_fetch temp dir (Set your buildpath): " + err.Error())
+	}
 	gitdir, err := ioutil.TempDir(setting.Configuration.BuildPath, path.Join("webhook_fetch", repo))
 	if err != nil {
 		return ctx, errors.New("Failed creating tempdir: " + err.Error())
