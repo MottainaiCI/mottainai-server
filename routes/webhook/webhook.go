@@ -114,8 +114,14 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 		fmt.Println("Task found")
 
 		t.Owner = gitc.StoredUser.ID
-		//	t.Namespace = "" // do not allow automatic tag from PR
-		//t.TagNamespace = ""
+		if kind == "pull_request" {
+			//	t.Namespace = "" // do not allow automatic tag from PR
+			t.TagNamespace = ""
+			t.Storage = ""
+			t.Binds = []string{}
+			t.RootTask = ""
+		}
+
 		t.Source = user_repo
 		t.Commit = commit
 		if len(setting.Configuration.WebHookDefaultQueue) > 0 {
@@ -194,6 +200,13 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 		for i, p := range t.Tasks { // Duplicated in API.
 			//p.Namespace = ""
 			//p.TagNamespace = ""
+			if kind == "pull_request" {
+				//	t.Namespace = "" // do not allow automatic tag from PR
+				p.TagNamespace = ""
+				p.Storage = ""
+				p.Binds = []string{}
+				p.RootTask = ""
+			}
 			p.Owner = gitc.StoredUser.ID
 			p.Source = user_repo
 			p.Commit = commit
