@@ -25,3 +25,4 @@ package setting
 const SYSTEM_SIGNUP_ENABLED = "system.signup"
 const SYSTEM_WEBHOOK_ENABLED = "system.webhook"
 const SYSTEM_THIRDPARTY_INTEGRATION_ENABLED = "system.thirdparty_integration"
+const SYSTEM_WEBHOOK_PR_ENABLED = "system.webhook.pull_request"

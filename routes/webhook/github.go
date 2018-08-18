@@ -164,14 +164,18 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 //TODO: handle this with separate objs
 type GitHubWebHook struct{}
 
-func GenGitHubHook(m *mottainai.Mottainai, w *mhook.WebHook, u *user.User) *github.Webhook {
+func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHook, u *user.User) *github.Webhook {
 	secret := w.Key
-	//owner := u
 	hook := github.New(&github.Config{Secret: secret})
-	hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
-		fmt.Println("Received webhook for PR")
-		HandlePullRequest(u, payload, header, m)
-	}, github.PullRequestEvent)
+
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_PR_ENABLED)
+	if err == nil && !uuu.IsDisabled() {
+		hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
+			fmt.Println("Received webhook for PR")
+			HandlePullRequest(u, payload, header, m)
+		}, github.PullRequestEvent)
+	}
+	//owner := u
 
 	hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
 		fmt.Println("Received webhook for push")
@@ -203,7 +207,7 @@ func SetupGitHub(m *mottainai.Mottainai) {
 
 			return
 		}
-		hook := GenGitHubHook(m, &w, &u)
+		hook := GenGitHubHook(db, m, &w, &u)
 		hook.ParsePayload(resp, req)
 	})
 
