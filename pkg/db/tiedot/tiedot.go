@@ -37,7 +37,7 @@ type Database struct {
 	DBName string
 }
 
-var Collections = []string{TaskColl,
+var Collections = []string{WebHookColl, TaskColl,
 	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
 
 func New(path string) *Database {
@@ -65,6 +65,7 @@ func (d *Database) Init() {
 	d.IndexOrganization()
 	d.IndexSetting()
 	d.IndexPipeline()
+	d.IndexWebHook()
 }
 
 var MyDbInstance *db.DB

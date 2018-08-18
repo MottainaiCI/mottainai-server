@@ -34,6 +34,7 @@ import (
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	webhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	tiedot "github.com/MottainaiCI/mottainai-server/pkg/db/tiedot"
@@ -184,6 +185,26 @@ type DatabaseDriver interface {
 	GetPlan(docID string) (agenttasks.Plan, error)
 	ListPlans() []dbcommon.DocItem
 	AllPlans() []agenttasks.Plan
+
+	// WebHook
+	InsertWebHook(t *webhook.WebHook) (string, error)
+	CreateWebHook(t map[string]interface{}) (string, error)
+	DeleteWebHook(docID string) error
+	UpdateWebHook(docID string, t map[string]interface{}) error
+	GetWebHookByKey(name string) (webhook.WebHook, error)
+	GetWebHookByUserID(id string) (webhook.WebHook, error)
+	GetWebHookByURL(id string) (webhook.WebHook, error)
+
+	GetWebHooksByField(field, name string) ([]webhook.WebHook, error)
+	GetWebHooksByKey(name string) ([]webhook.WebHook, error)
+	GetWebHooksByUserID(id string) ([]webhook.WebHook, error)
+	GetWebHooksByURL(id string) ([]webhook.WebHook, error)
+
+	GetWebHook(docID string) (webhook.WebHook, error)
+	ListWebHooks() []dbcommon.DocItem
+	// TODO: Change it, expensive for now
+	CountWebHooks() int
+	AllWebHooks() []webhook.WebHook
 }
 
 // For future, now in PoC state will just support

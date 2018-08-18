@@ -35,7 +35,7 @@ func newWebHookCommand() *cobra.Command {
 		Short: "Start WebHook Server to run tasks against repositories",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			m := mottainai.NewWebHookServer()
+			m := mottainai.ClassicWebHookServer()
 			routes.SetupWebHookServer(m)
 			m.Start()
 		},

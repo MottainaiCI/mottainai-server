@@ -32,8 +32,6 @@ import (
 	anagent "github.com/mudler/anagent"
 	"golang.org/x/oauth2"
 
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
@@ -59,25 +57,30 @@ func SetupWebHook(m *Mottainai) {
 
 	m.Map(tc)
 	m.Map(client)
-}
-
-func (m *WebHookServer) Start() error {
-	database.NewDatabase("tiedot")
 	a := anagent.New()
 
 	a.TimerSeconds(int64(5), true, func() {})
-
-	m.Map(database.DBInstance)
-	m.Map(m)
-	m.Map(m.Mottainai)
 	m.Map(a)
 	a.Map(m)
 
-	go func(a *anagent.Anagent) {
-		a.Start()
-	}(a)
+}
+
+func SetupWebHookAgent(m *Mottainai) {
+	m.Invoke(func(a *anagent.Anagent) {
+		go a.Start()
+	})
+	//go func(a *anagent.Anagent) {
+	//	a.Start()
+	//}(a)
+}
+
+func (m *WebHookServer) Start() error {
+
+	m.Map(m)
+	m.Map(m.Mottainai)
 
 	SetupWebHook(m.Mottainai)
+	SetupWebHookAgent(m.Mottainai)
 
 	var listenAddr = fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
 	log.Printf("Listen: %v://%s", setting.Configuration.Protocol, listenAddr)

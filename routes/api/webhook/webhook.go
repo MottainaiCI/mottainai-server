@@ -20,30 +20,35 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package api
+package apiwebhook
 
 import (
-	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
-	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
-	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
-	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
-	apiwebhook "github.com/MottainaiCI/mottainai-server/routes/api/webhook"
+	"errors"
 
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
+func RequiresWebHookSetting(c *context.Context, db *database.Database) error {
+	// Check setting if we have to process this.
+	err := errors.New("Webhook integration disabled")
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.ServerError("Webhook integration disabled", err)
+			return err
+		}
+	}
+	return nil
+}
+
 func Setup(m *macaron.Macaron) {
-	userapi.Setup(m)
-	nodesapi.Setup(m)
-	tasksapi.Setup(m)
-	namespacesapi.Setup(m)
-	apitoken.Setup(m)
-	storagesapi.Setup(m)
-	stats.Setup(m)
-	settingsroute.Setup(m)
-	apiwebhook.Setup(m)
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
+	m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
+	m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
+	m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
 }

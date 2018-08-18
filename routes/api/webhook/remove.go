@@ -20,30 +20,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package api
+package apiwebhook
 
 import (
-	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
-	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
-	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
-	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
-	apiwebhook "github.com/MottainaiCI/mottainai-server/routes/api/webhook"
+	"errors"
 
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
-	macaron "gopkg.in/macaron.v1"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-func Setup(m *macaron.Macaron) {
-	userapi.Setup(m)
-	nodesapi.Setup(m)
-	tasksapi.Setup(m)
-	namespacesapi.Setup(m)
-	apitoken.Setup(m)
-	storagesapi.Setup(m)
-	stats.Setup(m)
-	settingsroute.Setup(m)
-	apiwebhook.Setup(m)
+func RemoveWebHook(ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":id")
+
+	webhook, err := db.Driver.GetWebHook(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	e := errors.New("Insufficient permission to remove webhook")
+
+	if ctx.IsLogged {
+		if webhook.OwnerId != ctx.User.ID && !ctx.User.IsAdmin() {
+			ctx.ServerError("Failed removing webhook", e)
+			return e
+		}
+	} else {
+		ctx.ServerError("Failed removing webhook", e)
+		return e
+	}
+
+	err = db.Driver.DeleteWebHook(id)
+	if err != nil {
+		ctx.ServerError("Failed removing webhook", err)
+		return err
+	}
+	return nil
+}
+
+func Remove(ctx *context.Context, db *database.Database) string {
+	err := RemoveWebHook(ctx, db)
+	if err != nil {
+		return ":("
+	}
+
+	return "OK"
 }

@@ -156,6 +156,10 @@ func Classic() *Mottainai {
 	m.Use(context.Contexter())
 	m.SetStatic()
 
+	if setting.Configuration.EmbedWebHookServer {
+		SetupWebHook(m)
+	}
+
 	return m
 }
 
@@ -223,6 +227,10 @@ func (m *Mottainai) Start() error {
 	m.Map(m)
 	c.Start()
 	m.LoadPlans()
+	// For now
+	if setting.Configuration.EmbedWebHookServer {
+		SetupWebHookAgent(m)
+	}
 
 	log.Println("Listen: ", m.url())
 

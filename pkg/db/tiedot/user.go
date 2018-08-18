@@ -58,7 +58,7 @@ func (d *Database) InsertUser(t *user.User) (string, error) {
 	}
 
 	if u, e := d.GetUserByEmail(t.Email); e == nil && len(u.Name) != 0 {
-		return "", errors.New("User already exist")
+		return "", errors.New("Mail already used")
 	}
 
 	return d.CreateUser(t.ToMap())

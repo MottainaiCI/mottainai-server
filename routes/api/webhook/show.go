@@ -20,30 +20,41 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package api
+package apiwebhook
 
 import (
-	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
-	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
-	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
-	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
-	apiwebhook "github.com/MottainaiCI/mottainai-server/routes/api/webhook"
+	webhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
 
-	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
-	macaron "gopkg.in/macaron.v1"
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-func Setup(m *macaron.Macaron) {
-	userapi.Setup(m)
-	nodesapi.Setup(m)
-	tasksapi.Setup(m)
-	namespacesapi.Setup(m)
-	apitoken.Setup(m)
-	storagesapi.Setup(m)
-	stats.Setup(m)
-	settingsroute.Setup(m)
-	apiwebhook.Setup(m)
+func GetWebHooks(ctx *context.Context, db *database.Database) ([]webhook.WebHook, []webhook.WebHook, error) {
+	var all []webhook.WebHook
+	var mine []webhook.WebHook
+
+	var err error
+	if ctx.IsLogged {
+		if ctx.User.IsAdmin() {
+			all = db.Driver.AllWebHooks()
+		}
+		mine, err = db.Driver.GetWebHooksByUserID(ctx.User.ID)
+		if err != nil {
+			ctx.ServerError("Failed finding webhook", err)
+			return all, mine, err
+		}
+	}
+	return all, mine, nil
+}
+
+func ShowAll(ctx *context.Context, db *database.Database) {
+	all, mine, err := GetWebHooks(ctx, db)
+	if err != nil {
+		ctx.ServerError("Failed finding webhook", err)
+		return
+	}
+
+	all = append(all, mine...)
+
+	ctx.JSON(200, all)
 }

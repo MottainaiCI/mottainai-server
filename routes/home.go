@@ -25,6 +25,7 @@ package routes
 import (
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -59,9 +60,18 @@ func SetupWebHookServer(m *mottainai.WebHookServer) *mottainai.WebHookServer {
 	return m
 }
 
+func AddWebHook(m *mottainai.Mottainai) {
+	webhook.Setup(m)
+	m.Invoke(webhook.GlobalWatcher)
+}
+
 func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 	Setup(m.Macaron)
 	auth.Setup(m.Macaron)
+
+	if setting.Configuration.EmbedWebHookServer {
+		AddWebHook(m)
+	}
 	return m
 }
 

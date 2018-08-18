@@ -39,23 +39,23 @@ type Config struct {
 	Viper *v.Viper
 
 	// Web UI Settings
-	Protocol  string `mapstructure:"webui_protocol"`
-	AppSubURL string `mapstructure:"webui_url"`
-	HTTPAddr  string `mapstructure:"webui_listenaddress"`
-	HTTPPort  string `mapstructure:"webui_port"`
-	AppName   string `mapstructure:"application_name"`
-	AppURL    string `mapstructure:"application_url"`
-	SecretKey string `mapstructure:"secret_key"`
-
-	StaticRootPath string `mapstructure:"root_path"`
-	CustomPath     string `mapstructure:"custom_path"`
-	DBEngine       string `mapstructure:"db_engine"`
-	DBPath         string `mapstructure:"db_path"`
-	ArtefactPath   string `mapstructure:"artefact_path"`
-	NamespacePath  string `mapstructure:"namespace_path"`
-	StoragePath    string `mapstructure:"storage_path"`
-	BuildPath      string `mapstructure:"build_path"`
-	LockPath       string `mapstructure:"lock_path"`
+	Protocol           string `mapstructure:"webui_protocol"`
+	AppSubURL          string `mapstructure:"webui_url"`
+	HTTPAddr           string `mapstructure:"webui_listenaddress"`
+	HTTPPort           string `mapstructure:"webui_port"`
+	AppName            string `mapstructure:"application_name"`
+	AppURL             string `mapstructure:"application_url"`
+	SecretKey          string `mapstructure:"secret_key"`
+	EmbedWebHookServer bool   `mapstructure:"embed_webhookserver"`
+	StaticRootPath     string `mapstructure:"root_path"`
+	CustomPath         string `mapstructure:"custom_path"`
+	DBEngine           string `mapstructure:"db_engine"`
+	DBPath             string `mapstructure:"db_path"`
+	ArtefactPath       string `mapstructure:"artefact_path"`
+	NamespacePath      string `mapstructure:"namespace_path"`
+	StoragePath        string `mapstructure:"storage_path"`
+	BuildPath          string `mapstructure:"build_path"`
+	LockPath           string `mapstructure:"lock_path"`
 
 	ResultsExpireIn int `mapstructure:"results_expire_in"`
 
@@ -133,7 +133,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("lock_path", "/var/lock/mottainai/")
 
 	viper.SetDefault("results_expire_in", 3600)
-
+	viper.SetDefault("embed_webhookserver", true)
 	viper.SetDefault("broker", "amqp://guest@127.0.0.1:5672/")
 	viper.SetDefault("broker_type", "amqp")
 	viper.SetDefault("broker_default_queue", "global_tasks")
@@ -242,6 +242,7 @@ standalone: %t
 github_token: %s
 github_secret: *****************
 github_token_user: *****************
+embed_webhookserver: %t
 
 tls_cert: %s
 tls_key: ***********************
@@ -258,7 +259,7 @@ access_control_allow_origin: %s
 		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.CacheRegistryCredentials,
 		c.DockerEndpoint, c.DockerKeepImg, c.DockerPriviledged, c.DockerInDocker,
 		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue, c.StandAlone,
-		c.WebHookGitHubToken, c.TLSCert, c.AccessControlAllowOrigin)
+		c.WebHookGitHubToken, c.EmbedWebHookServer, c.TLSCert, c.AccessControlAllowOrigin)
 
 	return ans
 }

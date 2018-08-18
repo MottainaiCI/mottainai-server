@@ -23,8 +23,238 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
+	stdctx "context"
+	"errors"
+	"fmt"
+	"os"
+	"path"
+	"strings"
+
+	anagent "github.com/mudler/anagent"
+
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	mottainai "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	ggithub "github.com/google/go-github/github"
 )
+
+var (
+	pending       = "pending"
+	success       = "success"
+	failure       = "error"
+	pendingDesc   = "Build in progress, please wait."
+	noPermDesc    = "Insufficient permissions"
+	successDesc   = "Build successful."
+	failureDesc   = "Build failed."
+	notfoundDesc  = "No mottainai file found on repo"
+	appName       = "MottainaiCI"
+	task_file     = ".mottainai"
+	pipeline_file = ".mottainai-pipeline"
+)
+
+type GitContext struct {
+	Dir      string
+	Uid      string
+	Commit   string
+	Owner    string
+	UserRepo string
+	Checkout string
+	Repo     string
+	Ref      string
+	User     string
+
+	StoredUser *user.User
+}
+
+func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}) error {
+	gitc, err := prepareTemp(u, kind, client, db, m, payload)
+	if err != nil {
+		fmt.Println(err)
+		strerr := err.Error()
+		client.Repositories.CreateStatus(stdctx.Background(), gitc.Owner, gitc.Repo, gitc.Ref, &ggithub.RepoStatus{State: &failure, Description: &strerr, Context: &appName})
+		return err
+	}
+	defer os.RemoveAll(gitc.Dir)
+
+	gitdir := gitc.Dir
+	pruid, commit, owner, user_repo, repo, ref := gitc.Uid, gitc.Commit, gitc.Owner, gitc.UserRepo, gitc.Repo, gitc.Ref
+
+	// Create the 'pending' status and send it
+	status1 := &ggithub.RepoStatus{State: &pending, Description: &pendingDesc, Context: &appName}
+
+	client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
+
+	fmt.Println("SendTask")
+
+	var t *tasks.Task
+	exists, _ := utils.Exists(path.Join(gitdir, task_file+".json"))
+	if exists == true {
+		t, err = tasks.FromFile(path.Join(gitdir, task_file+".json"))
+		if err != nil {
+			return err
+		}
+	} else {
+
+		exists, _ = utils.Exists(path.Join(gitdir, task_file+".yaml"))
+		if exists == true {
+			t, err = tasks.FromYamlFile(path.Join(gitdir, task_file+".yaml"))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if exists {
+		fmt.Println("Task found")
+
+		t.Owner = gitc.StoredUser.ID
+		//	t.Namespace = "" // do not allow automatic tag from PR
+		//t.TagNamespace = ""
+		t.Source = user_repo
+		t.Commit = commit
+		if len(setting.Configuration.WebHookDefaultQueue) > 0 {
+			t.Queue = setting.Configuration.WebHookDefaultQueue
+
+		}
+
+		docID, err := db.Driver.CreateTask(t.ToMap())
+		if err != nil {
+			return err
+		}
+
+		url := setting.Configuration.AppSubURL + "/tasks/display/" + docID
+		m.SendTask(docID)
+		// Create the 'pending' status and send it
+		status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
+
+		client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
+
+		m.Invoke(func(a *anagent.Anagent) {
+			data := strings.Join([]string{kind, owner, repo, ref, "tasks", docID}, ",")
+			a.Invoke(func(w map[string]string) {
+				a.Lock()
+				defer a.Unlock()
+				w[pruid] = data
+			})
+
+		})
+
+		//return nil
+	} else {
+		fmt.Println("Task not found")
+	}
+
+	return nil
+
+}
+
+func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}) error {
+
+	gitc, err := prepareTemp(u, kind, client, db, m, payload)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(gitc.Dir)
+	gitdir := gitc.Dir
+	pruid, commit, owner, user_repo, repo, ref := gitc.Uid, gitc.Commit, gitc.Owner, gitc.UserRepo, gitc.Repo, gitc.Ref
+
+	var t *tasks.Pipeline
+	exists, _ := utils.Exists(path.Join(gitdir, pipeline_file+".json"))
+	if exists == true {
+		t, err = tasks.PipelineFromJsonFile(path.Join(gitdir, pipeline_file+".json"))
+		if err != nil {
+			return err
+		}
+	} else {
+
+		exists, _ = utils.Exists(path.Join(gitdir, pipeline_file+".yaml"))
+		if exists == true {
+			t, err = tasks.PipelineFromYamlFile(path.Join(gitdir, pipeline_file+".yaml"))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if exists {
+		t.Owner = gitc.StoredUser.ID
+		// XXX:
+		if len(setting.Configuration.WebHookDefaultQueue) > 0 {
+			t.Queue = setting.Configuration.WebHookDefaultQueue
+
+		}
+
+		// do not allow automatic tag from PR
+		for i, p := range t.Tasks { // Duplicated in API.
+			//p.Namespace = ""
+			//p.TagNamespace = ""
+			p.Owner = gitc.StoredUser.ID
+			p.Source = user_repo
+			p.Commit = commit
+
+			p.Status = setting.TASK_STATE_WAIT
+
+			id, err := db.Driver.CreateTask(p.ToMap())
+			if err != nil {
+				return err
+			}
+			p.ID = id
+			t.Tasks[i] = p
+		}
+		t.Queue = setting.Configuration.WebHookDefaultQueue
+
+		docID, err := db.Driver.CreatePipeline(t.ToMap(false))
+		if err != nil {
+			return err
+		}
+
+		url := setting.Configuration.AppSubURL + "/tasks/display/" + docID
+		fmt.Println("Sending pipeline", docID)
+		_, err = m.ProcessPipeline(docID)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		// Create the 'pending' status and send it
+		status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
+
+		client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
+
+		m.Invoke(func(a *anagent.Anagent) {
+			data := strings.Join([]string{kind, owner, repo, ref, "pipeline", docID}, ",")
+			a.Invoke(func(w map[string]string) {
+				fmt.Println("Add event to global watcher")
+				a.Lock()
+				defer a.Unlock()
+				w[pruid] = data
+			})
+		})
+
+		//return
+	}
+	return nil
+
+}
+
+func RequiresWebHookSetting(c *context.Context, db *database.Database) error {
+	// Check setting if we have to process this.
+	err := errors.New("Webhook integration disabled")
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
+	if err == nil {
+		if uuu.IsDisabled() {
+			c.ServerError("Webhook integration disabled", err)
+			return err
+		}
+	}
+	return nil
+}
 
 func Setup(m *mottainai.Mottainai) {
 
