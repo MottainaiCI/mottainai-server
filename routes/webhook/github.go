@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
+	stdctx "context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -117,16 +118,25 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 
 	// Check setting if we have to process this.
 	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
-	if err == nil {
-		if uuu.IsDisabled() {
-			fmt.Println("Webhooks disabled from system settings")
-			return ctx, errors.New("Webhooks disabled")
-		}
+	if err == nil && uuu.IsDisabled() {
+		fmt.Println("Webhooks disabled from system settings")
+		return ctx, errors.New("Webhooks disabled")
 	}
 
-	// TODO: Check in users the enabled repository hooks
-	// Later, with organizations and projects will be easier to link them.
-	ctx.StoredUser = u
+	uuu, err = db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_INTERNAL_ONLY)
+	if err == nil && uuu.IsEnabled() {
+		u, err := db.Driver.GetUserByIdentity("github", gh_user)
+		if err != nil {
+			status2 := &ggithub.RepoStatus{State: &failure, Description: &noPermDesc, Context: &appName}
+			client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status2)
+			return ctx, err
+		}
+		ctx.StoredUser = &u
+	} else {
+		// TODO: Check in users the enabled repository hooks
+		// Later, with organizations and projects will be easier to link them.
+		ctx.StoredUser = u
+	}
 
 	gitdir, err := ioutil.TempDir(setting.Configuration.BuildPath, path.Join("webhook_fetch", repo))
 	if err != nil {
