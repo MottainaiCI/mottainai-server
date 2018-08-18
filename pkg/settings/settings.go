@@ -92,7 +92,6 @@ type Config struct {
 	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
 	WebHookToken           string `mapstructure:"webhook_token"`
 	WebHookGitHubSecret    string `mapstructure:"github_secret"`
-	WebHookDefaultQueue    string `mapstructure:"webhook_default_queue"`
 	DownloadRateLimit      int64  `mapstructure:"download_speed_limit"`
 	UploadRateLimit        int64  `mapstructure:"upload_speed_limit"`
 
@@ -162,7 +161,6 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("standalone", false)
 	viper.SetDefault("github_token", "")
 	viper.SetDefault("github_secret", "")
-	viper.SetDefault("webhook_default_queue", "webhooks")
 	viper.SetDefault("webhook_token", "")
 	viper.SetDefault("access_token", "")
 	viper.SetDefault("github_token_user", "")

@@ -124,10 +124,7 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 
 		t.Source = user_repo
 		t.Commit = commit
-		if len(setting.Configuration.WebHookDefaultQueue) > 0 {
-			t.Queue = setting.Configuration.WebHookDefaultQueue
-
-		}
+		t.Queue = QueueSetting(db)
 
 		docID, err := db.Driver.CreateTask(t.ToMap())
 		if err != nil {
@@ -191,11 +188,7 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 	if exists {
 		t.Owner = gitc.StoredUser.ID
 		// XXX:
-		if len(setting.Configuration.WebHookDefaultQueue) > 0 {
-			t.Queue = setting.Configuration.WebHookDefaultQueue
-
-		}
-
+		t.Queue = QueueSetting(db)
 		// do not allow automatic tag from PR
 		for i, p := range t.Tasks { // Duplicated in API.
 			//p.Namespace = ""
@@ -220,7 +213,6 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 			p.ID = id
 			t.Tasks[i] = p
 		}
-		t.Queue = setting.Configuration.WebHookDefaultQueue
 
 		docID, err := db.Driver.CreatePipeline(t.ToMap(false))
 		if err != nil {
@@ -267,6 +259,15 @@ func RequiresWebHookSetting(c *context.Context, db *database.Database) error {
 		}
 	}
 	return nil
+}
+
+func QueueSetting(db *database.Database) string {
+
+	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_DEFAULT_QUEUE)
+	if err != nil {
+		return "default_webhooks"
+	}
+	return uuu.Value
 }
 
 func Setup(m *mottainai.Mottainai) {
