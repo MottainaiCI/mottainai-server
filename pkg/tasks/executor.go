@@ -190,12 +190,12 @@ func (d *TaskExecutor) Setup(docID string) error {
 	}
 
 	artdir := path.Join(tmp_buildpath, "artefact")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(artdir, os.ModePerm); err != nil {
 		return err
 	}
 
 	storagetmp := path.Join(tmp_buildpath, "storage")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(storagetmp, os.ModePerm); err != nil {
 		return err
 	}
 
