@@ -53,8 +53,10 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 
 func DefaultTaskHandler() *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
-		"docker_execute": DockerPlayer,
-		"error":          HandleErr,
+		"docker_execute":     DockerPlayer,
+		"libvirt_execute":    LibvirtPlayer,
+		"virtualbox_execute": VirtualBoxPlayer,
+		"error":              HandleErr,
 		//	"success":        HandleSuccess,
 	}}
 }
@@ -79,6 +81,34 @@ func DockerPlayer(args ...interface{}) (int, error) {
 	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
 	executor := NewDockerExecutor()
+	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	if err != nil {
+		player.EarlyFail(executor, docID, err.Error())
+		return e, err
+	}
+
+	return player.Start(executor)
+}
+
+func LibvirtPlayer(args ...interface{}) (int, error) {
+	docID, e, err := HandleArgs(args...)
+	player := NewPlayer(docID)
+	executor := NewVagrantExecutor()
+	executor.Provider = "libvirt"
+	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	if err != nil {
+		player.EarlyFail(executor, docID, err.Error())
+		return e, err
+	}
+
+	return player.Start(executor)
+}
+
+func VirtualBoxPlayer(args ...interface{}) (int, error) {
+	docID, e, err := HandleArgs(args...)
+	player := NewPlayer(docID)
+	executor := NewVagrantExecutor()
+	executor.Provider = "virtualbox"
 	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
