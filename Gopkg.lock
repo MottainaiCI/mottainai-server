@@ -367,6 +367,18 @@
   version = "0.4"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/koding/logging"
+  packages = ["."]
+  revision = "8b5a689ed69b1c7cd1e3595276fc2a352d7818e0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/koding/vagrantutil"
+  packages = ["."]
+  revision = "70827343f1169931bbe84e8051fcbcf06da90eb7"
+
+[[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
@@ -806,6 +818,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "19f4b2251f41db16bf22983af6741f46bdaae3ccc7cde8629293fd94bf4ccc07"
+  inputs-digest = "9511f029af9a512ae2d9364a1fc8b9b8181df1c41dbbea3493cce3e05c10023c"
   solver-name = "gps-cdcl"
   solver-version = 1
