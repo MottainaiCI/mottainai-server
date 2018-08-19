@@ -33,6 +33,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -142,6 +143,16 @@ func SHA1(str string) string {
 	h := sha1.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// isValidUrl tests a string to determine if it is a url or not.
+func IsValidUrl(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }
 
 // ShortSHA1 truncates SHA1 string length to at most 10.
