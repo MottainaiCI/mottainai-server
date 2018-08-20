@@ -46,13 +46,34 @@ func (e *VagrantExecutor) Clean() error {
 	return e.TaskExecutor.Clean()
 }
 
+func (d *VagrantExecutor) BoxRemove(image string) {
+	boxes, err := d.Vagrant.BoxList()
+	if err != nil {
+		d.Report("> Error in destroying the box " + err.Error())
+	}
+
+	for _, box := range boxes {
+		if box.Name == image {
+			out, err := d.Vagrant.BoxRemove(box)
+			if err != nil {
+				d.Report("> Error in destroying the box " + err.Error())
+			} else {
+				d.reportOutput(out)
+			}
+		}
+	}
+}
+
 func (d *VagrantExecutor) Prune() {
+
 	out, err := d.Vagrant.Halt()
 	if err != nil {
 		d.Report("> Error in halting the machine" + err.Error())
 	} else {
 		d.reportOutput(out)
 	}
+
+	d.BoxRemove(d.BoxImage)
 	out, err = d.Vagrant.Destroy()
 	if err != nil {
 		d.Report("> Error in destroying the machine" + err.Error())
@@ -60,22 +81,6 @@ func (d *VagrantExecutor) Prune() {
 		d.reportOutput(out)
 	}
 
-	boxes, err := d.Vagrant.BoxList()
-	if err != nil {
-		d.Report("> Error in destroying the box" + err.Error())
-		return
-	}
-
-	for _, box := range boxes {
-		if box.Name == d.BoxImage {
-			out, err = d.Vagrant.BoxRemove(box)
-			if err != nil {
-				d.Report("> Error in destroying the box" + err.Error())
-			} else {
-				d.reportOutput(out)
-			}
-		}
-	}
 }
 
 func (e *VagrantExecutor) reportOutput(out <-chan *vagrantutil.CommandOutput) {
