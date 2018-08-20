@@ -75,10 +75,11 @@ func (d *VagrantExecutor) Prune() {
 }
 
 func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
-	var box string
+	var box, box_url string
 	// TODO: Add CPU and RAM from task
 	if utils.IsValidUrl(image) {
-		box = `config.vm.box_url = "` + image + `"`
+		box_url = `config.vm.box_url = "` + image + `"`
+		box = `config.vm.box = "` + t.ID + `"`
 	} else {
 		box = `config.vm.box = "` + image + `"`
 	}
@@ -102,6 +103,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 ` + box + `
+` + box_url + `
 ` + source + `
 config.vm.synced_folder "` + e.Context.ArtefactDir + `", "` + rootdir + artefacts + `"
 config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages + `"
