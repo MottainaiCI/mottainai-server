@@ -40,10 +40,38 @@ type VagrantExecutor struct {
 func NewVagrantExecutor() *VagrantExecutor {
 	return &VagrantExecutor{Provider: "libvirt", TaskExecutor: &TaskExecutor{Context: NewExecutorContext()}}
 }
+func (e *VagrantExecutor) Clean() error {
+	err := e.TaskExecutor.Clean()
 
-func (e *VagrantExecutor) Prune() {
-	e.Vagrant.Halt()
-	e.Vagrant.Destroy()
+	e.Prune()
+	return err
+}
+
+func (d *VagrantExecutor) Prune() {
+	out, err := d.Vagrant.Halt()
+	if err != nil {
+		d.Report("> Error in halting the machine" + err.Error())
+	}
+	for line := range out {
+		d.Report(">" + line.Line)
+
+		if line.Error != nil {
+			d.Report(">" + line.Error.Error())
+			break
+		}
+	}
+	out, err = d.Vagrant.Destroy()
+	if err != nil {
+		d.Report("> Error in destroying the machine" + err.Error())
+	}
+	for line := range out {
+		d.Report(">" + line.Line)
+
+		if line.Error != nil {
+			d.Report(">" + line.Error.Error())
+			break
+		}
+	}
 }
 
 func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
@@ -197,8 +225,6 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 	if err != nil {
 		return 1, err
 	}
-
 	// FIXME: exit status change ?  unclear gets caught from Errors already
 	return 0, nil
-
 }
