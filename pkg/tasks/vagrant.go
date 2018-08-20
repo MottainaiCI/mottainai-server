@@ -41,10 +41,8 @@ func NewVagrantExecutor() *VagrantExecutor {
 	return &VagrantExecutor{Provider: "libvirt", TaskExecutor: &TaskExecutor{Context: NewExecutorContext()}}
 }
 func (e *VagrantExecutor) Clean() error {
-	err := e.TaskExecutor.Clean()
-
 	e.Prune()
-	return err
+	return e.TaskExecutor.Clean()
 }
 
 func (d *VagrantExecutor) Prune() {
