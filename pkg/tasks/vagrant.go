@@ -49,25 +49,27 @@ func (d *VagrantExecutor) Prune() {
 	out, err := d.Vagrant.Halt()
 	if err != nil {
 		d.Report("> Error in halting the machine" + err.Error())
-	}
-	for line := range out {
-		d.Report(">" + line.Line)
+	} else {
+		for line := range out {
+			d.Report(">" + line.Line)
 
-		if line.Error != nil {
-			d.Report(">" + line.Error.Error())
-			break
+			if line.Error != nil {
+				d.Report(">" + line.Error.Error())
+				break
+			}
 		}
 	}
 	out, err = d.Vagrant.Destroy()
 	if err != nil {
 		d.Report("> Error in destroying the machine" + err.Error())
-	}
-	for line := range out {
-		d.Report(">" + line.Line)
+	} else {
+		for line := range out {
+			d.Report(">" + line.Line)
 
-		if line.Error != nil {
-			d.Report(">" + line.Error.Error())
-			break
+			if line.Error != nil {
+				d.Report(">" + line.Error.Error())
+				break
+			}
 		}
 	}
 }
