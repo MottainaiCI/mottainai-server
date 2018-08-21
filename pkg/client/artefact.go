@@ -294,23 +294,8 @@ func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) 
 		//	"namespace": dir,
 	}
 
-	request, err := f.UploadLargeFile("/api/namespace/upload", opts, "file", fullpath, 1024)
-
-	if err != nil {
-		panic(err)
-	}
-	f.setAuthHeader(request)
-
-	client := f.newHttpClient()
-	resp, err := client.Do(request)
-	if err != nil {
-		panic(err)
-	} else {
-		var bodyContent []byte
-		fmt.Println(strconv.Itoa(resp.StatusCode))
-		resp.Body.Read(bodyContent)
-		resp.Body.Close()
-		fmt.Println(string(bodyContent))
+	if err := f.UploadLargeFile("/api/namespace/upload", opts, "file", fullpath, 1024); err != nil {
+		return err
 	}
 	return nil
 }
