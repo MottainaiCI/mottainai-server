@@ -294,7 +294,7 @@ func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) 
 		//	"namespace": dir,
 	}
 
-	request, err := f.Upload("/api/namespace/upload", opts, "file", fullpath)
+	request, err := f.UploadLargeFile("/api/namespace/upload", opts, "file", fullpath, 1024)
 
 	if err != nil {
 		panic(err)
