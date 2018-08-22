@@ -110,9 +110,19 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	if len(t.StoragePath) > 0 {
 		storages = t.StoragePath
 	}
+	var env string
+
+	for _, e := range t.Environment {
+		env = env + " export " + e + "\n"
+	}
+
 	return `# -*- mode: ruby -*-
 # vi: set ft=ruby :
-
+$set_environment_variables = <<SCRIPT
+tee "/etc/profile.d/myvars.sh" > "/dev/null" <<EOF
+` + env + `
+EOF
+SCRIPT
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -122,6 +132,7 @@ config.vm.synced_folder "` + e.Context.ArtefactDir + `", "` + rootdir + artefact
 config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages + `"
 
  config.vm.hostname = "vagrant"
+ config.vm.provision "shell", inline: $set_environment_variables, run: "always"
 
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
