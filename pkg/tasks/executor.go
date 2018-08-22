@@ -97,27 +97,27 @@ func (d *TaskExecutor) UploadArtefacts(folder string) error {
 func (d *TaskExecutor) Clean() error {
 	if len(d.Context.SourceDir) > 0 {
 		if err := os.RemoveAll(d.Context.SourceDir); err != nil {
-			return err
+			d.Report("Warn: (cleanup failed on " + d.Context.SourceDir + ") : " + err.Error())
 		}
 	}
 	if len(d.Context.ArtefactDir) > 0 {
 		if err := os.RemoveAll(d.Context.ArtefactDir); err != nil {
-			return err
+			d.Report("Warn: (cleanup failed on " + d.Context.ArtefactDir + ") : " + err.Error())
 		}
 	}
 	if len(d.Context.StorageDir) > 0 {
 		if err := os.RemoveAll(d.Context.StorageDir); err != nil {
-			return err
+			d.Report("Warn: (cleanup failed on " + d.Context.StorageDir + ") : " + err.Error())
 		}
 	}
 	if len(d.Context.BuildDir) > 0 {
 		if err := os.RemoveAll(d.Context.BuildDir); err != nil {
-			return err
+			d.Report("Warn: (cleanup failed on " + d.Context.BuildDir + ") : " + err.Error())
 		}
 	}
 	if len(d.Context.RootTaskDir) > 0 {
 		if err := os.RemoveAll(d.Context.RootTaskDir); err != nil {
-			return err
+			d.Report("Warn: (cleanup failed on " + d.Context.RootTaskDir + ") : " + err.Error())
 		}
 	}
 	return nil
