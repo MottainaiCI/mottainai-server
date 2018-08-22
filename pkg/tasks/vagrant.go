@@ -102,7 +102,6 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	} else {
 		box = `config.vm.box = "` + image + `"`
 	}
-	git_sourced_repo := e.Context.SourceDir
 	artefacts := "artefacts"
 	if len(t.ArtefactPath) > 0 {
 		artefacts = t.ArtefactPath
@@ -110,10 +109,6 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	storages := "storage"
 	if len(t.StoragePath) > 0 {
 		storages = t.StoragePath
-	}
-	var source string
-	if len(git_sourced_repo) > 0 {
-		source = `config.vm.synced_folder "` + git_sourced_repo + `", "` + rootdir + `"`
 	}
 	return `# -*- mode: ruby -*-
 # vi: set ft=ruby :
@@ -123,7 +118,6 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 ` + box + `
 ` + box_url + `
-` + source + `
 config.vm.synced_folder "` + e.Context.ArtefactDir + `", "` + rootdir + artefacts + `"
 config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages + `"
 
@@ -139,7 +133,13 @@ end
 
 func (d *VagrantExecutor) Setup(docID string) error {
 	d.TaskExecutor.Setup(docID)
-	vagrant, err := vagrantutil.NewVagrant(d.Context.BuildDir)
+	var box string
+	if len(d.Context.SourceDir) > 0 {
+		box = d.Context.SourceDir
+	} else {
+		box = d.Context.BuildDir
+	}
+	vagrant, err := vagrantutil.NewVagrant(box)
 	if err != nil {
 		return err
 	}

@@ -95,6 +95,11 @@ func (d *TaskExecutor) UploadArtefacts(folder string) error {
 }
 
 func (d *TaskExecutor) Clean() error {
+	if len(d.Context.SourceDir) > 0 {
+		if err := os.RemoveAll(d.Context.SourceDir); err != nil {
+			return err
+		}
+	}
 	if len(d.Context.ArtefactDir) > 0 {
 		if err := os.RemoveAll(d.Context.ArtefactDir); err != nil {
 			return err
