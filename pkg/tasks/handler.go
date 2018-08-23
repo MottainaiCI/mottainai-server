@@ -53,10 +53,17 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 
 func DefaultTaskHandler() *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
-		"docker_execute":     DockerPlayer,
-		"libvirt_execute":    LibvirtPlayer,
+
+		"docker_execute": DockerPlayer,
+		"docker":         DockerPlayer,
+
+		"libvirt_execute": LibvirtPlayer,
+		"libvirt_vagrant": LibvirtPlayer,
+
 		"virtualbox_execute": VirtualBoxPlayer,
-		"error":              HandleErr,
+		"virtualbox_vagrant": VirtualBoxPlayer,
+
+		"error": HandleErr,
 		//	"success":        HandleSuccess,
 	}}
 }
