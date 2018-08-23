@@ -35,6 +35,7 @@ import (
 	"math/big"
 	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -143,6 +144,20 @@ func SHA1(str string) string {
 	h := sha1.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func Cmd(cmdName string, args []string) (string, string, error) {
+
+	cmd := exec.Command(cmdName, args...)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return out.String(), stderr.String(), err
+	}
+	return out.String(), stderr.String(), nil
 }
 
 // isValidUrl tests a string to determine if it is a url or not.
