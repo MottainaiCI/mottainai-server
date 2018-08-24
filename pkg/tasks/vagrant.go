@@ -60,7 +60,9 @@ func (d *VagrantExecutor) BoxRemove(image string) {
 	}
 
 	for _, box := range boxes {
+		d.Report("> Box in machine: " + box)
 		if box.Name == image {
+			d.Report("> Removing: " + box)
 			out, err := d.Vagrant.BoxRemove(box)
 			if err != nil {
 				d.Report("> Error in destroying the box " + err.Error())
@@ -275,7 +277,7 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 			return 1, line.Error
 		}
 	}
-
+	defer d.Prune()
 	out, err := d.Vagrant.SSH(execute_script)
 	if err != nil {
 		d.Report(out)
