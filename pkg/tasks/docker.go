@@ -212,6 +212,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	if len(task_info.Entrypoint) > 0 {
 		containerconfig.Entrypoint = task_info.Entrypoint
+		containerconfig.Cmd = task_info.Script
 		d.Report("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
 	}
 
