@@ -2,6 +2,7 @@ package vagrantutil
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -93,20 +94,47 @@ func (cmd *command) start(args ...string) (ch <-chan *CommandOutput, err error) 
 	out := make(chan *CommandOutput)
 
 	output := func(r io.Reader) {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" {
-				continue // ignore excessive whitespace
+
+		reader := bufio.NewReader(r)
+
+		var err, final error
+		for {
+			var buffer bytes.Buffer
+
+			var l []byte
+			var isPrefix bool
+			for {
+				l, isPrefix, err = reader.ReadLine()
+				buffer.Write(l)
+
+				// If we've reached the end of the line, stop reading.
+				if !isPrefix {
+					break
+				}
+
+				// If we're just at the EOF, break
+				if err != nil {
+					break
+				}
 			}
 
+			if err == io.EOF {
+				break
+			}
+
+			ls := buffer.String()
+			line := strings.TrimSpace(string(ls))
 			cmd.debugf("%s", line)
 			cmd.checkError(errors.New(line))
 
 			out <- &CommandOutput{Line: line}
 		}
 
-		cmd.reportError(out, scanner.Err())
+		if err != io.EOF {
+			final = err
+		}
+
+		cmd.reportError(out, final)
 		wg.Done()
 	}
 
