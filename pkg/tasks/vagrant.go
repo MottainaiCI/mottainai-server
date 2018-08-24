@@ -70,7 +70,7 @@ func (d *VagrantExecutor) BoxRemove(image string) {
 		}
 	}
 	if d.IsLibvirt() {
-		// Sadly libvirt doesn't remove them from pools
+		// Sadly vagrant doesn't remove them from pools
 		cmdName := "virsh"
 
 		args := []string{"vol-delete", "--pool", "default", image + "_vagrant_box_image_0.img"}
@@ -147,9 +147,9 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	var env string
 
 	ram := "2048"
-	cpu := "2"
-	for _, e := range t.Environment {
-		env = env + " export " + e + "\n"
+	cpu := "1"
+	for _, s := range t.Environment {
+		env = env + " export " + s + "\n"
 		if strings.Contains(s, "CPU") {
 			cpu = strings.Replace(s, "CPU=", "", -1)
 		}
@@ -168,10 +168,10 @@ SCRIPT
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-` + box + `
-` + box_url + `
-config.vm.synced_folder "` + e.Context.ArtefactDir + `", "` + rootdir + artefacts + `"
-config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages + `"
+ ` + box + `
+ ` + box_url + `
+ config.vm.synced_folder "` + e.Context.ArtefactDir + `", "` + rootdir + artefacts + `"
+ config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages + `"
 
  config.vm.hostname = "vagrant"
  config.vm.provision "shell", inline: $set_environment_variables, run: "always"
@@ -183,7 +183,6 @@ config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages 
  end
 
   config.vm.provider "virtualbox" do |vb|
-    # Use VBoxManage to customize the VM. For example to change memory:
     vb.customize ["modifyvm", :id, "--memory", "` + ram + `", "--cpus", "` + cpu + `"]
   end
 end
@@ -248,11 +247,6 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 
 	if len(task_info.Entrypoint) > 0 {
 		execute_script = strings.Join(task_info.Entrypoint, " ") + execute_script
-	}
-
-	if len(task_info.Environment) > 0 {
-		// FIXME: To do, pass environment to the script
-		//containerconfig.Env = task_info.Environment
 	}
 
 	d.Report("Image: " + task_info.Image)
