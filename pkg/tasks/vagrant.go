@@ -56,16 +56,16 @@ func (d *VagrantExecutor) IsLibvirt() bool {
 func (d *VagrantExecutor) BoxRemove(image string) {
 	boxes, err := d.Vagrant.BoxList()
 	if err != nil {
-		d.Report("> Error in destroying the box " + err.Error())
+		d.Report("!! Error in destroying the box " + err.Error())
 	}
 
 	for _, box := range boxes {
-		d.Report("> Box in machine: " + box)
+		d.Report("> Box in machine: " + box.Name)
 		if box.Name == image {
-			d.Report("> Removing: " + box)
+			d.Report("> Removing: " + box.Name)
 			out, err := d.Vagrant.BoxRemove(box)
 			if err != nil {
-				d.Report("> Error in destroying the box " + err.Error())
+				d.Report("!! Error in destroying the box " + err.Error())
 			} else {
 				d.reportOutput(out)
 			}
@@ -78,21 +78,21 @@ func (d *VagrantExecutor) BoxRemove(image string) {
 		args := []string{"vol-delete", "--pool", "default", image + "_vagrant_box_image_0.img"}
 		out, stderr, err := utils.Cmd(cmdName, args)
 		if err != nil {
-			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+			d.Report("!! There was an error running virsh command: ", err.Error()+": "+stderr)
 		}
 		d.Report(out)
 
 		args = []string{"pool-destroy", "default"}
 		out, stderr, err = utils.Cmd(cmdName, args)
 		if err != nil {
-			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+			d.Report("!! There was an error running virsh command: ", err.Error()+": "+stderr)
 		}
 		d.Report(out)
 
 		args = []string{"pool-undefine", "default"}
 		out, stderr, err = utils.Cmd(cmdName, args)
 		if err != nil {
-			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+			d.Report("!! There was an error running virsh command: ", err.Error()+": "+stderr)
 		}
 		d.Report(out)
 	}
@@ -102,7 +102,7 @@ func (d *VagrantExecutor) Prune() {
 
 	out, err := d.Vagrant.Halt()
 	if err != nil {
-		d.Report("> Error in halting the machine" + err.Error())
+		d.Report("!! Error in halting the machine" + err.Error())
 	} else {
 		d.reportOutput(out)
 	}
@@ -110,7 +110,7 @@ func (d *VagrantExecutor) Prune() {
 	d.BoxRemove(d.BoxImage)
 	out, err = d.Vagrant.Destroy()
 	if err != nil {
-		d.Report("> Error in destroying the machine" + err.Error())
+		d.Report("!! Error in destroying the machine" + err.Error())
 	} else {
 		d.reportOutput(out)
 	}
@@ -121,7 +121,7 @@ func (e *VagrantExecutor) reportOutput(out <-chan *vagrantutil.CommandOutput) {
 	for res := range out {
 		e.Report(">" + res.Line)
 		if res.Error != nil {
-			e.Report(">" + res.Error.Error())
+			e.Report("!! " + res.Error.Error())
 			return
 		}
 	}
@@ -212,14 +212,14 @@ func (d *VagrantExecutor) Setup(docID string) error {
 		args := []string{"pool-define-as", "default", "--type", "dir", "--target", "/var/lib/libvirt/images"}
 		out, stderr, err := utils.Cmd(cmdName, args)
 		if err != nil {
-			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+			d.Report("!! There was an error running virsh command: ", err.Error()+": "+stderr)
 		}
 		d.Report(out)
 
 		args = []string{"pool-start", "default"}
 		out, stderr, err = utils.Cmd(cmdName, args)
 		if err != nil {
-			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+			d.Report("!! There was an error running virsh command: ", err.Error()+": "+stderr)
 		}
 		d.Report(out)
 	}
@@ -273,7 +273,7 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		}
 		d.Report(line.Line)
 		if line.Error != nil {
-			d.Report(">" + line.Error.Error())
+			d.Report("!! " + line.Error.Error())
 			return 1, line.Error
 		}
 	}
@@ -292,7 +292,7 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
 			if timedout {
-				d.Report("Task timeout!")
+				d.Report("!! Task timeout!")
 			}
 			d.Report(ABORT_EXECUTION_ERROR)
 			d.Prune()
