@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-	"github.com/koding/vagrantutil"
+	vagrantutil "github.com/MottainaiCI/vagrantutil"
 )
 
 type VagrantExecutor struct {
@@ -46,6 +46,13 @@ func (e *VagrantExecutor) Clean() error {
 	return e.TaskExecutor.Clean()
 }
 
+func (d *VagrantExecutor) IsLibvirt() bool {
+	if d.Provider == "libvirt" {
+		return true
+	}
+	return false
+}
+
 func (d *VagrantExecutor) BoxRemove(image string) {
 	boxes, err := d.Vagrant.BoxList()
 	if err != nil {
@@ -61,6 +68,31 @@ func (d *VagrantExecutor) BoxRemove(image string) {
 				d.reportOutput(out)
 			}
 		}
+	}
+	if d.IsLibvirt() {
+		// Sadly libvirt doesn't remove them from pools
+		cmdName := "virsh"
+
+		args := []string{"vol-delete", "--pool", "default", image + "_vagrant_box_image_0.img"}
+		out, stderr, err := utils.Cmd(cmdName, args)
+		if err != nil {
+			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+		}
+		d.Report(out)
+
+		args = []string{"pool-destroy", "default"}
+		out, stderr, err = utils.Cmd(cmdName, args)
+		if err != nil {
+			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+		}
+		d.Report(out)
+
+		args = []string{"pool-undefine", "default"}
+		out, stderr, err = utils.Cmd(cmdName, args)
+		if err != nil {
+			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+		}
+		d.Report(out)
 	}
 }
 
@@ -99,8 +131,10 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	if utils.IsValidUrl(image) {
 		box_url = `config.vm.box_url = "` + image + `"`
 		box = `config.vm.box = "` + t.ID + `"`
+		e.BoxImage = t.ID
 	} else {
 		box = `config.vm.box = "` + image + `"`
+		e.BoxImage = image
 	}
 	artefacts := "artefacts"
 	if len(t.ArtefactPath) > 0 {
@@ -112,8 +146,16 @@ func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
 	}
 	var env string
 
+	ram := "2048"
+	cpu := "2"
 	for _, e := range t.Environment {
 		env = env + " export " + e + "\n"
+		if strings.Contains(s, "CPU") {
+			cpu = strings.Replace(s, "CPU=", "", -1)
+		}
+		if strings.Contains(s, "RAM") {
+			ram = strings.Replace(s, "RAM=", "", -1)
+		}
 	}
 
 	return `# -*- mode: ruby -*-
@@ -134,9 +176,15 @@ config.vm.synced_folder "` + e.Context.StorageDir + `", "` + rootdir + storages 
  config.vm.hostname = "vagrant"
  config.vm.provision "shell", inline: $set_environment_variables, run: "always"
 
+ config.vm.provider :libvirt do |libvirt|
+	 libvirt.storage_pool_name = "default"
+	 libvirt.cpus = ` + cpu + `
+	 libvirt.memory = ` + ram + `
+ end
+
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
+    vb.customize ["modifyvm", :id, "--memory", "` + ram + `", "--cpus", "` + cpu + `"]
   end
 end
 `
@@ -157,6 +205,23 @@ func (d *VagrantExecutor) Setup(docID string) error {
 	d.Vagrant = vagrant
 	d.Vagrant.ProviderName = d.Provider
 
+	if d.IsLibvirt() {
+		cmdName := "virsh"
+
+		args := []string{"pool-define-as", "default", "--type", "dir", "--target", "/var/lib/libvirt/images"}
+		out, stderr, err := utils.Cmd(cmdName, args)
+		if err != nil {
+			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+		}
+		d.Report(out)
+
+		args = []string{"pool-start", "default"}
+		out, stderr, err = utils.Cmd(cmdName, args)
+		if err != nil {
+			d.Report("There was an error running virsh command: ", err.Error()+": "+stderr)
+		}
+		d.Report(out)
+	}
 	return nil
 }
 
@@ -213,11 +278,9 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		d.Report(line.Line)
 		if line.Error != nil {
 			d.Report(">" + line.Error.Error())
-			break
+			return 1, line.Error
 		}
 	}
-
-	defer d.Prune()
 
 	out, err := d.Vagrant.SSH(execute_script)
 	if err != nil {
