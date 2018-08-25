@@ -131,6 +131,25 @@ func (d *Database) AllTasks() []agenttasks.Task {
 	return tasks_id
 }
 
+func (d *Database) AllNodeTask(id string) ([]agenttasks.Task, error) {
+	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["node_id"]}]`)
+	var res []agenttasks.Task
+	if err != nil {
+		return res, err
+	}
+	for docid := range queryResult {
+
+		// Read document
+		t, err := d.GetTask(docid)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, t)
+	}
+	return res, nil
+}
+
 func (d *Database) AllUserTask(id string) ([]agenttasks.Task, error) {
 	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["owner_id"]}]`)
 	var res []agenttasks.Task

@@ -140,6 +140,7 @@ type DatabaseDriver interface {
 	ListTasks() []dbcommon.DocItem
 	AllTasks() []agenttasks.Task
 	AllUserTask(id string) ([]agenttasks.Task, error)
+	AllNodeTask(id string) ([]agenttasks.Task, error)
 
 	// Token
 	InsertToken(t *token.Token) (string, error)

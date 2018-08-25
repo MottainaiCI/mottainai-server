@@ -99,6 +99,9 @@ func TestUpdateTask(t *testing.T) {
 	db.UpdateTask(id, map[string]interface{}{
 		"owner_id": strconv.Itoa(20),
 	})
+	db.UpdateTask(id, map[string]interface{}{
+		"node_id": strconv.Itoa(50),
+	})
 	uu, _ := db.GetTask(id)
 
 	if uu.Namespace != u.Namespace {
@@ -109,6 +112,20 @@ func TestUpdateTask(t *testing.T) {
 	}
 
 	tasks, err := db.AllUserTask("20")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(tasks) != 1 {
+		t.Fatal("Failed search")
+	}
+
+	if tasks[0].Namespace != u.Namespace {
+		t.Fatal("Failed insert")
+	}
+
+	tasks, err = db.AllNodeTask("50")
 
 	if err != nil {
 		t.Fatal(err)
