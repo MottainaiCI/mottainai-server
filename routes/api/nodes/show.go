@@ -40,6 +40,24 @@ func Show(ctx *context.Context, db *database.Database) {
 
 }
 
+func ShowTasks(ctx *context.Context, db *database.Database) {
+
+	id := ctx.Params(":key")
+	node, err := db.Driver.GetNodeByKey(id)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	tasks, err := db.Driver.AllNodeTask(node.ID)
+
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+	ctx.JSON(200, tasks)
+}
+
 func ShowAll(ctx *context.Context, db *database.Database) {
 	//tasks := db.ListTasks()
 	nodes := db.Driver.AllNodes()

@@ -36,6 +36,8 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/nodes", reqSignIn, ShowAll)
 	m.Get("/api/nodes/add", reqSignIn, reqManager, APICreate)
 	m.Get("/api/nodes/show/:id", reqSignIn, reqManager, Show)
+	m.Get("/api/nodes/tasks/:key", reqSignIn, reqManager, ShowTasks)
+
 	m.Get("/api/nodes/delete/:id", reqSignIn, reqManager, APIRemove)
 	m.Post("/api/nodes/register", reqSignIn, reqManager, bind(NodeUpdate{}), Register)
 }
