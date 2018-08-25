@@ -58,7 +58,11 @@ func (m *MottainaiAgent) HealthClean() {
 	m.Invoke(func(c *client.Fetcher) {
 
 		var tlist []agenttasks.Task
-		c.GetJSONOptions("/api/nodes/tasks/"+setting.Configuration.AgentKey, map[string]string{}, &tlist)
+		err := c.GetJSONOptions("/api/nodes/tasks/"+setting.Configuration.AgentKey, map[string]string{}, &tlist)
+		if err != nil {
+			log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
+			return
+		}
 		for _, t := range tlist {
 			if t.IsRunning() {
 				log.INFO.Println("> Task running on the host, skipping deep host cleanup")
