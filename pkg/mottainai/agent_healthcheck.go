@@ -25,6 +25,7 @@ package mottainai
 import (
 	"os"
 	"path"
+	"sync"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -64,9 +65,20 @@ func (m *MottainaiAgent) HealthClean() {
 				return
 			}
 		}
+		var wg sync.WaitGroup
 
-		m.CleanHealthCheckPathHost()
-		m.CleanDockerHost()
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			m.CleanHealthCheckPathHost()
+		}()
+		go func() {
+			defer wg.Done()
+			m.CleanDockerHost()
+		}()
+		log.INFO.Println("> Waiting for cleanup operations to end")
+		wg.Wait()
+		log.INFO.Println("> Done")
 	})
 }
 
