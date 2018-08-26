@@ -87,6 +87,33 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	return "OK", nil
 }
 
+func NamespaceAppend(ctx *context.Context, db *database.Database) (string, error) {
+	name := ctx.Params(":name")
+	taskid := ctx.Params(":taskid")
+	name, _ = utils.Strip(name)
+
+	if len(name) == 0 {
+		return ":( No namespace name given", nil
+	}
+
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
+	task, err := db.Driver.GetTask(taskid)
+	if err != nil {
+		return "", err
+	}
+
+	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
+	err = ns.Append(task.ID)
+	if err != nil {
+		return ":(", err
+	}
+
+	return "OK", nil
+}
+
 func NamespaceClone(ctx *context.Context, db *database.Database) (string, error) {
 	name := ctx.Params(":name")
 	from := ctx.Params(":from")

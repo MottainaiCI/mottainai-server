@@ -38,6 +38,8 @@ func Setup(m *macaron.Macaron) {
 
 	m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
 	m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
+	m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
+
 	m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
 	m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
 }

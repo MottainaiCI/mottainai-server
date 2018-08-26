@@ -56,3 +56,24 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 	}
 	return "OK", nil
 }
+
+func StorageRemovePath(ctx *context.Context, db *database.Database) (string, error) {
+	path := ctx.Params(":path")
+	id := ctx.Params(":id")
+	//name, _ = utils.Strip(name)
+
+	storage, err := db.Driver.GetStorage(id)
+	if err != nil {
+		return ":(", err
+	}
+
+	if !ctx.CheckStoragePermissions(&storage) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
+	err = os.RemoveAll(filepath.Join(setting.Configuration.StoragePath, storage.Path, path))
+	if err != nil {
+		return ":(", err
+	}
+	return "OK", nil
+}

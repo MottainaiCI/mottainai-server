@@ -49,3 +49,19 @@ func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error
 	}
 	return "OK", nil
 }
+
+func NamespaceRemovePath(ctx *context.Context, db *database.Database) (string, error) {
+	name := ctx.Params(":name")
+	name, _ = utils.Strip(name)
+	path := ctx.Params(":path")
+
+	if !ctx.CheckNamespaceBelongs(name) {
+		return ":(", errors.New("Moar permissions are required for this user")
+	}
+
+	err := os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, name, path))
+	if err != nil {
+		return ":(", err
+	}
+	return "OK", nil
+}
