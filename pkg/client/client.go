@@ -191,20 +191,16 @@ func (f *Fetcher) GetJSONOptions(url string, option map[string]string, target in
 func (f *Fetcher) GetOptions(url string, option map[string]string) ([]byte, error) {
 	hclient := f.newHttpClient()
 	request, err := http.NewRequest("GET", f.BaseURL+url, nil)
-	f.setAuthHeader(request)
 	if err != nil {
 		return []byte{}, err
 	}
+	f.setAuthHeader(request)
 
 	q := request.URL.Query()
 	for k, v := range option {
 		q.Add(k, v)
 	}
 	request.URL.RawQuery = q.Encode()
-	if err != nil {
-		return []byte{}, err
-	}
-
 	response, err := hclient.Do(request)
 	if err != nil {
 		return []byte{}, err
