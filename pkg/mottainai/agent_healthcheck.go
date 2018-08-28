@@ -126,6 +126,10 @@ func (m *MottainaiAgent) CleanBuildDir() {
 			c.Doc(what)
 			th := agenttasks.DefaultTaskHandler()
 			task_info := th.FetchTask(c)
+			if th.Err != nil {
+				log.INFO.Println("Error fetching task: " + th.Err.Error())
+				continue
+			}
 			log.INFO.Println("Found: " + what)
 			log.INFO.Println(task_info)
 			if task_info.IsDone() || task_info.ID == "" {

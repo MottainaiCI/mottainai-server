@@ -35,6 +35,7 @@ import (
 
 type TaskHandler struct {
 	Tasks map[string]interface{}
+	Err   error
 }
 
 func (h *TaskHandler) Exists(s string) bool {
@@ -359,7 +360,7 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 	task_data, err := fetcher.GetTask()
 
 	if err != nil {
-		panic(err)
+		h.Err = err
 	}
 	return h.NewTaskFromJson(task_data)
 }
