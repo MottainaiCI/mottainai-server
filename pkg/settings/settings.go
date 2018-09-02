@@ -98,7 +98,8 @@ type Config struct {
 	TLSCert string `mapstructure:"tls_cert"`
 	TLSKey  string `mapstructure:"tls_key"`
 
-	AccessControlAllowOrigin string `mapstructure:"access_control_allow_origin"`
+	AccessControlAllowOrigin string   `mapstructure:"access_control_allow_origin"`
+	HealthCheckExec          []string `mapstructure:"health_check_exec"`
 
 	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path"`
 }
@@ -160,6 +161,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("docker_caps_drop", []string{})
 	viper.SetDefault("health_check_clean_path", []string{})
+	viper.SetDefault("health_check_exec", []string{})
 
 	viper.SetDefault("private_queue", 1)
 	viper.SetDefault("standalone", false)

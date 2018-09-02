@@ -25,6 +25,7 @@ package mottainai
 import (
 	"os"
 	"path"
+	"strings"
 	"sync"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -71,7 +72,11 @@ func (m *MottainaiAgent) HealthClean() {
 		}
 		var wg sync.WaitGroup
 
-		wg.Add(2)
+		wg.Add(3)
+		go func() {
+			defer wg.Done()
+			m.CleanHealthCheckExec()
+		}()
 		go func() {
 			defer wg.Done()
 			m.CleanHealthCheckPathHost()
@@ -94,6 +99,21 @@ func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 		if err := utils.RemoveContents(k); err != nil {
 			log.ERROR.Println("> Failed removing contents from ", k, " ", err.Error())
 		}
+	}
+}
+
+func (m *MottainaiAgent) CleanHealthCheckExec() {
+	for _, k := range setting.Configuration.HealthCheckExec {
+		log.INFO.Println("> Executing: " + k)
+		args := strings.Split(k, " ")
+		cmdName := args[0]
+
+		out, stderr, err := utils.Cmd(cmdName, args[1:])
+		if err != nil {
+			log.ERROR.Println("!! Error: ", err.Error()+": "+stderr)
+
+		}
+		log.INFO.Println(out)
 	}
 }
 
