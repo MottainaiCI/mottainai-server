@@ -24,18 +24,20 @@ package cmd
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
 	cobra "github.com/spf13/cobra"
 )
 
-func newWebHookCommand() *cobra.Command {
+func newWebHookCommand(config *s.Config) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "webhook",
 		Short: "Start WebHook Server to run tasks against repositories",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			m := mottainai.ClassicWebHookServer()
+			m := mottainai.ClassicWebHookServer(config)
+			m.Map(config)
 			routes.SetupWebHookServer(m)
 			m.Start()
 		},

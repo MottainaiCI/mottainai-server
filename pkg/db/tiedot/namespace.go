@@ -54,11 +54,14 @@ func (d *Database) DeleteNamespace(docID string) error {
 	if err != nil {
 		return err
 	}
-	for _, artefact := range artefacts {
-		artefact.CleanFromNamespace(ns.Path)
-		d.DeleteArtefact(artefact.ID)
-	}
-	os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, ns.Path))
+	d.Invoke(func(config *setting.Config) {
+		for _, artefact := range artefacts {
+			artefact.CleanFromNamespace(ns.Path, config)
+			d.DeleteArtefact(artefact.ID)
+		}
+
+		os.RemoveAll(filepath.Join(config.NamespacePath, ns.Path))
+	})
 
 	return d.DeleteDoc(NamespaceColl, docID)
 }

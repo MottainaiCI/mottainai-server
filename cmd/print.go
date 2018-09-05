@@ -30,7 +30,7 @@ import (
 	cobra "github.com/spf13/cobra"
 )
 
-func newPrintCommand() *cobra.Command {
+func newPrintCommand(config *s.Config) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "print",
 		Short: "Show configuration params",
@@ -40,19 +40,19 @@ func newPrintCommand() *cobra.Command {
 			fmt.Println("===================================")
 			fmt.Println("CONFIGURATION PARAMS:")
 			fmt.Println("===================================")
-			fmt.Println(s.Configuration)
+			fmt.Println(config)
 			fmt.Println("===================================")
 			fmt.Println("")
 			fmt.Println("===================================")
 			fmt.Println("CONFIG SOURCE:")
 			fmt.Println("===================================")
-			fmt.Println("remote-config: ", s.Configuration.Viper.Get("etcd-config"))
-			if s.Configuration.Viper.GetBool("etcd-config") {
-				fmt.Println("Etcd Server: ", s.Configuration.Viper.Get("etcd-endpoint"))
-				fmt.Println("Etcd Keyring: ", s.Configuration.Viper.Get("etcd-keyring"))
-				fmt.Println("Etcd Path: ", s.Configuration.Viper.Get("config"))
+			fmt.Println("remote-config: ", config.Viper.Get("etcd-config"))
+			if config.Viper.GetBool("etcd-config") {
+				fmt.Println("Etcd Server: ", config.Viper.Get("etcd-endpoint"))
+				fmt.Println("Etcd Keyring: ", config.Viper.Get("etcd-keyring"))
+				fmt.Println("Etcd Path: ", config.Viper.Get("config"))
 			} else {
-				fmt.Println("Config File: ", s.Configuration.Viper.Get("config"))
+				fmt.Println("Config File: ", config.Viper.Get("config"))
 			}
 			fmt.Println("===================================")
 		},

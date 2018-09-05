@@ -26,16 +26,18 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
+	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
 )
 
-func newDaemonCommand() *cobra.Command {
+func newDaemonCommand(config *s.Config) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "daemon",
 		Short: "Start api daemon",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			m := mottainai.Classic()
+			m := mottainai.Classic(config)
+			m.Map(config)
 			routes.SetupDaemon(m)
 			m.Start()
 		},

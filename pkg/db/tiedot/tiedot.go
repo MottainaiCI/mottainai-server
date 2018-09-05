@@ -28,11 +28,13 @@ import (
 
 	"github.com/HouzuoGuo/tiedot/db"
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	"github.com/mudler/anagent"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 type Database struct {
+	*anagent.Anagent
 	DBPath string
 	DBName string
 }
@@ -41,7 +43,11 @@ var Collections = []string{WebHookColl, TaskColl,
 	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
 
 func New(path string) *Database {
-	return &Database{DBPath: path}
+	return &Database{Anagent: anagent.New(), DBPath: path}
+}
+
+func (d *Database) GetAgent() *anagent.Anagent {
+	return d.Anagent
 }
 
 func (d *Database) Init() {

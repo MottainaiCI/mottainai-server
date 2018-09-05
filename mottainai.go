@@ -23,27 +23,8 @@ package main
 
 import (
 	cmd "github.com/MottainaiCI/mottainai-server/cmd"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func main() {
-	v := setting.Configuration.Viper
-
-	// Set env variable
-	v.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	v.BindEnv("config")
-	v.SetDefault("config", "")
-	v.SetDefault("etcd-config", false)
-
-	v.AutomaticEnv()
-
-	// Set config file name (without extension)
-	v.SetConfigName(setting.MOTTAINAI_CONFIGNAME)
-
-	v.SetTypeByDefaultValue(true)
-
-	// Initialize Default Viper Configuration
-	setting.GenDefault(v)
-
 	cmd.Execute()
 }

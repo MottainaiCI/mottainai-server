@@ -43,8 +43,8 @@ func NewWebHookServer() *WebHookServer {
 	return &WebHookServer{Mottainai: New()}
 }
 
-func ClassicWebHookServer() *WebHookServer {
-	return &WebHookServer{Mottainai: Classic()}
+func ClassicWebHookServer(config *setting.Config) *WebHookServer {
+	return &WebHookServer{Mottainai: Classic(config)}
 }
 
 func SetupWebHook(m *Mottainai) {

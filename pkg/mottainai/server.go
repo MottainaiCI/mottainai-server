@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"time"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	machinery "github.com/RichardKnop/machinery/v1"
 	results "github.com/RichardKnop/machinery/v1/backends/result"
@@ -53,10 +54,10 @@ type MottainaiServer struct {
 func NewServer() *MottainaiServer { return &MottainaiServer{Servers: make(map[string]*Broker)} }
 func NewBroker() *Broker          { return &Broker{} }
 
-func (s *MottainaiServer) Add(queue string) *Broker {
+func (s *MottainaiServer) Add(queue string, config *setting.Config) *Broker {
 	broker := NewBroker()
 	broker.Queue = queue
-	if conn, err := NewMachineryServer(queue); err != nil {
+	if conn, err := NewMachineryServer(queue, config); err != nil {
 		panic(err)
 	} else {
 		broker.Server = conn
@@ -67,11 +68,11 @@ func (s *MottainaiServer) Add(queue string) *Broker {
 	return broker
 }
 
-func (s *MottainaiServer) Get(queue string) *Broker {
+func (s *MottainaiServer) Get(queue string, config *setting.Config) *Broker {
 	if broker, ok := s.Servers[queue]; ok {
 		return broker
 	} else {
-		return s.Add(queue)
+		return s.Add(queue, config)
 	}
 }
 func (b *Broker) NewWorker(ID string, parallel int) *machinery.Worker {
