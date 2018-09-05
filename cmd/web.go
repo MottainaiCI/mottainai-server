@@ -24,18 +24,20 @@ package cmd
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes"
 
 	cobra "github.com/spf13/cobra"
 )
 
-func newWebCommand() *cobra.Command {
+func newWebCommand(config *s.Config) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "web",
 		Short: "Start web server",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			m := mottainai.Classic()
+			m := mottainai.Classic(config)
+			m.Map(config)
 			routes.SetupWebUI(m)
 			m.Start()
 		},

@@ -95,39 +95,47 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string) {
 
 func (m *MottainaiAgent) Run() error {
 
+	var defaultWorker *machinery.Worker
+	var is_standalone bool = false
 	server := NewServer()
-	broker := server.Add(setting.Configuration.BrokerDefaultQueue)
-	th := agenttasks.DefaultTaskHandler()
-	fetcher := client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
-	m.Client = fetcher
-	m.Map(server)
-	m.Map(th)
-	m.Map(fetcher)
 
-	ID := utils.GenID()
-	hostname := utils.Hostname()
-	log.INFO.Println("Worker ID: " + ID)
-	log.INFO.Println("Worker Hostname: " + hostname)
+	m.Invoke(func(config *setting.Config) {
 
-	if setting.Configuration.PrivateQueue != 0 {
-		privqueue := hostname + ID
-		b := server.Add(privqueue)
-		w := b.NewWorker(privqueue, setting.Configuration.PrivateQueue)
-		log.INFO.Println("Listening on private queue: " + privqueue)
-		go w.Launch()
-	}
+		broker := server.Add(config.BrokerDefaultQueue, config)
+		th := agenttasks.DefaultTaskHandler()
+		fetcher := client.NewTokenClient(config.AppURL, config.ApiKey)
+		m.Client = fetcher
+		m.Map(server)
+		m.Map(th)
+		m.Map(fetcher)
 
-	defaultWorker := broker.NewWorker(ID, setting.Configuration.AgentConcurrency)
-	m.SetKeepAlive(ID, hostname)
+		ID := utils.GenID()
+		hostname := utils.Hostname()
+		log.INFO.Println("Worker ID: " + ID)
+		log.INFO.Println("Worker Hostname: " + hostname)
 
-	for q, concurrent := range setting.Configuration.Queues {
-		log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
-		b := server.Add(q)
-		w := b.NewWorker(ID, concurrent)
-		go w.Launch()
-	}
+		if config.PrivateQueue != 0 {
+			privqueue := hostname + ID
+			b := server.Add(privqueue, config)
+			w := b.NewWorker(privqueue, config.PrivateQueue)
+			log.INFO.Println("Listening on private queue: " + privqueue)
+			go w.Launch()
+		}
 
-	if setting.Configuration.StandAlone {
+		defaultWorker = broker.NewWorker(ID, config.AgentConcurrency)
+		m.SetKeepAlive(ID, hostname)
+
+		for q, concurrent := range config.Queues {
+			log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
+			b := server.Add(q, config)
+			w := b.NewWorker(ID, concurrent)
+			go w.Launch()
+		}
+
+		is_standalone = config.StandAlone
+	})
+
+	if is_standalone {
 		m.Start()
 		return errors.New("Agent stopped")
 	}

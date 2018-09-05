@@ -29,6 +29,7 @@ import (
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 var TaskColl = "Tasks"
@@ -70,10 +71,12 @@ func (d *Database) DeleteTask(docID string) error {
 	if err != nil {
 		return err
 	}
-	for _, artefact := range artefacts {
-		artefact.CleanFromTask()
-		d.DeleteArtefact(artefact.ID)
-	}
+	d.Invoke(func(config *setting.Config) {
+		for _, artefact := range artefacts {
+			artefact.CleanFromTask(config)
+			d.DeleteArtefact(artefact.ID)
+		}
+	})
 	t.Clear()
 	return d.DeleteDoc(TaskColl, docID)
 }

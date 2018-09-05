@@ -59,10 +59,12 @@ func New() *Mottainai {
 	return &Mottainai{Macaron: macaron.New()}
 }
 
-func Classic() *Mottainai {
+func Classic(config *setting.Config) *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
-	database.NewDatabase("tiedot")
+	m.Map(config)
+
+	database.NewDatabase("tiedot", config)
 
 	m.Map(database.DBInstance)
 	m.Use(macaron.Logger())
@@ -128,7 +130,7 @@ func Classic() *Mottainai {
 		},
 	}
 
-	if setting.Configuration.Protocol == "https" {
+	if config.GetWebProtocol() == "https" {
 		m.Invoke(func(s session.Store) {
 			sesopts.Secure = true
 			csrfopts.Secure = true
@@ -150,13 +152,13 @@ func Classic() *Mottainai {
 		l.SetPrefix("[ Mottainai ] ")
 	})
 	m.Use(captcha.Captchaer(captcha.Options{
-		SubURL: setting.Configuration.AppSubURL,
+		SubURL: config.AppSubURL,
 	}))
 
 	m.Use(context.Contexter())
 	m.SetStatic()
 
-	if setting.Configuration.EmbedWebHookServer {
+	if config.EmbedWebHookServer {
 		SetupWebHook(m)
 	}
 
@@ -164,30 +166,32 @@ func Classic() *Mottainai {
 }
 
 func (m *Mottainai) SetStatic() {
-	m.Use(static.AuthStatic(context.CheckArtefactPermission,
-		path.Join(setting.Configuration.ArtefactPath),
-		macaron.StaticOptions{
-			Prefix: "artefact",
-		},
-	))
+	m.Invoke(func(c *setting.Config) {
+		m.Use(static.AuthStatic(context.CheckArtefactPermission,
+			path.Join(c.ArtefactPath),
+			macaron.StaticOptions{
+				Prefix: "artefact",
+			},
+		))
 
-	m.Use(static.AuthStatic(context.CheckNamespacePermission,
-		path.Join(setting.Configuration.NamespacePath),
-		macaron.StaticOptions{
-			Prefix: "namespace",
-		},
-	))
-	m.Use(static.AuthStatic(context.CheckStoragePermission,
-		path.Join(setting.Configuration.StoragePath),
-		macaron.StaticOptions{
-			Prefix: "storage",
-		},
-	))
+		m.Use(static.AuthStatic(context.CheckNamespacePermission,
+			path.Join(c.NamespacePath),
+			macaron.StaticOptions{
+				Prefix: "namespace",
+			},
+		))
+		m.Use(static.AuthStatic(context.CheckStoragePermission,
+			path.Join(c.StoragePath),
+			macaron.StaticOptions{
+				Prefix: "storage",
+			},
+		))
 
-	m.Use(static.Static(
-		path.Join(setting.Configuration.StaticRootPath, "public"),
-		macaron.StaticOptions{},
-	))
+		m.Use(static.Static(
+			path.Join(c.StaticRootPath, "public"),
+			macaron.StaticOptions{},
+		))
+	})
 }
 
 func (m *Mottainai) listenAddr() string {
@@ -198,7 +202,13 @@ func (m *Mottainai) Url() string {
 }
 
 func (m *Mottainai) url() string {
-	return fmt.Sprintf("%s://%s", setting.Configuration.Protocol, m.listenAddr())
+	var ans string
+
+	m.Invoke(func(config *setting.Config) {
+		ans = fmt.Sprintf("%s://%s", config.GetWebProtocol(),
+			m.listenAddr())
+	})
+	return ans
 }
 
 func (m *Mottainai) Start() error {
@@ -207,45 +217,48 @@ func (m *Mottainai) Start() error {
 
 	server := NewServer()
 
-	server.Add(setting.Configuration.BrokerDefaultQueue)
-	if setting.Configuration.BrokerType == "amqp" {
-		rmqc, r_error := rabbithole.NewClient(setting.Configuration.BrokerURI, setting.Configuration.BrokerUser, setting.Configuration.BrokerPass)
-		if r_error != nil {
-			panic(r_error)
+	m.Invoke(func(config *setting.Config) {
+		server.Add(config.BrokerDefaultQueue, config)
+		if config.BrokerType == "amqp" {
+			rmqc, r_error := rabbithole.NewClient(config.BrokerURI, config.BrokerUser, config.BrokerPass)
+			if r_error != nil {
+				panic(r_error)
+			}
+			m.Map(rmqc)
 		}
-		m.Map(rmqc)
-	}
 
-	th := agenttasks.DefaultTaskHandler()
-	fmt.Println("DB  with " + setting.Configuration.DBPath)
+		th := agenttasks.DefaultTaskHandler()
+		fmt.Println("DB  with " + config.DBPath)
 
-	c := cron.New()
+		c := cron.New()
 
-	m.Map(server)
-	m.Map(th)
-	m.Map(c)
-	m.Map(m)
-	c.Start()
-	m.LoadPlans()
-	// For now
-	if setting.Configuration.EmbedWebHookServer {
-		SetupWebHookAgent(m)
-	}
+		m.Map(server)
+		m.Map(th)
+		m.Map(c)
+		m.Map(m)
+		c.Start()
+		m.LoadPlans()
+		// For now
+		if config.EmbedWebHookServer {
+			SetupWebHookAgent(m)
+		}
 
-	log.Println("Listen: ", m.url())
+		log.Println("Listen: ", m.url())
 
-	//m.Run()
-	var err error
-	if len(setting.Configuration.TLSCert) > 0 && len(setting.Configuration.TLSKey) > 0 {
-		err = http.ListenAndServeTLS(m.listenAddr(), setting.Configuration.TLSCert, setting.Configuration.TLSKey, m)
-	} else {
-		err = http.ListenAndServe(m.listenAddr(), m)
-	}
+		//m.Run()
+		var err error
+		if len(config.TLSCert) > 0 && len(config.TLSKey) > 0 {
+			err = http.ListenAndServeTLS(m.listenAddr(), config.TLSCert, config.TLSKey, m)
+		} else {
+			err = http.ListenAndServe(m.listenAddr(), m)
+		}
 
-	if err != nil {
-		log.Fatal(4, "Fail to start server: %v", err)
-	}
-	c.Stop()
+		if err != nil {
+			log.Fatal(4, "Fail to start server: %v", err)
+		}
+		c.Stop()
+	})
+
 	return nil
 }
 
@@ -263,7 +276,8 @@ func (m *Mottainai) WrapH(h http.Handler) macaron.Handler {
 func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	result := true
 	var rerr error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
+	m.Invoke(func(d *database.Database, server *MottainaiServer,
+		th *agenttasks.TaskHandler, config *setting.Config) {
 		pip, err := d.Driver.GetPipeline(docID)
 		if err != nil {
 			rerr = err
@@ -272,12 +286,12 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		}
 		var broker *Broker
 		if len(pip.Queue) > 0 {
-			broker = server.Get(pip.Queue)
+			broker = server.Get(pip.Queue, config)
 			log.Println("Sending pipeline to queue ", pip.Queue)
 
 		} else {
-			broker = server.Get(setting.Configuration.BrokerDefaultQueue)
-			log.Println("Sending pipeline to queue ", setting.Configuration.BrokerDefaultQueue)
+			broker = server.Get(config.BrokerDefaultQueue, config)
+			log.Println("Sending pipeline to queue ", config.BrokerDefaultQueue)
 		}
 
 		if len(pip.Chord) > 0 {
@@ -369,7 +383,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := true
 	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler) {
+	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler, config *setting.Config) {
 
 		task, err := d.Driver.GetTask(docID)
 		if err != nil {
@@ -379,12 +393,12 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 		task.ClearBuildLog()
 		var broker *Broker
 		if len(task.Queue) > 0 {
-			broker = server.Get(task.Queue)
+			broker = server.Get(task.Queue, config)
 			log.Println("Sending task to queue ", task.Queue)
 
 		} else {
-			broker = server.Get(setting.Configuration.BrokerDefaultQueue)
-			log.Println("Sending task to queue ", setting.Configuration.BrokerDefaultQueue)
+			broker = server.Get(config.BrokerDefaultQueue, config)
+			log.Println("Sending task to queue ", config.BrokerDefaultQueue)
 
 		}
 
@@ -443,23 +457,23 @@ func (m *Mottainai) ReloadCron() {
 
 }
 
-func NewMachineryServer(queue string) (*machinery.Server, error) {
+func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Server, error) {
 
 	var amqpConfig *config.AMQPConfig
-	if setting.Configuration.BrokerType == "amqp" {
+	if settings.BrokerType == "amqp" {
 		amqpConfig = &config.AMQPConfig{
-			Exchange:     setting.Configuration.BrokerExchange,
-			ExchangeType: setting.Configuration.BrokerExchangeType,
+			Exchange:     settings.BrokerExchange,
+			ExchangeType: settings.BrokerExchangeType,
 			BindingKey:   queue + "_key",
-			//BindingKey:   setting.Configuration.BrokerBindingKey,
+			//BindingKey:   settings.BrokerBindingKey,
 		}
 
 	}
 	var cnf = &config.Config{
-		Broker:          setting.Configuration.Broker,
+		Broker:          settings.Broker,
 		DefaultQueue:    queue,
-		ResultBackend:   setting.Configuration.BrokerResultBackend,
-		ResultsExpireIn: setting.Configuration.ResultsExpireIn,
+		ResultBackend:   settings.BrokerResultBackend,
+		ResultsExpireIn: settings.ResultsExpireIn,
 		AMQP:            amqpConfig,
 	}
 

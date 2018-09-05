@@ -112,6 +112,16 @@ func (c *Config) GenDefault() {
 	GenDefault(c.Viper)
 }
 
+func NewConfig(viper *v.Viper) *Config {
+
+	if viper == nil {
+		viper = v.New()
+	}
+
+	GenDefault(viper)
+	return &Config{Viper: viper}
+}
+
 func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("webui_protocol", "http")
@@ -179,17 +189,21 @@ func GenDefault(viper *v.Viper) {
 func (c *Config) Unmarshal() error {
 	var err error
 
-	if Configuration.Viper.InConfig("etcd-config") &&
-		Configuration.Viper.GetBool("etcd-config") {
-		err = Configuration.Viper.ReadRemoteConfig()
+	if c.Viper.InConfig("etcd-config") &&
+		c.Viper.GetBool("etcd-config") {
+		err = c.Viper.ReadRemoteConfig()
 	} else {
-		err = Configuration.Viper.ReadInConfig()
+		err = c.Viper.ReadInConfig()
 		// TODO: add loglevel warning related to no config file processed
 	}
 
-	err = Configuration.Viper.Unmarshal(&Configuration)
+	err = c.Viper.Unmarshal(&c)
 
 	return err
+}
+
+func (c *Config) GetWebProtocol() string {
+	return c.Protocol
 }
 
 func (c *Config) String() string {

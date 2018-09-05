@@ -48,53 +48,22 @@ $> mottainai-server daemon -r -e http://127.0.0.1:4001 -c mottainai1/mottainai-s
 `
 )
 
-var rootCmd = &cobra.Command{
-	Short:        srvName,
-	Version:      s.MOTTAINAI_VERSION,
-	Example:      srvExamples,
-	Args:         cobra.OnlyValidArgs,
-	SilenceUsage: true,
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			cmd.Help()
-			os.Exit(0)
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-	},
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		var err error
-		var pwd string
-		var v *viper.Viper = s.Configuration.Viper
+func initConfig(config *s.Config) {
+	// Set env variable
+	config.Viper.SetEnvPrefix(s.MOTTAINAI_ENV_PREFIX)
+	config.Viper.BindEnv("config")
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
 
-		if v.GetBool("etcd-config") {
-			if v.Get("etcd-keyring") != "" {
-				v.AddSecureRemoteProvider("etcd", v.GetString("etcd-endpoint"),
-					v.GetString("config"), v.GetString("etcd-keyring"))
-			} else {
-				v.AddRemoteProvider("etcd", v.GetString("etcd-endpoint"),
-					v.GetString("config"))
-			}
-			v.SetConfigType("yml")
-		} else {
-			if v.Get("config") == "" {
-				// Set config path list
-				pwd, err = os.Getwd()
-				utils.CheckError(err)
-				v.AddConfigPath(pwd)
-				v.AddConfigPath(s.MOTTAINAI_CONFIGPATH)
-			} else {
-				v.SetConfigFile(v.Get("config").(string))
-			}
-		}
+	config.Viper.AutomaticEnv()
 
-		// Parse configuration file
-		err = s.Configuration.Unmarshal()
-		utils.CheckError(err)
-	},
+	// Set config file name (without extension)
+	config.Viper.SetConfigName(s.MOTTAINAI_CONFIGNAME)
+
+	config.Viper.SetTypeByDefaultValue(true)
 }
 
-func init() {
+func initCommand(rootCmd *cobra.Command, config *s.Config) {
 	var pflags = rootCmd.PersistentFlags()
 
 	pflags.StringP("config", "c", "/etc/mottainai/mottainai-server.yaml",
@@ -106,23 +75,78 @@ func init() {
 	pflags.String("etcd-keyring", "",
 		"Etcd Keyring (Ex: /etc/secrets/mykeyring.gpg)")
 
-	s.Configuration.Viper.BindPFlag("config", pflags.Lookup("config"))
-	s.Configuration.Viper.BindPFlag("etcd-config", pflags.Lookup("remote-config"))
-	s.Configuration.Viper.BindPFlag("etcd-endpoint", pflags.Lookup("etcd-endpoint"))
-	s.Configuration.Viper.BindPFlag("etcd-keyring", pflags.Lookup("etcd-keyring"))
+	config.Viper.BindPFlag("config", pflags.Lookup("config"))
+	config.Viper.BindPFlag("etcd-config", pflags.Lookup("remote-config"))
+	config.Viper.BindPFlag("etcd-endpoint", pflags.Lookup("etcd-endpoint"))
+	config.Viper.BindPFlag("etcd-keyring", pflags.Lookup("etcd-keyring"))
 
 	rootCmd.AddCommand(
-		newDaemonCommand(),
-		newPrintCommand(),
-		newWebCommand(),
-		newWebHookCommand(),
+		newDaemonCommand(config),
+		newPrintCommand(config),
+		newWebCommand(config),
+		newWebHookCommand(config),
 	)
 }
 
 func Execute() {
+
+	// Create Main Instance Config object
+	var config *s.Config = s.NewConfig(nil)
+
+	initConfig(config)
+
+	var rootCmd = &cobra.Command{
+		Short:        srvName,
+		Version:      s.MOTTAINAI_VERSION,
+		Example:      srvExamples,
+		Args:         cobra.OnlyValidArgs,
+		SilenceUsage: true,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				cmd.Help()
+				os.Exit(0)
+			}
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+		},
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			var err error
+			var pwd string
+			var v *viper.Viper = config.Viper
+
+			if v.GetBool("etcd-config") {
+				if v.Get("etcd-keyring") != "" {
+					v.AddSecureRemoteProvider("etcd", v.GetString("etcd-endpoint"),
+						v.GetString("config"), v.GetString("etcd-keyring"))
+				} else {
+					v.AddRemoteProvider("etcd", v.GetString("etcd-endpoint"),
+						v.GetString("config"))
+				}
+				v.SetConfigType("yml")
+			} else {
+				if v.Get("config") == "" {
+					// Set config path list
+					pwd, err = os.Getwd()
+					utils.CheckError(err)
+					v.AddConfigPath(pwd)
+					v.AddConfigPath(s.MOTTAINAI_CONFIGPATH)
+				} else {
+					v.SetConfigFile(v.Get("config").(string))
+				}
+			}
+
+			// Parse configuration file
+			err = config.Unmarshal()
+			utils.CheckError(err)
+		},
+	}
+
+	initCommand(rootCmd, config)
+
 	// Start command execution
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
 }

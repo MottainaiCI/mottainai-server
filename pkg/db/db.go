@@ -38,6 +38,7 @@ import (
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	tiedot "github.com/MottainaiCI/mottainai-server/pkg/db/tiedot"
+	anagent "github.com/mudler/anagent"
 )
 
 type DatabaseDriver interface {
@@ -206,6 +207,9 @@ type DatabaseDriver interface {
 	// TODO: Change it, expensive for now
 	CountWebHooks() int
 	AllWebHooks() []webhook.WebHook
+
+	// TODO: See if it's correct expone this as method
+	GetAgent() *anagent.Anagent
 }
 
 // For future, now in PoC state will just support
@@ -219,15 +223,16 @@ type Database struct {
 
 var DBInstance *Database
 
-func NewDatabase(backend string) *Database {
+func NewDatabase(backend string, config *setting.Config) *Database {
 	if DBInstance == nil {
 		DBInstance = &Database{Backend: backend}
 	}
 	if backend == "tiedot" {
 		fmt.Println("Tiedot backend")
-		DBInstance.Driver = tiedot.New(setting.Configuration.DBPath)
+		DBInstance.Driver = tiedot.New(config.DBPath)
 	}
 
+	DBInstance.Driver.GetAgent().Map(config)
 	DBInstance.Driver.Init()
 	return DBInstance
 }
