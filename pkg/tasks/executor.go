@@ -169,19 +169,22 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.DocID = docID
 	fetcher := d.MottainaiClient
 	fetcher.Doc(docID)
-	fetcher.SetupTask()
 	ID := utils.GenID()
 	hostname := utils.Hostname()
-	d.Report("Node: " + ID + " ( " + hostname + " ) ")
-	fetcher.SetTaskField("nodeid", ID)
 
 	th := DefaultTaskHandler()
 	task_info := th.FetchTask(fetcher)
-	if task_info.Status == "running" {
+	if task_info.Working() {
 		msg := "Task picked twice"
+		d.Report(">>> WARNING! <<<", msg)
+		d.MottainaiClient.Doc("") // FIXME: Do not update task, as apparently was still running
 		fetcher.FailTask(msg)
 		return errors.New(msg)
 	}
+
+	fetcher.SetupTask()
+	d.Report("Node: " + ID + " ( " + hostname + " ) ")
+	fetcher.SetTaskField("nodeid", ID)
 
 	fetcher.RunTask()
 	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))

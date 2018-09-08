@@ -180,6 +180,20 @@ func (t *Task) IsOwner(id string) bool {
 
 	return false
 }
+func (t *Task) Working() bool {
+
+	if t.IsSetup() || t.IsRunning() {
+		return true
+	}
+	return false
+}
+func (t *Task) IsSetup() bool {
+
+	if t.Status == setting.TASK_STATE_SETUP {
+		return true
+	}
+	return false
+}
 
 func (t *Task) IsRunning() bool {
 

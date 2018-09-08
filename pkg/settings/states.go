@@ -25,6 +25,8 @@ package setting
 const TASK_PUBLISH_MODE_APPEND = "append"
 const TASK_STATE_RUNNING = "running"
 const TASK_STATE_DONE = "done"
+const TASK_STATE_SETUP = "setup"
+
 const TASK_STATE_STOPPED = "stopped"
 const TASK_STATE_ASK_STOP = "stop"
 const TASK_STATE_WAIT = "waiting"
