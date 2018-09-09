@@ -49,6 +49,7 @@ type ExecutorContext struct {
 }
 
 const ABORT_EXECUTION_ERROR = "Aborting execution"
+const ABORT_DUPLICATE_ERROR = "Task picked up twice"
 
 func NewExecutorContext() *ExecutorContext {
 	return &ExecutorContext{StandardOutput: true}
@@ -175,11 +176,8 @@ func (d *TaskExecutor) Setup(docID string) error {
 	th := DefaultTaskHandler()
 	task_info := th.FetchTask(fetcher)
 	if task_info.Working() {
-		msg := "Task picked twice"
-		d.Report(">>> WARNING! <<<", msg)
-		d.MottainaiClient.Doc("") // FIXME: Do not update task, as apparently was still running
-		fetcher.FailTask(msg)
-		return errors.New(msg)
+		d.Report(">>> WARNING! <<<", ABORT_DUPLICATE_ERROR, ">> NODE <<", ID+" ( "+hostname+" ) ")
+		return errors.New(ABORT_DUPLICATE_ERROR)
 	}
 
 	fetcher.SetupTask()

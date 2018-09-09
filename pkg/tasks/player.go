@@ -54,6 +54,11 @@ func (p *Player) Start(e Executor) (int, error) {
 	defer e.Clean()
 	err := e.Setup(p.TaskID)
 	if err != nil {
+		// FIXME: This is incorrect if task is sent again to same node cause of error
+		// and agent is not working on it anymore
+		if err.Error() == ABORT_DUPLICATE_ERROR {
+			return 0, nil // Ignore task return and do nothing
+		}
 		e.Fail("Setup phase error: " + err.Error())
 		return 1, errors.New("Setup phase error: " + err.Error())
 	}
