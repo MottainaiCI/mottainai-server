@@ -1,16 +1,20 @@
+//
+// Use and distribution licensed under the Apache license version 2.
+//
+// See the COPYING file in the root project directory for full text.
+//
+
 package ghw
 
 import (
 	"fmt"
 )
 
-type ProcessorId uint32
-
 type ProcessorCore struct {
-	Id                ProcessorId
+	Id                uint32
 	Index             int
 	NumThreads        uint32
-	LogicalProcessors []ProcessorId
+	LogicalProcessors []uint32
 }
 
 func (c *ProcessorCore) String() string {
@@ -23,7 +27,7 @@ func (c *ProcessorCore) String() string {
 }
 
 type Processor struct {
-	Id           ProcessorId
+	Id           uint32
 	NumCores     uint32
 	NumThreads   uint32
 	Vendor       string
