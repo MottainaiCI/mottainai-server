@@ -155,7 +155,6 @@ func Classic(config *setting.Config) *Mottainai {
 		SubURL: config.AppSubURL,
 	}))
 
-	m.Use(context.Contexter())
 	m.SetStatic()
 
 	if config.EmbedWebHookServer {
