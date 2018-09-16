@@ -37,7 +37,6 @@ func newDaemonCommand(config *s.Config) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			m := mottainai.Classic(config)
-			m.Map(config)
 			routes.SetupDaemon(m)
 			m.Start()
 		},

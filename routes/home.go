@@ -118,7 +118,7 @@ func Setup(m *macaron.Macaron) {
 		ctx.Data["SucceededTasks"] = succeeded_tasks
 		ctx.Data["FailedTasks"] = failed_tasks
 
-		template.TemplatePreview(ctx, "index")
+		template.TemplatePreview(ctx, "index", db.Config)
 		return nil
 	})
 

@@ -25,13 +25,17 @@ package apitoken
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 
-	m.Get("/api/token", reqSignIn, ShowAll)
-	m.Get("/api/token/create", reqSignIn, Create)
-	m.Get("/api/token/delete/:id", reqSignIn, Remove)
+		m.Get("/api/token", reqSignIn, ShowAll)
+		m.Get("/api/token/create", reqSignIn, Create)
+		m.Get("/api/token/delete/:id", reqSignIn, Remove)
+	})
 }

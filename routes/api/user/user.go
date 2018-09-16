@@ -28,6 +28,7 @@ import (
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -205,16 +206,19 @@ func ListUsers(c *context.Context, db *database.Database) {
 }
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
-	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
-	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
+		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
 
-	m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
-	m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
+		m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
+		m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
 
-	m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
-	m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
-	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
-	m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
-	m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+		m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
+		m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
+		m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
+		m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
+		m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+	})
+
 }

@@ -219,13 +219,15 @@ type Database struct {
 	DBPath  string
 	DBName  string
 	Driver  DatabaseDriver
+	// TODO: Temporary insert Config. See if add a ConfigDatabase object.
+	Config *setting.Config
 }
 
 var DBInstance *Database
 
 func NewDatabase(backend string, config *setting.Config) *Database {
 	if DBInstance == nil {
-		DBInstance = &Database{Backend: backend}
+		DBInstance = &Database{Backend: backend, Config: config}
 	}
 	if backend == "tiedot" {
 		fmt.Println("Tiedot backend")
@@ -234,6 +236,7 @@ func NewDatabase(backend string, config *setting.Config) *Database {
 
 	DBInstance.Driver.GetAgent().Map(config)
 	DBInstance.Driver.Init()
+	DBInstance.Config = config
 	return DBInstance
 }
 

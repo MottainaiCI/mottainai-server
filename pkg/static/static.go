@@ -29,7 +29,6 @@ import (
 	"path/filepath"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"strings"
 	"sync"
@@ -84,19 +83,19 @@ func newStaticFileSystem(directory string) staticFileSystem {
 }
 
 // Static returns a middleware handler that serves static files in the given directory.
-func Static(directory string, staticOpt ...macaron.StaticOptions) macaron.Handler {
+func Static(directory string, accessControlAllowOrigin string, staticOpt ...macaron.StaticOptions) macaron.Handler {
 	opt := prepareStaticOptions(directory, staticOpt)
 
 	return func(ctx *context.Context, log *log.Logger) {
-		staticHandler(ctx, log, opt, func(ctx *context.Context) bool { return true })
+		staticHandler(ctx, log, opt, func(ctx *context.Context) bool { return true }, accessControlAllowOrigin)
 	}
 }
 
-func AuthStatic(fn func(*context.Context) bool, directory string, staticOpt ...macaron.StaticOptions) macaron.Handler {
+func AuthStatic(fn func(*context.Context) bool, directory string, accessControlAllowOrigin string, staticOpt ...macaron.StaticOptions) macaron.Handler {
 	opt := prepareStaticOptions(directory, staticOpt)
 
 	return func(ctx *context.Context, log *log.Logger) {
-		staticHandler(ctx, log, opt, fn)
+		staticHandler(ctx, log, opt, fn, accessControlAllowOrigin)
 	}
 }
 
@@ -130,7 +129,10 @@ func (fs staticFileSystem) Open(name string) (http.File, error) {
 	return fs.dir.Open(name)
 }
 
-func staticHandler(ctx *context.Context, log *log.Logger, opt macaron.StaticOptions, fn func(*context.Context) bool) bool {
+func staticHandler(ctx *context.Context, log *log.Logger,
+	opt macaron.StaticOptions, fn func(*context.Context) bool,
+	accessControlAllowOrigin string) bool {
+
 	if ctx.Req.Method != "GET" && ctx.Req.Method != "HEAD" {
 		return false
 	}
@@ -184,12 +186,12 @@ func staticHandler(ctx *context.Context, log *log.Logger, opt macaron.StaticOpti
 	if !opt.SkipLogging {
 		log.Println("[Static] Serving " + file)
 	}
-	if len(setting.Configuration.AccessControlAllowOrigin) > 0 {
+	if len(accessControlAllowOrigin) > 0 {
 		// Set CORS headers for browser-based git clients
-		ctx.Resp.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
+		ctx.Resp.Header().Set("Access-Control-Allow-Origin", accessControlAllowOrigin)
 		ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		ctx.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
+		ctx.Header().Set("Access-Control-Allow-Origin", accessControlAllowOrigin)
 		ctx.Header().Set("'Access-Control-Allow-Credentials' ", "true")
 		ctx.Header().Set("Access-Control-Max-Age", "3600")
 		ctx.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")

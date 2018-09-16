@@ -34,8 +34,6 @@ import (
 	"strconv"
 	"strings"
 
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-
 	storageci "github.com/MottainaiCI/mottainai-server/pkg/storage"
 )
 
@@ -204,10 +202,10 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	}
 	defer response.Body.Close()
 	body := response.Body
-	if setting.Configuration.DownloadRateLimit != 0 {
+	if d.Config.DownloadRateLimit != 0 {
 		// KB
-		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*setting.Configuration.DownloadRateLimit, 10))
-		body = flowrate.NewReader(response.Body, 1024*setting.Configuration.DownloadRateLimit)
+		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.DownloadRateLimit, 10))
+		body = flowrate.NewReader(response.Body, 1024*d.Config.DownloadRateLimit)
 	}
 	if !responseSuccess(response) {
 		return false, errors.New("Error: " + response.Status)

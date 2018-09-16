@@ -27,7 +27,6 @@ import (
 	"os"
 	"path/filepath"
 
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -133,9 +132,9 @@ func NewFromMap(t map[string]interface{}) Namespace {
 	}
 	return Namespace
 }
-func (n *Namespace) Exists() bool {
+func (n *Namespace) Exists(namespacePath string) bool {
 
-	fi, err := os.Stat(filepath.Join(setting.Configuration.NamespacePath, n.Name))
+	fi, err := os.Stat(filepath.Join(namespacePath, n.Name))
 	if err != nil {
 		panic(err)
 	}
@@ -145,32 +144,37 @@ func (n *Namespace) Exists() bool {
 	return false
 }
 
-func (n *Namespace) Wipe() {
-	os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, n.Name))
-	os.MkdirAll(filepath.Join(setting.Configuration.NamespacePath, n.Name), os.ModePerm)
+func (n *Namespace) Wipe(namespacePath string) {
+	os.RemoveAll(filepath.Join(namespacePath, n.Name))
+	os.MkdirAll(filepath.Join(namespacePath, n.Name), os.ModePerm)
 }
 
-func (n *Namespace) Tag(from string) error {
+func (n *Namespace) Tag(
+	from string,
+	namespacePath string,
+	artefactPath string) error {
 
-	n.Wipe()
+	n.Wipe(namespacePath)
 
-	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, from)
-	namespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	taskArtefact := filepath.Join(artefactPath, from)
+	namespace := filepath.Join(namespacePath, n.Name)
 	return utils.DeepCopy(taskArtefact, namespace)
 }
 
-func (n *Namespace) Append(from string) error {
+func (n *Namespace) Append(from string,
+	namespacePath string,
+	artefactPath string) error {
 
-	taskArtefact := filepath.Join(setting.Configuration.ArtefactPath, from)
-	namespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	taskArtefact := filepath.Join(artefactPath, from)
+	namespace := filepath.Join(namespacePath, n.Name)
 	return utils.DeepCopy(taskArtefact, namespace)
 }
 
-func (n *Namespace) Clone(old Namespace) error {
+func (n *Namespace) Clone(old Namespace, namespacePath string) error {
 
-	n.Wipe()
+	n.Wipe(namespacePath)
 
-	oldNamespace := filepath.Join(setting.Configuration.NamespacePath, old.Path)
-	newNamespace := filepath.Join(setting.Configuration.NamespacePath, n.Name)
+	oldNamespace := filepath.Join(namespacePath, old.Path)
+	newNamespace := filepath.Join(namespacePath, n.Name)
 	return utils.DeepCopy(oldNamespace, newNamespace)
 }

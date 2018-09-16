@@ -155,7 +155,6 @@ func Classic(config *setting.Config) *Mottainai {
 		SubURL: config.AppSubURL,
 	}))
 
-	m.Use(context.Contexter())
 	m.SetStatic()
 
 	if config.EmbedWebHookServer {
@@ -169,6 +168,7 @@ func (m *Mottainai) SetStatic() {
 	m.Invoke(func(c *setting.Config) {
 		m.Use(static.AuthStatic(context.CheckArtefactPermission,
 			path.Join(c.ArtefactPath),
+			c.AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "artefact",
 			},
@@ -176,12 +176,14 @@ func (m *Mottainai) SetStatic() {
 
 		m.Use(static.AuthStatic(context.CheckNamespacePermission,
 			path.Join(c.NamespacePath),
+			c.AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "namespace",
 			},
 		))
 		m.Use(static.AuthStatic(context.CheckStoragePermission,
 			path.Join(c.StoragePath),
+			c.AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "storage",
 			},
@@ -189,13 +191,20 @@ func (m *Mottainai) SetStatic() {
 
 		m.Use(static.Static(
 			path.Join(c.StaticRootPath, "public"),
+			c.AccessControlAllowOrigin,
 			macaron.StaticOptions{},
 		))
 	})
 }
 
 func (m *Mottainai) listenAddr() string {
-	return fmt.Sprintf("%s:%s", setting.Configuration.HTTPAddr, setting.Configuration.HTTPPort)
+	var ans string
+	m.Invoke(func(config *setting.Config) {
+
+		ans = fmt.Sprintf("%s:%s", config.HTTPAddr, config.HTTPPort)
+	})
+
+	return ans
 }
 func (m *Mottainai) Url() string {
 	return m.url()
@@ -390,7 +399,7 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			result = false
 			return
 		}
-		task.ClearBuildLog()
+		task.ClearBuildLog(config.ArtefactPath)
 		var broker *Broker
 		if len(task.Queue) > 0 {
 			broker = server.Get(task.Queue, config)

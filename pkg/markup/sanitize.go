@@ -53,7 +53,7 @@ func NewSanitizer() {
 		sanitizer.policy.AllowAttrs("checked", "disabled").OnElements("input")
 
 		// Custom URL-Schemes
-		//sanitizer.policy.AllowURLSchemes(setting.Configuration.Markdown.CustomURLSchemes...)
+		//sanitizer.policy.AllowURLSchemes(config.Markdown.CustomURLSchemes...)
 	})
 }
 

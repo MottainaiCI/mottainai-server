@@ -65,7 +65,8 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	if err != nil {
 		panic(err)
 	}
-	artefacts := t.Artefacts()
+
+	artefacts := t.Artefacts(db.Config.ArtefactPath)
 
 	ctx.JSON(200, artefacts)
 }

@@ -40,5 +40,5 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 
 	ctx.Data["AllTokens"] = all
 	ctx.Data["UserTokens"] = mine
-	template.TemplatePreview(ctx, "tokens")
+	template.TemplatePreview(ctx, "tokens", db.Config)
 }

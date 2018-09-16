@@ -37,7 +37,6 @@ func newWebCommand(config *s.Config) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			m := mottainai.Classic(config)
-			m.Map(config)
 			routes.SetupWebUI(m)
 			m.Start()
 		},

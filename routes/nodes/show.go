@@ -37,7 +37,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	nodes := db.Driver.AllNodes()
 	//ctx.Data["TasksIDs"] = tasks
 	ctx.Data["Nodes"] = nodes
-	template.TemplatePreview(ctx, "nodes")
+	template.TemplatePreview(ctx, "nodes", db.Config)
 }
 
 func Show(ctx *context.Context, db *database.Database) {
@@ -63,5 +63,5 @@ func Show(ctx *context.Context, db *database.Database) {
 
 	ctx.Data["Tasks"] = node_tasks
 
-	template.TemplatePreview(ctx, "nodes/show")
+	template.TemplatePreview(ctx, "nodes/show", db.Config)
 }

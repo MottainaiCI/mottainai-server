@@ -78,8 +78,8 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 			}
 		}
 	}
-	ctx.Data["Artefacts"] = task.Artefacts()
-	template.TemplatePreview(ctx, "tasks/display")
+	ctx.Data["Artefacts"] = task.Artefacts(db.Config.ArtefactPath)
+	template.TemplatePreview(ctx, "tasks/display", db.Config)
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
@@ -88,7 +88,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	ctx.Data["Tasks"] = all
 	ctx.Data["UserTasks"] = mine
 
-	template.TemplatePreview(ctx, "tasks")
+	template.TemplatePreview(ctx, "tasks", db.Config)
 }
 
 func ShowArtefacts(ctx *context.Context, db *database.Database) {
@@ -100,9 +100,9 @@ func ShowArtefacts(ctx *context.Context, db *database.Database) {
 		panic(err)
 	}
 
-	ctx.Data["Artefacts"] = tasks_info.Artefacts()
+	ctx.Data["Artefacts"] = tasks_info.Artefacts(db.Config.ArtefactPath)
 	ctx.Data["Task"] = id
 	ctx.Data["TaskDetail"] = tasks_info
 
-	template.TemplatePreview(ctx, "tasks/artefacts")
+	template.TemplatePreview(ctx, "tasks/artefacts", db.Config)
 }

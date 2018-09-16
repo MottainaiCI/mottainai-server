@@ -60,7 +60,7 @@ func (f *Fetcher) SetupTask() {
 	f.SetTaskStatus(setting.TASK_STATE_SETUP)
 	f.GetOptions("/api/tasks/update/node", map[string]string{
 		"id":  f.docID,
-		"key": setting.Configuration.AgentKey,
+		"key": f.Config.AgentKey,
 	})
 }
 

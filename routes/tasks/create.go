@@ -28,6 +28,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
@@ -53,7 +54,7 @@ func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Cont
 	}
 }
 
-func Add(ctx *context.Context) {
+func Add(ctx *context.Context, config *setting.Config) {
 
 	available_tasks := make([]string, 0)
 	th := agenttasks.DefaultTaskHandler()
@@ -64,5 +65,5 @@ func Add(ctx *context.Context) {
 	}
 
 	ctx.Data["AvailableTasks"] = available_tasks
-	template.TemplatePreview(ctx, "tasks/add")
+	template.TemplatePreview(ctx, "tasks/add", config)
 }
