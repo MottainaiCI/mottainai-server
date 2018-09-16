@@ -205,45 +205,50 @@ func Setup(m *macaron.Macaron) {
 	// reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 	// ignSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: false})
 	// ignSignInAndCsrf := context.Toggle(&context.ToggleOptions{DisableCSRF: true})
-	reqSignOut := context.Toggle(&context.ToggleOptions{SignOutRequired: true})
-	bindIgnErr := binding.BindIgnErr
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
-	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
-	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
 
-	m.Group("/user", func() {
-		m.Group("/login", func() {
-			m.Combo("").Get(Login).
-				Post(bindIgnErr(SignIn{}), LoginPost)
+	m.Invoke(func(config *setting.Config) {
+		reqSignOut := context.Toggle(&context.ToggleOptions{SignOutRequired: true, BaseURL: config.AppSubURL})
+		bindIgnErr := binding.BindIgnErr
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
+		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
+
+		m.Group("/user", func() {
+			m.Group("/login", func() {
+				m.Combo("").Get(Login).
+					Post(bindIgnErr(SignIn{}), LoginPost)
+			})
+			m.Get("/sign_up", SignUp)
+			m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
+
+		}, reqSignOut)
+
+		// TODO: Move from Here
+		goth.UseProviders(
+			github.New(setting.Configuration.WebHookGitHubToken,
+				setting.Configuration.WebHookGitHubSecret,
+				setting.Configuration.AppURL+"/auth/github/callback"),
+		)
+
+		m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
+		m.Get("/logout/github", RequiresIntegrationSetting, reqSignIn, GithubLogout)
+		m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
+
+		m.Get("/user/list", reqSignIn, reqManager, ListUsers)
+		m.Get("/user/show/:id", reqSignIn, reqManager, Show)
+
+		m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
+		m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
+		m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)
+		m.Get("/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManager)
+		m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+
+		m.Group("/user", func() {
+			m.Get("/logout", SignOut)
 		})
-
-		m.Get("/sign_up", SignUp)
-		m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
-
-	}, reqSignOut)
-
-	// TODO: Move from Here
-	goth.UseProviders(
-		github.New(setting.Configuration.WebHookGitHubToken, setting.Configuration.WebHookGitHubSecret, setting.Configuration.AppURL+"/auth/github/callback"),
-	)
-
-	m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
-	m.Get("/logout/github", RequiresIntegrationSetting, reqSignIn, GithubLogout)
-	m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
-
-	m.Get("/user/list", reqSignIn, reqManager, ListUsers)
-	m.Get("/user/show/:id", reqSignIn, reqManager, Show)
-
-	m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
-	m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
-	m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)
-	m.Get("/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManager)
-	m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-
-	m.Group("/user", func() {
-		m.Get("/logout", SignOut)
 	})
 }
+
 func WrapF(f http.HandlerFunc) macaron.Handler {
 	return func(c *context.Context) {
 		f(c.Resp, c.Req.Request)

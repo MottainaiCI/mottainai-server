@@ -25,21 +25,24 @@ package storagesapi
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/go-macaron/binding"
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 
-	//bind := binding.Bind
-	m.Get("/api/storage/list", reqSignIn, StorageList)
-	m.Get("/api/storage/:id/list", reqSignIn, StorageListArtefacts)
+		//bind := binding.Bind
+		m.Get("/api/storage/list", reqSignIn, StorageList)
+		m.Get("/api/storage/:id/list", reqSignIn, StorageListArtefacts)
 
-	m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
-	m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
-	m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
+		m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
+		m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
+		m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
 
-	m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
-	m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
+		m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
+		m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
+	})
 }

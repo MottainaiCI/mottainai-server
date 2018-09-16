@@ -29,7 +29,6 @@ import (
 	macaron "gopkg.in/macaron.v1"
 
 	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 type ToggleOptions struct {
@@ -38,6 +37,7 @@ type ToggleOptions struct {
 	AdminRequired   bool
 	ManagerRequired bool
 	DisableCSRF     bool
+	BaseURL         string
 }
 
 func Toggle(options *ToggleOptions) macaron.Handler {
@@ -45,7 +45,7 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 
 		// Redirect to dashboard if user tries to visit any non-login page.
 		if options.SignOutRequired && c.IsLogged && c.Req.RequestURI != "/" {
-			c.Redirect(setting.Configuration.AppSubURL + "/")
+			c.Redirect(options.BaseURL + "/")
 			return
 		}
 
@@ -65,8 +65,8 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 					return
 				}
 
-				c.SetCookie("redirect_to", url.QueryEscape(setting.Configuration.AppSubURL+c.Req.RequestURI), 0, setting.Configuration.AppSubURL)
-				c.Redirect(setting.Configuration.AppSubURL + "/user/login")
+				c.SetCookie("redirect_to", url.QueryEscape(options.BaseURL+c.Req.RequestURI), 0, options.BaseURL)
+				c.Redirect(options.BaseURL + "/user/login")
 				return
 			}
 		}
@@ -74,8 +74,8 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 		// Redirect to log in page if auto-signin info is provided and has not signed in.
 		if !options.SignOutRequired && !c.IsLogged && !auth.IsAPIPath(c.Req.URL.Path) &&
 			len(c.GetCookie("u_name")) > 0 {
-			c.SetCookie("redirect_to", url.QueryEscape(setting.Configuration.AppSubURL+c.Req.RequestURI), 0, setting.Configuration.AppSubURL)
-			c.Redirect(setting.Configuration.AppSubURL + "/user/login")
+			c.SetCookie("redirect_to", url.QueryEscape(options.BaseURL+c.Req.RequestURI), 0, options.BaseURL)
+			c.Redirect(options.BaseURL + "/user/login")
 			return
 		}
 

@@ -210,19 +210,19 @@ func (t *Task) IsWaiting() bool {
 	return false
 }
 
-func (t *Task) ClearBuildLog() {
-	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
+func (t *Task) ClearBuildLog(artefactPath string) {
+	os.RemoveAll(path.Join(artefactPath, t.ID, "build_"+t.ID+".log"))
 }
 
-func (t *Task) Clear() {
-	os.RemoveAll(path.Join(setting.Configuration.ArtefactPath, t.ID))
-	os.RemoveAll(path.Join(setting.Configuration.LockPath, t.ID+".lock"))
+func (t *Task) Clear(artefactPath string, lockPath string) {
+	os.RemoveAll(path.Join(artefactPath, t.ID))
+	os.RemoveAll(path.Join(lockPath, t.ID+".lock"))
 }
 
-func (t *Task) GetLogPart(pos int) string {
+func (t *Task) GetLogPart(pos int, artefactPath string, lockPath string) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
+		file, err := os.Open(path.Join(artefactPath, t.ID, "build_"+t.ID+".log"))
 		if err != nil {
 			return err
 		}
@@ -242,7 +242,7 @@ func (t *Task) GetLogPart(pos int) string {
 		}
 
 		return nil
-	})
+	}, lockPath)
 
 	if err != nil {
 		return ""
@@ -250,10 +250,10 @@ func (t *Task) GetLogPart(pos int) string {
 	return string(b3)
 }
 
-func (t *Task) TailLog(pos int) string {
+func (t *Task) TailLog(pos int, artefactPath string, lockPath string) string {
 	var b3 []byte
 	err := t.LockSection(func() error {
-		file, err := os.Open(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"))
+		file, err := os.Open(path.Join(artefactPath, t.ID, "build_"+t.ID+".log"))
 		if err != nil {
 			return err
 		}
@@ -280,7 +280,7 @@ func (t *Task) TailLog(pos int) string {
 		}
 
 		return nil
-	})
+	}, lockPath)
 
 	if err != nil {
 		return ""
@@ -288,9 +288,9 @@ func (t *Task) TailLog(pos int) string {
 	return string(b3)
 }
 
-func (t *Task) LockSection(f func() error) error {
-	os.MkdirAll(setting.Configuration.LockPath, os.ModePerm)
-	lockfile := path.Join(setting.Configuration.LockPath, t.ID+".lock")
+func (t *Task) LockSection(f func() error, lockPath string) error {
+	os.MkdirAll(lockPath, os.ModePerm)
+	lockfile := path.Join(lockPath, t.ID+".lock")
 	fileLock := flock.NewFlock(lockfile)
 
 	locked, err := fileLock.TryLock()
@@ -306,12 +306,12 @@ func (t *Task) LockSection(f func() error) error {
 	return nil
 }
 
-func (t *Task) AppendBuildLog(s string) error {
+func (t *Task) AppendBuildLog(s string, artefactPath string, lockPath string) error {
 
-	os.MkdirAll(path.Join(setting.Configuration.ArtefactPath, t.ID), os.ModePerm)
+	os.MkdirAll(path.Join(artefactPath, t.ID), os.ModePerm)
 	return t.LockSection(func() error {
 
-		file, err := os.OpenFile(path.Join(setting.Configuration.ArtefactPath, t.ID, "build_"+t.ID+".log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		file, err := os.OpenFile(path.Join(artefactPath, t.ID, "build_"+t.ID+".log"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -322,7 +322,7 @@ func (t *Task) AppendBuildLog(s string) error {
 			return err
 		}
 		return nil
-	})
+	}, lockPath)
 
 }
 
@@ -365,11 +365,11 @@ func (t *Task) IsPublishAppendMode() bool {
 	return false
 }
 
-func (t *Task) HandleStatus() {
+func (t *Task) HandleStatus(namespacePath string, artefactPath string) {
 	fmt.Println("Handlestatus called")
 	if t.Status == setting.TASK_STATE_DONE {
 		if t.ExitStatus == "0" {
-			t.OnSuccess()
+			t.OnSuccess(namespacePath, artefactPath)
 		} else {
 			t.OnFailure()
 		}
@@ -385,8 +385,8 @@ func (t *Task) DecodeStatus(state string) string {
 	return setting.TASK_RESULT_FAILED
 }
 
-func (t *Task) Artefacts() []string {
-	return utils.TreeList(filepath.Join(setting.Configuration.ArtefactPath, t.ID))
+func (t *Task) Artefacts(artefactPath string) []string {
+	return utils.TreeList(filepath.Join(artefactPath, t.ID))
 }
 
 func (t *Task) Done() {
@@ -398,15 +398,15 @@ func (t *Task) OnFailure() {
 
 }
 
-func (t *Task) OnSuccess() {
+func (t *Task) OnSuccess(namespacePath string, artefactPath string) {
 	fmt.Println("Build succeeded")
 
 	if len(t.TagNamespace) > 0 {
 		ns := namespace.NewFromMap(map[string]interface{}{"name": t.TagNamespace, "path": t.TagNamespace})
 		if t.IsPublishAppendMode() {
-			ns.Append(t.ID)
+			ns.Append(t.ID, namespacePath, artefactPath)
 		} else {
-			ns.Tag(t.ID)
+			ns.Tag(t.ID, namespacePath, artefactPath)
 		}
 	}
 }

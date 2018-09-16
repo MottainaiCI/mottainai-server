@@ -26,6 +26,8 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/go-macaron/binding"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -35,11 +37,13 @@ type Setting struct {
 }
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
-	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
-	bind := binding.Bind
-	m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
-	m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
-	m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
-	m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
+		bind := binding.Bind
+		m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
+		m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
+		m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
+		m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
+	})
 }

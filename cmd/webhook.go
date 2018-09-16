@@ -37,7 +37,6 @@ func newWebHookCommand(config *s.Config) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			m := mottainai.ClassicWebHookServer(config)
-			m.Map(config)
 			routes.SetupWebHookServer(m)
 			m.Start()
 		},

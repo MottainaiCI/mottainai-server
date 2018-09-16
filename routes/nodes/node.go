@@ -24,15 +24,18 @@ package nodesroute
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 
-	m.Get("/nodes", reqSignIn, ShowAll)
-	m.Get("/nodes/add", reqSignIn, Create)
-	m.Get("/nodes/delete/:id", reqSignIn, Remove)
-	m.Get("/nodes/show/:id", reqSignIn, Show)
+		m.Get("/nodes", reqSignIn, ShowAll)
+		m.Get("/nodes/add", reqSignIn, Create)
+		m.Get("/nodes/delete/:id", reqSignIn, Remove)
+		m.Get("/nodes/show/:id", reqSignIn, Show)
+	})
 }

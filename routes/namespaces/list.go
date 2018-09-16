@@ -24,18 +24,23 @@ package namespaceroute
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 	namespaceapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 )
 
 func ShowAll(ctx *context.Context) {
 	ctx.Data["Namespaces"] = namespaceapi.Namespaces()
-	template.TemplatePreview(ctx, "namespaces")
+	ctx.Invoke(func(config *setting.Config) {
+		template.TemplatePreview(ctx, "namespaces", config)
+	})
 }
 
 func Show(ctx *context.Context) {
 	name := ctx.Params(":name")
 	ctx.Data["Name"] = name
 	ctx.Data["Artefacts"] = namespaceapi.NamespaceArtefacts(name)
-	template.TemplatePreview(ctx, "namespaces/display")
+	ctx.Invoke(func(config *setting.Config) {
+		template.TemplatePreview(ctx, "namespaces/display", config)
+	})
 }

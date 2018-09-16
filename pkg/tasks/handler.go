@@ -85,11 +85,11 @@ func HandleArgs(args ...interface{}) (string, int, error) {
 	return docID, 0, nil
 }
 
-func DockerPlayer(args ...interface{}) (int, error) {
+func DockerPlayer(config *setting.Config, args ...interface{}) (int, error) {
 	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
-	executor := NewDockerExecutor()
-	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	executor := NewDockerExecutor(config)
+	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -98,12 +98,12 @@ func DockerPlayer(args ...interface{}) (int, error) {
 	return player.Start(executor)
 }
 
-func LibvirtPlayer(args ...interface{}) (int, error) {
+func LibvirtPlayer(config *setting.Config, args ...interface{}) (int, error) {
 	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
-	executor := NewVagrantExecutor()
+	executor := NewVagrantExecutor(config)
 	executor.Provider = "libvirt"
-	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -112,12 +112,12 @@ func LibvirtPlayer(args ...interface{}) (int, error) {
 	return player.Start(executor)
 }
 
-func VirtualBoxPlayer(args ...interface{}) (int, error) {
+func VirtualBoxPlayer(config *setting.Config, args ...interface{}) (int, error) {
 	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
-	executor := NewVagrantExecutor()
+	executor := NewVagrantExecutor(config)
 	executor.Provider = "virtualbox"
-	executor.MottainaiClient = client.NewTokenClient(setting.Configuration.AppURL, setting.Configuration.ApiKey)
+	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -365,9 +365,9 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 	return h.NewTaskFromJson(task_data)
 }
 
-func HandleSuccess(docID string, result int) error {
-	fetcher := client.NewFetcher(docID)
-	fetcher.Token = setting.Configuration.ApiKey
+func HandleSuccess(config *setting.Config, docID string, result int) error {
+	fetcher := client.NewFetcher(docID, config)
+	fetcher.Token = config.ApiKey
 	res := strconv.Itoa(result)
 	fetcher.SetTaskField("exit_status", res)
 	if result != 0 {
@@ -387,9 +387,9 @@ func HandleSuccess(docID string, result int) error {
 	return nil
 }
 
-func HandleErr(errstring, docID string) error {
-	fetcher := client.NewFetcher(docID)
-	fetcher.Token = setting.Configuration.ApiKey
+func HandleErr(config *setting.Config, errstring, docID string) error {
+	fetcher := client.NewFetcher(docID, config)
+	fetcher.Token = config.ApiKey
 
 	fetcher.AppendTaskOutput(errstring)
 

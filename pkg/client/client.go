@@ -70,45 +70,48 @@ type HttpClient interface {
 }
 
 type Fetcher struct {
-	BaseURL       string
-	docID         string
-	Token         string
+	BaseURL string
+	docID   string
+	// TODO: this could be handled directly from Config
+	Token string
+	// TODO: this could be handled directly from Config
 	TrustedCert   string
 	Jar           *http.CookieJar
 	Agent         *anagent.Anagent
 	ActiveReports bool
+	Config        *setting.Config
 }
 
-func NewTokenClient(host, token string) *Fetcher {
-	f := NewBasicClient()
+func NewTokenClient(host, token string, config *setting.Config) *Fetcher {
+	f := NewBasicClient(config)
 	f.BaseURL = host
 	f.Token = token
 	return f
 }
 
-func NewClient(host string) *Fetcher {
-	f := NewBasicClient()
+func NewClient(host string, config *setting.Config) *Fetcher {
+	f := NewBasicClient(config)
 	f.BaseURL = host
 	return f
 }
 
-func NewFetcher(docID string) *Fetcher {
-	f := NewClient(setting.Configuration.AppURL)
+func NewFetcher(docID string, config *setting.Config) *Fetcher {
+	f := NewClient(config.AppURL, config)
 	f.docID = docID
 	return f
 }
 
-func NewBasicClient() *Fetcher {
+func NewBasicClient(config *setting.Config) *Fetcher {
 	// Basic constructor
-	f := &Fetcher{}
-	if len(setting.Configuration.TLSCert) > 0 {
-		f.TrustedCert = setting.Configuration.TLSCert
+	f := &Fetcher{Config: config}
+	if len(config.TLSCert) > 0 {
+		f.TrustedCert = config.TLSCert
 	}
 	return f
 }
 
-func New(docID string, a *anagent.Anagent) *Fetcher {
-	f := NewClient(setting.Configuration.AppURL)
+func New(docID string, a *anagent.Anagent, config *setting.Config) *Fetcher {
+	f := NewClient(config.AppURL, config)
 	f.docID = docID
 	f.Agent = a
 	return f
@@ -409,9 +412,9 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	}
 
 	// XXX: Yeah, this is just a fancier way of reading slowly from kernel buffers, i know.
-	if setting.Configuration.UploadRateLimit != 0 {
-		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*setting.Configuration.UploadRateLimit, 10))
-		reader := flowrate.NewReader(io.Reader(rd), 1024*setting.Configuration.UploadRateLimit)
+	if f.Config.UploadRateLimit != 0 {
+		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.UploadRateLimit, 10))
+		reader := flowrate.NewReader(io.Reader(rd), 1024*f.Config.UploadRateLimit)
 		req, err = http.NewRequest("POST", f.BaseURL+uri, reader)
 		if err != nil {
 			return err

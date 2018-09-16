@@ -46,9 +46,14 @@ func RequiresWebHookSetting(c *context.Context, db *database.Database) error {
 }
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			BaseURL:        config.AppSubURL,
+		})
 
-	m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
-	m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
-	m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
+		m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
+		m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
+		m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
+	})
 }

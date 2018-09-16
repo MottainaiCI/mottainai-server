@@ -25,13 +25,17 @@ package tokenroute
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 
-	m.Get("/token", reqSignIn, ShowAll)
-	m.Get("/token/create", reqSignIn, Create)
-	m.Get("/token/delete/:id", reqSignIn, Remove)
+		m.Get("/token", reqSignIn, ShowAll)
+		m.Get("/token/create", reqSignIn, Create)
+		m.Get("/token/delete/:id", reqSignIn, Remove)
+	})
 }

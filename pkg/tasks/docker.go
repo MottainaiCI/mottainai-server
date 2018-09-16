@@ -39,8 +39,12 @@ type DockerExecutor struct {
 	DockerClient *docker.Client
 }
 
-func NewDockerExecutor() *DockerExecutor {
-	return &DockerExecutor{TaskExecutor: &TaskExecutor{Context: NewExecutorContext()}}
+func NewDockerExecutor(config *setting.Config) *DockerExecutor {
+	return &DockerExecutor{
+		TaskExecutor: &TaskExecutor{
+			Context: NewExecutorContext(),
+			Config:  config,
+		}}
 }
 
 func (e *DockerExecutor) Prune() {
@@ -52,9 +56,9 @@ func (e *DockerExecutor) Prune() {
 
 func (d *DockerExecutor) Setup(docID string) error {
 	d.TaskExecutor.Setup(docID)
-	docker_client, err := docker.NewClient(setting.Configuration.DockerEndpoint)
+	docker_client, err := docker.NewClient(d.Config.DockerEndpoint)
 	if err != nil {
-		return (errors.New("Endpoint:" + setting.Configuration.DockerEndpoint + " Error: " + err.Error()))
+		return (errors.New("Endpoint:" + d.Config.DockerEndpoint + " Error: " + err.Error()))
 	}
 	d.DockerClient = docker_client
 	return nil
@@ -117,15 +121,15 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 			if len(task_info.CacheClean) == 0 {
 				// Retrieve cached image into the hub
-				if t, oktype := setting.Configuration.CacheRegistryCredentials["type"]; oktype && t == "docker" {
+				if t, oktype := d.Config.CacheRegistryCredentials["type"]; oktype && t == "docker" {
 
 					toPull := purgeImageName(sharedName)
-					if e, ok := setting.Configuration.CacheRegistryCredentials["entity"]; ok {
+					if e, ok := d.Config.CacheRegistryCredentials["entity"]; ok {
 						toPull = e + "/" + toPull
 					}
 					d.Report("Try to pull cache (" + toPull + ") image from defined registry or from dockerhub")
 
-					if baseUrl, okb := setting.Configuration.CacheRegistryCredentials["baseurl"]; okb {
+					if baseUrl, okb := d.Config.CacheRegistryCredentials["baseurl"]; okb {
 						toPull = baseUrl + toPull
 					}
 
@@ -172,8 +176,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		ContainerBinds = append(ContainerBinds, b)
 	}
 
-	if setting.Configuration.DockerInDocker {
-		ContainerBinds = append(ContainerBinds, setting.Configuration.DockerEndpointDiD+":/var/run/docker.sock")
+	if d.Config.DockerInDocker {
+		ContainerBinds = append(ContainerBinds, d.Config.DockerEndpointDiD+":/var/run/docker.sock")
 		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, artefact_path)+":"+path.Join(git_build_root_path, artefact_path))
 		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
 
@@ -197,10 +201,10 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 
 	createContHostConfig := docker.HostConfig{
-		Privileged: setting.Configuration.DockerPriviledged,
+		Privileged: d.Config.DockerPriviledged,
 		Binds:      ContainerBinds,
-		CapAdd:     setting.Configuration.DockerCaps,
-		CapDrop:    setting.Configuration.DockerCapsDrop,
+		CapAdd:     d.Config.DockerCaps,
+		CapDrop:    d.Config.DockerCapsDrop,
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
 	var containerconfig = &docker.Config{Image: image, WorkingDir: git_build_root_path}
@@ -245,7 +249,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		d.Report(s)
 	}, docker_client, container)
 	defer d.CleanUpContainer(container.ID)
-	if setting.Configuration.DockerKeepImg == false {
+	if d.Config.DockerKeepImg == false {
 		defer d.RemoveImage(task_info.Image)
 	}
 
@@ -285,7 +289,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 			var err error
 
 			to_upload := artdir
-			if setting.Configuration.DockerInDocker {
+			if d.Config.DockerInDocker {
 				to_upload = path.Join(git_root_path, task_info.Directory, artefact_path)
 			}
 
@@ -368,14 +372,14 @@ func (d *DockerExecutor) CleanUpContainer(ID string) error {
 
 func (d *DockerExecutor) PullImage(image string) error {
 
-	username, okname := setting.Configuration.CacheRegistryCredentials["username"]
-	password, okpassword := setting.Configuration.CacheRegistryCredentials["password"]
+	username, okname := d.Config.CacheRegistryCredentials["username"]
+	password, okpassword := d.Config.CacheRegistryCredentials["password"]
 	auth := docker.AuthConfiguration{}
 	if okname && okpassword {
 		auth.Password = password
 		auth.Username = username
 	}
-	if serveraddress, ok := setting.Configuration.CacheRegistryCredentials["serveraddress"]; ok {
+	if serveraddress, ok := d.Config.CacheRegistryCredentials["serveraddress"]; ok {
 		auth.ServerAddress = serveraddress
 	}
 	d.MottainaiClient.AppendTaskOutput("Pulling image: " + image)
@@ -389,19 +393,19 @@ func (d *DockerExecutor) PullImage(image string) error {
 func (d *DockerExecutor) PushImage(image string) error {
 
 	// Push image, if a cache_registry is configured in the node
-	if t, oktype := setting.Configuration.CacheRegistryCredentials["type"]; oktype && t == "docker" {
+	if t, oktype := d.Config.CacheRegistryCredentials["type"]; oktype && t == "docker" {
 
-		username, okname := setting.Configuration.CacheRegistryCredentials["username"]
-		password, okpassword := setting.Configuration.CacheRegistryCredentials["password"]
+		username, okname := d.Config.CacheRegistryCredentials["username"]
+		password, okpassword := d.Config.CacheRegistryCredentials["password"]
 
 		if okname && okpassword {
-			baseurl, okbaseurl := setting.Configuration.CacheRegistryCredentials["baseurl"]
-			entity, okentity := setting.Configuration.CacheRegistryCredentials["entity"]
+			baseurl, okbaseurl := d.Config.CacheRegistryCredentials["baseurl"]
+			entity, okentity := d.Config.CacheRegistryCredentials["entity"]
 			imageopts := docker.PushImageOptions{}
 			auth := docker.AuthConfiguration{}
 			auth.Password = password
 			auth.Username = username
-			serveraddress, okserveraddress := setting.Configuration.CacheRegistryCredentials["serveraddress"]
+			serveraddress, okserveraddress := d.Config.CacheRegistryCredentials["serveraddress"]
 			if okserveraddress {
 				auth.ServerAddress = serveraddress
 			}

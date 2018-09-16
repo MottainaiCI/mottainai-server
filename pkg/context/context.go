@@ -169,7 +169,9 @@ func (c *Context) JSONSuccess(data interface{}) {
 // SubURLRedirect responses redirection wtih given location and status.
 // It prepends setting.AppSubURL to the location string.
 func (c *Context) SubURLRedirect(location string, status ...int) {
-	c.Redirect(setting.Configuration.AppSubURL + location)
+	c.Invoke(func(config *setting.Config) {
+		c.Redirect(config.AppSubURL + location)
+	})
 }
 
 func (c *Context) ServeContent(name string, r io.ReadSeeker, params ...interface{}) {
@@ -195,28 +197,32 @@ func Setup(m *macaron.Macaron) {
 }
 
 func Contexter() macaron.Handler {
+	var c *Context
+
 	return func(ctx *macaron.Context, sess session.Store, f *session.Flash, x csrf.CSRF, cache cache.Cache) {
-		c := &Context{
-			Context: ctx,
-			Cache:   cache,
-			csrf:    x,
-			Flash:   f,
-			Session: sess,
-			Link:    setting.Configuration.AppSubURL + strings.TrimSuffix(ctx.Req.URL.Path, "/"),
-		}
-		c.Data["Link"] = c.Link
-		c.Data["PageStartTime"] = time.Now()
+		ctx.Invoke(func(config *setting.Config) {
+			c = &Context{
+				Context: ctx,
+				Cache:   cache,
+				csrf:    x,
+				Flash:   f,
+				Session: sess,
+				Link:    config.AppSubURL + strings.TrimSuffix(ctx.Req.URL.Path, "/"),
+			}
+			c.Data["Link"] = c.Link
+			c.Data["PageStartTime"] = time.Now()
 
-		if len(setting.Configuration.AccessControlAllowOrigin) > 0 {
-			// Set CORS headers for browser-based git clients
-			ctx.Resp.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
-			ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			if len(config.AccessControlAllowOrigin) > 0 {
+				// Set CORS headers for browser-based git clients
+				ctx.Resp.Header().Set("Access-Control-Allow-Origin", config.AccessControlAllowOrigin)
+				ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-			ctx.Header().Set("Access-Control-Allow-Origin", setting.Configuration.AccessControlAllowOrigin)
-			c.Header().Set("'Access-Control-Allow-Credentials' ", "true")
-			c.Header().Set("Access-Control-Max-Age", "3600")
-			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-		}
+				ctx.Header().Set("Access-Control-Allow-Origin", config.AccessControlAllowOrigin)
+				c.Header().Set("'Access-Control-Allow-Credentials' ", "true")
+				c.Header().Set("Access-Control-Max-Age", "3600")
+				c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+			}
+		})
 
 		// Get user from session if logined.
 		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)
