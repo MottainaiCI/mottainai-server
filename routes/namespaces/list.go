@@ -40,7 +40,6 @@ func Show(ctx *context.Context) {
 	name := ctx.Params(":name")
 	ctx.Data["Name"] = name
 	ctx.Invoke(func(config *setting.Config) {
-
 		ctx.Data["Artefacts"] = namespaceapi.NamespaceArtefacts(name, config.NamespacePath)
 		template.TemplatePreview(ctx, "namespaces/display", config)
 	})
