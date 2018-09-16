@@ -110,7 +110,6 @@ func (m *MottainaiAgent) CleanHealthCheckExec() {
 			log.INFO.Println("> Executing: " + k)
 			args := strings.Split(k, " ")
 			cmdName := args[0]
-
 			out, stderr, err := utils.Cmd(cmdName, args[1:])
 			if err != nil {
 				log.ERROR.Println("!! Error: ", err.Error()+": "+stderr)
