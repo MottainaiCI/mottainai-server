@@ -37,22 +37,33 @@ import (
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes"
 	"github.com/go-macaron/binding"
 )
 
+var config *setting.Config
+
+func init() {
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+}
+
 func TestUpload(t *testing.T) {
 	//t.Parallel()
 	binding.MaxMemory = int64(1024 * 1024 * 1)
-	s.Configuration.GenDefault()
-	s.Configuration.Unmarshal()
-	s.Configuration.DBPath = "./DB"
+	config.DBPath = "./DB"
 
-	defer os.RemoveAll(s.Configuration.DBPath)
-	defer os.RemoveAll(s.Configuration.ArtefactPath)
+	defer os.RemoveAll(config.DBPath)
+	defer os.RemoveAll(config.ArtefactPath)
 
-	db := database.NewDatabase("tiedot")
+	db := database.NewDatabase("tiedot", config)
 
 	u := &user.User{}
 	u.Name = "test"
@@ -78,11 +89,11 @@ func TestUpload(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	server := mottainai.Classic()
+	server := mottainai.Classic(config)
 	routes.SetupWebUI(server)
 	go server.Start()
 	time.Sleep(time.Duration(5 * time.Second))
-	c := client.NewTokenClient(s.Configuration.AppURL, tok.Key)
+	c := client.NewTokenClient(config.AppURL, tok.Key, config)
 
 	dat := make(map[string]interface{})
 
@@ -108,11 +119,11 @@ func TestUpload(t *testing.T) {
 		t.Fatal("Document not created")
 	}
 
-	fetcher := client.NewTokenClient(s.Configuration.AppURL, tok.Key)
+	fetcher := client.NewTokenClient(config.AppURL, tok.Key, config)
 	fetcher.Doc(tid)
 	testFile := "integration_test.go"
 
-	s.Configuration.AgentKey = node.Key
+	config.AgentKey = node.Key
 	fetcher.RegisterNode("foo", "bar")
 
 	nd, err := db.Driver.GetNode(nodeid)
@@ -129,7 +140,7 @@ func TestUpload(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	file, err := os.Open(path.Join(s.Configuration.ArtefactPath, tid, testFile))
+	file, err := os.Open(path.Join(config.ArtefactPath, tid, testFile))
 	if err != nil {
 		t.Errorf(err.Error())
 	}

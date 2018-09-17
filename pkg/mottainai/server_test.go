@@ -30,9 +30,16 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+	config.Broker = "amqp://guest@127.0.0.1:5672/"
+
 	server := NewServer()
 	broker := NewBroker()
-	setting.Configuration.Broker = "amqp://guest@127.0.0.1:5672/"
 
 	if reflect.TypeOf(server).String() != "*mottainai.MottainaiServer" {
 		t.Error("returned", server)
@@ -44,10 +51,17 @@ func TestNew(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	server := NewServer()
-	//setting.Configuration.GenDefault()
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+	config.Broker = "amqp://guest@127.0.0.1:5672/"
 
-	server.Add("test")
+	server := NewServer()
+
+	server.Add("test", config)
 
 	if reflect.TypeOf(server.Servers["test"]).String() != "*mottainai.Broker" {
 		t.Error("N returned", server.Servers["test"])
@@ -59,13 +73,20 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	server := NewServer()
-	//	setting.GenDefault()
 
 	if len(server.Servers) != 0 {
 		t.Errorf("0 server by default")
 	}
-	server.Add("test")
+	server.Add("test", config)
 
 	if reflect.TypeOf(server.Servers["test"]).String() != "*mottainai.Broker" {
 		t.Error("N returned", server.Servers["test"])

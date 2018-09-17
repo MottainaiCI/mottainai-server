@@ -34,8 +34,16 @@ var dbtest4 *Database
 
 func TestInsertUser(t *testing.T) {
 
-	setting.Configuration.DBPath = "./DB"
-	db := New(setting.Configuration.DBPath)
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
+	config.DBPath = "./DB"
+	db := New(config.DBPath)
+	db.GetAgent().Map(config)
 	db.Init()
 	dbtest4 = db
 	u := &user.User{}
@@ -135,9 +143,13 @@ func TestGetUserByName(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	defer os.RemoveAll(setting.Configuration.DBPath)
-
+	var dbpath string
 	db := dbtest4
+
+	db.Invoke(func(config *setting.Config) {
+		dbpath = config.DBPath
+	})
+	defer os.RemoveAll(dbpath)
 
 	u, err := db.SignIn("test2", "foo")
 

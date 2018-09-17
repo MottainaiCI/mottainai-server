@@ -34,8 +34,16 @@ var dbtest5 *Database
 
 func TestInsertWebHook(t *testing.T) {
 
-	setting.Configuration.DBPath = "./DB"
-	db := New(setting.Configuration.DBPath)
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
+	config.DBPath = "./DB"
+	db := New(config.DBPath)
+	db.GetAgent().Map(config)
 	db.Init()
 	dbtest5 = db
 	u := &webhook.WebHook{}
@@ -97,9 +105,13 @@ func TestGetWebHookByKey(t *testing.T) {
 }
 
 func TestGetWebHookByUid(t *testing.T) {
-	defer os.RemoveAll(setting.Configuration.DBPath)
-
+	var dbpath string
 	db := dbtest5
+
+	db.Invoke(func(config *setting.Config) {
+		dbpath = config.DBPath
+	})
+	defer os.RemoveAll(dbpath)
 
 	u := &webhook.WebHook{}
 	u.Key = "test2"

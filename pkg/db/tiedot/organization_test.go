@@ -34,10 +34,19 @@ import (
 var DB *Database
 
 func TestInsertOrganization(t *testing.T) {
-	defer os.RemoveAll(setting.Configuration.DBPath)
 
-	setting.Configuration.DBPath = "./DB"
-	db := New(setting.Configuration.DBPath)
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
+	config.DBPath = "./DB"
+	defer os.RemoveAll(config.DBPath)
+
+	db := New(config.DBPath)
+	db.GetAgent().Map(config)
 	db.Init()
 	DB = db
 	u := &organization.Organization{}

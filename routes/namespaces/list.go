@@ -30,8 +30,8 @@ import (
 )
 
 func ShowAll(ctx *context.Context) {
-	ctx.Data["Namespaces"] = namespaceapi.Namespaces()
 	ctx.Invoke(func(config *setting.Config) {
+		ctx.Data["Namespaces"] = namespaceapi.Namespaces(config.NamespacePath)
 		template.TemplatePreview(ctx, "namespaces", config)
 	})
 }
@@ -39,8 +39,9 @@ func ShowAll(ctx *context.Context) {
 func Show(ctx *context.Context) {
 	name := ctx.Params(":name")
 	ctx.Data["Name"] = name
-	ctx.Data["Artefacts"] = namespaceapi.NamespaceArtefacts(name)
 	ctx.Invoke(func(config *setting.Config) {
+
+		ctx.Data["Artefacts"] = namespaceapi.NamespaceArtefacts(name, config.NamespacePath)
 		template.TemplatePreview(ctx, "namespaces/display", config)
 	})
 }

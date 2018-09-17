@@ -29,13 +29,12 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func StorageList(ctx *context.Context, db *database.Database) {
 	ns := db.Driver.AllStorages()
 
-	//source := filepath.Join(setting.Configuration.StoragePath)
+	//source := filepath.Join(db.Config.StoragePath)
 	//ns, _ := utils.ListDirs(source)
 
 	ctx.JSON(200, ns)
@@ -55,7 +54,7 @@ func StorageShow(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	//source := filepath.Join(setting.Configuration.StoragePath)
+	//source := filepath.Join(db.Config.StoragePath)
 	//ns, _ := utils.ListDirs(source)
 
 	ctx.JSON(200, ns)
@@ -77,7 +76,7 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
-	source := filepath.Join(setting.Configuration.StoragePath, st.Path)
+	source := filepath.Join(db.Config.StoragePath, st.Path)
 	artefacts := utils.TreeList(source)
 
 	// artefacts, err := db.Driver.GetStorageArtefacts(ns.ID)

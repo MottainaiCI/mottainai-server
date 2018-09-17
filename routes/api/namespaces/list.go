@@ -32,28 +32,31 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
-func Namespaces() []string {
+func Namespaces(namespacePath string) []string {
 	//ns := db.AllNamespaces()
 
-	source := filepath.Join(setting.Configuration.NamespacePath)
+	source := filepath.Join(namespacePath)
 	ns, _ := utils.ListDirs(source)
 	return ns
 }
 
 func NamespaceList(ctx *context.Context, db *database.Database) {
 
-	ns := Namespaces()
+	var ns []string
+	ctx.Invoke(func(config *setting.Config) {
+		ns = Namespaces(config.NamespacePath)
+	})
 	ctx.JSON(200, ns)
 }
 
-func NamespaceArtefacts(namespace string) []string {
+func NamespaceArtefacts(namespace string, namespacePath string) []string {
 	name, _ := utils.Strip(namespace)
 
 	// ns, err := db.SearchNamespace(name)
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
-	source := filepath.Join(setting.Configuration.NamespacePath, name)
+	source := filepath.Join(namespacePath, name)
 
 	artefacts := utils.TreeList(source)
 	return artefacts
@@ -61,7 +64,11 @@ func NamespaceArtefacts(namespace string) []string {
 
 func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
 	name := ctx.Params(":name")
-	artefacts := NamespaceArtefacts(name)
+
+	var artefacts []string
+	ctx.Invoke(func(config *setting.Config) {
+		artefacts = NamespaceArtefacts(name, config.NamespacePath)
+	})
 
 	// ns, err := db.SearchNamespace(name)
 	// if err != nil {

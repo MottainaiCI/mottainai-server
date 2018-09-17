@@ -61,6 +61,7 @@ func initConfig(config *s.Config) {
 	config.Viper.SetConfigName(s.MOTTAINAI_CONFIGNAME)
 
 	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
 }
 
 func initCommand(rootCmd *cobra.Command, config *s.Config) {

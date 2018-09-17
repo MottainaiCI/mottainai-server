@@ -30,7 +30,6 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -43,7 +42,7 @@ func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error
 	}
 
 	//err := db.DeleteNamespace(id)
-	err := os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, name))
+	err := os.RemoveAll(filepath.Join(db.Config.NamespacePath, name))
 	if err != nil {
 		return ":(", err
 	}
@@ -59,7 +58,7 @@ func NamespaceRemovePath(ctx *context.Context, db *database.Database) (string, e
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	err := os.RemoveAll(filepath.Join(setting.Configuration.NamespacePath, name, path))
+	err := os.RemoveAll(filepath.Join(db.Config.NamespacePath, name, path))
 	if err != nil {
 		return ":(", err
 	}
