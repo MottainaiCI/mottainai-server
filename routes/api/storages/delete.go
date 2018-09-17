@@ -30,7 +30,6 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func StorageDelete(ctx *context.Context, db *database.Database) (string, error) {
@@ -50,7 +49,7 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 	if err != nil {
 		return ":(", err
 	}
-	err = os.RemoveAll(filepath.Join(setting.Configuration.StoragePath, storage.Path))
+	err = os.RemoveAll(filepath.Join(db.Config.StoragePath, storage.Path))
 	if err != nil {
 		return ":(", err
 	}
@@ -71,7 +70,7 @@ func StorageRemovePath(ctx *context.Context, db *database.Database) (string, err
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	err = os.RemoveAll(filepath.Join(setting.Configuration.StoragePath, storage.Path, path))
+	err = os.RemoveAll(filepath.Join(db.Config.StoragePath, storage.Path, path))
 	if err != nil {
 		return ":(", err
 	}

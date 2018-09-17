@@ -35,8 +35,16 @@ var dbtest *Database
 
 func TestInsertTask(t *testing.T) {
 
-	setting.Configuration.DBPath = "./DB"
-	db := New(setting.Configuration.DBPath)
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
+	config.DBPath = "./DB"
+	db := New(config.DBPath)
+	db.GetAgent().Map(config)
 	db.Init()
 	dbtest = db
 	u := &task.Task{}
@@ -83,9 +91,13 @@ func TestInsertTask(t *testing.T) {
 }
 
 func TestUpdateTask(t *testing.T) {
-	defer os.RemoveAll(setting.Configuration.DBPath)
-
+	var dbpath string
 	db := dbtest
+	db.GetAgent().Invoke(func(config *setting.Config) {
+		dbpath = config.DBPath
+	})
+	defer os.RemoveAll(dbpath)
+
 	u := &task.Task{}
 	u.Namespace = "docker_execute"
 	//u.Node = "20"

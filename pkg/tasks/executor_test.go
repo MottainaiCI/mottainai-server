@@ -61,12 +61,19 @@ func (f *FakeClient) SetTaskField(a string, b string) ([]byte, error) {
 
 func TestTaskExecutor(t *testing.T) {
 	t.Parallel()
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	ctx := NewExecutorContext()
 
 	dir := os.TempDir()
 	defer os.RemoveAll(dir)
 
-	setting.Configuration.AppName = "test"
+	config.AppName = "test"
 	//TODO: Slim context :(
 	ctx.ArtefactDir = dir
 	ctx.BuildDir = dir
@@ -78,7 +85,7 @@ func TestTaskExecutor(t *testing.T) {
 	ctx.RealRootDir = dir
 	ctx.DocID = "foo"
 	f := &FakeClient{}
-	e := &TaskExecutor{Context: ctx}
+	e := &TaskExecutor{Context: ctx, Config: config}
 	e.MottainaiClient = f
 	e.ExitStatus(20)
 	// TODO : Replace hardcoded exit_status with reflect lookup on map tag

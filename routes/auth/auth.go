@@ -29,9 +29,8 @@ import (
 	"regexp"
 	"strings"
 
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	com "github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/markbates/goth"
@@ -225,9 +224,9 @@ func Setup(m *macaron.Macaron) {
 
 		// TODO: Move from Here
 		goth.UseProviders(
-			github.New(setting.Configuration.WebHookGitHubToken,
-				setting.Configuration.WebHookGitHubSecret,
-				setting.Configuration.AppURL+"/auth/github/callback"),
+			github.New(config.WebHookGitHubToken,
+				config.WebHookGitHubSecret,
+				config.AppURL+"/auth/github/callback"),
 		)
 
 		m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)

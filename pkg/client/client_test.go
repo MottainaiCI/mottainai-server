@@ -27,10 +27,22 @@ import (
 	"reflect"
 	"testing"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
 )
 
 func TestNewTokenClient(t *testing.T) {
+
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	type args struct {
 		host  string
 		token string
@@ -44,7 +56,7 @@ func TestNewTokenClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewTokenClient(tt.args.host, tt.args.token); !reflect.DeepEqual(got, tt.want) {
+			if got := NewTokenClient(tt.args.host, tt.args.token, config); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewTokenClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -52,6 +64,17 @@ func TestNewTokenClient(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
+
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	type args struct {
 		host string
 	}
@@ -64,7 +87,7 @@ func TestNewClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewClient(tt.args.host); !reflect.DeepEqual(got, tt.want) {
+			if got := NewClient(tt.args.host, config); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -72,6 +95,17 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewFetcher(t *testing.T) {
+
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	type args struct {
 		docID string
 	}
@@ -80,12 +114,13 @@ func TestNewFetcher(t *testing.T) {
 		args args
 		want *Fetcher
 	}{
-		{"Create", args{"20"}, &Fetcher{docID: "20"}},
-		{"Create2", args{"String"}, &Fetcher{docID: "String"}},
+		{"Create", args{"20"}, &Fetcher{BaseURL: config.AppURL, docID: "20", Config: config}},
+		{"Create2", args{"String"}, &Fetcher{BaseURL: config.AppURL, docID: "String", Config: config}},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewFetcher(tt.args.docID); !reflect.DeepEqual(got, tt.want) {
+			if got := NewFetcher(tt.args.docID, config); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewFetcher() = %v, want %v", got, tt.want)
 			}
 		})
@@ -93,15 +128,26 @@ func TestNewFetcher(t *testing.T) {
 }
 
 func TestNewBasicClient(t *testing.T) {
+
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	tests := []struct {
 		name string
 		want *Fetcher
 	}{
-		{"Basic", &Fetcher{}},
+		{"Basic", &Fetcher{Config: config}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewBasicClient(); !reflect.DeepEqual(got, tt.want) {
+			if got := NewBasicClient(config); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBasicClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -109,6 +155,17 @@ func TestNewBasicClient(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	type args struct {
 		docID string
 		a     *anagent.Anagent
@@ -122,7 +179,7 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := New(tt.args.docID, tt.args.a); !reflect.DeepEqual(got, tt.want) {
+			if got := New(tt.args.docID, tt.args.a, config); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
 		})
@@ -130,6 +187,16 @@ func TestNew(t *testing.T) {
 }
 
 func TestFetcher_Doc(t *testing.T) {
+	var config *setting.Config
+	config = setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetDefault("config", "")
+	config.Viper.SetDefault("etcd-config", false)
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
+
 	type fields struct {
 		BaseURL       string
 		docID         string
@@ -159,6 +226,7 @@ func TestFetcher_Doc(t *testing.T) {
 				Jar:           tt.fields.Jar,
 				Agent:         tt.fields.Agent,
 				ActiveReports: tt.fields.ActiveReports,
+				Config:        config,
 			}
 			f.Doc(tt.args.id)
 		})

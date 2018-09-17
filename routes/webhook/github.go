@@ -137,14 +137,23 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 		// Later, with organizations and projects will be easier to link them.
 		ctx.StoredUser = u
 	}
-	err = os.MkdirAll(path.Join(setting.Configuration.BuildPath, "webhook_fetch", repo), os.ModePerm)
+
+	var gitdir string
+
+	m.Invoke(func(config *setting.Config) {
+		err = os.MkdirAll(path.Join(config.BuildPath, "webhook_fetch", repo), os.ModePerm)
+	})
 	if err != nil {
 		return ctx, errors.New("Failed creating webhook_fetch temp dir (Set your buildpath): " + err.Error())
 	}
-	gitdir, err := ioutil.TempDir(setting.Configuration.BuildPath, path.Join("webhook_fetch", repo))
+
+	m.Invoke(func(config *setting.Config) {
+		gitdir, err = ioutil.TempDir(config.BuildPath, path.Join("webhook_fetch", repo))
+	})
 	if err != nil {
 		return ctx, errors.New("Failed creating tempdir: " + err.Error())
 	}
+
 	ctx.Dir = gitdir
 
 	_, err = utils.Git([]string{"clone", clone_url, gitdir}, ".")
@@ -199,8 +208,8 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 
 func SetupGitHub(m *mottainai.Mottainai) {
 
-	m.Invoke(func(client *ggithub.Client, a *anagent.Anagent, db *database.Database) {
-		GlobalWatcher(client, a, db, setting.Configuration.AppSubURL)
+	m.Invoke(func(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config) {
+		GlobalWatcher(client, a, db, config.AppSubURL)
 	})
 
 	// TODO: Generate tokens for  each user.

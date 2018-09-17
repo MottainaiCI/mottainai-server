@@ -131,7 +131,11 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 			return err
 		}
 
-		url := setting.Configuration.AppSubURL + "/tasks/display/" + docID
+		var url string
+
+		m.Invoke(func(config *setting.Config) {
+			url = config.AppSubURL + "/tasks/display/" + docID
+		})
 		m.SendTask(docID)
 		// Create the 'pending' status and send it
 		status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
@@ -219,7 +223,10 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 			return err
 		}
 
-		url := setting.Configuration.AppSubURL + "/tasks/display/" + docID
+		var url string
+		m.Invoke(func(config *setting.Config) {
+			url = config.AppSubURL + "/tasks/display/" + docID
+		})
 		fmt.Println("Sending pipeline", docID)
 		_, err = m.ProcessPipeline(docID)
 		if err != nil {

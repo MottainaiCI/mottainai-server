@@ -104,16 +104,11 @@ type Config struct {
 	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path"`
 }
 
-var (
-	Configuration = &Config{Viper: v.New()}
-)
-
 func (c *Config) GenDefault() {
 	GenDefault(c.Viper)
 }
 
 func NewConfig(viper *v.Viper) *Config {
-
 	if viper == nil {
 		viper = v.New()
 	}

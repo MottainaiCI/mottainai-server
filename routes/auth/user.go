@@ -33,10 +33,9 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/go-macaron/captcha"
 	log "gopkg.in/clog.v1"
-
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 const (
@@ -58,9 +57,9 @@ func AutoLogin(c *context.Context, db *database.Database) (bool, error) {
 	defer func() {
 		if !isSucceed {
 			log.Trace("auto-login cookie cleared: %s", uname)
-			c.SetCookie("u_name", "", -1, setting.Configuration.AppSubURL)
-			c.SetCookie("r_name", "", -1, setting.Configuration.AppSubURL)
-			c.SetCookie("s_name", "", -1, setting.Configuration.AppSubURL)
+			c.SetCookie("u_name", "", -1, db.Config.AppSubURL)
+			c.SetCookie("r_name", "", -1, db.Config.AppSubURL)
+			c.SetCookie("s_name", "", -1, db.Config.AppSubURL)
 		}
 	}()
 
@@ -78,9 +77,9 @@ func AutoLogin(c *context.Context, db *database.Database) (bool, error) {
 	isSucceed = true
 	c.Session.Set("uid", u.ID)
 	c.Session.Set("uname", u.Name)
-	c.SetCookie("_csrf", "", -1, setting.Configuration.AppSubURL)
-	//	if setting.EnableLoginStatusCookie {
-	//		c.SetCookie(setting.LoginStatusCookieName, "true", 0, setting.Configuration.AppSubURL)
+	c.SetCookie("_csrf", "", -1, db.Config.AppSubURL)
+	//	if db.Config.EnableLoginStatusCookie {
+	//		c.SetCookie(setting.LoginStatusCookieName, "true", 0, db.Config.AppSubURL)
 	//	}
 	return true, nil
 }
@@ -104,7 +103,7 @@ func Login(c *context.Context, db *database.Database) {
 
 	redirectTo := c.Query("redirect_to")
 	if len(redirectTo) > 0 {
-		c.SetCookie("redirect_to", redirectTo, 0, setting.Configuration.AppSubURL)
+		c.SetCookie("redirect_to", redirectTo, 0, db.Config.AppSubURL)
 	} else {
 		redirectTo, _ = url.QueryUnescape(c.GetCookie("redirect_to"))
 	}
@@ -115,7 +114,7 @@ func Login(c *context.Context, db *database.Database) {
 		} else {
 			c.SubURLRedirect("/")
 		}
-		c.SetCookie("redirect_to", "", -1, setting.Configuration.AppSubURL)
+		c.SetCookie("redirect_to", "", -1, db.Config.AppSubURL)
 		return
 	}
 	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
@@ -129,20 +128,25 @@ func Login(c *context.Context, db *database.Database) {
 }
 
 func afterLogin(c *context.Context, u user.User, remember bool) {
-	if remember {
-		days := 86400 * 30
-		c.SetCookie("u_name", u.Name, days, setting.Configuration.AppSubURL, "", true, true)
-		c.SetSuperSecureCookie(u.Password, "r_name", u.Name, days, setting.Configuration.AppSubURL, "", true, true)
-	}
+	var redirectTo string
 
-	c.Session.Set("uid", u.ID)
-	c.Session.Set("uname", u.Name)
+	c.Invoke(func(config *setting.Config) {
+		if remember {
+			days := 86400 * 30
+			c.SetCookie("u_name", u.Name, days, config.AppSubURL, "", true, true)
+			c.SetSuperSecureCookie(u.Password, "r_name", u.Name, days, config.AppSubURL, "", true, true)
+		}
 
-	// Clear whatever CSRF has right now, force to generate a new one
-	c.SetCookie("_csrf", "", -1, setting.Configuration.AppSubURL)
+		c.Session.Set("uid", u.ID)
+		c.Session.Set("uname", u.Name)
 
-	redirectTo, _ := url.QueryUnescape(c.GetCookie("redirect_to"))
-	c.SetCookie("redirect_to", "", -1, setting.Configuration.AppSubURL)
+		// Clear whatever CSRF has right now, force to generate a new one
+		c.SetCookie("_csrf", "", -1, config.AppSubURL)
+
+		redirectTo, _ = url.QueryUnescape(c.GetCookie("redirect_to"))
+		c.SetCookie("redirect_to", "", -1, config.AppSubURL)
+	})
+
 	if isValidRedirect(redirectTo) {
 		c.Redirect(redirectTo)
 		return
@@ -173,12 +177,14 @@ func LoginPost(c *context.Context, f SignIn, db *database.Database) {
 }
 
 func SignOut(c *context.Context) {
-	c.Session.Delete("uid")
-	c.Session.Delete("uname")
-	c.SetCookie("u_name", "", -1, setting.Configuration.AppSubURL)
-	c.SetCookie("r_name", "", -1, setting.Configuration.AppSubURL)
-	c.SetCookie("_csrf", "", -1, setting.Configuration.AppSubURL)
-	c.SubURLRedirect("/")
+	c.Invoke(func(config *setting.Config) {
+		c.Session.Delete("uid")
+		c.Session.Delete("uname")
+		c.SetCookie("u_name", "", -1, config.AppSubURL)
+		c.SetCookie("r_name", "", -1, config.AppSubURL)
+		c.SetCookie("_csrf", "", -1, config.AppSubURL)
+		c.SubURLRedirect("/")
+	})
 }
 
 func SignUp(c *context.Context, db *database.Database) {
