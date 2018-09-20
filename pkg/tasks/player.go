@@ -64,7 +64,6 @@ func (p *Player) Start(e Executor) (int, error) {
 	}
 
 	res, err := e.Play(p.TaskID)
-
 	if err != nil {
 		if err.Error() == ABORT_EXECUTION_ERROR {
 			return 0, nil

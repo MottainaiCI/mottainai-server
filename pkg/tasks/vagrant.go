@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"time"
 
@@ -48,6 +49,13 @@ func (e *VagrantExecutor) Clean() error {
 
 func (d *VagrantExecutor) IsLibvirt() bool {
 	if d.Provider == "libvirt" {
+		return true
+	}
+	return false
+}
+
+func (d *VagrantExecutor) IsVirtualBox() bool {
+	if d.Provider == "virtualbox" {
 		return true
 	}
 	return false
@@ -205,6 +213,11 @@ func (d *VagrantExecutor) Setup(docID string) error {
 	}
 	d.Vagrant = vagrant
 	d.Vagrant.ProviderName = d.Provider
+
+	if d.IsVirtualBox() {
+		os.Setenv("VAGRANT_HOME", d.Context.BuildDir)
+		os.Setenv("VBOX_USER_HOME", d.Context.BuildDir)
+	}
 
 	if d.IsLibvirt() {
 		cmdName := "virsh"
