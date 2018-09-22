@@ -36,6 +36,8 @@ type Executor interface {
 	ExitStatus(int)
 }
 
+const SETUP_ERROR_MESSAGE = "Setup phase error: "
+
 type Player struct{ TaskID string }
 
 func NewPlayer(taskid string) *Player {
@@ -45,7 +47,7 @@ func NewPlayer(taskid string) *Player {
 func (p *Player) EarlyFail(e Executor, TaskID, reason string) {
 	err := e.Setup(p.TaskID)
 	if err != nil {
-		e.Fail("Setup phase error: " + err.Error())
+		e.Fail(SETUP_ERROR_MESSAGE + err.Error())
 	}
 	e.Fail(reason)
 }
@@ -57,10 +59,12 @@ func (p *Player) Start(e Executor) (int, error) {
 		// FIXME: This is incorrect if task is sent again to same node cause of error
 		// and agent is not working on it anymore
 		if err.Error() == ABORT_DUPLICATE_ERROR {
-			return 0, nil // Ignore task return and do nothing
+			e.Fail(SETUP_ERROR_MESSAGE + err.Error())
+			return 1, errors.New(SETUP_ERROR_MESSAGE + err.Error())
+			//return 0, nil // Ignore task return and do nothing
 		}
 		e.Fail("Setup phase error: " + err.Error())
-		return 1, errors.New("Setup phase error: " + err.Error())
+		return 1, errors.New(SETUP_ERROR_MESSAGE + err.Error())
 	}
 
 	res, err := e.Play(p.TaskID)
