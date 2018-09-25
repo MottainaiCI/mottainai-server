@@ -63,7 +63,7 @@ func Classic(config *setting.Config) *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
 	m.Map(config)
-
+	cl.Map(config)
 	database.NewDatabase("tiedot", config)
 
 	m.Map(database.DBInstance)
@@ -155,6 +155,7 @@ func Classic(config *setting.Config) *Mottainai {
 		SubURL: config.AppSubURL,
 	}))
 
+	m.Use(context.Contexter())
 	m.SetStatic()
 
 	if config.EmbedWebHookServer {
@@ -245,6 +246,7 @@ func (m *Mottainai) Start() error {
 		m.Map(th)
 		m.Map(c)
 		m.Map(m)
+		m.Map(m.Macaron)
 		c.Start()
 		m.LoadPlans()
 		// For now
