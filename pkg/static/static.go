@@ -192,7 +192,7 @@ func staticHandler(ctx *context.Context, log *log.Logger,
 		ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		ctx.Header().Set("Access-Control-Allow-Origin", accessControlAllowOrigin)
-		ctx.Header().Set("'Access-Control-Allow-Credentials' ", "true")
+		ctx.Header().Set("Access-Control-Allow-Credentials", "true")
 		ctx.Header().Set("Access-Control-Max-Age", "3600")
 		ctx.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 	}
