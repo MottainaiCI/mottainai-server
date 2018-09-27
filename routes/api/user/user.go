@@ -50,6 +50,7 @@ func SetManager(ctx *context.Context, db *database.Database) error {
 
 	return nil
 }
+
 func SetAdmin(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
@@ -125,6 +126,7 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) error {
 	}
 	return nil
 }
+
 func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 	err := UnSetAdmin(ctx, db)
 	if err != nil {
@@ -133,6 +135,7 @@ func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 
 	return "OK"
 }
+
 func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 	err := UnSetManager(ctx, db)
 	if err != nil {
@@ -141,6 +144,7 @@ func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 
 	return "OK"
 }
+
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
@@ -197,11 +201,25 @@ func ShowUser(c *context.Context, db *database.Database) {
 		return
 	}
 	c.JSON(200, u)
-
 }
 
 func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
+}
+
+func CreateUser(c *context.Context, db *database.Database, opts user.User) {
+
+	// For now create only normal user. Upgrade to admin/manager
+	// is done through specific api call.
+	opts.Admin = "no"
+	opts.Manager = "no"
+
+	u, err := db.Driver.InsertUser(opts)
+	if err != nil {
+		return ":(", err
+	}
+
+	c.JSON(200, u)
 }
 
 func Setup(m *macaron.Macaron) {
@@ -217,4 +235,5 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
 	m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 	m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+	m.Get("/api/user/create", reqSignIn, reqAdmin, CreateUser)
 }
