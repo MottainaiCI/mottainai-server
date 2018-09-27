@@ -207,7 +207,7 @@ func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
 
-func CreateUser(c *context.Context, db *database.Database, opts user.User) {
+func CreateUser(c *context.Context, db *database.Database, opts *user.User) (string, error) {
 
 	// For now create only normal user. Upgrade to admin/manager
 	// is done through specific api call.
@@ -219,7 +219,7 @@ func CreateUser(c *context.Context, db *database.Database, opts user.User) {
 		return ":(", err
 	}
 
-	c.JSON(200, u)
+	return u, nil
 }
 
 func Setup(m *macaron.Macaron) {
