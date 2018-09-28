@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package userapi
 
 import (
+	"fmt"
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -209,7 +210,7 @@ func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
 
-func CreateUser(c *context.Context, db *database.Database, opts *user.UserForm) (string, error) {
+func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
 	var u *user.User = &user.User{
 		Name:     opts.Name,
 		Email:    opts.Email,
@@ -230,7 +231,7 @@ func CreateUser(c *context.Context, db *database.Database, opts *user.UserForm) 
 
 func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
-		bind := binding.Bind
+		bind := binding.BindIgnErr
 		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
 		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
