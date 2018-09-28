@@ -27,6 +27,7 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	"github.com/go-macaron/binding"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	macaron "gopkg.in/macaron.v1"
@@ -225,6 +226,7 @@ func CreateUser(c *context.Context, db *database.Database, opts user.User) {
 
 func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
+		bind := binding.Bind
 		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
 		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
 		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
@@ -237,6 +239,6 @@ func Setup(m *macaron.Macaron) {
 		m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
 		m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 		m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-		m.Get("/api/user/create", reqSignIn, reqAdmin, CreateUser)
+		m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.User{}), CreateUser)
 	})
 }
