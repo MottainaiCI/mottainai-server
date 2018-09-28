@@ -208,19 +208,23 @@ func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
 
-func CreateUser(c *context.Context, db *database.Database, opts *user.User) (string, error) {
+func CreateUser(c *context.Context, db *database.Database, opts *user.UserForm) (string, error) {
+	var u *user.User = &user.User{
+		Name:     opts.Name,
+		Email:    opts.Email,
+		Password: opts.Password,
+		// For now create only normal user. Upgrade to admin/manager
+		// is done through specific api call.
+		Admin:   "no",
+		Manager: "no",
+	}
 
-	// For now create only normal user. Upgrade to admin/manager
-	// is done through specific api call.
-	opts.Admin = "no"
-	opts.Manager = "no"
-
-	u, err := db.Driver.InsertUser(opts)
+	r, err := db.Driver.InsertUser(u)
 	if err != nil {
 		return ":(", err
 	}
 
-	return u, nil
+	return r, nil
 }
 
 func Setup(m *macaron.Macaron) {
@@ -237,5 +241,5 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
 	m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 	m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-	m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.User{}), CreateUser)
+	m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
 }

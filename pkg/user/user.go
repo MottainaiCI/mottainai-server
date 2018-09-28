@@ -47,6 +47,12 @@ type User struct {
 	Manager  string `json:"is_manager" form:"is_manager"`
 }
 
+type UserForm struct {
+	Name     string `form:"name"`
+	Email    string `form:"email"`
+	Password string `form:"password"`
+}
+
 func (u *User) AddIdentity(t string, i *Identity) {
 	if len(u.Identities) == 0 {
 		u.Identities = make(map[string]Identity)
@@ -214,7 +220,21 @@ func (t *User) Clear() {
 }
 
 func (t *User) ToMap() map[string]interface{} {
+	ts := make(map[string]interface{})
+	val := reflect.ValueOf(t).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
 
+		tag := typeField.Tag
+
+		ts[tag.Get("form")] = valueField.Interface()
+		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
+	}
+	return ts
+}
+
+func (t *UserForm) ToMap() map[string]interface{} {
 	ts := make(map[string]interface{})
 	val := reflect.ValueOf(t).Elem()
 	for i := 0; i < val.NumField(); i++ {
