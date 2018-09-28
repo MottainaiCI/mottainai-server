@@ -23,10 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespaceroute
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	m.Get("/namespaces", ShowAll)
-	m.Get("/namespaces/show/:name", Show)
+	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
+
+	m.Get("/namespaces", reqSignIn, ShowAll)
+	m.Get("/namespaces/show/:name", reqSignIn, Show)
 }
