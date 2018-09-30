@@ -172,7 +172,7 @@ func NewConfig(viper *v.Viper) *Config {
 func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("web.protocol", "http")
-	viper.SetDefault("web.url", "http://127.0.0.1:9090")
+	viper.SetDefault("web.url", "/")
 	viper.SetDefault("web.listenaddress", "127.0.0.1")
 	viper.SetDefault("web.port", "9090")
 	viper.SetDefault("web.application_name", "Mottainai")
