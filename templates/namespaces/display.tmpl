@@ -14,7 +14,7 @@
 
                               <div class="alert alert-secondary fade show">
                                 <span class="badge badge-pill badge-secondary">Tip</span>
-                                Upload files to this namespace with: <code>mottainai-cli --master {{AppSubURL}} namespace upload {{.Name}} myawesomefile.txt / </code><br>
+                                Upload files to this namespace with: <code>mottainai-cli --master {{AppURL}} namespace upload {{.Name}} myawesomefile.txt / </code><br>
                               </div>
 
                       <table id="namespace-artefact-table" class="table table-striped table-bordered">
@@ -29,7 +29,7 @@
                           {{$namespace := $.Name}}
                           {{range .Artefacts}}
                           <tr>
-                            <td><a href="/namespace/{{$namespace}}/{{.}}/" target="_blank">{{.}}</a></td>
+                            <td><a href="{{BuildURI "/namespace/"}}{{$namespace}}/{{.}}/" target="_blank">{{.}}</a></td>
                           </tr>
                           {{end}}
 
@@ -42,8 +42,8 @@
 
 
 
-                    <script src="/assets/js/lib/data-table/datatables.min.js"></script>
-                    <script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
+                    <script src="{{BuildURI "/assets/js/lib/data-table/datatables.min.js"}}"></script>
+                    <script src="{{BuildURI "/assets/js/lib/data-table/dataTables.bootstrap.min.js"}}"></script>
 
             <script type="text/javascript">
                 $(document).ready(function() {

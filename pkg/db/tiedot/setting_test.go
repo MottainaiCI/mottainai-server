@@ -40,8 +40,8 @@ func TestInsertSetting(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	config.DBPath = "./DB"
-	db := New(config.DBPath)
+	config.GetDatabase().DBPath = "./DB"
+	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
 	db.Init()
 	dbtestt = db
@@ -123,7 +123,7 @@ func TestGetSettingByUid(t *testing.T) {
 	db := dbtestt
 
 	db.Invoke(func(config *setting.Config) {
-		dbpath = config.DBPath
+		dbpath = config.GetDatabase().DBPath
 	})
 	defer os.RemoveAll(dbpath)
 

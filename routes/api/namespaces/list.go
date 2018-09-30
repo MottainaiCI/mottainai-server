@@ -44,7 +44,7 @@ func NamespaceList(ctx *context.Context, db *database.Database) {
 
 	var ns []string
 	ctx.Invoke(func(config *setting.Config) {
-		ns = Namespaces(config.NamespacePath)
+		ns = Namespaces(config.GetStorage().NamespacePath)
 	})
 	ctx.JSON(200, ns)
 }
@@ -67,7 +67,7 @@ func NamespaceListArtefacts(ctx *context.Context, db *database.Database) {
 
 	var artefacts []string
 	ctx.Invoke(func(config *setting.Config) {
-		artefacts = NamespaceArtefacts(name, config.NamespacePath)
+		artefacts = NamespaceArtefacts(name, config.GetStorage().NamespacePath)
 	})
 
 	// ns, err := db.SearchNamespace(name)

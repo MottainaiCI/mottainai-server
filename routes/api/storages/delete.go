@@ -49,7 +49,7 @@ func StorageDelete(ctx *context.Context, db *database.Database) (string, error) 
 	if err != nil {
 		return ":(", err
 	}
-	err = os.RemoveAll(filepath.Join(db.Config.StoragePath, storage.Path))
+	err = os.RemoveAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path))
 	if err != nil {
 		return ":(", err
 	}
@@ -70,7 +70,7 @@ func StorageRemovePath(ctx *context.Context, db *database.Database) (string, err
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	err = os.RemoveAll(filepath.Join(db.Config.StoragePath, storage.Path, path))
+	err = os.RemoveAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, path))
 	if err != nil {
 		return ":(", err
 	}

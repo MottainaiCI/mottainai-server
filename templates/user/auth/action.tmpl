@@ -5,13 +5,13 @@
    <div class="dropdown-menu bg-dark" aria-labelledby="dropdownMenuButton">
        <div class="dropdown-menu-content ">
 
-          <a href="/user/delete/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
+         <a href="{{BuildURI "/user/delete/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
           <hr>
-          <a href="/user/set/admin/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-rocket"></i>&nbsp; Make admin</button></a>
-          <a href="/user/unset/admin/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove admin</button></a>
+          <a href="{{BuildURI "/user/set/admin/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-rocket"></i>&nbsp; Make admin</button></a>
+          <a href="{{BuildURI "/user/unset/admin/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove admin</button></a>
           <hr>
-          <a href="/user/set/manager/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-shield"></i>&nbsp; Make manager</button></a>
-          <a href="/user/unset/manager/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove manager</button></a>
+          <a href="{{BuildURI "/user/set/manager/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-shield"></i>&nbsp; Make manager</button></a>
+          <a href="{{BuildURI "/user/unset/manager/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove manager</button></a>
 
        </div>
    </div>

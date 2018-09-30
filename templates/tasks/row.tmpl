@@ -5,7 +5,7 @@
           {{else if eq .Result "error"}}warning
             {{else if eq .Result "failed"}}fail
             {{else}}unkn{{end}}'>
-      <a href="/tasks/display/{{.ID}}">
+          <a href="{{BuildURI "/tasks/display/"}}{{.ID}}">
         {{if eq .Status "running"}}
             <i class="fa fa-circle-o-notch fa-spin font-info" aria-hidden="true"></i>
             {{else if eq .Result "success"}}

@@ -27,6 +27,7 @@ import (
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
@@ -38,5 +39,7 @@ func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 		return
 	}
 
-	ctx.Redirect("/nodes")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/nodes"))
+	})
 }

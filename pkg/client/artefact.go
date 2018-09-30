@@ -39,7 +39,9 @@ import (
 
 func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 	var fileList []string
-	err := d.GetJSONOptions("/api/namespace/"+namespace+"/list", map[string]string{}, &fileList)
+	url := d.Config.GetWeb().BuildURI(
+		fmt.Sprintf("/api/namespace/%s/list", namespace))
+	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
 	if err != nil {
 		return []string{}, err
 	}
@@ -49,7 +51,9 @@ func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 
 func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 	var fileList []string
-	err := d.GetJSONOptions("/api/storage/"+storage+"/list", map[string]string{}, &fileList)
+	url := d.Config.GetWeb().BuildURI(
+		fmt.Sprintf("/api/storage/%s/list", storage))
+	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
 	if err != nil {
 		return []string{}, err
 	}
@@ -59,7 +63,9 @@ func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 
 func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	var fileList []string
-	err := d.GetJSONOptions("/api/tasks/"+task+"/artefacts", map[string]string{}, &fileList)
+	url := d.Config.GetWeb().BuildURI(
+		fmt.Sprintf("/api/tasks/%s/artefacts", task))
+	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
 	if err != nil {
 		return []string{}, err
 	}
@@ -72,7 +78,6 @@ func (d *Fetcher) DownloadArtefactsFromTask(taskid, target string) error {
 }
 
 func (fetcher *Fetcher) UploadFile(path, art string) error {
-
 	_, file := filepath.Split(path)
 	rel := strings.Replace(path, art, "", 1)
 	rel = strings.Replace(rel, file, "", 1)
@@ -115,7 +120,9 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 			return err
 		}
 		var storage_data storageci.Storage
-		err = d.GetJSONOptions("/api/"+artefact_type+"/"+id+"/show", map[string]string{}, &storage_data)
+		url := d.Config.GetWeb().BuildURI(
+			fmt.Sprintf("/api/%s/%s/show", artefact_type, id))
+		err = d.GetJSONOptions(url, map[string]string{}, &storage_data)
 		if err != nil {
 			d.AppendTaskOutput("Downloading failed during retrieveing storage data : " + err.Error())
 			return err
@@ -172,7 +179,6 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 	}
 
 	return nil
-
 }
 
 func (d *Fetcher) DownloadArtefactsFromNamespace(namespace, target string) error {
@@ -202,10 +208,10 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	}
 	defer response.Body.Close()
 	body := response.Body
-	if d.Config.DownloadRateLimit != 0 {
+	if d.Config.GetAgent().DownloadRateLimit != 0 {
 		// KB
-		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.DownloadRateLimit, 10))
-		body = flowrate.NewReader(response.Body, 1024*d.Config.DownloadRateLimit)
+		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.GetAgent().DownloadRateLimit, 10))
+		body = flowrate.NewReader(response.Body, 1024*d.Config.GetAgent().DownloadRateLimit)
 	}
 	if !responseSuccess(response) {
 		return false, errors.New("Error: " + response.Status)
@@ -234,7 +240,8 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 		//	"namespace": dir,
 	}
 
-	request, err := f.Upload("/api/storage/upload", opts, "file", fullpath)
+	url := f.Config.GetWeb().BuildURI("/api/storage/upload")
+	request, err := f.Upload(url, opts, "file", fullpath)
 	if err != nil {
 		panic(err)
 	}
@@ -275,7 +282,8 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 		//	"namespace": dir,
 	}
 
-	if err := f.UploadLargeFile("/api/tasks/artefact/upload", opts, "file", fullpath, 1024); err != nil {
+	url := f.Config.GetWeb().BuildURI("/api/tasks/artefact/upload")
+	if err := f.UploadLargeFile(url, opts, "file", fullpath, 1024); err != nil {
 		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
 		return err
 	}
@@ -292,7 +300,8 @@ func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) 
 		//	"namespace": dir,
 	}
 
-	if err := f.UploadLargeFile("/api/namespace/upload", opts, "file", fullpath, 1024); err != nil {
+	url := f.Config.GetWeb().BuildURI("/api/namespace/upload")
+	if err := f.UploadLargeFile(url, opts, "file", fullpath, 1024); err != nil {
 		return err
 	}
 	return nil

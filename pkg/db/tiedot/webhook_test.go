@@ -41,8 +41,8 @@ func TestInsertWebHook(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	config.DBPath = "./DB"
-	db := New(config.DBPath)
+	config.GetDatabase().DBPath = "./DB"
+	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
 	db.Init()
 	dbtest5 = db
@@ -109,7 +109,7 @@ func TestGetWebHookByUid(t *testing.T) {
 	db := dbtest5
 
 	db.Invoke(func(config *setting.Config) {
-		dbpath = config.DBPath
+		dbpath = config.GetDatabase().DBPath
 	})
 	defer os.RemoveAll(dbpath)
 

@@ -31,7 +31,8 @@ import (
 )
 
 func (f *Fetcher) SetTaskField(field, value string) ([]byte, error) {
-	return f.GetOptions("/api/tasks/updatefield", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/updatefield")
+	return f.GetOptions(url, map[string]string{
 		"id":    f.docID,
 		"field": field,
 		"value": value,
@@ -39,7 +40,8 @@ func (f *Fetcher) SetTaskField(field, value string) ([]byte, error) {
 }
 
 func (f *Fetcher) SetTaskStatus(status string) ([]byte, error) {
-	return f.GetOptions("/api/tasks/update", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
+	return f.GetOptions(url, map[string]string{
 		"id":     f.docID,
 		"status": status,
 	})
@@ -58,9 +60,10 @@ func (f *Fetcher) FailTask(e string) {
 
 func (f *Fetcher) SetupTask() {
 	f.SetTaskStatus(setting.TASK_STATE_SETUP)
-	f.GetOptions("/api/tasks/update/node", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/update/node")
+	f.GetOptions(url, map[string]string{
 		"id":  f.docID,
-		"key": f.Config.AgentKey,
+		"key": f.Config.GetAgent().AgentKey,
 	})
 }
 
@@ -82,7 +85,8 @@ func (f *Fetcher) SuccessTask() {
 }
 
 func (f *Fetcher) GetTask() ([]byte, error) {
-	doc, err := f.GetOptions("/api/tasks/"+f.docID, map[string]string{})
+	url := f.Config.GetWeb().BuildURI(fmt.Sprintf("/api/tasks/%s", f.docID))
+	doc, err := f.GetOptions(url, map[string]string{})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -90,7 +94,8 @@ func (f *Fetcher) GetTask() ([]byte, error) {
 }
 
 func (f *Fetcher) AllTasks() ([]byte, error) {
-	doc, err := f.GetOptions("/api/tasks", map[string]string{})
+	url := f.Config.GetWeb().BuildURI("/api/tasks")
+	doc, err := f.GetOptions(url, map[string]string{})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -98,14 +103,16 @@ func (f *Fetcher) AllTasks() ([]byte, error) {
 }
 
 func (f *Fetcher) SetTaskResult(result string) ([]byte, error) {
-	return f.GetOptions("/api/tasks/update", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
+	return f.GetOptions(url, map[string]string{
 		"id":     f.docID,
 		"result": result,
 	})
 }
 
 func (f *Fetcher) SetTaskOutput(output string) ([]byte, error) {
-	return f.GetOptions("/api/tasks/update", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
+	return f.GetOptions(url, map[string]string{
 		"id":     f.docID,
 		"output": output,
 	})
@@ -129,7 +136,8 @@ func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
 	if f.ActiveReports {
 		fmt.Println(output)
 	}
-	return f.GetOptions("/api/tasks/append", map[string]string{
+	url := f.Config.GetWeb().BuildURI("/api/tasks/append")
+	return f.GetOptions(url, map[string]string{
 		"id":     f.docID,
 		"output": output,
 	})

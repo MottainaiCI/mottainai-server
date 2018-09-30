@@ -73,7 +73,7 @@ func TestTaskExecutor(t *testing.T) {
 	dir := os.TempDir()
 	defer os.RemoveAll(dir)
 
-	config.AppName = "test"
+	config.GetWeb().AppName = "test"
 	//TODO: Slim context :(
 	ctx.ArtefactDir = dir
 	ctx.BuildDir = dir

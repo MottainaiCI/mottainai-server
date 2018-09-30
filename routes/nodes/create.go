@@ -25,6 +25,7 @@ package nodesroute
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 
 	rabbithole "github.com/michaelklishin/rabbit-hole"
@@ -38,5 +39,7 @@ func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 		return
 	}
 
-	ctx.Redirect("/nodes")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/nodes"))
+	})
 }

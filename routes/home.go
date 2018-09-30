@@ -70,7 +70,7 @@ func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 	auth.Setup(m.Macaron)
 
 	m.Invoke(func(config *setting.Config) {
-		if config.EmbedWebHookServer {
+		if config.GetWeb().EmbedWebHookServer {
 			AddWebHook(m)
 		}
 	})

@@ -4,10 +4,10 @@
    </button>
    <div class="dropdown-menu bg-dark" aria-labelledby="dropdownMenuButton">
        <div class="dropdown-menu-content ">
-          <a href="/tasks/delete/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
-          <a href="/tasks/stop/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-stop-circle"></i>&nbsp; Stop</button></a>
-          <a href="/tasks/start/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-play-circle"></i>&nbsp; Start</button></a>
-          <a href="/tasks/clone/{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-copy"></i>&nbsp; Clone</button></a>
+         <a href="{{BuildURI "/tasks/delete/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
+         <a href="{{BuildURI "/tasks/stop/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-stop-circle"></i>&nbsp; Stop</button></a>
+         <a href="{{BuildURI "/tasks/start/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-play-circle"></i>&nbsp; Start</button></a>
+         <a href="{{BuildURI "/tasks/clone/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-copy"></i>&nbsp; Clone</button></a>
        </div>
    </div>
 </div>

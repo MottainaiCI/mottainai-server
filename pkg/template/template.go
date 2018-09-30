@@ -43,9 +43,9 @@ import (
 
 func TemplatePreview(c *context.Context, templatename string, config *setting.Config) {
 	//c.Data["User"] = models.User{Name: "Unknown"}
-	c.Data["AppName"] = config.AppName
+	c.Data["AppName"] = config.GetWeb().AppName
 	c.Data["AppVer"] = setting.MOTTAINAI_VERSION
-	c.Data["AppURL"] = config.AppURL
+	c.Data["AppURL"] = config.GetWeb().AppURL
 	c.Data["Code"] = "2014031910370000009fff6782aadb2162b4a997acb69d4400888e0b9274657374"
 	//c.Data["ActiveCodeLives"] = config.Service.ActiveCodeLives / 60
 	//c.Data["ResetPwdCodeLives"] = config.Service.ResetPwdCodeLives / 60
@@ -58,8 +58,8 @@ func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
 		funcMap := NewFuncMap(config)
 		m.Use(macaron.Renderer(macaron.RenderOptions{
-			Directory:         path.Join(config.StaticRootPath, "templates"),
-			AppendDirectories: []string{path.Join(config.CustomPath, "templates")},
+			Directory:         path.Join(config.GetWeb().StaticRootPath, "templates"),
+			AppendDirectories: []string{path.Join(config.GetWeb().TemplatePath, "templates")},
 			Funcs:             funcMap,
 			IndentJSON:        macaron.Env != macaron.PROD,
 		}))
@@ -73,19 +73,22 @@ func NewFuncMap(config *setting.Config) []template.FuncMap {
 			return strings.Title(runtime.Version())
 		},
 		"UseHTTPS": func() bool {
-			return strings.HasPrefix(config.AppURL, "https")
+			return strings.HasPrefix(config.GetWeb().AppURL, "https")
 		},
 		"AppName": func() string {
-			return config.AppName
+			return config.GetWeb().AppName
 		},
 		"AppSubURL": func() string {
-			return config.AppSubURL
+			return config.GetWeb().AppSubURL
 		},
 		"AppURL": func() string {
-			return config.AppURL
+			return config.GetWeb().AppURL
 		},
 		"AppVer": func() string {
 			return setting.MOTTAINAI_VERSION
+		},
+		"BuildURI": func(pattern string) string {
+			return config.GetWeb().BuildURI(pattern)
 		},
 		"LoadTimes": func(startTime time.Time) string {
 			return fmt.Sprint(time.Since(startTime).Nanoseconds()/1e6) + "ms"

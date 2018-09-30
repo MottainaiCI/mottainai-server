@@ -42,8 +42,8 @@ func TestInsertTask(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	config.DBPath = "./DB"
-	db := New(config.DBPath)
+	config.Database.DBPath = "./DB"
+	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
 	db.Init()
 	dbtest = db
@@ -94,7 +94,7 @@ func TestUpdateTask(t *testing.T) {
 	var dbpath string
 	db := dbtest
 	db.GetAgent().Invoke(func(config *setting.Config) {
-		dbpath = config.DBPath
+		dbpath = config.GetDatabase().DBPath
 	})
 	defer os.RemoveAll(dbpath)
 

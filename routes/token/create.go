@@ -27,6 +27,7 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func Create(ctx *context.Context, db *database.Database) {
@@ -40,5 +41,7 @@ func Create(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Redirect("/token")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/token"))
+	})
 }

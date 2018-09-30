@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 	config.Viper.AutomaticEnv()
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
-	config.Broker = "amqp://guest@127.0.0.1:5672/"
+	config.GetBroker().Broker = "amqp://guest@127.0.0.1:5672/"
 
 	server := NewServer()
 	broker := NewBroker()
@@ -57,7 +57,7 @@ func TestAdd(t *testing.T) {
 	config.Viper.AutomaticEnv()
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
-	config.Broker = "amqp://guest@127.0.0.1:5672/"
+	config.GetBroker().Broker = "amqp://guest@127.0.0.1:5672/"
 
 	server := NewServer()
 

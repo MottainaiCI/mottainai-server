@@ -50,7 +50,7 @@ func ClassicWebHookServer(config *setting.Config) *WebHookServer {
 func SetupWebHook(m *Mottainai) {
 
 	m.Invoke(func(config *setting.Config) {
-		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: config.WebHookGitHubTokenUser})
+		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: config.GetWeb().WebHookGitHubTokenUser})
 		tc := oauth2.NewClient(oauth2.NoContext, ts)
 
 		// Get a client instance from github
@@ -87,8 +87,8 @@ func (m *WebHookServer) Start() error {
 
 	var listenAddr string
 	m.Invoke(func(config *setting.Config) {
-		listenAddr = fmt.Sprintf("%s:%s", config.HTTPAddr, config.HTTPPort)
-		log.Printf("Listen: %v://%s", config.Protocol, listenAddr)
+		listenAddr = fmt.Sprintf("%s:%s", config.GetWeb().HTTPAddr, config.GetWeb().HTTPPort)
+		log.Printf("Listen: %v://%s", config.GetWeb().Protocol, listenAddr)
 	})
 
 	//m.Run()

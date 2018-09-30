@@ -96,7 +96,7 @@ func NewClient(host string, config *setting.Config) *Fetcher {
 }
 
 func NewFetcher(docID string, config *setting.Config) *Fetcher {
-	f := NewClient(config.AppURL, config)
+	f := NewClient(config.GetWeb().AppURL, config)
 	f.docID = docID
 	return f
 }
@@ -111,7 +111,7 @@ func NewBasicClient(config *setting.Config) *Fetcher {
 }
 
 func New(docID string, a *anagent.Anagent, config *setting.Config) *Fetcher {
-	f := NewClient(config.AppURL, config)
+	f := NewClient(config.GetWeb().AppURL, config)
 	f.docID = docID
 	f.Agent = a
 	return f
@@ -412,9 +412,9 @@ func (f *Fetcher) UploadLargeFile(uri string, params map[string]string, paramNam
 	}
 
 	// XXX: Yeah, this is just a fancier way of reading slowly from kernel buffers, i know.
-	if f.Config.UploadRateLimit != 0 {
-		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.UploadRateLimit, 10))
-		reader := flowrate.NewReader(io.Reader(rd), 1024*f.Config.UploadRateLimit)
+	if f.Config.GetAgent().UploadRateLimit != 0 {
+		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.GetAgent().UploadRateLimit, 10))
+		reader := flowrate.NewReader(io.Reader(rd), 1024*f.Config.GetAgent().UploadRateLimit)
 		req, err = http.NewRequest("POST", f.BaseURL+uri, reader)
 		if err != nil {
 			return err

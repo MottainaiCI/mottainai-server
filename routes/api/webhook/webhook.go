@@ -49,7 +49,8 @@ func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
 		reqSignIn := context.Toggle(&context.ToggleOptions{
 			SignInRequired: true,
-			BaseURL:        config.AppSubURL,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL,
 		})
 
 		m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)

@@ -34,7 +34,10 @@ import (
 func Setup(m *macaron.Macaron) {
 
 	m.Invoke(func(config *setting.Config) {
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
 
 		bind := binding.BindIgnErr
 		m.Get("/tasks", reqSignIn, ShowAll)
@@ -48,6 +51,6 @@ func Setup(m *macaron.Macaron) {
 
 		//Public
 		m.Get("/tasks/display/:id", reqSignIn, DisplayTask)
-		m.Get("/tasks/artefacts/:id", ShowArtefacts)
+		m.Get("/tasks/artefacts/:id", reqSignIn, ShowArtefacts)
 	})
 }

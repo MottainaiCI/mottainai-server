@@ -5,8 +5,8 @@
         <div class="container">
             <div class="login-content">
                 <div class="login-logo">
-                    <a href="/">
-                        <img class="align-content" src="/images/logo.png" alt="">
+                  <a href="{{BuildURI "/"}}">
+                    <img class="align-content" src="{{BuildURI "/images/logo.png"}}" alt="">
                     </a>
                 </div>
                 <div class="login-form">
@@ -36,7 +36,7 @@
                         </div>
                         {{ else }}
                         <div class="register-link m-t-15 text-center">
-                            <p>Don't have account ? <a href="/user/sign_up"> Sign Up Here</a></p>
+                          <p>Don't have account ? <a href="{{BuildURI "/user/sign_up"}}"> Sign Up Here</a></p>
                         </div>
                         {{ end }}
                     </form>
@@ -46,7 +46,7 @@
     </div>
 
 
-    <script src="/assets/js/vendor/jquery-2.1.4.min.js"></script>
-    <script src="/assets/js/plugins.js"></script>
-    <script src="/assets/js/main.js"></script>
+    <script src="{{BuildURI "/assets/js/vendor/jquery-2.1.4.min.js"}}"></script>
+    <script src="{{BuildURI "/assets/js/plugins.js"}}"></script>
+    <script src="{{BuildURI "/assets/js/main.js"}}"></script>
     </body>

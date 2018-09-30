@@ -206,11 +206,23 @@ func Setup(m *macaron.Macaron) {
 	// ignSignInAndCsrf := context.Toggle(&context.ToggleOptions{DisableCSRF: true})
 
 	m.Invoke(func(config *setting.Config) {
-		reqSignOut := context.Toggle(&context.ToggleOptions{SignOutRequired: true, BaseURL: config.AppSubURL})
+		reqSignOut := context.Toggle(&context.ToggleOptions{
+			SignOutRequired: true,
+			Config:          config,
+			BaseURL:         config.GetWeb().AppSubURL})
 		bindIgnErr := binding.BindIgnErr
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
-		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
-		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
+		reqAdmin := context.Toggle(&context.ToggleOptions{
+			AdminRequired: true,
+			Config:        config,
+			BaseURL:       config.GetWeb().AppSubURL})
+		reqManager := context.Toggle(&context.ToggleOptions{
+			ManagerRequired: true,
+			Config:          config,
+			BaseURL:         config.GetWeb().AppSubURL})
 
 		m.Group("/user", func() {
 			m.Group("/login", func() {
@@ -224,9 +236,9 @@ func Setup(m *macaron.Macaron) {
 
 		// TODO: Move from Here
 		goth.UseProviders(
-			github.New(config.WebHookGitHubToken,
-				config.WebHookGitHubSecret,
-				config.AppURL+"/auth/github/callback"),
+			github.New(config.GetWeb().WebHookGitHubToken,
+				config.GetWeb().WebHookGitHubSecret,
+				config.GetWeb().BuildURI("/auth/github/callback")),
 		)
 
 		m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)

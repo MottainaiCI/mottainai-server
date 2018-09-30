@@ -55,7 +55,7 @@ func (d *Database) DeleteStorage(docID string) error {
 	}
 
 	d.Invoke(func(config *setting.Config) {
-		os.RemoveAll(filepath.Join(config.StoragePath, ns.Path))
+		os.RemoveAll(filepath.Join(config.GetStorage().StoragePath, ns.Path))
 	})
 
 	return d.DeleteDoc(StorageColl, docID)

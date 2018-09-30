@@ -1,0 +1,168 @@
+# Mottainai Server Config
+
+general:
+  debug: false
+  # Default 
+  logfile: '/var/log/mottainai/mottainai-server.log'
+  loglevel: 'DEBUG'
+
+  # TLS options
+  # tls_cert:
+  # tls_key
+
+  # Others logrus options / providers
+
+#----------------------------------------------
+# Web UI Configuration
+#----------------------------------------------
+web:
+  # Define URL of the Web Application.
+  # If Mottainai if under reverse proxy set this param
+  # with relative path related with exposed path. Example: /mottainai
+  url: '/'
+
+  # Listening address
+  listenaddress: '127.0.0.1'
+
+  # Listening port where expose Mottainai WebUI
+  port: '19090'
+
+  # URL used for share API access address
+  application_url: 'http://127.0.0.1:19090/'
+
+  # Define Web Interface protocol.
+  # Default is http. Values: http or https.
+  # protocol: "http"
+
+  # Define application name.
+  # application_name: "Mottainai"
+
+  # Web templates directory
+  # template_dir: "./"
+
+  # Root path ???
+  root_path: './'
+
+  # Define value for header Access-Control-Allow-Origin
+  # access_control_allow_origin: '*'
+
+  # Enable/Disable Embedded WebHook Server
+  embed_webhookserver: True
+
+  # Access Token
+  # access_token: ''
+
+  # WebHook Github Parameters
+  # github_token: 'xxxx'
+  # github_token_user: 'xxx'
+  # github_secret: 'xxxx'
+  # webhook_token: 'xxxxx'
+
+broker:
+
+  # Broker type
+  type: 'amqp'
+
+  # AMQP Broker for Result
+  result_backend: 'amqp://guest:guest@127.0.0.1:5672/'
+  # Address of Request Broker
+  broker: 'amqp://guest:guest@127.0.0.1:5672/'
+  default_queue: "standard"
+  exchange: "jobs"
+  # exchange_type: "direct"
+  # binding_key: "machinery_task"
+
+  # broker api management (if available)
+  mgmt_uri: 'http://127.0.0.1:18080'
+  user: 'guest'
+  pass: 'guest'
+
+  results_expire_in: 3600
+
+db:
+  engine: 'tiedot'
+
+  # Configuration params for tiedot adapter
+  db_path: '/sdpool/mottainai/web/db'
+
+storage:
+  # Define type of storage for users data
+  type: 'dir'
+
+  # Artefacts paths
+  artefact_path: '/sdpool/mottainai/web/artefact'
+  # Namespaces path
+  namespace_path: '/sdpool/mottainai/web/namespaces'
+  # Storages path
+  storage_path: '/sdpool/mottainai/web/storage'
+
+# Mottainai agent options
+agent:
+
+  # Agent key
+  agent_key: "xxxxxxx"
+  # API Key
+  api_key: "xxxxxx"
+
+  # Standalone mode. Agent task only specific task
+  # standalone: False
+
+  # Directory where store building data
+  build_path: "/build"
+
+  concurrency: 1
+  # Secret Key of the Agent
+  secret_key: "xxxxxxxx"
+  executor: 'docker|lxd|qemu'
+
+  # Define Size of private queue
+  # private_queue: 1
+
+  # Define download speed limit. 0 means no limit
+  # download_speed_limit: 0
+  # Define upload speed limit. 0 means no limit
+  # upload_speed_limit: 0
+
+  # Define Queues handled by Agent and number of concurrency tasks
+  # queues:
+  #  iso: 2
+
+  # Cache Registry options where push docker containers images.
+  # cache_registry:
+  #    type: "docker"
+  #    username: "xxxxxx"
+  #    password: "yyyyyyyyy"
+  #    entity: "zzzzz"
+  #    serveraddress: "https://index.docker.io/v1"
+
+  # Define operations executed by Agent Healtcheck
+  health_check_exec:
+     - docker system prune --force --all --volumes
+  # health_check_clean_path: 
+
+  # ----------------------------------
+  # Docker executor options
+  # ----------------------------------
+  # Define Docker CAPS
+  docker_caps:
+    - 'SYS_PTRACE'
+
+  # Define List of CAPS to drop
+  # docker_caps_drop:
+  #   - 'SYS_PTRACE'
+
+  # Docker endpoint
+  docker_endpoint: "unix:///var/run/docker.sock"
+
+  docker_keepimg: True
+  # Enable docker privileged container
+  # docker_privileged: False
+
+  # Enable DID (Docker in Docker)
+  # docker_in_docker: False
+
+  # Define DID mountpoint
+  # docker_in_docker_endpoint: /var/run/docker.sock
+
+  # ----------------------------------
+

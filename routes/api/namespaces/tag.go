@@ -51,7 +51,8 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	}
 
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
-	err = ns.Tag(task.ID, db.Config.NamespacePath, db.Config.ArtefactPath)
+	err = ns.Tag(task.ID, db.Config.GetStorage().NamespacePath,
+		db.Config.GetStorage().ArtefactPath)
 	if err != nil {
 		return ":(", err
 	}
@@ -106,7 +107,8 @@ func NamespaceAppend(ctx *context.Context, db *database.Database) (string, error
 	}
 
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
-	err = ns.Append(task.ID, db.Config.NamespacePath, db.Config.ArtefactPath)
+	err = ns.Append(task.ID, db.Config.GetStorage().NamespacePath,
+		db.Config.GetStorage().ArtefactPath)
 	if err != nil {
 		return ":(", err
 	}
@@ -127,7 +129,8 @@ func NamespaceClone(ctx *context.Context, db *database.Database) (string, error)
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
-	err := ns.Clone(namespace.NewFromMap(map[string]interface{}{"name": from, "path": from}), db.Config.NamespacePath)
+	err := ns.Clone(namespace.NewFromMap(map[string]interface{}{"name": from, "path": from}),
+		db.Config.GetStorage().NamespacePath)
 	if err != nil {
 		return ":(", err
 	}

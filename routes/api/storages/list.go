@@ -76,7 +76,7 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
-	source := filepath.Join(db.Config.StoragePath, st.Path)
+	source := filepath.Join(db.Config.GetStorage().StoragePath, st.Path)
 	artefacts := utils.TreeList(source)
 
 	// artefacts, err := db.Driver.GetStorageArtefacts(ns.ID)

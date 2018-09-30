@@ -232,9 +232,18 @@ func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
 func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
 		bind := binding.BindIgnErr
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
-		reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true, BaseURL: config.AppSubURL})
-		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
+		reqAdmin := context.Toggle(&context.ToggleOptions{
+			AdminRequired: true,
+			Config:        config,
+			BaseURL:       config.GetWeb().AppSubURL})
+		reqManager := context.Toggle(&context.ToggleOptions{
+			ManagerRequired: true,
+			Config:          config,
+			BaseURL:         config.GetWeb().AppSubURL})
 
 		m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
 		m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)

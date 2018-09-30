@@ -33,11 +33,12 @@ import (
 	"github.com/go-macaron/session"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	macaron "gopkg.in/macaron.v1"
 )
 
-func IsAPIPath(url string) bool {
-	return strings.HasPrefix(url, "/api/")
+func IsAPIPath(url string, c *setting.WebConfig) bool {
+	return strings.HasPrefix(url, c.BuildURI("/api/"))
 }
 
 // SignedInID returns the id of signed in user.
