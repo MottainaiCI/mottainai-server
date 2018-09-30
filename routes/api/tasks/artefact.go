@@ -66,7 +66,7 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 		panic(err)
 	}
 
-	artefacts := t.Artefacts(db.Config.ArtefactPath)
+	artefacts := t.Artefacts(db.Config.GetStorage().ArtefactPath)
 
 	ctx.JSON(200, artefacts)
 }
@@ -88,8 +88,8 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	var f *os.File = nil
 	ctx.Invoke(func(config *setting.Config) {
 
-		os.MkdirAll(filepath.Join(config.ArtefactPath, task.ID, uf.Path), os.ModePerm)
-		f, err = os.OpenFile(filepath.Join(config.ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		os.MkdirAll(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path), os.ModePerm)
+		f, err = os.OpenFile(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	})
 
 	defer f.Close()

@@ -35,7 +35,7 @@ func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Datab
 		ctx.NotFound()
 		return ":("
 	}
-	ctx.Redirect("/nodes")
+	ctx.Redirect(db.Config.GetWeb().BuildURI("/nodes"))
 
 	return "OK"
 }

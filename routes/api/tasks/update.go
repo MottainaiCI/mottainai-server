@@ -75,7 +75,7 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 				if err != nil {
 					return err
 				}
-				t.HandleStatus(db.Config.NamespacePath, db.Config.ArtefactPath)
+				t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 			}
 		}
 	}
@@ -110,7 +110,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 		if err != nil {
 			return ":("
 		}
-		err = mytask.AppendBuildLog(f.Output, db.Config.ArtefactPath, db.Config.LockPath)
+		err = mytask.AppendBuildLog(f.Output, db.Config.GetStorage().ArtefactPath, db.Config.GetAgent().LockPath)
 		if err != nil {
 			fmt.Println("Can't write to buildlog: ", err.Error())
 			return "Error: " + err.Error()
@@ -144,7 +144,7 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 	if err != nil {
 		return ":( "
 	}
-	t.HandleStatus(db.Config.NamespacePath, db.Config.ArtefactPath)
+	t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 
 	return "OK"
 }

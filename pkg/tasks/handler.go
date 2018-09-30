@@ -89,7 +89,9 @@ func DockerPlayer(config *setting.Config, args ...interface{}) (int, error) {
 	docID, e, err := HandleArgs(args...)
 	player := NewPlayer(docID)
 	executor := NewDockerExecutor(config)
-	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
+	executor.MottainaiClient = client.NewTokenClient(
+		config.GetWeb().AppURL,
+		config.GetAgent().ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -103,7 +105,9 @@ func LibvirtPlayer(config *setting.Config, args ...interface{}) (int, error) {
 	player := NewPlayer(docID)
 	executor := NewVagrantExecutor(config)
 	executor.Provider = "libvirt"
-	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
+	executor.MottainaiClient = client.NewTokenClient(
+		config.GetWeb().AppURL,
+		config.GetAgent().ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -117,7 +121,9 @@ func VirtualBoxPlayer(config *setting.Config, args ...interface{}) (int, error) 
 	player := NewPlayer(docID)
 	executor := NewVagrantExecutor(config)
 	executor.Provider = "virtualbox"
-	executor.MottainaiClient = client.NewTokenClient(config.AppURL, config.ApiKey, config)
+	executor.MottainaiClient = client.NewTokenClient(
+		config.GetWeb().AppURL,
+		config.GetAgent().ApiKey, config)
 	if err != nil {
 		player.EarlyFail(executor, docID, err.Error())
 		return e, err
@@ -367,7 +373,7 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 
 func HandleSuccess(config *setting.Config, docID string, result int) error {
 	fetcher := client.NewFetcher(docID, config)
-	fetcher.Token = config.ApiKey
+	fetcher.Token = config.GetAgent().ApiKey
 	res := strconv.Itoa(result)
 	fetcher.SetTaskField("exit_status", res)
 	if result != 0 {
@@ -389,7 +395,7 @@ func HandleSuccess(config *setting.Config, docID string, result int) error {
 
 func HandleErr(config *setting.Config, errstring, docID string) error {
 	fetcher := client.NewFetcher(docID, config)
-	fetcher.Token = config.ApiKey
+	fetcher.Token = config.GetAgent().ApiKey
 
 	fetcher.AppendTaskOutput(errstring)
 

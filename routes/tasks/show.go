@@ -78,7 +78,7 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 			}
 		}
 	}
-	ctx.Data["Artefacts"] = task.Artefacts(db.Config.ArtefactPath)
+	ctx.Data["Artefacts"] = task.Artefacts(db.Config.GetStorage().ArtefactPath)
 	template.TemplatePreview(ctx, "tasks/display", db.Config)
 }
 
@@ -100,7 +100,7 @@ func ShowArtefacts(ctx *context.Context, db *database.Database) {
 		panic(err)
 	}
 
-	ctx.Data["Artefacts"] = tasks_info.Artefacts(db.Config.ArtefactPath)
+	ctx.Data["Artefacts"] = tasks_info.Artefacts(db.Config.GetStorage().ArtefactPath)
 	ctx.Data["Task"] = id
 	ctx.Data["TaskDetail"] = tasks_info
 

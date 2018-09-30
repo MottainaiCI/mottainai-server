@@ -41,8 +41,8 @@ func TestInsertToken(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	config.DBPath = "./DB"
-	db := New(config.DBPath)
+	config.GetDatabase().DBPath = "./DB"
+	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
 	db.Init()
 	dbtest3 = db
@@ -104,7 +104,7 @@ func TestGetTokenByUid(t *testing.T) {
 	var dbpath string
 	db := dbtest3
 	db.GetAgent().Invoke(func(config *setting.Config) {
-		dbpath = config.DBPath
+		dbpath = config.GetDatabase().DBPath
 	})
 	defer os.RemoveAll(dbpath)
 

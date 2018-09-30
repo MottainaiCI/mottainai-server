@@ -31,7 +31,10 @@ import (
 
 func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
 
 		m.Get("/nodes", reqSignIn, ShowAll)
 		m.Get("/nodes/add", reqSignIn, Create)

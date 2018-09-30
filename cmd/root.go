@@ -61,6 +61,7 @@ func initConfig(config *s.Config) {
 	config.Viper.SetConfigName(s.MOTTAINAI_CONFIGNAME)
 
 	config.Viper.SetTypeByDefaultValue(true)
+	config.GenDefault()
 	config.Unmarshal()
 }
 
@@ -90,7 +91,6 @@ func initCommand(rootCmd *cobra.Command, config *s.Config) {
 }
 
 func Execute() {
-
 	// Create Main Instance Config object
 	var config *s.Config = s.NewConfig(nil)
 

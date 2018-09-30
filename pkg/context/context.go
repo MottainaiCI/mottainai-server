@@ -28,7 +28,6 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
@@ -83,8 +82,13 @@ func (c *Context) RenderWithInfo(msg, tpl string) {
 
 // ServerError renders the 500 page.
 func (c *Context) ServerError(title string, err error) {
+	var webconfig *setting.WebConfig
+	c.Invoke(func(config *setting.Config) {
+		webconfig = config.GetWeb()
+	})
+
 	// Restrict API calls with error message.
-	if auth.IsAPIPath(c.Req.URL.Path) {
+	if auth.IsAPIPath(c.Req.URL.Path, webconfig) {
 		c.JSON(500, map[string]string{
 			"message": err.Error(),
 		})
@@ -96,9 +100,12 @@ func (c *Context) ServerError(title string, err error) {
 }
 
 func (c *Context) NotFound() {
-
+	var webconfig *setting.WebConfig
+	c.Invoke(func(config *setting.Config) {
+		webconfig = config.GetWeb()
+	})
 	// Restrict API calls with error message.
-	if auth.IsAPIPath(c.Req.URL.Path) {
+	if auth.IsAPIPath(c.Req.URL.Path, webconfig) {
 		c.JSON(404, map[string]string{
 			"message": "Not found",
 		})
@@ -144,7 +151,11 @@ func (c *Context) HasError() bool {
 }
 
 func (c *Context) NoPermission() {
-	if auth.IsAPIPath(c.Req.URL.Path) {
+	var webconfig *setting.WebConfig
+	c.Invoke(func(config *setting.Config) {
+		webconfig = config.GetWeb()
+	})
+	if auth.IsAPIPath(c.Req.URL.Path, webconfig) {
 		c.JSON(403, noperm)
 	} else {
 		c.Error(403)
@@ -170,7 +181,7 @@ func (c *Context) JSONSuccess(data interface{}) {
 // It prepends setting.AppSubURL to the location string.
 func (c *Context) SubURLRedirect(location string, status ...int) {
 	c.Invoke(func(config *setting.Config) {
-		c.Redirect(config.AppSubURL + location)
+		c.Redirect(config.GetWeb().BuildURI(location))
 	})
 }
 
@@ -199,30 +210,28 @@ func Setup(m *macaron.Macaron) {
 func Contexter() macaron.Handler {
 	var c *Context
 
-	return func(ctx *macaron.Context, sess session.Store, f *session.Flash, x csrf.CSRF, cache cache.Cache) {
-		ctx.Invoke(func(config *setting.Config) {
-			c = &Context{
-				Context: ctx,
-				Cache:   cache,
-				csrf:    x,
-				Flash:   f,
-				Session: sess,
-				Link:    config.AppSubURL + strings.TrimSuffix(ctx.Req.URL.Path, "/"),
-			}
-			c.Data["Link"] = c.Link
-			c.Data["PageStartTime"] = time.Now()
+	return func(ctx *macaron.Context, config *setting.Config, sess session.Store, f *session.Flash, x csrf.CSRF, cache cache.Cache) {
+		c = &Context{
+			Context: ctx,
+			Cache:   cache,
+			csrf:    x,
+			Flash:   f,
+			Session: sess,
+			Link:    config.GetWeb().BuildURI(ctx.Req.URL.Path),
+		}
+		c.Data["Link"] = c.Link
+		c.Data["PageStartTime"] = time.Now()
 
-			if len(config.AccessControlAllowOrigin) > 0 {
-				// Set CORS headers for browser-based git clients
-				ctx.Resp.Header().Set("Access-Control-Allow-Origin", config.AccessControlAllowOrigin)
-				ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if len(config.GetWeb().AccessControlAllowOrigin) > 0 {
+			// Set CORS headers for browser-based git clients
+			ctx.Resp.Header().Set("Access-Control-Allow-Origin", config.GetWeb().AccessControlAllowOrigin)
+			ctx.Resp.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-				ctx.Header().Set("Access-Control-Allow-Origin", config.AccessControlAllowOrigin)
-				c.Header().Set("Access-Control-Allow-Credentials", "true")
-				c.Header().Set("Access-Control-Max-Age", "3600")
-				c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-			}
-		})
+			ctx.Header().Set("Access-Control-Allow-Origin", config.GetWeb().AccessControlAllowOrigin)
+			c.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Header().Set("Access-Control-Max-Age", "3600")
+			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+		}
 
 		// Get user from session if logined.
 		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)

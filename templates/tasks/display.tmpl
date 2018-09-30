@@ -2,9 +2,9 @@
 {{template "base/menu" .}}
 
 {{if eq .Task.Status "running"}}
-<script src="{{AppSubURL}}/assets/js/vendor/jquery.terminal.min.js"></script>
-<script src="{{AppSubURL}}/assets/js/vendor/unix_formatting.js"></script>
-<link rel="stylesheet" href="{{AppSubURL}}/assets/css/jquery.terminal.min.css">
+ <script src="{{BuildURI "/assets/js/vendor/jquery.terminal.min.js"}}"></script>
+<script src="{{BuildURI "/assets/js/vendor/unix_formatting.js"}}"></script>
+<link rel="stylesheet" href="{{BuildURI "/assets/css/jquery.terminal.min.css"}}">
 {{end}}
 <style>
 @keyframes blink {
@@ -81,7 +81,7 @@
       function getData() {
 
         $.ajax({
-            url: "/api/tasks/{{.Task.ID}}",
+          url: "{{BuildURI "/api/tasks/"}}{{.Task.ID}}",
             beforeSend: function( xhr ) {
               xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
             }
@@ -94,7 +94,7 @@
           });
           {{if eq .Task.Status "running"}}
         $.ajax({
-            url: "/api/tasks/tail_output/{{.Task.ID}}/"+3000,
+          url: "{{BuildURI "/api/tasks/tail_output/"}}{{.Task.ID}}/"+3000,
             beforeSend: function( xhr ) {
               xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
             }
@@ -142,7 +142,7 @@
              </div>
              <div class="card-body ">
                <p>
-                 Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code>
+                 Attach to live log with: <code>mottainai-cli --master {{AppURL}} task attach {{.Task.ID}} </code>
                </p>
              <div class="ui row" id="terminal"></div>
              </div>
@@ -157,7 +157,7 @@
                                   <section class="card">
                                       <div class="card-header user-header alt bg-dark">
                                           <div class="media">
-                                              <a href="/tasks">
+                                            <a href="{{BuildURI "/tasks"}}">
                                                 <i class="align-self-center rounded-circle mr-3  fa fa-info text-light"></i>
                                               </a>
                                               <div class="media-body">
@@ -172,13 +172,13 @@
 
                                         {{if .TaskOwner }}
                                         <li class="list-group-item">
-                                            <i class="fa fa-user-o"></i> Created by: <span class="pull-right badge "><a href="/user/show/{{.TaskOwner.ID}}" target="_blank"> {{.TaskOwner.Name}} </a></span>
+                                          <i class="fa fa-user-o"></i> Created by: <span class="pull-right badge "><a href="{{BuildURI "/user/show/"}}{{.TaskOwner.ID}}" target="_blank"> {{.TaskOwner.Name}} </a></span>
                                           </li>
                                         {{end}}
 
                                         {{if .TaskNode }}
                                         <li class="list-group-item">
-                                            <i class="fa fa-sitemap"></i> Node used: <span class="pull-right badge "><a href="/nodes/show/{{.TaskNode.ID}}" target="_blank"> {{if .TaskNode.Hostname}} {{.TaskNode.Hostname}} {{else}} {{.TaskNode.ID}}  {{end}}</a></span>
+                                          <i class="fa fa-sitemap"></i> Node used: <span class="pull-right badge "><a href="{{BuildURI "/nodes/show/"}}{{.TaskNode.ID}}" target="_blank"> {{if .TaskNode.Hostname}} {{.TaskNode.Hostname}} {{else}} {{.TaskNode.ID}}  {{end}}</a></span>
                                           </li>
                                         {{end}}
 
@@ -309,28 +309,28 @@
 
                   <div class="tab-pane fade " id="log" role="tabpanel" aria-labelledby="log">
                    <p>
-                      <a href="/artefact/{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
+                   <a href="{{BuildURI "/artefact/"}}{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
                    </p>
                   </div>
                    <div class="tab-pane fade" id="custom-nav-profile" role="tabpanel" aria-labelledby="custom-nav-profile-tab">
                     <p id="as_json"></p>
-                    <a href="/api/tasks/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
+                    <a href="{{BuildURI "/api/tasks/"}}{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get Raw</button> </a>
 
-                    <a href="/api/tasks/{{.Task.ID}}.yaml" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get YAML</button> </a>
+                    <a href="{{BuildURI "/api/tasks/"}}{{.Task.ID}}.yaml" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-code"></i>&nbsp; Get YAML</button> </a>
                     </div>
                    <div class="tab-pane fade" id="custom-nav-contact" role="tabpanel" aria-labelledby="custom-nav-contact-tab">
                      <p>
                        {{if eq .Task.Status "running"}}
-                        Attach to live log with: <code>mottainai-cli --master {{AppSubURL}} task attach {{.Task.ID}} </code><br>
+                        Attach to live log with: <code>mottainai-cli --master {{AppURL}} task attach {{.Task.ID}} </code><br>
                        {{end}}
-                       Download log with: <code>mottainai-cli --master {{AppSubURL}} task log {{.Task.ID}} > build.log </code><br>
-                       Show task info with: <code>mottainai-cli --master {{AppSubURL}} task show {{.Task.ID}}</code>
+                       Download log with: <code>mottainai-cli --master {{AppURL}} task log {{.Task.ID}} > build.log </code><br>
+                       Show task info with: <code>mottainai-cli --master {{AppURL}} task show {{.Task.ID}}</code>
                      </p>
                    </div>
                    <div class="tab-pane fade show active" id="artefacts" role="tabpanel" aria-labelledby="artefacts">
                      <div class="alert alert-secondary fade show">
                        <span class="badge badge-pill badge-secondary">Tip</span>
-                       Create or tag a namespace with this content: <code>mottainai-cli --master {{AppSubURL}} namespace tag mybeautifulpony --from {{.Task.ID}}</code><br>
+                       Create or tag a namespace with this content: <code>mottainai-cli --master {{AppURL}} namespace tag mybeautifulpony --from {{.Task.ID}}</code><br>
                      </div>
                      <table id="artefacts-table" class="table table-striped table-bordered">
                        <thead>
@@ -344,13 +344,13 @@
                          {{$t := $.Task.ID}}
                          {{range .Artefacts}}
                          <tr>
-                           <td><a href="/artefact/{{$t}}/{{.}}/" target="_blank">{{.}}</a></td>
+                           <td><a href="{{BuildURI "/artefact/"}}{{$t}}/{{.}}/" target="_blank">{{.}}</a></td>
                          </tr>
                          {{end}}
 
                        </tbody>
                      </table>
-                     <a href="/tasks/artefacts/{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Browse</button> </a>
+                     <a href="{{BuildURI "/tasks/artefacts/"}}{{.Task.ID}}" target="_blank"> <button type="button" class="btn btn-outline-link"><i class="fa fa-link"></i>&nbsp; Browse</button> </a>
 
                  </div>
 
@@ -365,15 +365,15 @@
 
 
 
-<script src="/assets/js/lib/data-table/datatables.min.js"></script>
-<script src="/assets/js/lib/data-table/dataTables.bootstrap.min.js"></script>
+<script src="{{BuildURI "/assets/js/lib/data-table/datatables.min.js"}}"></script>
+<script src="{{BuildURI "/assets/js/lib/data-table/dataTables.bootstrap.min.js"}}"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
   $('#artefacts-table').DataTable();
   $("time.timeago").timeago();
  $.ajax({
-     url: "/api/tasks/{{.Task.ID}}",
+   url: "{{BuildURI "/api/tasks/"}}{{.Task.ID}}",
    })
    .done(function( data ) {
      $('#as_json').html("<code>"+JSON.stringify(data)+"</code>");

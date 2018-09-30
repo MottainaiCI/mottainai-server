@@ -35,47 +35,75 @@ const (
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
 )
 
-type Config struct {
-	Viper *v.Viper
+// Web UI Settings
+type WebConfig struct {
+	Protocol  string `mapstructure:"protocol"`
+	AppSubURL string `mapstructure:"url"`
+	HTTPAddr  string `mapstructure:"listenaddress"`
+	HTTPPort  string `mapstructure:"port"`
 
-	// Web UI Settings
-	Protocol           string `mapstructure:"webui_protocol"`
-	AppSubURL          string `mapstructure:"webui_url"`
-	HTTPAddr           string `mapstructure:"webui_listenaddress"`
-	HTTPPort           string `mapstructure:"webui_port"`
-	AppName            string `mapstructure:"application_name"`
-	AppURL             string `mapstructure:"application_url"`
-	SecretKey          string `mapstructure:"secret_key"`
-	EmbedWebHookServer bool   `mapstructure:"embed_webhookserver"`
-	StaticRootPath     string `mapstructure:"root_path"`
-	CustomPath         string `mapstructure:"custom_path"`
-	DBEngine           string `mapstructure:"db_engine"`
-	DBPath             string `mapstructure:"db_path"`
-	ArtefactPath       string `mapstructure:"artefact_path"`
-	NamespacePath      string `mapstructure:"namespace_path"`
-	StoragePath        string `mapstructure:"storage_path"`
-	BuildPath          string `mapstructure:"build_path"`
-	LockPath           string `mapstructure:"lock_path"`
+	AppName string `mapstructure:"application_name"`
+	// TODO: TO REMOVE
+	AppURL string `mapstructure:"application_url"`
+
+	// Replate old custom_path
+	TemplatePath string `mapstructure:"template_path"`
+
+	StaticRootPath string `mapstructure:"root_path"`
+
+	AccessControlAllowOrigin string `mapstructure:"access_control_allow_origin"`
+
+	// WebHook Parameters
+	EmbedWebHookServer     bool   `mapstructure:"embed_webhookserver"`
+	AccessToken            string `mapstructure:"access_token"`
+	WebHookGitHubToken     string `mapstructure:"github_token"`
+	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
+	WebHookGitHubSecret    string `mapstructure:"github_secret"`
+	WebHookToken           string `mapstructure:"webhook_token"`
+}
+
+type StorageConfig struct {
+	Type string `mapstructure:"type"`
+
+	ArtefactPath  string `mapstructure:"artefact_path"`
+	NamespacePath string `mapstructure:"namespace_path"`
+	StoragePath   string `mapstructure:"storage_path"`
+}
+
+type DatabaseConfig struct {
+	DBEngine string `mapstructure:"engine"`
+	DBPath   string `mapstructure:"db_path"`
+}
+
+type BrokerConfig struct {
+	Type string `mapstructure:"type"`
 
 	ResultsExpireIn int `mapstructure:"results_expire_in"`
 
 	/* Broker Settings */
-	Broker                   string            `mapstructure:"broker"`
-	BrokerType               string            `mapstructure:"broker_type"`
-	BrokerDefaultQueue       string            `mapstructure:"broker_default_queue"`
-	BrokerResultBackend      string            `mapstructure:"broker_result_backend"`
-	BrokerURI                string            `mapstructure:"broker_uri"`
-	BrokerPass               string            `mapstructure:"broker_pass"`
-	BrokerUser               string            `mapstructure:"broker_user"`
-	BrokerExchange           string            `mapstructure:"broker_exchange"`
-	BrokerExchangeType       string            `mapstructure:"broker_exchange_type"`
-	BrokerBindingKey         string            `mapstructure:"broker_binding_key"`
-	AgentConcurrency         int               `mapstructure:"agent_concurrency"`
-	Queues                   map[string]int    `mapstructure:"queues"`
-	CacheRegistryCredentials map[string]string `mapstructure:"cache_registry"`
+	Broker              string `mapstructure:"broker"`
+	BrokerDefaultQueue  string `mapstructure:"default_queue"`
+	BrokerResultBackend string `mapstructure:"result_backend"`
+	BrokerURI           string `mapstructure:"mgmt_uri"`
+	BrokerPass          string `mapstructure:"pass"`
+	BrokerUser          string `mapstructure:"user"`
+	BrokerExchange      string `mapstructure:"exchange"`
+	BrokerExchangeType  string `mapstructure:"exchange_type"`
+	BrokerBindingKey    string `mapstructure:"binding_key"`
+}
 
-	AgentKey string `mapstructure:"agent_key"`
-	ApiKey   string `mapstructure:"api_key"`
+type AgentConfig struct {
+	SecretKey         string         `mapstructure:"secret_key"`
+	BuildPath         string         `mapstructure:"build_path"`
+	LockPath          string         `mapstructure:"lock_path"`
+	AgentConcurrency  int            `mapstructure:"concurrency"`
+	AgentKey          string         `mapstructure:"agent_key"`
+	ApiKey            string         `mapstructure:"api_key"`
+	PrivateQueue      int            `mapstructure:"private_queue"`
+	StandAlone        bool           `mapstructure:"standalone"`
+	DownloadRateLimit int64          `mapstructure:"download_speed_limit"`
+	UploadRateLimit   int64          `mapstructure:"upload_speed_limit"`
+	Queues            map[string]int `mapstructure:"queues"`
 
 	DockerEndpoint    string   `mapstructure:"docker_endpoint"`
 	DockerKeepImg     bool     `mapstructure:"docker_keepimg"`
@@ -84,24 +112,48 @@ type Config struct {
 	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint"`
 	DockerCaps        []string `mapstructure:"docker_caps"`
 	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
-	PrivateQueue      int      `mapstructure:"private_queue"`
-	StandAlone        bool     `mapstructure:"standalone"`
 
-	AccessToken            string `mapstructure:"access_token"`
-	WebHookGitHubToken     string `mapstructure:"github_token"`
-	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
-	WebHookToken           string `mapstructure:"webhook_token"`
-	WebHookGitHubSecret    string `mapstructure:"github_secret"`
-	DownloadRateLimit      int64  `mapstructure:"download_speed_limit"`
-	UploadRateLimit        int64  `mapstructure:"upload_speed_limit"`
+	CacheRegistryCredentials map[string]string `mapstructure:"cache_registry"`
 
-	TLSCert string `mapstructure:"tls_cert"`
-	TLSKey  string `mapstructure:"tls_key"`
-
-	AccessControlAllowOrigin string   `mapstructure:"access_control_allow_origin"`
-	HealthCheckExec          []string `mapstructure:"health_check_exec"`
-
+	HealthCheckExec      []string `mapstructure:"health_check_exec"`
 	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path"`
+}
+
+type Config struct {
+	Viper *v.Viper
+
+	// General pameter
+	Debug    bool   `mapstructure:"general.debug"`
+	LogFile  string `mapstructure:"general.logfile"`
+	LogLevel string `mapstructure:"general.loglevel"`
+	TLSCert  string `mapstructure:"general.tls_cert"`
+	TLSKey   string `mapstructure:"general.tls_key"`
+
+	Web      WebConfig      `mapstructure:"web"`
+	Storage  StorageConfig  `mapstructure:"storage"`
+	Database DatabaseConfig `mapstructure:"db"`
+	Broker   BrokerConfig   `mapstructure:"broker"`
+	Agent    AgentConfig    `mapstructure:"agent"`
+}
+
+func (c *Config) GetWeb() *WebConfig {
+	return &c.Web
+}
+
+func (c *Config) GetStorage() *StorageConfig {
+	return &c.Storage
+}
+
+func (c *Config) GetDatabase() *DatabaseConfig {
+	return &c.Database
+}
+
+func (c *Config) GetBroker() *BrokerConfig {
+	return &c.Broker
+}
+
+func (c *Config) GetAgent() *AgentConfig {
+	return &c.Agent
 }
 
 func (c *Config) GenDefault() {
@@ -119,66 +171,72 @@ func NewConfig(viper *v.Viper) *Config {
 
 func GenDefault(viper *v.Viper) {
 
-	viper.SetDefault("webui_protocol", "http")
-	viper.SetDefault("webui_url", "http://127.0.0.1:9090")
-	viper.SetDefault("webui_listenaddress", "127.0.0.1")
-	viper.SetDefault("webui_port", "9090")
-	viper.SetDefault("application_name", "Mottainai")
-	viper.SetDefault("application_url", "http://127.0.0.1:9090")
-	viper.SetDefault("secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
+	viper.SetDefault("web.protocol", "http")
+	viper.SetDefault("web.url", "http://127.0.0.1:9090")
+	viper.SetDefault("web.listenaddress", "127.0.0.1")
+	viper.SetDefault("web.port", "9090")
+	viper.SetDefault("web.application_name", "Mottainai")
+	viper.SetDefault("web.application_url", "http://127.0.0.1:9090")
+	viper.SetDefault("web.template_path", "./")
+	viper.SetDefault("web.root_path", "./")
+	viper.SetDefault("web.access_control_allow_origin", "*")
+	viper.SetDefault("web.embed_webhookserver", true)
+	viper.SetDefault("web.access_token", "")
+	viper.SetDefault("web.github_token", "")
+	viper.SetDefault("web.github_secret", "")
+	viper.SetDefault("web.github_token_user", "")
+	viper.SetDefault("web.webhook_token", "")
 
-	viper.SetDefault("upload_speed_limit", 0)
-	viper.SetDefault("download_speed_limit", 0)
-	viper.SetDefault("root_path", "./")
-	viper.SetDefault("custom_path", "./")
-	viper.SetDefault("db_engine", "tiedot")
-	viper.SetDefault("db_path", "./.DB")
-	viper.SetDefault("artefact_path", "./artefact")
-	viper.SetDefault("namespace_path", "./namespace")
-	viper.SetDefault("storage_path", "./storage")
-	viper.SetDefault("build_path", "/build/")
-	viper.SetDefault("lock_path", "/var/lock/mottainai/")
+	viper.SetDefault("storage.type", "dir")
+	viper.SetDefault("storage.artefact_path", "./artefact")
+	viper.SetDefault("storage.namespace_path", "./namespace")
+	viper.SetDefault("storage.storage_path", "./storage")
 
-	viper.SetDefault("results_expire_in", 3600)
-	viper.SetDefault("embed_webhookserver", true)
-	viper.SetDefault("broker", "amqp://guest@127.0.0.1:5672/")
-	viper.SetDefault("broker_type", "amqp")
-	viper.SetDefault("broker_default_queue", "global_tasks")
-	viper.SetDefault("broker_result_backend", "amqp://guest@127.0.0.1:5672/")
-	viper.SetDefault("broker_uri", "http://127.0.0.1:15672")
-	viper.SetDefault("broker_pass", "guest")
-	viper.SetDefault("broker_user", "guest")
-	viper.SetDefault("broker_exchange", "machinery_exchange")
-	viper.SetDefault("broker_exchange_type", "direct")
-	viper.SetDefault("broker_binding_key", "machinery_task")
-	viper.SetDefault("agent_concurrency", 1)
-	viper.SetDefault("queues", map[string]int{})
-	viper.SetDefault("cache_registry", map[string]int{})
+	viper.SetDefault("db.engine", "tiedot")
+	viper.SetDefault("db.db_path", "./.DB")
 
-	viper.SetDefault("agent_key", "")
-	viper.SetDefault("api_key", "")
+	viper.SetDefault("broker.type", "amqp")
+	viper.SetDefault("broker.results_expire_in", 3600)
+	viper.SetDefault("broker.broker", "amqp://guest@127.0.0.1:5672/")
+	viper.SetDefault("broker.default_queue", "global_tasks")
+	viper.SetDefault("broker.result_backend", "amqp://guest@127.0.0.1:5672/")
+	viper.SetDefault("broker.mgmt_uri", "http://127.0.0.1:15672")
+	viper.SetDefault("broker.pass", "guest")
+	viper.SetDefault("broker.user", "guest")
+	viper.SetDefault("broker.exchange", "machinery_exchange")
+	viper.SetDefault("broker.exchange_type", "direct")
+	viper.SetDefault("broker.binding_key", "machinery_task")
 
-	viper.SetDefault("docker_endpoint", "unix:///var/run/docker.sock")
-	viper.SetDefault("docker_keepimg", true)
-	viper.SetDefault("docker_privileged", false)
-	viper.SetDefault("docker_in_docker", false)
-	viper.SetDefault("docker_in_docker_endpoint", "/var/run/docker.sock")
-	viper.SetDefault("docker_caps", []string{"SYS_PTRACE"})
-	viper.SetDefault("docker_caps_drop", []string{})
-	viper.SetDefault("health_check_clean_path", []string{})
-	viper.SetDefault("health_check_exec", []string{})
+	viper.SetDefault("agent.secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
+	viper.SetDefault("agent.build_path", "/build/")
+	viper.SetDefault("agent.lock_path", "/var/lock/mottainai/")
+	viper.SetDefault("agent.concurrency", 1)
+	viper.SetDefault("agent.agent_key", "")
+	viper.SetDefault("agent.api_key", "")
+	viper.SetDefault("agent.private_queue", 1)
+	viper.SetDefault("agent.standalone", false)
+	viper.SetDefault("agent.upload_speed_limit", 0)
+	viper.SetDefault("agent.download_speed_limit", 0)
 
-	viper.SetDefault("private_queue", 1)
-	viper.SetDefault("standalone", false)
-	viper.SetDefault("github_token", "")
-	viper.SetDefault("github_secret", "")
-	viper.SetDefault("webhook_token", "")
-	viper.SetDefault("access_token", "")
-	viper.SetDefault("github_token_user", "")
-	viper.SetDefault("tls_cert", "")
-	viper.SetDefault("tls_key", "")
+	viper.SetDefault("agent.queues", map[string]int{})
+	viper.SetDefault("agent.cache_registry", map[string]int{})
 
-	viper.SetDefault("access_control_allow_origin", "*")
+	viper.SetDefault("agent.docker_endpoint", "unix:///var/run/docker.sock")
+	viper.SetDefault("agent.docker_keepimg", true)
+	viper.SetDefault("agent.docker_privileged", false)
+	viper.SetDefault("agent.docker_in_docker", false)
+	viper.SetDefault("agent.docker_in_docker_endpoint", "/var/run/docker.sock")
+	viper.SetDefault("agent.docker_caps", []string{"SYS_PTRACE"})
+	viper.SetDefault("agent.docker_caps_drop", []string{})
+
+	viper.SetDefault("agent.health_check_clean_path", []string{})
+	viper.SetDefault("agent.health_check_exec", []string{})
+
+	viper.SetDefault("general.tls_cert", "")
+	viper.SetDefault("general.tls_key", "")
+	viper.SetDefault("general.debug", false)
+	viper.SetDefault("general.logfile", "")
+	viper.SetDefault("general.loglevel", "")
 }
 
 func (c *Config) Unmarshal() error {
@@ -197,8 +255,157 @@ func (c *Config) Unmarshal() error {
 	return err
 }
 
-func (c *Config) GetWebProtocol() string {
+func (c *WebConfig) GetProtocol() string {
 	return c.Protocol
+}
+
+func (c *WebConfig) BuildURI(pattern string) string {
+	var path string = c.AppSubURL
+	if path[len(path)-1:] == "/" {
+		if len(path) == 1 {
+			path = ""
+		} else {
+			path = path[0 : len(path)-1]
+		}
+	}
+	if pattern[0:1] != "/" {
+		pattern = "/" + pattern
+	}
+	return path + pattern
+}
+
+func (c *WebConfig) CompareURI(requestURI, pattern string) bool {
+	// TODO: Complete handle of complete URL with schema http://...
+
+	url := c.BuildURI(pattern)
+	if url == requestURI {
+		return true
+	}
+	return false
+}
+
+func (c *WebConfig) String() string {
+	var ans string = fmt.Sprintf(`
+web:
+  protocol: %s
+  url: %s
+  listenaddress: %s
+  port: %s
+  application_name: %s
+  application_url: %s
+
+  template_path: %s
+
+  access_control_allow_origin: %s
+
+  embed_webhookserver: %s
+  access_token: %s
+  github_token: %s
+  github_token_user: %s
+  github_secret: %s
+  webhook_token: %s
+`,
+		c.Protocol, c.AppSubURL,
+		c.HTTPAddr, c.HTTPPort,
+		c.AppName, c.AppURL,
+		c.TemplatePath,
+		c.AccessControlAllowOrigin,
+		c.EmbedWebHookServer,
+		c.AccessToken, c.WebHookGitHubToken,
+		c.WebHookGitHubTokenUser,
+		c.WebHookGitHubSecret,
+		c.WebHookGitHubToken)
+
+	return ans
+}
+
+func (c *StorageConfig) String() string {
+	var ans string = fmt.Sprintf(`
+storage:
+  type: %s
+  artefact_path: %s
+  namespace_path: %s
+  storage_path: %s
+`,
+		c.Type, c.ArtefactPath,
+		c.NamespacePath, c.StoragePath)
+
+	return ans
+}
+
+func (c *DatabaseConfig) String() string {
+	var ans string = fmt.Sprintf(`
+db:
+engine: %s
+db_path: %s
+`,
+		c.DBEngine, c.DBPath)
+
+	return ans
+}
+
+func (c *BrokerConfig) String() string {
+	var ans string = fmt.Sprintf(`
+broker:
+  type: %s
+  results_expire_in: %d
+  broker: %s
+  default_queue: %s
+  result_backend: %s
+  mgmt_uri: %s
+  pass: %s
+  user: %s
+  exchange: %s
+  exchange_type: %s
+  binding_key: %s
+`,
+		c.Type, c.ResultsExpireIn, c.Broker,
+		c.BrokerDefaultQueue, c.BrokerResultBackend,
+		c.BrokerURI, c.BrokerPass,
+		c.BrokerUser, c.BrokerExchange,
+		c.BrokerExchangeType, c.BrokerBindingKey)
+
+	return ans
+}
+
+func (c *AgentConfig) String() string {
+	var ans string = fmt.Sprintf(`
+agent:
+  secret_key: %s
+  build_path: %s
+  lock_path: %s
+  concurrency: %d
+  agent_key: %s
+  api_key: %s
+  private_queue: %d
+  standalone: %t
+  download_speed_limit: %d
+  upload_speed_limit: %d
+  queues: %s
+
+  docker_endpoint: %s
+  docker_keepimg: %t
+  docker_privileged: %t
+  docker_in_docker: %t
+  docker_in_docker_endpoint: %s
+  docker_caps: %s
+  docker_caps_drop: %s
+
+  cache_registry: %s
+  health_check_exec: %s
+  health_check_clean_path: %s
+
+`, c.SecretKey, c.BuildPath, c.LockPath,
+		c.AgentConcurrency, c.AgentKey, c.ApiKey,
+		c.PrivateQueue, c.StandAlone, c.DownloadRateLimit,
+		c.UploadRateLimit, c.Queues,
+		c.DockerEndpoint, c.DockerKeepImg,
+		c.DockerPriviledged, c.DockerInDocker,
+		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop,
+		c.CacheRegistryCredentials, c.HealthCheckExec,
+		c.HealthCheckCleanPath)
+
+	return ans
 }
 
 func (c *Config) String() string {
@@ -207,72 +414,27 @@ func (c *Config) String() string {
 	var ans string = fmt.Sprintf(`
 configfile: %s
 
-webui_protocol: %s
-webui_url: %s
-webui_listenaddress: %s
-webui_port: %s
-application_name: %s
-application_url: %s
-secret_key: **************
+%s
 
-root_path: %s
-custom_path: %s
-db_engine: %s
-db_path: %s
-artefact_path: %s
-namespace_path: %s
-storage_path: %s
-build_path: %s
-lock_path: %s
+%s
 
-results_expire_in: %d
+%s
 
-broker: %s
-broker_type: %s
-broker_default_queue: %s
-broker_result_backend: %s
-broker_uri: %s
-broker_pass: %s
-broker_user: %s
-broker_exchange: %s
-broker_exchange_type: %s
-broker_binding_key: %s
-agent_concurrency: %d
-queues: %v
-cache_registry: %v
-agent_key: ***************
-api_key: ***************
+%s
 
-docker_endpoint: %s
-docker_keepimg: %t
-docker_privileged: %t
-docker_in_docker: %t
-docker_in_docker_endpoint: %s
-docker_caps: %s
-docker_caps_drop: %s
-private_queue: %d
-standalone: %t
-github_token: %s
-github_secret: *****************
-github_token_user: *****************
-embed_webhookserver: %t
-
+debug: %t
+logfile: %s
+loglevel: %s
 tls_cert: %s
 tls_key: ***********************
-
-access_control_allow_origin: %s
 `,
 		c.Viper.Get("config"),
-		c.Protocol, c.AppSubURL, c.HTTPAddr, c.HTTPPort, c.AppName, c.AppURL,
-		c.StaticRootPath, c.CustomPath, c.DBEngine, c.DBPath, c.ArtefactPath,
-		c.NamespacePath, c.StoragePath, c.BuildPath, c.LockPath,
-		c.ResultsExpireIn,
-		c.Broker, c.BrokerType, c.BrokerDefaultQueue, c.BrokerResultBackend,
-		c.BrokerURI, c.BrokerPass, c.BrokerUser, c.BrokerExchange, c.BrokerExchangeType,
-		c.BrokerBindingKey, c.AgentConcurrency, c.Queues, c.CacheRegistryCredentials,
-		c.DockerEndpoint, c.DockerKeepImg, c.DockerPriviledged, c.DockerInDocker,
-		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop, c.PrivateQueue, c.StandAlone,
-		c.WebHookGitHubToken, c.EmbedWebHookServer, c.TLSCert, c.AccessControlAllowOrigin)
+		c.Web.String(),
+		c.Broker.String(),
+		c.Storage.String(),
+		c.Agent.String(),
+		c.Debug, c.LogFile, c.LogLevel,
+		c.TLSCert)
 
 	return ans
 }

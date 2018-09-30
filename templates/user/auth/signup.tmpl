@@ -5,8 +5,8 @@
         <div class="container">
             <div class="login-content">
                 <div class="login-logo">
-                    <a href="/">
-                        <img class="align-content" src="/images/logo.png" alt="">
+                  <a href="{{BuildURI "/"}}">
+                    <img class="align-content" src="{{BuildURI "/images/logo.png"}}" alt="">
                     </a>
                 </div>
                 <div class="login-form">
@@ -30,15 +30,15 @@
                             <input id="retype" name="retype" class="form-control" type="password" value="{{.retype}}" required>
                         </div>
                         {{if .EnableCaptcha}}
-            							<div class="inline field">
-            								<label></label>
-            							{{.Captcha.CreateHtml}}
-            							</div>
-            							<div class="required inline field {{if .Err_Captcha}}error{{end}}">
-            								<label for="captcha">Captcha</label>
-            								<input id="captcha" name="captcha" value="{{.captcha}}" autocomplete="off">
-            							</div>
-            						{{end}}
+                          <div class="inline field">
+                            <label></label>
+                            {{.Captcha.CreateHtml}}
+                          </div>
+                          <div class="required inline field {{if .Err_Captcha}}error{{end}}">
+                            <label for="captcha">Captcha</label>
+                            <input id="captcha" name="captcha" value="{{.captcha}}" autocomplete="off">
+                          </div>
+                        {{end}}
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox"> Agree the terms and policy
@@ -47,7 +47,7 @@
                         <button type="submit" class="btn btn-primary btn-flat m-b-30 m-t-30">Register</button>
 
                         <div class="register-link m-t-15 text-center">
-                            <p>Already have account ? <a href="/user/login"> Sign in</a></p>
+                          <p>Already have account ? <a href="{{BuildURI "/user/login"}}"> Sign in</a></p>
                         </div>
                     </form>
                 </div>
@@ -56,7 +56,7 @@
     </div>
 
 
-    <script src="/assets/js/vendor/jquery-2.1.4.min.js"></script>
-    <script src="/assets/js/plugins.js"></script>
-    <script src="/assets/js/main.js"></script>
+    <script src="{{BuildURI "/assets/js/vendor/jquery-2.1.4.min.js"}}"></script>
+    <script src="{{BuildURI "/assets/js/plugins.js"}}"></script>
+    <script src="{{BuildURI "/assets/js/main.js"}}"></script>
   </body>

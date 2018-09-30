@@ -40,7 +40,9 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	if err != nil {
 		ctx.NotFound()
 	} else {
-		ctx.Redirect("/tasks/display/" + docID)
+		ctx.Invoke(func(config *setting.Config) {
+			ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + docID))
+		})
 	}
 }
 
@@ -50,7 +52,9 @@ func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Cont
 	if err != nil {
 		ctx.NotFound()
 	} else {
-		ctx.Redirect("/tasks/display/" + docID)
+		ctx.Invoke(func(config *setting.Config) {
+			ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + docID))
+		})
 	}
 }
 

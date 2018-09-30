@@ -49,7 +49,7 @@ func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error
 	// 	"path": name,
 	// })
 
-	err := os.MkdirAll(filepath.Join(db.Config.NamespacePath, name), os.ModePerm)
+	err := os.MkdirAll(filepath.Join(db.Config.GetStorage().NamespacePath, name), os.ModePerm)
 	if err != nil {
 		return ":(", err
 	}
@@ -77,8 +77,8 @@ func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Databa
 		errors.New("Moar permissions are required for this user")
 	}
 
-	os.MkdirAll(filepath.Join(db.Config.NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
-	f, err := os.OpenFile(filepath.Join(db.Config.NamespacePath, uf.Namespace, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	os.MkdirAll(filepath.Join(db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer f.Close()
 	if err != nil {
 		return err

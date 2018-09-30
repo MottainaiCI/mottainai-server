@@ -76,7 +76,7 @@ func (d *Database) DeleteTask(docID string) error {
 			artefact.CleanFromTask(config)
 			d.DeleteArtefact(artefact.ID)
 		}
-		t.Clear(config.ArtefactPath, config.LockPath)
+		t.Clear(config.GetStorage().ArtefactPath, config.GetAgent().LockPath)
 	})
 	return d.DeleteDoc(TaskColl, docID)
 }

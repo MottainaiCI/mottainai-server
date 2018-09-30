@@ -130,7 +130,7 @@ func Classic(config *setting.Config) *Mottainai {
 		},
 	}
 
-	if config.GetWebProtocol() == "https" {
+	if config.GetWeb().GetProtocol() == "https" {
 		m.Invoke(func(s session.Store) {
 			sesopts.Secure = true
 			csrfopts.Secure = true
@@ -152,12 +152,13 @@ func Classic(config *setting.Config) *Mottainai {
 		l.SetPrefix("[ Mottainai ] ")
 	})
 	m.Use(captcha.Captchaer(captcha.Options{
-		SubURL: config.AppSubURL,
+		SubURL: config.GetWeb().AppSubURL,
 	}))
 
+	m.Use(context.Contexter())
 	m.SetStatic()
 
-	if config.EmbedWebHookServer {
+	if config.GetWeb().EmbedWebHookServer {
 		SetupWebHook(m)
 	}
 
@@ -167,31 +168,31 @@ func Classic(config *setting.Config) *Mottainai {
 func (m *Mottainai) SetStatic() {
 	m.Invoke(func(c *setting.Config) {
 		m.Use(static.AuthStatic(context.CheckArtefactPermission,
-			path.Join(c.ArtefactPath),
-			c.AccessControlAllowOrigin,
+			path.Join(c.GetStorage().ArtefactPath),
+			c.GetWeb().AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "artefact",
 			},
 		))
 
 		m.Use(static.AuthStatic(context.CheckNamespacePermission,
-			path.Join(c.NamespacePath),
-			c.AccessControlAllowOrigin,
+			path.Join(c.GetStorage().NamespacePath),
+			c.GetWeb().AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "namespace",
 			},
 		))
 		m.Use(static.AuthStatic(context.CheckStoragePermission,
-			path.Join(c.StoragePath),
-			c.AccessControlAllowOrigin,
+			path.Join(c.GetStorage().StoragePath),
+			c.GetWeb().AccessControlAllowOrigin,
 			macaron.StaticOptions{
 				Prefix: "storage",
 			},
 		))
 
 		m.Use(static.Static(
-			path.Join(c.StaticRootPath, "public"),
-			c.AccessControlAllowOrigin,
+			path.Join(c.GetWeb().StaticRootPath, "public"),
+			c.GetWeb().AccessControlAllowOrigin,
 			macaron.StaticOptions{},
 		))
 	})
@@ -200,8 +201,7 @@ func (m *Mottainai) SetStatic() {
 func (m *Mottainai) listenAddr() string {
 	var ans string
 	m.Invoke(func(config *setting.Config) {
-
-		ans = fmt.Sprintf("%s:%s", config.HTTPAddr, config.HTTPPort)
+		ans = fmt.Sprintf("%s:%s", config.GetWeb().HTTPAddr, config.GetWeb().HTTPPort)
 	})
 
 	return ans
@@ -214,7 +214,7 @@ func (m *Mottainai) url() string {
 	var ans string
 
 	m.Invoke(func(config *setting.Config) {
-		ans = fmt.Sprintf("%s://%s", config.GetWebProtocol(),
+		ans = fmt.Sprintf("%s://%s", config.GetWeb().Protocol,
 			m.listenAddr())
 	})
 	return ans
@@ -227,9 +227,12 @@ func (m *Mottainai) Start() error {
 	server := NewServer()
 
 	m.Invoke(func(config *setting.Config) {
-		server.Add(config.BrokerDefaultQueue, config)
-		if config.BrokerType == "amqp" {
-			rmqc, r_error := rabbithole.NewClient(config.BrokerURI, config.BrokerUser, config.BrokerPass)
+		server.Add(config.GetBroker().BrokerDefaultQueue, config)
+		if config.GetBroker().Type == "amqp" {
+			rmqc, r_error := rabbithole.NewClient(
+				config.GetBroker().BrokerURI,
+				config.GetBroker().BrokerUser,
+				config.GetBroker().BrokerPass)
 			if r_error != nil {
 				panic(r_error)
 			}
@@ -237,7 +240,7 @@ func (m *Mottainai) Start() error {
 		}
 
 		th := agenttasks.DefaultTaskHandler()
-		fmt.Println("DB  with " + config.DBPath)
+		fmt.Println("DB  with " + config.GetDatabase().DBPath)
 
 		c := cron.New()
 
@@ -249,7 +252,7 @@ func (m *Mottainai) Start() error {
 		c.Start()
 		m.LoadPlans()
 		// For now
-		if config.EmbedWebHookServer {
+		if config.GetWeb().EmbedWebHookServer {
 			SetupWebHookAgent(m)
 		}
 
@@ -300,8 +303,8 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			log.Println("Sending pipeline to queue ", pip.Queue)
 
 		} else {
-			broker = server.Get(config.BrokerDefaultQueue, config)
-			log.Println("Sending pipeline to queue ", config.BrokerDefaultQueue)
+			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
+			log.Println("Sending pipeline to queue ", config.GetBroker().BrokerDefaultQueue)
 		}
 
 		if len(pip.Chord) > 0 {
@@ -400,15 +403,15 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			result = false
 			return
 		}
-		task.ClearBuildLog(config.ArtefactPath)
+		task.ClearBuildLog(config.GetStorage().ArtefactPath)
 		var broker *Broker
 		if len(task.Queue) > 0 {
 			broker = server.Get(task.Queue, config)
 			log.Println("Sending task to queue ", task.Queue)
 
 		} else {
-			broker = server.Get(config.BrokerDefaultQueue, config)
-			log.Println("Sending task to queue ", config.BrokerDefaultQueue)
+			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
+			log.Println("Sending task to queue ", config.GetBroker().BrokerDefaultQueue)
 
 		}
 
@@ -470,20 +473,20 @@ func (m *Mottainai) ReloadCron() {
 func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Server, error) {
 
 	var amqpConfig *config.AMQPConfig
-	if settings.BrokerType == "amqp" {
+	if settings.GetBroker().Type == "amqp" {
 		amqpConfig = &config.AMQPConfig{
-			Exchange:     settings.BrokerExchange,
-			ExchangeType: settings.BrokerExchangeType,
+			Exchange:     settings.GetBroker().BrokerExchange,
+			ExchangeType: settings.GetBroker().BrokerExchangeType,
 			BindingKey:   queue + "_key",
 			//BindingKey:   settings.BrokerBindingKey,
 		}
 
 	}
 	var cnf = &config.Config{
-		Broker:          settings.Broker,
+		Broker:          settings.GetBroker().Broker,
 		DefaultQueue:    queue,
-		ResultBackend:   settings.BrokerResultBackend,
-		ResultsExpireIn: settings.ResultsExpireIn,
+		ResultBackend:   settings.GetBroker().BrokerResultBackend,
+		ResultsExpireIn: settings.GetBroker().ResultsExpireIn,
 		AMQP:            amqpConfig,
 	}
 

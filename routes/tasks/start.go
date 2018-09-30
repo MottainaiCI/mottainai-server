@@ -30,11 +30,14 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
 	id := ctx.ParamsInt(":id")
 	tasksapi.SendStartTask(m, th, ctx, db)
-	ctx.Redirect("/tasks/display/" + strconv.Itoa(id))
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + strconv.Itoa(id)))
+	})
 }

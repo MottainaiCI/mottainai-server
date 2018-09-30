@@ -33,7 +33,10 @@ import (
 func Setup(m *macaron.Macaron) {
 	m.Invoke(func(config *setting.Config) {
 		//bind := binding.Bind
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
 		//reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
 		m.Get("/api/namespace/list", reqSignIn, NamespaceList)

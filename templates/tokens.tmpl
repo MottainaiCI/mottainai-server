@@ -13,9 +13,9 @@
                         <div class="card-body">
                           <div class="alert alert-secondary fade show">
                             <span class="badge badge-pill badge-secondary">Tip</span>
-                            Tokens are necessary to make auhtenticated call to the api. To use them with the CLI, use the -k option: <code>mottainai-cli --master {{AppSubURL}} -k TOKEN task create --json task.json</code><br>
+                            Tokens are necessary to make auhtenticated call to the api. To use them with the CLI, use the -k option: <code>mottainai-cli --master {{AppURL}} -k TOKEN task create --json task.json</code><br>
                           </div>
-                          <a href="/token/create"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
+                          <a href="{{BuildURI "/token/create"}}"><button class="pull-right btn btn-success btn-flat m-b-30 m-t-30">Create</button></a>
                           {{template "tokens/single" .}}
                         </div>
                     </div>

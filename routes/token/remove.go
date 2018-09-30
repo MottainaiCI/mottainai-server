@@ -27,6 +27,7 @@ import (
 	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func Remove(ctx *context.Context, db *database.Database) {
@@ -35,5 +36,7 @@ func Remove(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Redirect("/token")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/token"))
+	})
 }

@@ -44,7 +44,7 @@
 
                               <div class="card-header ">
 
-                              Login: <a target="_blank" href="/auth/github"><i class="fa fa-github"></i> </a>
+                                Login: <a target="_blank" href="{{BuildURI "/auth/github"}}"><i class="fa fa-github"></i> </a>
 
                               </div>
 
@@ -57,7 +57,7 @@
 
                                   {{range .User.Identities}}
                                   <li class="list-group-item">
-                                      <i class="fa fa-key"></i> {{.Provider}} <span class="badge  pull-right">{{.ID}}</span> <a target="_blank" href="/logout/{{.Provider}}"> Logout </a>
+                                    <i class="fa fa-key"></i> {{.Provider}} <span class="badge  pull-right">{{.ID}}</span> <a target="_blank" href="{{BuildURI "/logout/"}}{{.Provider}}"> Logout </a>
                                   </li>
                                   {{end}}
 

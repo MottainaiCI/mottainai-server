@@ -27,6 +27,7 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 )
 
@@ -41,5 +42,7 @@ func Stop(ctx *context.Context, db *database.Database) {
 	// 	return ":( "
 	// }
 	tasksapi.Stop(ctx, db)
-	ctx.Redirect("/tasks/display/" + strconv.Itoa(id))
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + strconv.Itoa(id)))
+	})
 }

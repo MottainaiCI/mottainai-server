@@ -57,9 +57,9 @@ func AutoLogin(c *context.Context, db *database.Database) (bool, error) {
 	defer func() {
 		if !isSucceed {
 			log.Trace("auto-login cookie cleared: %s", uname)
-			c.SetCookie("u_name", "", -1, db.Config.AppSubURL)
-			c.SetCookie("r_name", "", -1, db.Config.AppSubURL)
-			c.SetCookie("s_name", "", -1, db.Config.AppSubURL)
+			c.SetCookie("u_name", "", -1, db.Config.GetWeb().AppSubURL)
+			c.SetCookie("r_name", "", -1, db.Config.GetWeb().AppSubURL)
+			c.SetCookie("s_name", "", -1, db.Config.GetWeb().AppSubURL)
 		}
 	}()
 
@@ -77,7 +77,7 @@ func AutoLogin(c *context.Context, db *database.Database) (bool, error) {
 	isSucceed = true
 	c.Session.Set("uid", u.ID)
 	c.Session.Set("uname", u.Name)
-	c.SetCookie("_csrf", "", -1, db.Config.AppSubURL)
+	c.SetCookie("_csrf", "", -1, db.Config.GetWeb().AppSubURL)
 	//	if db.Config.EnableLoginStatusCookie {
 	//		c.SetCookie(setting.LoginStatusCookieName, "true", 0, db.Config.AppSubURL)
 	//	}
@@ -103,7 +103,7 @@ func Login(c *context.Context, db *database.Database) {
 
 	redirectTo := c.Query("redirect_to")
 	if len(redirectTo) > 0 {
-		c.SetCookie("redirect_to", redirectTo, 0, db.Config.AppSubURL)
+		c.SetCookie("redirect_to", redirectTo, 0, db.Config.GetWeb().AppSubURL)
 	} else {
 		redirectTo, _ = url.QueryUnescape(c.GetCookie("redirect_to"))
 	}
@@ -114,7 +114,7 @@ func Login(c *context.Context, db *database.Database) {
 		} else {
 			c.SubURLRedirect("/")
 		}
-		c.SetCookie("redirect_to", "", -1, db.Config.AppSubURL)
+		c.SetCookie("redirect_to", "", -1, db.Config.GetWeb().AppSubURL)
 		return
 	}
 	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
@@ -133,18 +133,18 @@ func afterLogin(c *context.Context, u user.User, remember bool) {
 	c.Invoke(func(config *setting.Config) {
 		if remember {
 			days := 86400 * 30
-			c.SetCookie("u_name", u.Name, days, config.AppSubURL, "", true, true)
-			c.SetSuperSecureCookie(u.Password, "r_name", u.Name, days, config.AppSubURL, "", true, true)
+			c.SetCookie("u_name", u.Name, days, config.GetWeb().AppSubURL, "", true, true)
+			c.SetSuperSecureCookie(u.Password, "r_name", u.Name, days, config.GetWeb().AppSubURL, "", true, true)
 		}
 
 		c.Session.Set("uid", u.ID)
 		c.Session.Set("uname", u.Name)
 
 		// Clear whatever CSRF has right now, force to generate a new one
-		c.SetCookie("_csrf", "", -1, config.AppSubURL)
+		c.SetCookie("_csrf", "", -1, config.GetWeb().AppSubURL)
 
 		redirectTo, _ = url.QueryUnescape(c.GetCookie("redirect_to"))
-		c.SetCookie("redirect_to", "", -1, config.AppSubURL)
+		c.SetCookie("redirect_to", "", -1, config.GetWeb().AppSubURL)
 	})
 
 	if isValidRedirect(redirectTo) {
@@ -152,7 +152,9 @@ func afterLogin(c *context.Context, u user.User, remember bool) {
 		return
 	}
 
-	c.SubURLRedirect("/")
+	c.Invoke(func(config *setting.Config) {
+		c.SubURLRedirect(config.GetWeb().BuildURI("/"))
+	})
 }
 
 func LoginPost(c *context.Context, f SignIn, db *database.Database) {
@@ -180,10 +182,10 @@ func SignOut(c *context.Context) {
 	c.Invoke(func(config *setting.Config) {
 		c.Session.Delete("uid")
 		c.Session.Delete("uname")
-		c.SetCookie("u_name", "", -1, config.AppSubURL)
-		c.SetCookie("r_name", "", -1, config.AppSubURL)
-		c.SetCookie("_csrf", "", -1, config.AppSubURL)
-		c.SubURLRedirect("/")
+		c.SetCookie("u_name", "", -1, config.GetWeb().AppSubURL)
+		c.SetCookie("r_name", "", -1, config.GetWeb().AppSubURL)
+		c.SetCookie("_csrf", "", -1, config.GetWeb().AppSubURL)
+		c.SubURLRedirect(config.GetWeb().BuildURI("/"))
 	})
 }
 
@@ -211,7 +213,9 @@ func SetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.SubURLRedirect("/user/list")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
+	})
 }
 
 func SetAdmin(ctx *context.Context, db *database.Database) {
@@ -221,7 +225,9 @@ func SetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.SubURLRedirect("/user/list")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
+	})
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) {
@@ -231,7 +237,9 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.SubURLRedirect("/user/list")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
+	})
 }
 
 func UnSetManager(ctx *context.Context, db *database.Database) {
@@ -241,7 +249,9 @@ func UnSetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.SubURLRedirect("/user/list")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
+	})
 }
 func DeleteUser(ctx *context.Context, db *database.Database) {
 	err := userapi.Delete(ctx, db)
@@ -250,7 +260,9 @@ func DeleteUser(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.SubURLRedirect("/user/list")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
+	})
 }
 
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
@@ -302,7 +314,9 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 	}
 	log.Trace("Account created: %s", u.Name)
 
-	c.SubURLRedirect("/user/login")
+	c.Invoke(func(config *setting.Config) {
+		c.SubURLRedirect(config.GetWeb().BuildURI("/user/login"))
+	})
 }
 
 func ListUsers(c *context.Context, db *database.Database) {

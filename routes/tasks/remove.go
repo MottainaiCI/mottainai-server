@@ -25,6 +25,7 @@ package tasks
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 )
 
@@ -34,5 +35,7 @@ func Delete(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
-	ctx.Redirect("/tasks")
+	ctx.Invoke(func(config *setting.Config) {
+		ctx.Redirect(config.GetWeb().BuildURI("/tasks"))
+	})
 }

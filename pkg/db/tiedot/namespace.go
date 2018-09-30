@@ -60,7 +60,7 @@ func (d *Database) DeleteNamespace(docID string) error {
 			d.DeleteArtefact(artefact.ID)
 		}
 
-		os.RemoveAll(filepath.Join(config.NamespacePath, ns.Path))
+		os.RemoveAll(filepath.Join(config.GetStorage().NamespacePath, ns.Path))
 	})
 
 	return d.DeleteDoc(NamespaceColl, docID)

@@ -114,8 +114,8 @@ func TestNewFetcher(t *testing.T) {
 		args args
 		want *Fetcher
 	}{
-		{"Create", args{"20"}, &Fetcher{BaseURL: config.AppURL, docID: "20", Config: config}},
-		{"Create2", args{"String"}, &Fetcher{BaseURL: config.AppURL, docID: "String", Config: config}},
+		{"Create", args{"20"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "20", Config: config}},
+		{"Create2", args{"String"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "String", Config: config}},
 	}
 
 	for _, tt := range tests {

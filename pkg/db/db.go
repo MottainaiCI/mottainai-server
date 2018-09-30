@@ -231,7 +231,7 @@ func NewDatabase(backend string, config *setting.Config) *Database {
 	}
 	if backend == "tiedot" {
 		fmt.Println("Tiedot backend")
-		DBInstance.Driver = tiedot.New(config.DBPath)
+		DBInstance.Driver = tiedot.New(config.GetDatabase().DBPath)
 	}
 
 	DBInstance.Driver.GetAgent().Map(config)

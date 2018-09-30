@@ -23,10 +23,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespaceroute
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	macaron "gopkg.in/macaron.v1"
 )
 
 func Setup(m *macaron.Macaron) {
-	m.Get("/namespaces", ShowAll)
-	m.Get("/namespaces/show/:name", Show)
+	m.Invoke(func(config *setting.Config) {
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			BaseURL:        config.GetWeb().AppURL,
+			Config:         config,
+			SignInRequired: true})
+
+		m.Get("/namespaces", reqSignIn, ShowAll)
+		m.Get("/namespaces/show/:name", reqSignIn, Show)
+	})
 }

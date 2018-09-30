@@ -101,9 +101,11 @@ func (m *MottainaiAgent) Run() error {
 
 	m.Invoke(func(config *setting.Config) {
 
-		broker := server.Add(config.BrokerDefaultQueue, config)
+		broker := server.Add(config.GetBroker().BrokerDefaultQueue, config)
 		th := agenttasks.DefaultTaskHandler()
-		fetcher := client.NewTokenClient(config.AppURL, config.ApiKey, config)
+		fetcher := client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
 		m.Client = fetcher
 		m.Map(server)
 		m.Map(th)
@@ -114,25 +116,25 @@ func (m *MottainaiAgent) Run() error {
 		log.INFO.Println("Worker ID: " + ID)
 		log.INFO.Println("Worker Hostname: " + hostname)
 
-		if config.PrivateQueue != 0 {
+		if config.GetAgent().PrivateQueue != 0 {
 			privqueue := hostname + ID
 			b := server.Add(privqueue, config)
-			w := b.NewWorker(privqueue, config.PrivateQueue)
+			w := b.NewWorker(privqueue, config.GetAgent().PrivateQueue)
 			log.INFO.Println("Listening on private queue: " + privqueue)
 			go w.Launch()
 		}
 
-		defaultWorker = broker.NewWorker(ID, config.AgentConcurrency)
+		defaultWorker = broker.NewWorker(ID, config.GetAgent().AgentConcurrency)
 		m.SetKeepAlive(ID, hostname)
 
-		for q, concurrent := range config.Queues {
+		for q, concurrent := range config.GetAgent().Queues {
 			log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
 			b := server.Add(q, config)
 			w := b.NewWorker(ID, concurrent)
 			go w.Launch()
 		}
 
-		is_standalone = config.StandAlone
+		is_standalone = config.GetAgent().StandAlone
 	})
 
 	if is_standalone {

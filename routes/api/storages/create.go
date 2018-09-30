@@ -55,7 +55,7 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	err = os.MkdirAll(filepath.Join(db.Config.StoragePath, name), os.ModePerm)
+	err = os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, name), os.ModePerm)
 	if err != nil {
 		return ":(", err
 	}
@@ -83,8 +83,8 @@ func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) 
 		errors.New("Moar permissions are required for this user")
 	}
 
-	os.MkdirAll(filepath.Join(db.Config.StoragePath, storage.Path, uf.Path), os.ModePerm)
-	f, err := os.OpenFile(filepath.Join(db.Config.StoragePath, storage.Path, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, uf.Path), os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 
 	defer f.Close()
 	io.Copy(f, file)

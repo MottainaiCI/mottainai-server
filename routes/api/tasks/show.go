@@ -78,7 +78,7 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 		return ""
 	}
 
-	return task.GetLogPart(pos, db.Config.ArtefactPath, db.Config.LockPath)
+	return task.GetLogPart(pos, db.Config.GetStorage().ArtefactPath, db.Config.GetAgent().LockPath)
 }
 
 func TailTask(ctx *context.Context, db *database.Database) string {
@@ -94,7 +94,7 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 		return "Moar permissions are required for this user"
 	}
 
-	return task.TailLog(pos, db.Config.ArtefactPath, db.Config.LockPath)
+	return task.TailLog(pos, db.Config.GetStorage().ArtefactPath, db.Config.GetAgent().LockPath)
 }
 
 func All(ctx *context.Context, db *database.Database) ([]task.Task, []task.Task) {

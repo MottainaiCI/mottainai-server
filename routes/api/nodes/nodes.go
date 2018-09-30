@@ -33,8 +33,14 @@ func Setup(m *macaron.Macaron) {
 
 	m.Invoke(func(config *setting.Config) {
 		bind := binding.Bind
-		reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true, BaseURL: config.AppSubURL})
-		reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true, BaseURL: config.AppSubURL})
+		reqSignIn := context.Toggle(&context.ToggleOptions{
+			SignInRequired: true,
+			Config:         config,
+			BaseURL:        config.GetWeb().AppSubURL})
+		reqManager := context.Toggle(&context.ToggleOptions{
+			ManagerRequired: true,
+			Config:          config,
+			BaseURL:         config.GetWeb().AppSubURL})
 
 		m.Get("/api/nodes", reqSignIn, ShowAll)
 		m.Get("/api/nodes/add", reqSignIn, reqManager, APICreate)

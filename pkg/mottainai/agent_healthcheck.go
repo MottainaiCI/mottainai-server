@@ -45,8 +45,8 @@ func (m *MottainaiAgent) HealthCheckSetup() {
 	//log.INFO.Println("Worker Hostname: " + hostname)
 
 	m.Invoke(func(config *setting.Config) {
-		fetcher := client.NewClient(config.AppURL, config)
-		fetcher.Token = config.ApiKey
+		fetcher := client.NewClient(config.GetWeb().AppURL, config)
+		fetcher.Token = config.GetAgent().ApiKey
 
 		//fetcher.RegisterNode(ID, hostname)
 		m.Map(fetcher)
@@ -61,7 +61,9 @@ func (m *MottainaiAgent) HealthClean() {
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 
 		var tlist []agenttasks.Task
-		err := c.GetJSONOptions("/api/nodes/tasks/"+config.AgentKey, map[string]string{}, &tlist)
+
+		url := config.GetWeb().BuildURI("/api/nodes/tasks/" + config.GetAgent().AgentKey)
+		err := c.GetJSONOptions(url, map[string]string{}, &tlist)
 		if err != nil {
 			log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
 			return
@@ -94,7 +96,7 @@ func (m *MottainaiAgent) HealthClean() {
 func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 
 	m.Invoke(func(config *setting.Config) {
-		for _, k := range config.HealthCheckCleanPath {
+		for _, k := range config.GetAgent().HealthCheckCleanPath {
 			log.INFO.Println("> Removing dangling files in " + k)
 			if err := utils.RemoveContents(k); err != nil {
 				log.ERROR.Println("> Failed removing contents from ", k, " ", err.Error())
@@ -106,7 +108,7 @@ func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 func (m *MottainaiAgent) CleanHealthCheckExec() {
 
 	m.Invoke(func(config *setting.Config) {
-		for _, k := range config.HealthCheckExec {
+		for _, k := range config.GetAgent().HealthCheckExec {
 			log.INFO.Println("> Executing: " + k)
 			args := strings.Split(k, " ")
 			cmdName := args[0]
@@ -122,9 +124,9 @@ func (m *MottainaiAgent) CleanHealthCheckExec() {
 
 func (m *MottainaiAgent) CleanBuildDir() {
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
-		log.INFO.Println("Cleaning " + config.BuildPath)
+		log.INFO.Println("Cleaning " + config.GetAgent().BuildPath)
 
-		stuff, err := utils.ListAll(config.BuildPath)
+		stuff, err := utils.ListAll(config.GetAgent().BuildPath)
 		if err != nil {
 			panic(err)
 		}
@@ -147,7 +149,7 @@ func (m *MottainaiAgent) CleanBuildDir() {
 			log.INFO.Println(task_info)
 			if task_info.IsDone() || task_info.ID == "" {
 				log.INFO.Println("Removing: " + what)
-				os.RemoveAll(path.Join(config.BuildPath, what))
+				os.RemoveAll(path.Join(config.GetAgent().BuildPath, what))
 			} else {
 				log.INFO.Println("Keeping: " + what)
 			}
