@@ -58,10 +58,10 @@ func init() {
 func TestUpload(t *testing.T) {
 	//t.Parallel()
 	binding.MaxMemory = int64(1024 * 1024 * 1)
-	config.DBPath = "./DB"
+	config.GetDatabase().DBPath = "./DB"
 
-	defer os.RemoveAll(config.DBPath)
-	defer os.RemoveAll(config.ArtefactPath)
+	defer os.RemoveAll(config.GetDatabase().DBPath)
+	defer os.RemoveAll(config.GetStorage().ArtefactPath)
 
 	db := database.NewDatabase("tiedot", config)
 
@@ -93,7 +93,7 @@ func TestUpload(t *testing.T) {
 	routes.SetupWebUI(server)
 	go server.Start()
 	time.Sleep(time.Duration(5 * time.Second))
-	c := client.NewTokenClient(config.AppURL, tok.Key, config)
+	c := client.NewTokenClient(config.GetWeb().AppURL, tok.Key, config)
 
 	dat := make(map[string]interface{})
 
@@ -119,11 +119,11 @@ func TestUpload(t *testing.T) {
 		t.Fatal("Document not created")
 	}
 
-	fetcher := client.NewTokenClient(config.AppURL, tok.Key, config)
+	fetcher := client.NewTokenClient(config.GetWeb().AppURL, tok.Key, config)
 	fetcher.Doc(tid)
 	testFile := "integration_test.go"
 
-	config.AgentKey = node.Key
+	config.GetAgent().AgentKey = node.Key
 	fetcher.RegisterNode("foo", "bar")
 
 	nd, err := db.Driver.GetNode(nodeid)
@@ -140,7 +140,7 @@ func TestUpload(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	file, err := os.Open(path.Join(config.ArtefactPath, tid, testFile))
+	file, err := os.Open(path.Join(config.GetStorage().ArtefactPath, tid, testFile))
 	if err != nil {
 		t.Errorf(err.Error())
 	}
