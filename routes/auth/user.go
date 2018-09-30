@@ -152,9 +152,7 @@ func afterLogin(c *context.Context, u user.User, remember bool) {
 		return
 	}
 
-	c.Invoke(func(config *setting.Config) {
-		c.SubURLRedirect(config.GetWeb().BuildURI("/"))
-	})
+	c.SubURLRedirect("/")
 }
 
 func LoginPost(c *context.Context, f SignIn, db *database.Database) {
@@ -185,7 +183,7 @@ func SignOut(c *context.Context) {
 		c.SetCookie("u_name", "", -1, config.GetWeb().AppSubURL)
 		c.SetCookie("r_name", "", -1, config.GetWeb().AppSubURL)
 		c.SetCookie("_csrf", "", -1, config.GetWeb().AppSubURL)
-		c.SubURLRedirect(config.GetWeb().BuildURI("/"))
+		c.SubURLRedirect("/")
 	})
 }
 
@@ -213,9 +211,7 @@ func SetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
-	})
+	ctx.SubURLRedirect("/user/list")
 }
 
 func SetAdmin(ctx *context.Context, db *database.Database) {
@@ -225,9 +221,7 @@ func SetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
-	})
+	ctx.SubURLRedirect("/user/list")
 }
 
 func UnSetAdmin(ctx *context.Context, db *database.Database) {
@@ -237,9 +231,7 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
-	})
+	ctx.SubURLRedirect("/user/list")
 }
 
 func UnSetManager(ctx *context.Context, db *database.Database) {
@@ -249,9 +241,7 @@ func UnSetManager(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
-	})
+	ctx.SubURLRedirect("/user/list")
 }
 func DeleteUser(ctx *context.Context, db *database.Database) {
 	err := userapi.Delete(ctx, db)
@@ -260,9 +250,7 @@ func DeleteUser(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.SubURLRedirect(config.GetWeb().BuildURI("/user/list"))
-	})
+	ctx.SubURLRedirect("/user/list")
 }
 
 func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *database.Database) {
@@ -314,9 +302,7 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f Register, db *databa
 	}
 	log.Trace("Account created: %s", u.Name)
 
-	c.Invoke(func(config *setting.Config) {
-		c.SubURLRedirect(config.GetWeb().BuildURI("/user/login"))
-	})
+	c.SubURLRedirect("/user/login")
 }
 
 func ListUsers(c *context.Context, db *database.Database) {

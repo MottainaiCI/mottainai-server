@@ -208,10 +208,8 @@ func Setup(m *macaron.Macaron) {
 }
 
 func Contexter() macaron.Handler {
-	var c *Context
-
 	return func(ctx *macaron.Context, config *setting.Config, sess session.Store, f *session.Flash, x csrf.CSRF, cache cache.Cache) {
-		c = &Context{
+		c := &Context{
 			Context: ctx,
 			Cache:   cache,
 			csrf:    x,
