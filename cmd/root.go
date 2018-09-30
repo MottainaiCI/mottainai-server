@@ -61,7 +61,6 @@ func initConfig(config *s.Config) {
 	config.Viper.SetConfigName(s.MOTTAINAI_CONFIGNAME)
 
 	config.Viper.SetTypeByDefaultValue(true)
-	config.GenDefault()
 	config.Unmarshal()
 }
 

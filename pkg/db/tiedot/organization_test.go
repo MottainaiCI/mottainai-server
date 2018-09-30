@@ -42,10 +42,10 @@ func TestInsertOrganization(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	config.DBPath = "./DB"
-	defer os.RemoveAll(config.DBPath)
+	config.GetDatabase().DBPath = "./DB"
+	defer os.RemoveAll(config.GetDatabase().DBPath)
 
-	db := New(config.DBPath)
+	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
 	db.Init()
 	DB = db

@@ -83,18 +83,18 @@ db:
   engine: 'tiedot'
 
   # Configuration params for tiedot adapter
-  db_path: '/sdpool/mottainai/web/db'
+  db_path: '/srv/mottainai/web/db'
 
 storage:
   # Define type of storage for users data
   type: 'dir'
 
   # Artefacts paths
-  artefact_path: '/sdpool/mottainai/web/artefact'
+  artefact_path: '/srv/mottainai/web/artefact'
   # Namespaces path
-  namespace_path: '/sdpool/mottainai/web/namespaces'
+  namespace_path: '/srv/mottainai/web/namespaces'
   # Storages path
-  storage_path: '/sdpool/mottainai/web/storage'
+  storage_path: '/srv/mottainai/web/storage'
 
 # Mottainai agent options
 agent:

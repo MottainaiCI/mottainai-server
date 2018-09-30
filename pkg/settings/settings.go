@@ -43,7 +43,7 @@ type WebConfig struct {
 	HTTPPort  string `mapstructure:"port"`
 
 	AppName string `mapstructure:"application_name"`
-	// TODO: TO REMOVE
+	// TODO: TO rename in API URL
 	AppURL string `mapstructure:"application_url"`
 
 	// Replate old custom_path
