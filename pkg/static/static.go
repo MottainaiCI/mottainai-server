@@ -140,25 +140,38 @@ func staticHandler(ctx *context.Context, log *log.Logger,
 		return false
 	}
 
-	file := ctx.Req.URL.Path
+	var denormalized bool = true
+	var file string
+	var err error
+
+	file = ctx.Req.URL.Path
 	// if we have a prefix, filter requests by stripping the prefix
 	if opt.Prefix != "" {
 		if !config.GetWeb().HasPrefixURL(file, opt.Prefix) {
 			return false
 		}
+		// Drop application prefix if defined
+		file, err = config.GetWeb().NormalizePath(file)
+		if err != nil {
+			return false
+		}
+		denormalized = false
 		file = file[len(opt.Prefix):]
 		if file != "" && file[0] != '/' {
 			return false
 		}
+
 	}
 	if !fn(ctx) {
 		return false
 	}
 
-	// Drop application prefix if defined
-	file, err := config.GetWeb().NormalizePath(file)
-	if err != nil {
-		return false
+	if denormalized {
+		// Drop application prefix if defined
+		file, err = config.GetWeb().NormalizePath(file)
+		if err != nil {
+			return false
+		}
 	}
 	f, err := opt.FileSystem.Open(file)
 	if err != nil {
