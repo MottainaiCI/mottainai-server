@@ -28,6 +28,7 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	storage "github.com/MottainaiCI/mottainai-server/pkg/storage"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
@@ -115,7 +116,11 @@ func CheckArtefactPermission(ctx *Context) bool {
 		ctx.NoPermission()
 		return false
 	}
+
 	db := database.Instance().Driver
+	ctx.Invoke(func(config *setting.Config) {
+		file, _ = config.GetWeb().NormalizePath(file)
+	})
 	segments := strings.Split(file, "/")
 
 	r := utils.NoEmptySlice(segments)
@@ -152,6 +157,9 @@ func CheckStoragePermission(ctx *Context) bool {
 		return false
 	}
 	db := database.Instance().Driver
+	ctx.Invoke(func(config *setting.Config) {
+		file, _ = config.GetWeb().NormalizePath(file)
+	})
 	segments := strings.Split(file, "/")
 
 	r := utils.NoEmptySlice(segments)
