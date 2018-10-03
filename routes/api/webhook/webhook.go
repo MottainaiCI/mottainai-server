@@ -53,8 +53,10 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:        config.GetWeb().AppSubURL,
 		})
 
-		m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
-		m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
-		m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
+			m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
+			m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
+		})
 	})
 }

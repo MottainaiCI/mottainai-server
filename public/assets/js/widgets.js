@@ -16,9 +16,10 @@
     });
 
 
+    var urlprefix = $('head').attr('data-suburl');
 
     $.ajax({
-        url: "/api/stats",
+        url: urlprefix + "api/stats",
       })
       .done(function( data ) {
            var dailykeys = [];

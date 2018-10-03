@@ -69,7 +69,7 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 					return
 				}
 
-				c.SetCookie("redirect_to", url.QueryEscape(options.Config.GetWeb().BuildURI(c.Req.RequestURI)),
+				c.SetCookie("redirect_to", url.QueryEscape(c.Req.RequestURI),
 					0, options.Config.GetWeb().BuildURI("/"))
 				c.Redirect(options.Config.GetWeb().BuildURI("/user/login"))
 				return
@@ -80,7 +80,7 @@ func Toggle(options *ToggleOptions) macaron.Handler {
 		if !options.SignOutRequired && !c.IsLogged &&
 			!auth.IsAPIPath(c.Req.URL.Path, options.Config.GetWeb()) &&
 			len(c.GetCookie("u_name")) > 0 {
-			c.SetCookie("redirect_to", url.QueryEscape(options.Config.GetWeb().BuildURI(c.Req.RequestURI)),
+			c.SetCookie("redirect_to", url.QueryEscape(c.Req.RequestURI),
 				0, options.Config.GetWeb().BuildURI("/"))
 			c.Redirect(options.Config.GetWeb().BuildURI("/user/login"))
 			return

@@ -37,15 +37,16 @@ func Setup(m *macaron.Macaron) {
 			Config:         config,
 			BaseURL:        config.GetWeb().AppSubURL})
 
-		//bind := binding.Bind
-		m.Get("/api/storage/list", reqSignIn, StorageList)
-		m.Get("/api/storage/:id/list", reqSignIn, StorageListArtefacts)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/storage/list", reqSignIn, StorageList)
+			m.Get("/api/storage/:id/list", reqSignIn, StorageListArtefacts)
 
-		m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
-		m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
-		m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
+			m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
+			m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
+			m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
 
-		m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
-		m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
+			m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
+			m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
+		})
 	})
 }

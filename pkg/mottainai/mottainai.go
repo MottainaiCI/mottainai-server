@@ -169,7 +169,7 @@ func (m *Mottainai) SetStatic() {
 	m.Invoke(func(c *setting.Config) {
 		m.Use(static.AuthStatic(context.CheckArtefactPermission,
 			path.Join(c.GetStorage().ArtefactPath),
-			c.GetWeb().AccessControlAllowOrigin,
+			c.GetWeb().AccessControlAllowOrigin, c,
 			macaron.StaticOptions{
 				Prefix: "artefact",
 			},
@@ -177,14 +177,14 @@ func (m *Mottainai) SetStatic() {
 
 		m.Use(static.AuthStatic(context.CheckNamespacePermission,
 			path.Join(c.GetStorage().NamespacePath),
-			c.GetWeb().AccessControlAllowOrigin,
+			c.GetWeb().AccessControlAllowOrigin, c,
 			macaron.StaticOptions{
 				Prefix: "namespace",
 			},
 		))
 		m.Use(static.AuthStatic(context.CheckStoragePermission,
 			path.Join(c.GetStorage().StoragePath),
-			c.GetWeb().AccessControlAllowOrigin,
+			c.GetWeb().AccessControlAllowOrigin, c,
 			macaron.StaticOptions{
 				Prefix: "storage",
 			},
@@ -192,7 +192,7 @@ func (m *Mottainai) SetStatic() {
 
 		m.Use(static.Static(
 			path.Join(c.GetWeb().StaticRootPath, "public"),
-			c.GetWeb().AccessControlAllowOrigin,
+			c.GetWeb().AccessControlAllowOrigin, c,
 			macaron.StaticOptions{},
 		))
 	})

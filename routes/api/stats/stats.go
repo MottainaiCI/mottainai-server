@@ -30,6 +30,7 @@ import (
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	macaron "gopkg.in/macaron.v1"
 )
 
@@ -120,5 +121,9 @@ func GetStats(atasks []agenttasks.Task) map[string]int {
 func Setup(m *macaron.Macaron) {
 	//reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 
-	m.Get("/api/stats", Info)
+	m.Invoke(func(config *setting.Config) {
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/stats", Info)
+		})
+	})
 }

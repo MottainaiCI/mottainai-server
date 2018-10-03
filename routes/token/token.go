@@ -37,8 +37,10 @@ func Setup(m *macaron.Macaron) {
 			Config:         config,
 			BaseURL:        config.GetWeb().AppSubURL})
 
-		m.Get("/token", reqSignIn, ShowAll)
-		m.Get("/token/create", reqSignIn, Create)
-		m.Get("/token/delete/:id", reqSignIn, Remove)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/token", reqSignIn, ShowAll)
+			m.Get("/token/create", reqSignIn, Create)
+			m.Get("/token/delete/:id", reqSignIn, Remove)
+		})
 	})
 }

@@ -39,37 +39,39 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:        config.GetWeb().AppSubURL})
 
 		bind := binding.Bind
-		m.Get("/api/tasks", ShowAll)
-		m.Post("/api/tasks", reqSignIn, bind(agenttasks.Task{}), APICreate)
-		m.Get("/api/tasks/:id", GetTaskJson)      // TEMP: For now, as js  calls aren't with auth
-		m.Get("/api/tasks/:id.yaml", GetTaskYaml) // TEMP: For now, as js  calls aren't with auth
-		m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
-		m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
-		m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)
-		m.Get("/api/tasks/clone/:id", reqSignIn, CloneTask)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/tasks", ShowAll)
+			m.Post("/api/tasks", reqSignIn, bind(agenttasks.Task{}), APICreate)
+			m.Get("/api/tasks/:id", GetTaskJson)      // TEMP: For now, as js  calls aren't with auth
+			m.Get("/api/tasks/:id.yaml", GetTaskYaml) // TEMP: For now, as js  calls aren't with auth
+			m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
+			m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
+			m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)
+			m.Get("/api/tasks/clone/:id", reqSignIn, CloneTask)
 
-		m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
-		m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)
-		m.Get("/api/tasks/update", reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
-		m.Get("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
-		m.Get("/api/tasks/updatefield", reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
-		m.Get("/api/tasks/update/node", reqSignIn, bind(UpdateTaskForm{}), SetNode)
+			m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
+			m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)
+			m.Get("/api/tasks/update", reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
+			m.Get("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
+			m.Get("/api/tasks/updatefield", reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
+			m.Get("/api/tasks/update/node", reqSignIn, bind(UpdateTaskForm{}), SetNode)
 
-		m.Get("/api/tasks/:id/artefacts", reqSignIn, ArtefactList)
-		m.Get("/api/artefacts", reqSignIn, AllArtefactList)
+			m.Get("/api/tasks/:id/artefacts", reqSignIn, ArtefactList)
+			m.Get("/api/artefacts", reqSignIn, AllArtefactList)
 
-		m.Post("/api/tasks/plan", reqSignIn, bind(agenttasks.Plan{}), Plan)
+			m.Post("/api/tasks/plan", reqSignIn, bind(agenttasks.Plan{}), Plan)
 
-		m.Get("/api/tasks/planned", reqSignIn, PlannedTasks)
-		m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
-		m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
+			m.Get("/api/tasks/planned", reqSignIn, PlannedTasks)
+			m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
+			m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
 
-		m.Post("/api/tasks/pipeline", reqSignIn, bind(PipelineForm{}), Pipeline)
-		m.Get("/api/tasks/pipelines", reqSignIn, ShowAllPipelines)
-		m.Get("/api/tasks/pipelines/delete/:id", reqSignIn, PipelineDelete)
-		m.Get("/api/tasks/pipeline/:id", reqSignIn, PipelineShow)
-		m.Get("/api/tasks/pipeline/:id.yaml", reqSignIn, PipelineYaml) // TEMP: For now, as js  calls aren't with auth
+			m.Post("/api/tasks/pipeline", reqSignIn, bind(PipelineForm{}), Pipeline)
+			m.Get("/api/tasks/pipelines", reqSignIn, ShowAllPipelines)
+			m.Get("/api/tasks/pipelines/delete/:id", reqSignIn, PipelineDelete)
+			m.Get("/api/tasks/pipeline/:id", reqSignIn, PipelineShow)
+			m.Get("/api/tasks/pipeline/:id.yaml", reqSignIn, PipelineYaml) // TEMP: For now, as js  calls aren't with auth
 
-		m.Post("/api/tasks/artefact/upload", reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
+			m.Post("/api/tasks/artefact/upload", reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
+		})
 	})
 }
