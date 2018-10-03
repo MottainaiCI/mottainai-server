@@ -88,7 +88,7 @@
                           </a>
 
                           <div class="user-menu dropdown-menu">
-                            {{if .IsManagerOrAdmin}}<a class="nav-link" href="/user/list"><i class="fa fa-users"></i> List</a>{{end}}
+                            {{if .IsManagerOrAdmin}}<a class="nav-link" href="{{BuildURI "/user/list"}}"><i class="fa fa-users"></i> List</a>{{end}}
                               <a class="nav-link"  href="{{BuildURI "/token"}}"> <i class="fa fa-key"></i>Access tokens</a>
                               <a class="nav-link"  href="{{BuildURI "/user/show/"}}{{.LoggedUserID}}"> <i class="fa fa-user"></i>Profile</a>
                               <a class="nav-link" href="{{BuildURI "/user/logout"}}"><i class="fa fa-power-off"></i> Logout</a>

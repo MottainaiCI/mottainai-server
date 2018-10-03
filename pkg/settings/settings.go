@@ -23,7 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package setting
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	v "github.com/spf13/viper"
 )
@@ -282,6 +284,54 @@ func (c *WebConfig) CompareURI(requestURI, pattern string) bool {
 		return true
 	}
 	return false
+}
+
+func (c *WebConfig) HasPrefixURL(requestURI, prefix string) bool {
+	// TODO: Complete handle of complete URL with schema http://...
+
+	url := c.BuildURI(prefix)
+
+	if strings.HasPrefix(requestURI, url) {
+		return true
+	}
+
+	return false
+}
+
+/*
+   Return path of resource without application prefix.
+*/
+func (c *WebConfig) NormalizePath(requestPath string) (string, error) {
+	var ans = requestPath
+	if c.AppSubURL == "/" {
+		return requestPath, nil
+	}
+
+	if len(c.AppSubURL) > len(requestPath) {
+		return "", errors.New("Invalid path")
+	}
+
+	if strings.HasPrefix(requestPath, c.AppSubURL) {
+		ans = requestPath[len(c.AppSubURL):]
+		if !strings.HasPrefix(ans, "/") {
+			ans = "/" + ans
+		}
+	}
+
+	return ans, nil
+}
+
+func (c *WebConfig) GroupAppPath() string {
+	var ans string
+	if c.AppSubURL == "/" {
+		ans = ""
+	} else if strings.HasSuffix(c.AppSubURL, "/") {
+		ans = c.AppSubURL[0 : len(c.AppSubURL)-1]
+	} else {
+		ans = c.AppSubURL
+	}
+
+	return ans
 }
 
 func (c *WebConfig) String() string {

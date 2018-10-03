@@ -39,15 +39,17 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:        config.GetWeb().AppSubURL})
 		//reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
-		m.Get("/api/namespace/list", reqSignIn, NamespaceList)
-		m.Get("/api/namespace/:name/list", reqSignIn, NamespaceListArtefacts)
-		m.Get("/api/namespace/:name/create", reqSignIn, NamespaceCreate)
-		m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
-		m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
-		m.Get("/api/namespace/:name/append/:taskid", reqSignIn, NamespaceAppend)
-		m.Get("/api/namespace/:name/remove/:path", reqSignIn, NamespaceRemovePath)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/namespace/list", reqSignIn, NamespaceList)
+			m.Get("/api/namespace/:name/list", reqSignIn, NamespaceListArtefacts)
+			m.Get("/api/namespace/:name/create", reqSignIn, NamespaceCreate)
+			m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
+			m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
+			m.Get("/api/namespace/:name/append/:taskid", reqSignIn, NamespaceAppend)
+			m.Get("/api/namespace/:name/remove/:path", reqSignIn, NamespaceRemovePath)
 
-		m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
-		m.Post("/api/namespace/upload", reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
+			m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
+			m.Post("/api/namespace/upload", reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
+		})
 	})
 }

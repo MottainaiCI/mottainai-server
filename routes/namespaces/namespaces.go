@@ -35,7 +35,9 @@ func Setup(m *macaron.Macaron) {
 			Config:         config,
 			SignInRequired: true})
 
-		m.Get("/namespaces", reqSignIn, ShowAll)
-		m.Get("/namespaces/show/:name", reqSignIn, Show)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/namespaces", reqSignIn, ShowAll)
+			m.Get("/namespaces/show/:name", reqSignIn, Show)
+		})
 	})
 }

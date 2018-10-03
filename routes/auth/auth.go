@@ -224,38 +224,40 @@ func Setup(m *macaron.Macaron) {
 			Config:          config,
 			BaseURL:         config.GetWeb().AppSubURL})
 
-		m.Group("/user", func() {
-			m.Group("/login", func() {
-				m.Combo("").Get(Login).
-					Post(bindIgnErr(SignIn{}), LoginPost)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Group("/user", func() {
+				m.Group("/login", func() {
+					m.Combo("").Get(Login).
+						Post(bindIgnErr(SignIn{}), LoginPost)
+				})
+				m.Get("/sign_up", SignUp)
+				m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
+
+			}, reqSignOut)
+
+			// TODO: Move from Here
+			goth.UseProviders(
+				github.New(config.GetWeb().WebHookGitHubToken,
+					config.GetWeb().WebHookGitHubSecret,
+					config.GetWeb().BuildURI("/auth/github/callback")),
+			)
+
+			m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
+			m.Get("/logout/github", RequiresIntegrationSetting, reqSignIn, GithubLogout)
+			m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
+
+			m.Get("/user/list", reqSignIn, reqManager, ListUsers)
+			m.Get("/user/show/:id", reqSignIn, reqManager, Show)
+
+			m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
+			m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
+			m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)
+			m.Get("/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManager)
+			m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+
+			m.Group("/user", func() {
+				m.Get("/logout", SignOut)
 			})
-			m.Get("/sign_up", SignUp)
-			m.Post("/sign_up", bindIgnErr(Register{}), SignUpPost)
-
-		}, reqSignOut)
-
-		// TODO: Move from Here
-		goth.UseProviders(
-			github.New(config.GetWeb().WebHookGitHubToken,
-				config.GetWeb().WebHookGitHubSecret,
-				config.GetWeb().BuildURI("/auth/github/callback")),
-		)
-
-		m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)
-		m.Get("/logout/github", RequiresIntegrationSetting, reqSignIn, GithubLogout)
-		m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
-
-		m.Get("/user/list", reqSignIn, reqManager, ListUsers)
-		m.Get("/user/show/:id", reqSignIn, reqManager, Show)
-
-		m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
-		m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
-		m.Get("/user/set/manager/:id", reqSignIn, reqAdmin, SetManager)
-		m.Get("/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManager)
-		m.Get("/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-
-		m.Group("/user", func() {
-			m.Get("/logout", SignOut)
 		})
 	})
 }

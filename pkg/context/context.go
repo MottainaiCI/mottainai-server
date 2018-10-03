@@ -215,7 +215,7 @@ func Contexter() macaron.Handler {
 			csrf:    x,
 			Flash:   f,
 			Session: sess,
-			Link:    config.GetWeb().BuildURI(ctx.Req.URL.Path),
+			Link:    ctx.Req.URL.Path,
 		}
 		c.Data["Link"] = c.Link
 		c.Data["PageStartTime"] = time.Now()

@@ -245,13 +245,15 @@ func Setup(m *macaron.Macaron) {
 			Config:          config,
 			BaseURL:         config.GetWeb().AppSubURL})
 
-		m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
-		m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
-		m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
-		m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
-		m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
-		m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
-		m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-		m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
+			m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
+			m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
+			m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
+			m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
+			m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
+			m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
+			m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
+		})
 	})
 }

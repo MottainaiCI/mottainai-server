@@ -40,17 +40,20 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:        config.GetWeb().AppSubURL})
 
 		bind := binding.BindIgnErr
-		m.Get("/tasks", reqSignIn, ShowAll)
-		m.Get("/tasks/add", reqSignIn, Add)
-		m.Post("/tasks", reqSignIn, bind(agenttasks.Task{}), Create)
-		m.Get("/tasks/:id", reqSignIn, DisplayTask)
-		m.Get("/tasks/start/:id", reqSignIn, SendStartTask)
-		m.Get("/tasks/stop/:id", reqSignIn, Stop)
-		m.Get("/tasks/delete/:id", reqSignIn, Delete)
-		m.Get("/tasks/clone/:id", reqSignIn, Clone)
 
-		//Public
-		m.Get("/tasks/display/:id", reqSignIn, DisplayTask)
-		m.Get("/tasks/artefacts/:id", reqSignIn, ShowArtefacts)
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/tasks", reqSignIn, ShowAll)
+			m.Get("/tasks/add", reqSignIn, Add)
+			m.Post("/tasks", reqSignIn, bind(agenttasks.Task{}), Create)
+			m.Get("/tasks/:id", reqSignIn, DisplayTask)
+			m.Get("/tasks/start/:id", reqSignIn, SendStartTask)
+			m.Get("/tasks/stop/:id", reqSignIn, Stop)
+			m.Get("/tasks/delete/:id", reqSignIn, Delete)
+			m.Get("/tasks/clone/:id", reqSignIn, Clone)
+
+			//Public
+			m.Get("/tasks/display/:id", reqSignIn, DisplayTask)
+			m.Get("/tasks/artefacts/:id", reqSignIn, ShowArtefacts)
+		})
 	})
 }

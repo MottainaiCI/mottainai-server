@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"strings"
 	"sync"
@@ -83,30 +84,32 @@ func newStaticFileSystem(directory string) staticFileSystem {
 }
 
 // Static returns a middleware handler that serves static files in the given directory.
-func Static(directory string, accessControlAllowOrigin string, staticOpt ...macaron.StaticOptions) macaron.Handler {
-	opt := prepareStaticOptions(directory, staticOpt)
+func Static(directory string, accessControlAllowOrigin string, config *setting.Config,
+	staticOpt ...macaron.StaticOptions) macaron.Handler {
+	opt := prepareStaticOptions(directory, config, staticOpt)
 
-	return func(ctx *context.Context, log *log.Logger) {
-		staticHandler(ctx, log, opt, func(ctx *context.Context) bool { return true }, accessControlAllowOrigin)
+	return func(ctx *context.Context, log *log.Logger, config *setting.Config) {
+		staticHandler(ctx, log, config, opt, func(ctx *context.Context) bool { return true }, accessControlAllowOrigin)
 	}
 }
 
-func AuthStatic(fn func(*context.Context) bool, directory string, accessControlAllowOrigin string, staticOpt ...macaron.StaticOptions) macaron.Handler {
-	opt := prepareStaticOptions(directory, staticOpt)
+func AuthStatic(fn func(*context.Context) bool, directory string, accessControlAllowOrigin string,
+	config *setting.Config, staticOpt ...macaron.StaticOptions) macaron.Handler {
+	opt := prepareStaticOptions(directory, config, staticOpt)
 
-	return func(ctx *context.Context, log *log.Logger) {
-		staticHandler(ctx, log, opt, fn, accessControlAllowOrigin)
+	return func(ctx *context.Context, log *log.Logger, config *setting.Config) {
+		staticHandler(ctx, log, config, opt, fn, accessControlAllowOrigin)
 	}
 }
 
-func prepareStaticOptions(dir string, options []macaron.StaticOptions) macaron.StaticOptions {
+func prepareStaticOptions(dir string, config *setting.Config, options []macaron.StaticOptions) macaron.StaticOptions {
 	var opt macaron.StaticOptions
 	if len(options) > 0 {
 		opt = options[0]
 	}
-	return prepareStaticOption(dir, opt)
+	return prepareStaticOption(dir, config, opt)
 }
-func prepareStaticOption(dir string, opt macaron.StaticOptions) macaron.StaticOptions {
+func prepareStaticOption(dir string, config *setting.Config, opt macaron.StaticOptions) macaron.StaticOptions {
 	// Defaults
 	if len(opt.IndexFile) == 0 {
 		opt.IndexFile = "index.html"
@@ -130,8 +133,8 @@ func (fs staticFileSystem) Open(name string) (http.File, error) {
 }
 
 func staticHandler(ctx *context.Context, log *log.Logger,
-	opt macaron.StaticOptions, fn func(*context.Context) bool,
-	accessControlAllowOrigin string) bool {
+	config *setting.Config, opt macaron.StaticOptions,
+	fn func(*context.Context) bool, accessControlAllowOrigin string) bool {
 
 	if ctx.Req.Method != "GET" && ctx.Req.Method != "HEAD" {
 		return false
@@ -140,7 +143,7 @@ func staticHandler(ctx *context.Context, log *log.Logger,
 	file := ctx.Req.URL.Path
 	// if we have a prefix, filter requests by stripping the prefix
 	if opt.Prefix != "" {
-		if !strings.HasPrefix(file, opt.Prefix) {
+		if !config.GetWeb().HasPrefixURL(file, opt.Prefix) {
 			return false
 		}
 		file = file[len(opt.Prefix):]
@@ -149,6 +152,12 @@ func staticHandler(ctx *context.Context, log *log.Logger,
 		}
 	}
 	if !fn(ctx) {
+		return false
+	}
+
+	// Drop application prefix if defined
+	file, err := config.GetWeb().NormalizePath(file)
+	if err != nil {
 		return false
 	}
 	f, err := opt.FileSystem.Open(file)

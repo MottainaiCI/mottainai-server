@@ -47,9 +47,12 @@ func Setup(m *macaron.Macaron) {
 			Config:        config,
 			BaseURL:       config.GetWeb().AppSubURL})
 		bind := binding.Bind
-		m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
-		m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
-		m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
-		m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
+
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
+			m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
+			m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
+			m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
+		})
 	})
 }
