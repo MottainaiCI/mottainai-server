@@ -27,7 +27,6 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
-	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
 )
@@ -51,7 +50,6 @@ func SetManager(ctx *context.Context, db *database.Database) error {
 
 	return nil
 }
-
 func SetAdmin(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
@@ -127,7 +125,6 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) error {
 	}
 	return nil
 }
-
 func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 	err := UnSetAdmin(ctx, db)
 	if err != nil {
@@ -136,7 +133,6 @@ func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
 
 	return "OK"
 }
-
 func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 	err := UnSetManager(ctx, db)
 	if err != nil {
@@ -145,7 +141,6 @@ func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
 
 	return "OK"
 }
-
 func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
@@ -202,33 +197,14 @@ func ShowUser(c *context.Context, db *database.Database) {
 		return
 	}
 	c.JSON(200, u)
+
 }
 
 func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
 
-func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
-	var u *user.User = &user.User{
-		Name:     opts.Name,
-		Email:    opts.Email,
-		Password: opts.Password,
-		// For now create only normal user. Upgrade to admin/manager
-		// is done through specific api call.
-		Admin:   "no",
-		Manager: "no",
-	}
-
-	r, err := db.Driver.InsertUser(u)
-	if err != nil {
-		return ":(", err
-	}
-
-	return r, nil
-}
-
 func Setup(m *macaron.Macaron) {
-	bind := binding.BindIgnErr
 	reqSignIn := context.Toggle(&context.ToggleOptions{SignInRequired: true})
 	reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 	reqManager := context.Toggle(&context.ToggleOptions{ManagerRequired: true})
@@ -241,5 +217,4 @@ func Setup(m *macaron.Macaron) {
 	m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
 	m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 	m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-	m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
 }
