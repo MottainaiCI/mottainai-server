@@ -220,7 +220,7 @@ func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
 		Manager: "no",
 	}
 
-	r, err := db.Driver.InsertUser(u)
+	r, err := db.Driver.InsertAndSaltUser(u)
 	if err != nil {
 		return ":(", err
 	}
