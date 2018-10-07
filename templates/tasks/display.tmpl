@@ -205,12 +205,6 @@
                                             <i class="fa  fa-chevron-right"></i> Extra output: <span class="pull-right badge badge-info">{{.Task.Output}}</span>
                                           </li>
                                         {{end}}
-
-                                        {{if .RunningTime}}
-                                        <li class="list-group-item">
-                                            <i class="fa fa-clock-o"></i> Running since <span class="badge pull-right">{{.RunningTime}}s</span>
-                                        </li>
-                                        {{end}}
                                         {{if .WaitingTime}}
                                         <li class="list-group-item">
                                             <i class="fa fa-clock-o"></i> Waited for  <span class="badge pull-right">{{.WaitingTime}}s</span>
@@ -228,7 +222,8 @@
                                             <i class="fa fa-clock-o"></i> Finished <span class="badge pull-right"><time class="timeago" datetime="{{.Task.EndTime}}">{{.Task.EndTime}}</time></span>
                                         </li>
                                         {{end}}
-                                          {{if .Task.StartTime}}
+
+                                        {{if .Task.StartTime}}
                                         <li class="list-group-item">
                                             <i class="fa fa-clock-o"></i> Started <span class="badge pull-right"><time class="timeago" datetime="{{.Task.StartTime}}">{{.Task.StartTime}}</time></span>
                                         </li>
@@ -247,17 +242,17 @@
                                           {{if .Task.Namespace}}
 
                                           <li class="list-group-item">
-                                              <i class="fa fa-download"></i> Artifacts synced from namespace <span class="badge  pull-right"><a href="/namespaces/show/{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span>
+                                            <i class="fa fa-download"></i> Artifacts synced from namespace <span class="badge  pull-right"><a href="{{BuildURI "/namespaces/show/"}}{{.Task.Namespace}}" target="_blank">{{.Task.Namespace}}</a></span>
                                           </li>
                                           {{end}}
 
                                           <li class="list-group-item">
-                                              <i class="fa fa-external-link"></i> Artefacts url <span class="badge pull-right r-activity"><code>{{AppSubURL}}/artefact/{{.Task.ID}}/</code></span>
+                                            <i class="fa fa-external-link"></i> Artefacts url <span class="badge pull-right r-activity"><code>{{BuildURI "/artefact/"}}{{.Task.ID}}/</code></span>
                                           </li>
                                           {{if .Task.TagNamespace}}
 
                                           <li class="list-group-item">
-                                              <i class="fa fa-tag"></i> Automatic tag to <span class="badge badge-warning"><a href="/namespaces/show/{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span>
+                                            <i class="fa fa-tag"></i> Automatic tag to <span class="badge badge-warning"><a href="{{BuildURI "/namespaces/show/"}}{{.Task.TagNamespace}}" target="_blank">{{.Task.TagNamespace}}</a></span> on <span class="badge badge-success">success</span>
                                           </li>
                                           {{end}}
 
