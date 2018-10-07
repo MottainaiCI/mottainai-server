@@ -24,10 +24,18 @@ package agenttasks
 
 import (
 	"fmt"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"testing"
 )
 
 func TestPipeline(t *testing.T) {
+
+	config := setting.NewConfig(nil)
+	// Set env variable
+	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
+	config.Viper.AutomaticEnv()
+	config.Viper.SetTypeByDefaultValue(true)
+	config.Unmarshal()
 
 	pipe := &Pipeline{}
 	pipe.Group = []string{"test", "test1"}
@@ -43,7 +51,7 @@ func TestPipeline(t *testing.T) {
 	test_res := pipe.ToMap(true)
 	fmt.Println(test_res)
 
-	pipe2 := DefaultTaskHandler().NewPipelineFromMap(test_res)
+	pipe2 := DefaultTaskHandler(config).NewPipelineFromMap(test_res)
 
 	if pipe2.Tasks["test"].Namespace != "boh" {
 		t.Error("Invalid namespace for ", pipe2.Tasks["test"])

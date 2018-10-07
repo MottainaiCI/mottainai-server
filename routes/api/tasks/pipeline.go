@@ -46,9 +46,9 @@ func AllPipelines(ctx *context.Context, db *database.Database) ([]task.Pipeline,
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			all = db.Driver.AllPipelines()
+			all = db.Driver.AllPipelines(db.Config)
 		}
-		mine, _ = db.Driver.AllUserPipelines(ctx.User.ID)
+		mine, _ = db.Driver.AllUserPipelines(db.Config, ctx.User.ID)
 
 	}
 
@@ -78,7 +78,7 @@ func ShowAllPipelines(ctx *context.Context, db *database.Database) {
 
 func PipelineShow(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
-	pip, err := db.Driver.GetPipeline(id)
+	pip, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 	}
 
 	for k, t := range pip.Tasks {
-		ta, err := db.Driver.GetTask(t.ID)
+		ta, err := db.Driver.GetTask(db.Config, t.ID)
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) error {
 
 func PipelineYaml(ctx *context.Context, db *database.Database) string {
 	id := ctx.Params(":id")
-	task, err := db.Driver.GetPipeline(id)
+	task, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
@@ -169,7 +169,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 
 func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.Params(":id")
-	pips, err := db.Driver.GetPipeline(id)
+	pips, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 	}

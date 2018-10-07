@@ -63,7 +63,7 @@ type TaskExecutor struct {
 
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	fetcher := d.MottainaiClient
-	task_info := DefaultTaskHandler().FetchTask(fetcher)
+	task_info := DefaultTaskHandler(d.Config).FetchTask(fetcher)
 	var err error
 	if len(task_info.RootTask) > 0 {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
@@ -127,7 +127,7 @@ func (d *TaskExecutor) Clean() error {
 
 func (d *TaskExecutor) Fail(errstring string) {
 
-	task_info := DefaultTaskHandler().FetchTask(d.MottainaiClient)
+	task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
 	if task_info.Status != setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.FinishTask()
 	} else {
@@ -138,7 +138,7 @@ func (d *TaskExecutor) Fail(errstring string) {
 }
 
 func (d *TaskExecutor) Success(status int) {
-	task_info := DefaultTaskHandler().FetchTask(d.MottainaiClient)
+	task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
 	if task_info.Status == setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.AbortTask()
 		return
@@ -174,7 +174,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 
-	th := DefaultTaskHandler()
+	th := DefaultTaskHandler(d.Config)
 	task_info := th.FetchTask(fetcher)
 	if task_info.Working() {
 		d.Report(">>> WARNING! <<<", ABORT_DUPLICATE_ERROR, ">> NODE <<", ID+" ( "+hostname+" ) ")

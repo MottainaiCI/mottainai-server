@@ -102,7 +102,7 @@ func (m *MottainaiAgent) Run() error {
 	m.Invoke(func(config *setting.Config) {
 
 		broker := server.Add(config.GetBroker().BrokerDefaultQueue, config)
-		th := agenttasks.DefaultTaskHandler()
+		th := agenttasks.DefaultTaskHandler(config)
 		fetcher := client.NewTokenClient(
 			config.GetWeb().AppURL,
 			config.GetAgent().ApiKey, config)

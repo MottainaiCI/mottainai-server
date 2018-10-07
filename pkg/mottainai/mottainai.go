@@ -239,7 +239,7 @@ func (m *Mottainai) Start() error {
 			m.Map(rmqc)
 		}
 
-		th := agenttasks.DefaultTaskHandler()
+		th := agenttasks.DefaultTaskHandler(config)
 		fmt.Println("DB  with " + config.GetDatabase().DBPath)
 
 		c := cron.New()
@@ -291,7 +291,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	var rerr error
 	m.Invoke(func(d *database.Database, server *MottainaiServer,
 		th *agenttasks.TaskHandler, config *setting.Config) {
-		pip, err := d.Driver.GetPipeline(docID)
+		pip, err := d.Driver.GetPipeline(config, docID)
 		if err != nil {
 			rerr = err
 			result = false
@@ -398,7 +398,7 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 	var err error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler, config *setting.Config) {
 
-		task, err := d.Driver.GetTask(docID)
+		task, err := d.Driver.GetTask(config, docID)
 		if err != nil {
 			result = false
 			return
@@ -442,13 +442,13 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 }
 
 func (m *Mottainai) LoadPlans() {
-	m.Invoke(func(c *cron.Cron, d *database.Database) {
+	m.Invoke(func(c *cron.Cron, d *database.Database, config *setting.Config) {
 
-		for _, plan := range d.Driver.AllPlans() {
+		for _, plan := range d.Driver.AllPlans(config) {
 			fmt.Println("Loading plan: ", plan.Task, plan)
 			id := plan.ID
 			c.AddFunc(plan.Planned, func() {
-				plan, _ := d.Driver.GetPlan(id)
+				plan, _ := d.Driver.GetPlan(config, id)
 				plan.Task.Reset()
 				docID, _ := d.Driver.CreateTask(plan.Task.ToMap())
 				m.SendTask(docID)

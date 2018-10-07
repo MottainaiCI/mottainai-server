@@ -247,7 +247,7 @@ func (d *VagrantExecutor) Setup(docID string) error {
 
 func (d *VagrantExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
-	th := DefaultTaskHandler()
+	th := DefaultTaskHandler(d.TaskExecutor.Config)
 	task_info := th.FetchTask(fetcher)
 	image := task_info.Image
 	starttime := time.Now()

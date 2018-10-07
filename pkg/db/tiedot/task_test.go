@@ -57,7 +57,7 @@ func TestInsertTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	uu, _ := db.GetTask(id)
+	uu, _ := db.GetTask(config, id)
 
 	if uu.Namespace != u.Namespace {
 		t.Fatal("Failed insert")
@@ -66,7 +66,7 @@ func TestInsertTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	tasks, err := db.AllUserTask("20")
+	tasks, err := db.AllUserTask(config, "20")
 
 	if err != nil {
 		t.Fatal(err)
@@ -80,9 +80,9 @@ func TestInsertTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	db.DeleteTask(id)
+	db.DeleteTask(config, id)
 
-	err = db.DeleteTask(id)
+	err = db.DeleteTask(config, id)
 
 	if err == nil {
 		t.Fatal("Failed Remove")
@@ -92,9 +92,11 @@ func TestInsertTask(t *testing.T) {
 
 func TestUpdateTask(t *testing.T) {
 	var dbpath string
+	var conf *setting.Config
 	db := dbtest
 	db.GetAgent().Invoke(func(config *setting.Config) {
 		dbpath = config.GetDatabase().DBPath
+		conf = config
 	})
 	defer os.RemoveAll(dbpath)
 
@@ -114,7 +116,7 @@ func TestUpdateTask(t *testing.T) {
 	db.UpdateTask(id, map[string]interface{}{
 		"node_id": strconv.Itoa(50),
 	})
-	uu, _ := db.GetTask(id)
+	uu, _ := db.GetTask(conf, id)
 
 	if uu.Namespace != u.Namespace {
 		t.Fatal("Failed insert")
@@ -123,7 +125,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	tasks, err := db.AllUserTask("20")
+	tasks, err := db.AllUserTask(conf, "20")
 
 	if err != nil {
 		t.Fatal(err)
@@ -137,7 +139,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	tasks, err = db.AllNodeTask("50")
+	tasks, err = db.AllNodeTask(conf, "50")
 
 	if err != nil {
 		t.Fatal(err)
@@ -151,9 +153,9 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatal("Failed insert")
 	}
 
-	db.DeleteTask(id)
+	db.DeleteTask(conf, id)
 
-	err = db.DeleteTask(id)
+	err = db.DeleteTask(conf, id)
 
 	if err == nil {
 		t.Fatal("Failed Remove")

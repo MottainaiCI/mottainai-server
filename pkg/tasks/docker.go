@@ -70,7 +70,7 @@ func purgeImageName(image string) string {
 
 func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
-	th := DefaultTaskHandler()
+	th := DefaultTaskHandler(d.Config)
 	task_info := th.FetchTask(fetcher)
 
 	var sharedName, OriginalSharedName string

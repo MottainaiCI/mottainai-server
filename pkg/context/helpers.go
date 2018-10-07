@@ -30,6 +30,7 @@ import (
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	storage "github.com/MottainaiCI/mottainai-server/pkg/storage"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -111,6 +112,8 @@ func (c *Context) CheckNamespaceBelongs(namespace string) bool {
 
 // STATIC ROUTES AUTH CHECK
 func CheckArtefactPermission(ctx *Context) bool {
+	var err error
+	var task agenttasks.Task
 	file := ctx.Req.URL.Path
 	if !ctx.IsLogged {
 		ctx.NoPermission()
@@ -129,7 +132,9 @@ func CheckArtefactPermission(ctx *Context) bool {
 	}
 	id := r[1]
 
-	task, err := db.GetTask(id)
+	ctx.Invoke(func(config *setting.Config) {
+		task, err = db.GetTask(config, id)
+	})
 	if err != nil {
 		ctx.ServerError(err.Error(), err)
 		return false

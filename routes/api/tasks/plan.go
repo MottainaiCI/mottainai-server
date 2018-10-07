@@ -34,14 +34,14 @@ import (
 )
 
 func PlannedTasks(ctx *context.Context, db *database.Database) {
-	plans := db.Driver.AllPlans()
+	plans := db.Driver.AllPlans(db.Config)
 
 	ctx.JSON(200, plans)
 }
 
 func PlannedTask(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
-	plan, err := db.Driver.GetPlan(id)
+	plan, err := db.Driver.GetPlan(db.Config, id)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 
 func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
 	id := ctx.Params(":id")
-	plan, err := db.Driver.GetPlan(id)
+	plan, err := db.Driver.GetPlan(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 	}

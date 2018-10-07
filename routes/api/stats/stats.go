@@ -49,55 +49,58 @@ type Stats struct {
 }
 
 func Info(ctx *context.Context, db *database.Database) {
-	rtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
-	running_tasks := len(rtasks)
-	wtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
-	waiting_tasks := len(wtasks)
-	etasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
-	error_tasks := len(etasks)
-	ftasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
-	failed_tasks := len(ftasks)
-	stasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
-	succeeded_tasks := len(stasks)
 
-	var fail_task = make([]agenttasks.Task, 0)
-	for i, _ := range ftasks {
-		t, _ := db.Driver.GetTask(i)
-		fail_task = append(fail_task, t)
-	}
-	var failed = GetStats(fail_task)
+	ctx.Invoke(func(config *setting.Config) {
+		rtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+		running_tasks := len(rtasks)
+		wtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+		waiting_tasks := len(wtasks)
+		etasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+		error_tasks := len(etasks)
+		ftasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		failed_tasks := len(ftasks)
+		stasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		succeeded_tasks := len(stasks)
 
-	var err_tasks = make([]agenttasks.Task, 0)
-	for i, _ := range etasks {
-		t, _ := db.Driver.GetTask(i)
-		err_tasks = append(err_tasks, t)
-	}
-	var errored = GetStats(err_tasks)
+		var fail_task = make([]agenttasks.Task, 0)
+		for i, _ := range ftasks {
+			t, _ := db.Driver.GetTask(config, i)
+			fail_task = append(fail_task, t)
+		}
+		var failed = GetStats(fail_task)
 
-	var suc_tasks = make([]agenttasks.Task, 0)
-	for i, _ := range stasks {
-		t, _ := db.Driver.GetTask(i)
-		suc_tasks = append(suc_tasks, t)
-	}
-	var succeded = GetStats(suc_tasks)
+		var err_tasks = make([]agenttasks.Task, 0)
+		for i, _ := range etasks {
+			t, _ := db.Driver.GetTask(config, i)
+			err_tasks = append(err_tasks, t)
+		}
+		var errored = GetStats(err_tasks)
 
-	atasks := db.Driver.AllTasks()
-	var created = GetStats(atasks)
+		var suc_tasks = make([]agenttasks.Task, 0)
+		for i, _ := range stasks {
+			t, _ := db.Driver.GetTask(config, i)
+			suc_tasks = append(suc_tasks, t)
+		}
+		var succeded = GetStats(suc_tasks)
 
-	s := &Stats{}
-	total := len(atasks)
-	s.Errored = error_tasks
-	s.Running = running_tasks
-	s.Total = total
-	s.Waiting = waiting_tasks
-	s.Failed = failed_tasks
-	s.Succeeded = succeeded_tasks
-	s.CreatedDaily = created
-	s.FailedDaily = failed
-	s.ErroredDaily = errored
-	s.SucceededDaily = succeded
+		atasks := db.Driver.AllTasks(config)
+		var created = GetStats(atasks)
 
-	ctx.JSON(200, s)
+		s := &Stats{}
+		total := len(atasks)
+		s.Errored = error_tasks
+		s.Running = running_tasks
+		s.Total = total
+		s.Waiting = waiting_tasks
+		s.Failed = failed_tasks
+		s.Succeeded = succeeded_tasks
+		s.CreatedDaily = created
+		s.FailedDaily = failed
+		s.ErroredDaily = errored
+		s.SucceededDaily = succeded
+
+		ctx.JSON(200, s)
+	})
 }
 
 func GetStats(atasks []agenttasks.Task) map[string]int {

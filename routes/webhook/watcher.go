@@ -53,7 +53,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 
 			if data[4] == "pipeline" {
 
-				pip, err := db.Driver.GetPipeline(data[5])
+				pip, err := db.Driver.GetPipeline(db.Config, data[5])
 				if err != nil { // XXX:
 					delete(w, k)
 					return
@@ -63,7 +63,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				fail := false
 				for _, t := range pip.Tasks {
 
-					ta, err := db.Driver.GetTask(t.ID)
+					ta, err := db.Driver.GetTask(db.Config, t.ID)
 					if err != nil {
 						delete(w, k)
 						return
@@ -93,7 +93,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				}
 			} else {
 
-				task, err := db.Driver.GetTask(data[5])
+				task, err := db.Driver.GetTask(db.Config, data[5])
 				if err == nil {
 					if task.IsDone() || task.IsStopped() {
 						if task.IsSuccess() {

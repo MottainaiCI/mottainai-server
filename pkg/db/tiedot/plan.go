@@ -27,6 +27,7 @@ import (
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -46,8 +47,8 @@ func (d *Database) CreatePlan(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(PlansColl, t)
 }
 
-func (d *Database) ClonePlan(t string) (string, error) {
-	task, err := d.GetPlan(t)
+func (d *Database) ClonePlan(config *setting.Config, t string) (string, error) {
+	task, err := d.GetPlan(config, t)
 	if err != nil {
 		return "", err
 	}
@@ -63,12 +64,12 @@ func (d *Database) UpdatePlan(docID string, t map[string]interface{}) error {
 	return d.UpdateDoc(PlansColl, docID, t)
 }
 
-func (d *Database) GetPlan(docID string) (agenttasks.Plan, error) {
+func (d *Database) GetPlan(config *setting.Config, docID string) (agenttasks.Plan, error) {
 	doc, err := d.GetDoc(PlansColl, docID)
 	if err != nil {
 		return agenttasks.Plan{}, err
 	}
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 	t := th.NewPlanFromMap(doc)
 	t.ID = docID
 	return t, err
@@ -78,10 +79,10 @@ func (d *Database) ListPlans() []dbcommon.DocItem {
 	return d.ListDocs(PlansColl)
 }
 
-func (d *Database) AllPlans() []agenttasks.Plan {
+func (d *Database) AllPlans(config *setting.Config) []agenttasks.Plan {
 	tasks := d.DB().Use(PlansColl)
 	tasks_id := make([]agenttasks.Plan, 0)
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := th.NewPlanFromJson(docContent)

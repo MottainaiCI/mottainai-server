@@ -71,7 +71,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.Params(":id")
 
-	task, err := db.Driver.GetTask(id)
+	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +80,7 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	docID, err := db.Driver.CloneTask(id)
+	docID, err := db.Driver.CloneTask(db.Config, id)
 	if err != nil {
 		return "", err
 	}

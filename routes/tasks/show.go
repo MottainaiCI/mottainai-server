@@ -35,7 +35,7 @@ import (
 
 func DisplayTask(ctx *context.Context, db *database.Database) {
 	id := ctx.Params(":id")
-	task, err := db.Driver.GetTask(id)
+	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -94,7 +94,7 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 func ShowArtefacts(ctx *context.Context, db *database.Database) {
 	id := ctx.Params(":id")
 
-	tasks_info, err := db.Driver.GetTask(id)
+	tasks_info, err := db.Driver.GetTask(db.Config, id)
 
 	if err != nil {
 		panic(err)
