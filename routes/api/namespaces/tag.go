@@ -45,7 +45,7 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	task, err := db.Driver.GetTask(taskid)
+	task, err := db.Driver.GetTask(db.Config, taskid)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +101,7 @@ func NamespaceAppend(ctx *context.Context, db *database.Database) (string, error
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
 
-	task, err := db.Driver.GetTask(taskid)
+	task, err := db.Driver.GetTask(db.Config, taskid)
 	if err != nil {
 		return "", err
 	}

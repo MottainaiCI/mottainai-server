@@ -49,7 +49,7 @@ func ShowTasks(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	tasks, err := db.Driver.AllNodeTask(node.ID)
+	tasks, err := db.Driver.AllNodeTask(db.Config, node.ID)
 
 	if err != nil {
 		ctx.NotFound()

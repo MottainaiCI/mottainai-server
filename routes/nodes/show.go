@@ -54,7 +54,7 @@ func Show(ctx *context.Context, db *database.Database) {
 	tasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
 	var node_tasks = make([]agenttasks.Task, 0)
 	for i, _ := range tasks {
-		t, _ := db.Driver.GetTask(i)
+		t, _ := db.Driver.GetTask(db.Config, i)
 		node_tasks = append(node_tasks, t)
 	}
 	sort.Slice(node_tasks[:], func(i, j int) bool {

@@ -37,14 +37,14 @@ import (
 )
 
 func (m *MottainaiAgent) HealthCheckSetup() {
-	th := agenttasks.DefaultTaskHandler()
-	m.Map(th)
 	//ID := utils.GenID()
 	//hostname := utils.Hostname()
 	//log.INFO.Println("Worker ID: " + ID)
 	//log.INFO.Println("Worker Hostname: " + hostname)
 
 	m.Invoke(func(config *setting.Config) {
+		th := agenttasks.DefaultTaskHandler(config)
+		m.Map(th)
 		fetcher := client.NewClient(config.GetWeb().AppURL, config)
 		fetcher.Token = config.GetAgent().ApiKey
 
@@ -115,7 +115,6 @@ func (m *MottainaiAgent) CleanHealthCheckExec() {
 			out, stderr, err := utils.Cmd(cmdName, args[1:])
 			if err != nil {
 				log.ERROR.Println("!! Error: ", err.Error()+": "+stderr)
-
 			}
 			log.INFO.Println(out)
 		}
@@ -139,7 +138,7 @@ func (m *MottainaiAgent) CleanBuildDir() {
 
 		for _, what := range stuff {
 			c.Doc(what)
-			th := agenttasks.DefaultTaskHandler()
+			th := agenttasks.DefaultTaskHandler(config)
 			task_info := th.FetchTask(c)
 			if th.Err != nil {
 				log.INFO.Println("Error fetching task: " + th.Err.Error())

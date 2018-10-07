@@ -45,7 +45,7 @@ type UpdateTaskForm struct {
 }
 
 func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) error {
-	mytask, err := db.Driver.GetTask(f.Id)
+	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 					"result": mytask.DecodeStatus(f.Value),
 				})
 
-				t, err := db.Driver.GetTask(f.Id)
+				t, err := db.Driver.GetTask(db.Config, f.Id)
 				if err != nil {
 					return err
 				}
@@ -84,7 +84,7 @@ func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Con
 }
 
 func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
-	mytask, err := db.Driver.GetTask(f.Id)
+	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 
 	if len(f.Output) > 0 {
 
-		mytask, err := db.Driver.GetTask(f.Id)
+		mytask, err := db.Driver.GetTask(db.Config, f.Id)
 		if err != nil {
 			return ":("
 		}
@@ -140,7 +140,7 @@ func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context,
 		})
 	}
 
-	t, err := db.Driver.GetTask(f.Id)
+	t, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
 		return ":( "
 	}

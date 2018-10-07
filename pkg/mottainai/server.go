@@ -62,7 +62,7 @@ func (s *MottainaiServer) Add(queue string, config *setting.Config) *Broker {
 	} else {
 		broker.Server = conn
 	}
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 	th.RegisterTasks(broker.Server)
 	s.Servers[queue] = broker
 	return broker

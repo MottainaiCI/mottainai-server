@@ -34,8 +34,9 @@ import (
 )
 
 type TaskHandler struct {
-	Tasks map[string]interface{}
-	Err   error
+	Tasks  map[string]interface{}
+	Config *setting.Config
+	Err    error
 }
 
 func (h *TaskHandler) Exists(s string) bool {
@@ -52,21 +53,23 @@ func (h *TaskHandler) Handler(s string) func(string) (int, error) {
 	panic(errors.New("No task handler found!"))
 }
 
-func DefaultTaskHandler() *TaskHandler {
+func DefaultTaskHandler(config *setting.Config) *TaskHandler {
 	return &TaskHandler{Tasks: map[string]interface{}{
 
-		"docker_execute": DockerPlayer,
-		"docker":         DockerPlayer,
+		"docker_execute": DockerPlayer(config),
+		"docker":         DockerPlayer(config),
 
-		"libvirt_execute": LibvirtPlayer,
-		"libvirt_vagrant": LibvirtPlayer,
+		"libvirt_execute": LibvirtPlayer(config),
+		"libvirt_vagrant": LibvirtPlayer(config),
 
-		"virtualbox_execute": VirtualBoxPlayer,
-		"virtualbox_vagrant": VirtualBoxPlayer,
+		"virtualbox_execute": VirtualBoxPlayer(config),
+		"virtualbox_vagrant": VirtualBoxPlayer(config),
 
-		"error": HandleErr,
+		"error": HandleErr(config),
 		//	"success":        HandleSuccess,
-	}}
+	},
+		Config: config,
+	}
 }
 
 func HandleArgs(args ...interface{}) (string, int, error) {
@@ -85,51 +88,57 @@ func HandleArgs(args ...interface{}) (string, int, error) {
 	return docID, 0, nil
 }
 
-func DockerPlayer(config *setting.Config, args ...interface{}) (int, error) {
-	docID, e, err := HandleArgs(args...)
-	player := NewPlayer(docID)
-	executor := NewDockerExecutor(config)
-	executor.MottainaiClient = client.NewTokenClient(
-		config.GetWeb().AppURL,
-		config.GetAgent().ApiKey, config)
-	if err != nil {
-		player.EarlyFail(executor, docID, err.Error())
-		return e, err
-	}
+func DockerPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := NewDockerExecutor(config)
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
 
-	return player.Start(executor)
+		return player.Start(executor)
+	}
 }
 
-func LibvirtPlayer(config *setting.Config, args ...interface{}) (int, error) {
-	docID, e, err := HandleArgs(args...)
-	player := NewPlayer(docID)
-	executor := NewVagrantExecutor(config)
-	executor.Provider = "libvirt"
-	executor.MottainaiClient = client.NewTokenClient(
-		config.GetWeb().AppURL,
-		config.GetAgent().ApiKey, config)
-	if err != nil {
-		player.EarlyFail(executor, docID, err.Error())
-		return e, err
-	}
+func LibvirtPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := NewVagrantExecutor(config)
+		executor.Provider = "libvirt"
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
 
-	return player.Start(executor)
+		return player.Start(executor)
+	}
 }
 
-func VirtualBoxPlayer(config *setting.Config, args ...interface{}) (int, error) {
-	docID, e, err := HandleArgs(args...)
-	player := NewPlayer(docID)
-	executor := NewVagrantExecutor(config)
-	executor.Provider = "virtualbox"
-	executor.MottainaiClient = client.NewTokenClient(
-		config.GetWeb().AppURL,
-		config.GetAgent().ApiKey, config)
-	if err != nil {
-		player.EarlyFail(executor, docID, err.Error())
-		return e, err
-	}
+func VirtualBoxPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := NewVagrantExecutor(config)
+		executor.Provider = "virtualbox"
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
 
-	return player.Start(executor)
+		return player.Start(executor)
+	}
 }
 
 func (h *TaskHandler) NewPlanFromJson(data []byte) Plan {
@@ -355,7 +364,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 }
 
 func (h *TaskHandler) RegisterTasks(m *machinery.Server) {
-	th := DefaultTaskHandler()
+	th := DefaultTaskHandler(h.Config)
 	err := m.RegisterTasks(th.Tasks)
 	if err != nil {
 		panic(err)
@@ -371,43 +380,47 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 	return h.NewTaskFromJson(task_data)
 }
 
-func HandleSuccess(config *setting.Config, docID string, result int) error {
-	fetcher := client.NewFetcher(docID, config)
-	fetcher.Token = config.GetAgent().ApiKey
-	res := strconv.Itoa(result)
-	fetcher.SetTaskField("exit_status", res)
-	if result != 0 {
-		fetcher.FailTask("Exited with " + res)
-	} else {
-		fetcher.SuccessTask()
-	}
+func HandleSuccess(config *setting.Config) func(docID string, result int) error {
+	return func(docID string, result int) error {
+		fetcher := client.NewFetcher(docID, config)
+		fetcher.Token = config.GetAgent().ApiKey
+		res := strconv.Itoa(result)
+		fetcher.SetTaskField("exit_status", res)
+		if result != 0 {
+			fetcher.FailTask("Exited with " + res)
+		} else {
+			fetcher.SuccessTask()
+		}
 
-	th := DefaultTaskHandler()
+		th := DefaultTaskHandler(config)
 
-	task_info := th.FetchTask(fetcher)
-	if task_info.Status != setting.TASK_STATE_ASK_STOP {
-		fetcher.FinishTask()
-	} else {
-		fetcher.AbortTask()
+		task_info := th.FetchTask(fetcher)
+		if task_info.Status != setting.TASK_STATE_ASK_STOP {
+			fetcher.FinishTask()
+		} else {
+			fetcher.AbortTask()
+		}
+		return nil
 	}
-	return nil
 }
 
-func HandleErr(config *setting.Config, errstring, docID string) error {
-	fetcher := client.NewFetcher(docID, config)
-	fetcher.Token = config.GetAgent().ApiKey
+func HandleErr(config *setting.Config) func(errstring, docID string) error {
+	return func(errstring, docID string) error {
+		fetcher := client.NewFetcher(docID, config)
+		fetcher.Token = config.GetAgent().ApiKey
 
-	fetcher.AppendTaskOutput(errstring)
+		fetcher.AppendTaskOutput(errstring)
 
-	th := DefaultTaskHandler()
+		th := DefaultTaskHandler(config)
 
-	task_info := th.FetchTask(fetcher)
-	if task_info.Status != setting.TASK_STATE_ASK_STOP {
-		fetcher.FinishTask()
-	} else {
-		fetcher.AbortTask()
+		task_info := th.FetchTask(fetcher)
+		if task_info.Status != setting.TASK_STATE_ASK_STOP {
+			fetcher.FinishTask()
+		} else {
+			fetcher.AbortTask()
+		}
+
+		fetcher.ErrorTask()
+		return nil
 	}
-
-	fetcher.ErrorTask()
-	return nil
 }

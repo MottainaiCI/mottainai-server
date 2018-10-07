@@ -27,6 +27,7 @@ import (
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -46,8 +47,8 @@ func (d *Database) CreatePipeline(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(PipelinesColl, t)
 }
 
-func (d *Database) ClonePipeline(t string) (string, error) {
-	task, err := d.GetPipeline(t)
+func (d *Database) ClonePipeline(config *setting.Config, t string) (string, error) {
+	task, err := d.GetPipeline(config, t)
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +60,7 @@ func (d *Database) DeletePipeline(docID string) error {
 	return d.DeleteDoc(PipelinesColl, docID)
 }
 
-func (d *Database) AllUserPipelines(id string) ([]agenttasks.Pipeline, error) {
+func (d *Database) AllUserPipelines(config *setting.Config, id string) ([]agenttasks.Pipeline, error) {
 	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["owner_id"]}]`)
 	var res []agenttasks.Pipeline
 	if err != nil {
@@ -68,7 +69,7 @@ func (d *Database) AllUserPipelines(id string) ([]agenttasks.Pipeline, error) {
 	for docid := range queryResult {
 
 		// Read document
-		t, err := d.GetPipeline(docid)
+		t, err := d.GetPipeline(config, docid)
 		t.ID = docid
 		if err != nil {
 			return res, err
@@ -83,12 +84,12 @@ func (d *Database) UpdatePipeline(docID string, t map[string]interface{}) error 
 	return d.UpdateDoc(PipelinesColl, docID, t)
 }
 
-func (d *Database) GetPipeline(docID string) (agenttasks.Pipeline, error) {
+func (d *Database) GetPipeline(config *setting.Config, docID string) (agenttasks.Pipeline, error) {
 	doc, err := d.GetDoc(PipelinesColl, docID)
 	if err != nil {
 		return agenttasks.Pipeline{}, err
 	}
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 
 	t := th.NewPipelineFromMap(doc)
 	t.ID = docID
@@ -99,10 +100,10 @@ func (d *Database) ListPipelines() []dbcommon.DocItem {
 	return d.ListDocs(PipelinesColl)
 }
 
-func (d *Database) AllPipelines() []agenttasks.Pipeline {
+func (d *Database) AllPipelines(config *setting.Config) []agenttasks.Pipeline {
 	tasks := d.DB().Use(PipelinesColl)
 	tasks_id := make([]agenttasks.Pipeline, 0)
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := th.NewPipelineFromJson(docContent)

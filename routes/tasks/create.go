@@ -40,9 +40,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	if err != nil {
 		ctx.NotFound()
 	} else {
-		ctx.Invoke(func(config *setting.Config) {
-			ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + docID))
-		})
+		ctx.Redirect(db.Config.GetWeb().BuildURI("/tasks/display/" + docID))
 	}
 }
 
@@ -52,16 +50,14 @@ func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Cont
 	if err != nil {
 		ctx.NotFound()
 	} else {
-		ctx.Invoke(func(config *setting.Config) {
-			ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + docID))
-		})
+		ctx.Redirect(db.Config.GetWeb().BuildURI("/tasks/display/" + docID))
 	}
 }
 
 func Add(ctx *context.Context, config *setting.Config) {
 
 	available_tasks := make([]string, 0)
-	th := agenttasks.DefaultTaskHandler()
+	th := agenttasks.DefaultTaskHandler(config)
 	for i, _ := range th.Tasks {
 		if i != "error" && i != "success" {
 			available_tasks = append(available_tasks, i)

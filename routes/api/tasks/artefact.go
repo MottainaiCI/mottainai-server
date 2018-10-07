@@ -58,7 +58,7 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
-	t, err := db.Driver.GetTask(id)
+	t, err := db.Driver.GetTask(db.Config, id)
 	if !ctx.CheckTaskPermissions(&t) {
 		return
 	}
@@ -76,7 +76,7 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	file, err := uf.FileUpload.Open()
 	defer file.Close()
 
-	task, err := db.Driver.GetTask(uf.TaskID)
+	task, err := db.Driver.GetTask(db.Config, uf.TaskID)
 	if err != nil {
 		return err
 	}
