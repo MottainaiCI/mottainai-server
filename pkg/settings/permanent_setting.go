@@ -28,3 +28,8 @@ const SYSTEM_THIRDPARTY_INTEGRATION_ENABLED = "system.thirdparty_integration"
 const SYSTEM_WEBHOOK_PR_ENABLED = "system.webhook.pull_request"
 const SYSTEM_WEBHOOK_INTERNAL_ONLY = "system.webhook.internal_only"
 const SYSTEM_WEBHOOK_DEFAULT_QUEUE = "system.webhook.default_queue"
+
+// This option could be used when user/password verification is
+// done from external compoenent or reverse proxy and permit
+// to validate only user and ignore password
+const SYSTEM_SIGNIN_ONLY_USERVALIDATION = "system.signin_useronly_validation"

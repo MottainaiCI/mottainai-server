@@ -156,6 +156,8 @@ func afterLogin(c *context.Context, u user.User, remember bool) {
 }
 
 func LoginPost(c *context.Context, f SignIn, db *database.Database) {
+	var err error
+	var u user.User
 	c.Title("Sign in")
 
 	if c.HasError() {
@@ -163,10 +165,22 @@ func LoginPost(c *context.Context, f SignIn, db *database.Database) {
 		return
 	}
 
-	u, err := db.Driver.SignIn(f.UserName, f.Password)
+	onlyuser_val, err := db.Driver.GetSettingByKey(
+		setting.SYSTEM_SIGNIN_ONLY_USERVALIDATION)
+	if err == nil {
+		if onlyuser_val.IsEnabled() {
+			u, err = db.Driver.GetUserByName(f.UserName)
+		} else {
+			u, err = db.Driver.SignIn(f.UserName, f.Password)
+		}
+	} else {
+		// If setting is not present erro is No settingname found
+		// I consider so that user and password validation is enable
+		u, err = db.Driver.SignIn(f.UserName, f.Password)
+	}
+
 	if err != nil {
 		c.RenderWithErr(err.Error(), LOGIN)
-
 		//c.ServerError("UserLogin", err)
 		return
 	}

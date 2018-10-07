@@ -92,6 +92,8 @@ func SignedInID(c *macaron.Context, sess session.Store) string {
 // SignedInUser returns the user object of signed user.
 // It returns a bool value to indicate whether user uses basic auth or not.
 func SignedInUser(ctx *macaron.Context, sess session.Store) (*user.User, bool) {
+	var u user.User
+	var err error
 	db := database.Instance().Driver
 
 	uid := SignedInID(ctx, sess)
@@ -104,8 +106,19 @@ func SignedInUser(ctx *macaron.Context, sess session.Store) (*user.User, bool) {
 			auths := strings.Fields(baHead)
 			if len(auths) == 2 && auths[0] == "Basic" {
 				uname, passwd, _ := utils.BasicAuthDecode(auths[1])
-
-				u, err := db.SignIn(uname, passwd)
+				onlyuser_val, err := db.GetSettingByKey(
+					setting.SYSTEM_SIGNIN_ONLY_USERVALIDATION)
+				if err == nil {
+					if onlyuser_val.IsEnabled() {
+						u, err = db.GetUserByName(uname)
+					} else {
+						u, err = db.SignIn(uname, passwd)
+					}
+				} else {
+					// If setting is not present erro is No settingname found
+					// I consider so that user and password validation is enable
+					u, err = db.SignIn(uname, passwd)
+				}
 				if err != nil {
 					log.Error(4, "SignIn error : %v", err)
 					return nil, false
@@ -117,7 +130,7 @@ func SignedInUser(ctx *macaron.Context, sess session.Store) (*user.User, bool) {
 		return nil, false
 	}
 
-	u, err := db.GetUser(uid)
+	u, err = db.GetUser(uid)
 	if err != nil {
 		log.Error(4, "GetUser Error: %v", err)
 		return nil, false
