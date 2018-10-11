@@ -146,7 +146,7 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 	})
 	m.SendTask(docID)
 	// Create the 'pending' status and send it
-	status1 := &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
+	status1 = &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
 
 	client.Repositories.CreateStatus(stdctx.Background(), owner, repo, ref, status1)
 
