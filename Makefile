@@ -36,7 +36,7 @@ clean:
 deps:
 	go env
 	# Installing dependencies...
-	go get -u github.com/golang/lint/golint
+	go get golang.org/x/lint/golint
 	go get github.com/mitchellh/gox
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/mattn/goveralls
