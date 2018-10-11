@@ -24,20 +24,93 @@ package webhook
 
 import (
 	"crypto/sha256"
+	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
+
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
+
+	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/sethvargo/go-password/password"
 
 	"reflect"
 )
 
+type WebHookSingle struct {
+	WebHook  *WebHook
+	Task     *task.Task
+	Pipeline *task.Pipeline
+}
+
 type WebHook struct {
-	ID      string `json:"id" form:"id"`
-	Key     string `json:"key" form:"key"`
-	Type    string `json:"type" form:"type"`
-	URL     string `json:"url" form:"url"`
-	OwnerId string `json:"owner_id" form:"owner_id"`
+	ID       string `json:"id" form:"id"`
+	Key      string `json:"key" form:"key"`
+	Type     string `json:"type" form:"type"`
+	URL      string `json:"url" form:"url"`
+	OwnerId  string `json:"owner_id" form:"owner_id"`
+	Task     string `json:"default_task" form:"default_task"`
+	Pipeline string `json:"default_pipeline" form:"default_pipeline"`
+}
+
+func (t *WebHook) HasTask() bool {
+	if len(t.Task) > 0 {
+		return true
+	}
+	return false
+}
+
+func (t *WebHook) HasPipeline() bool {
+	if len(t.Pipeline) > 0 {
+		return true
+	}
+	return false
+}
+
+func (t *WebHook) SetPipeline(pipeline *task.Pipeline) error {
+	str, err := utils.SerializeToString(pipeline)
+	if err != nil {
+		t.Pipeline = ""
+		return err
+	}
+	t.Pipeline = str
+	return nil
+}
+
+func (t *WebHook) ReadPipeline() (*task.Pipeline, error) {
+	var pipeline *task.Pipeline
+	buf, err := utils.DecodeString(t.Pipeline)
+	if err != nil {
+		return pipeline, err
+	}
+	d := gob.NewDecoder(buf)
+	if err := d.Decode(&pipeline); err != nil {
+		return nil, err
+	}
+	return pipeline, nil
+}
+
+func (t *WebHook) SetTask(ta *task.Task) error {
+	str, err := utils.SerializeToString(ta)
+	if err != nil {
+		t.Task = ""
+		return err
+	}
+	t.Task = str
+	return nil
+}
+
+func (t *WebHook) ReadTask() (*task.Task, error) {
+	var Task *task.Task
+	buf, err := utils.DecodeString(t.Task)
+	if err != nil {
+		return Task, err
+	}
+	d := gob.NewDecoder(buf)
+	if err := d.Decode(&Task); err != nil {
+		return Task, err
+	}
+	return Task, nil
 }
 
 func GenerateUserWebHook(id string) (*WebHook, error) {
@@ -60,6 +133,7 @@ func Gen() (string, error) {
 
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
+
 func GenerateWebHook() (*WebHook, error) {
 	t := NewWebHook()
 	res, err := Gen()

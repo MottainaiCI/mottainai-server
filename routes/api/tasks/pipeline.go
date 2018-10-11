@@ -119,12 +119,7 @@ func PipelineYaml(ctx *context.Context, db *database.Database) string {
 	return string(y)
 }
 
-type PipelineForm struct {
-	*task.Pipeline
-	Tasks string
-}
-
-func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *context.Context, db *database.Database, o PipelineForm) (string, error) {
+func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *context.Context, db *database.Database, o task.PipelineForm) (string, error) {
 	var tasks map[string]task.Task
 	d := gob.NewDecoder(bytes.NewBuffer([]byte(o.Tasks)))
 	if err := d.Decode(&tasks); err != nil {

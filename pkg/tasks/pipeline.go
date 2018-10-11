@@ -95,6 +95,12 @@ func (t *Pipeline) Reset() {
 	t.EndTime = ""
 	t.StartTime = ""
 }
+
+type PipelineForm struct {
+	*Pipeline
+	Tasks string
+}
+
 func (t *Pipeline) ToMap(serialize bool) map[string]interface{} {
 
 	ts := make(map[string]interface{})

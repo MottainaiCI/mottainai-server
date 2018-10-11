@@ -28,6 +28,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
@@ -71,14 +72,37 @@ func RecurringTimer(what func(), delay time.Duration) chan bool {
 	return stop
 }
 
-func GetBytes(key interface{}) ([]byte, error) {
+func SerializeToString(key interface{}) (string, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(key)
 	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+func DecodeString(str string) (*bytes.Buffer, error) {
+	//var Task *task.Task
+	by, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return bytes.NewBuffer(by), err
+}
+
+func DeserializeFromString(str string, t interface{}) error {
+	//var Task *task.Task
+	by, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return err
+	}
+	d := gob.NewDecoder(bytes.NewBuffer(by))
+	if err := d.Decode(&t); err != nil {
+		return err
+	}
+	return nil
 }
 
 func Hostname() string {

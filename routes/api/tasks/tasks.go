@@ -65,7 +65,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
 			m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
 
-			m.Post("/api/tasks/pipeline", reqSignIn, bind(PipelineForm{}), Pipeline)
+			m.Post("/api/tasks/pipeline", reqSignIn, bind(agenttasks.PipelineForm{}), Pipeline)
 			m.Get("/api/tasks/pipelines", reqSignIn, ShowAllPipelines)
 			m.Get("/api/tasks/pipelines/delete/:id", reqSignIn, PipelineDelete)
 			m.Get("/api/tasks/pipeline/:id", reqSignIn, PipelineShow)

@@ -50,7 +50,7 @@ import (
 )
 
 // HandlePullRequest handles GitHub pull_request events
-func HandlePullRequest(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai) {
+func HandlePullRequest(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai, w *mhook.WebHook) {
 
 	fmt.Println("Handling Pull Request")
 	pl := payload.(github.PullRequestPayload)
@@ -58,26 +58,26 @@ func HandlePullRequest(u *user.User, payload interface{}, header webhooks.Header
 		return
 	}
 	m.Invoke(func(mo *mottainai.Mottainai, client *ggithub.Client, db *database.Database) {
-		if err := SendTask(u, "pull_request", client, db, mo, payload); err != nil {
+		if err := SendTask(u, "pull_request", client, db, mo, payload, w); err != nil {
 			fmt.Println("Failed sending task", err)
 		}
-		if err := SendPipeline(u, "pull_request", client, db, mo, payload); err != nil {
-			fmt.Println("Failed sending task", err)
+		if err := SendPipeline(u, "pull_request", client, db, mo, payload, w); err != nil {
+			fmt.Println("Failed sending pipeline", err)
 		}
 	})
 }
 
 // HandlePush handles GitHub push events
-func HandlePush(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai) {
+func HandlePush(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai, w *mhook.WebHook) {
 
 	fmt.Println("Handling Push")
 
 	m.Invoke(func(client *ggithub.Client, db *database.Database) {
 
-		if err := SendTask(u, "push", client, db, m, payload); err != nil {
+		if err := SendTask(u, "push", client, db, m, payload, w); err != nil {
 			fmt.Println("Failed sending task", err)
 		}
-		if err := SendPipeline(u, "push", client, db, m, payload); err != nil {
+		if err := SendPipeline(u, "push", client, db, m, payload, w); err != nil {
 			fmt.Println("Failed sending task", err)
 		}
 	})
@@ -194,14 +194,14 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 	if err == nil && !uuu.IsDisabled() {
 		hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
 			fmt.Println("Received webhook for PR")
-			HandlePullRequest(u, payload, header, m)
+			HandlePullRequest(u, payload, header, m, w)
 		}, github.PullRequestEvent)
 	}
 	//owner := u
 
 	hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
 		fmt.Println("Received webhook for push")
-		HandlePush(u, payload, header, m)
+		HandlePush(u, payload, header, m, w)
 	}, github.PushEvent)
 	return hook
 }

@@ -28,6 +28,8 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
 )
@@ -52,11 +54,17 @@ func Setup(m *macaron.Macaron) {
 			Config:         config,
 			BaseURL:        config.GetWeb().AppSubURL,
 		})
+		bind := binding.Bind
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
 			m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
 			m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
+			m.Get("/api/webhook/show/:id", RequiresWebHookSetting, reqSignIn, ShowSingle)
 			m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
+			m.Post("/api/webhook/update/task/:id", RequiresWebHookSetting, bind(agenttasks.Task{}), reqSignIn, UpdateTask)
+			m.Post("/api/webhook/update/pipeline/:id", RequiresWebHookSetting, bind(agenttasks.PipelineForm{}), reqSignIn, UpdatePipeline)
+			m.Post("/api/webhook/delete/task/:id", RequiresWebHookSetting, reqSignIn, DeleteTask)
+			m.Post("/api/webhook/delete/pipeline/:id", RequiresWebHookSetting, reqSignIn, DeletePipeline)
 		})
 	})
 }

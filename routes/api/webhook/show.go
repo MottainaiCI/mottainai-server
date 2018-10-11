@@ -37,6 +37,7 @@ func GetWebHooks(ctx *context.Context, db *database.Database) ([]webhook.WebHook
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
 			all = db.Driver.AllWebHooks()
+			return all, mine, nil
 		}
 		mine, err = db.Driver.GetWebHooksByUserID(ctx.User.ID)
 		if err != nil {
@@ -45,6 +46,38 @@ func GetWebHooks(ctx *context.Context, db *database.Database) ([]webhook.WebHook
 		}
 	}
 	return all, mine, nil
+}
+
+func ShowSingle(ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":id")
+
+	w, err := db.Driver.GetWebHook(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+	s := &webhook.WebHookSingle{}
+	if w.HasTask() {
+		t, err := w.ReadTask()
+		if err != nil {
+			ctx.ServerError("Failed rendering webhook", err)
+			return err
+		}
+		s.Task = t
+	}
+	if w.HasPipeline() {
+		p, err := w.ReadPipeline()
+		if err != nil {
+			ctx.ServerError("Failed rendering webhook", err)
+			return err
+		}
+		s.Pipeline = p
+	}
+
+	s.WebHook = &w
+
+	ctx.JSON(200, s)
+	return nil
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
