@@ -25,13 +25,11 @@ package webhook
 import (
 	"testing"
 
-	webhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
-
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 func TestTaskSerialization(t *testing.T) {
-	wh := webhook.NewWebHook()
+	wh := NewWebHook()
 	if wh.HasTask() {
 		t.Fatal("Task not present")
 	}
