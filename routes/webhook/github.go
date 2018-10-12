@@ -209,7 +209,7 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 func SetupGitHub(m *mottainai.Mottainai) {
 
 	m.Invoke(func(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config) {
-		GlobalWatcher(client, a, db, config.GetWeb().AppSubURL)
+		GlobalWatcher(client, a, db, config.GetWeb().AppURL)
 	})
 
 	// TODO: Generate tokens for  each user.

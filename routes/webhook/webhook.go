@@ -142,7 +142,7 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 	var url string
 
 	m.Invoke(func(config *setting.Config) {
-		url = config.GetWeb().BuildURI("/tasks/display/" + docID)
+		url = config.GetWeb().BuildAbsURL("/tasks/display/" + docID)
 	})
 	m.SendTask(docID)
 	// Create the 'pending' status and send it

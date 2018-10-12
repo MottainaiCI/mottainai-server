@@ -261,6 +261,11 @@ func (c *WebConfig) GetProtocol() string {
 	return c.Protocol
 }
 
+func (c *WebConfig) BuildAbsURL(pattern string) string {
+	path := strings.TrimRight(c.AppURL, "/")
+	return path + pattern
+}
+
 func (c *WebConfig) BuildURI(pattern string) string {
 	var path string = c.AppSubURL
 	if path[len(path)-1:] == "/" {
