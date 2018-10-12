@@ -34,6 +34,16 @@ information about the host computer:
 * [PCI](#pci)
 * [GPU](#gpu)
 
+**NOTE**: The default root mountpoint that `ghw` uses when looking for
+information about the host system is `/`. So, for example, when looking up CPU
+information on Linux, `ghw` will attempt to parse the `/proc/cpuinfo` file. If
+you are calling `ghw` from a system that has an alternate root mountpoint, you
+can set the `GHW_CHROOT` environment variable to that alternate path. for
+example, if you are executing from within an application container that has
+bind-mounted the root host filesystem to the mount point `/host`, you would set
+`GHW_CHROOT` to `/host` so that `ghw` can find files like `/proc/cpuinfo` at
+`/host/proc/cpuinfo`.
+
 ### Memory
 
 Information about the host computer's memory can be retrieved using the
@@ -203,12 +213,17 @@ Each `ghw.Disk` struct contains the following fields:
 
 * `ghw.Disk.Name` contains a string with the short name of the disk, e.g. "sda"
 * `ghw.Disk.SizeBytes` contains the amount of storage the disk provides
-* `ghw.Disk.SectorSizeBytes` contains the size of the sector used on the disk,
-  in bytes
+* `ghw.Disk.PhysicalBlockSizeBytes` contains the size of the physical blocks
+  used on the disk, in bytes
 * `ghw.Disk.BusType` will be either "scsi" or "ide"
+* `ghw.Disk.NUMANodeID` is the numeric index of the NUMA node this disk is
+  local to, or -1
 * `ghw.Disk.Vendor` contains a string with the name of the hardware vendor for
   the disk drive
+* `ghw.Disk.Model` contains a string with the vendor-assigned disk model name
 * `ghw.Disk.SerialNumber` contains a string with the disk's serial number
+* `ghw.Disk.WWN` contains a string with the disk's
+  [World Wide Name](https://en.wikipedia.org/wiki/World_Wide_Name)
 * `ghw.Disk.Partitions` contains an array of pointers to `ghw.Partition`
   structs, one for each partition on the disk
 

@@ -17,13 +17,11 @@ import (
 )
 
 const (
-	PathMtab        = "/etc/mtab"
-	PathSysBlock    = "/sys/block"
-	PathDevDiskById = "/dev/disk/by-id"
+	linuxSectorSize = 512
 )
 
-var RegexNVMeDev = regexp.MustCompile(`^nvme\d+n\d+$`)
-var RegexNVMePart = regexp.MustCompile(`^(nvme\d+n\d+)p\d+$`)
+var regexNVMeDev = regexp.MustCompile(`^nvme\d+n\d+$`)
+var regexNVMePart = regexp.MustCompile(`^(nvme\d+n\d+)p\d+$`)
 
 func blockFillInfo(info *BlockInfo) error {
 	info.Disks = Disks()
@@ -35,10 +33,10 @@ func blockFillInfo(info *BlockInfo) error {
 	return nil
 }
 
-func DiskSectorSizeBytes(disk string) uint64 {
+func DiskPhysicalBlockSizeBytes(disk string) uint64 {
 	// We can find the sector size in Linux by looking at the
 	// /sys/block/$DEVICE/queue/physical_block_size file in sysfs
-	path := filepath.Join(PathSysBlock, disk, "queue", "physical_block_size")
+	path := filepath.Join(pathSysBlock(), disk, "queue", "physical_block_size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
@@ -53,84 +51,128 @@ func DiskSectorSizeBytes(disk string) uint64 {
 func DiskSizeBytes(disk string) uint64 {
 	// We can find the number of 512-byte sectors by examining the contents of
 	// /sys/block/$DEVICE/size and calculate the physical bytes accordingly.
-	path := filepath.Join(PathSysBlock, disk, "size")
+	path := filepath.Join(pathSysBlock(), disk, "size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
 	}
-	ss := DiskSectorSizeBytes(disk)
 	i, err := strconv.Atoi(strings.TrimSpace(string(contents)))
 	if err != nil {
 		return 0
 	}
-	return uint64(i) * ss
+	return uint64(i) * linuxSectorSize
+}
+
+func DiskNUMANodeID(disk string) int {
+	link, err := os.Readlink(filepath.Join(pathSysBlock(), disk))
+	if err != nil {
+		return -1
+	}
+	for partial := link; strings.HasPrefix(partial, "../devices/"); partial = filepath.Base(partial) {
+		if nodeContents, err := ioutil.ReadFile(filepath.Join(pathSysBlock(), partial, "numa_node")); err != nil {
+			if nodeInt, err := strconv.Atoi(string(nodeContents)); err != nil {
+				return nodeInt
+			}
+		}
+	}
+	return -1
 }
 
 func DiskVendor(disk string) string {
 	// In Linux, the vendor for a disk device is found in the
 	// /sys/block/$DEVICE/device/vendor file in sysfs
-	path := filepath.Join(PathSysBlock, disk, "device", "vendor")
+	path := filepath.Join(pathSysBlock(), disk, "device", "vendor")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "unknown"
+		return UNKNOWN
 	}
 	return strings.TrimSpace(string(contents))
 }
 
-func DiskSerialNumber(disk string) string {
-	// Finding the serial number of a disk without root privileges in Linux is
-	// a little tricky. The /dev/disk/by-id directory contains a bunch of
-	// symbolic links to disk devices and partitions. The serial number is
-	// embedded as part of the symbolic link. For example, on my system, the
-	// primary SCSI disk (/dev/sda) is represented as a symbolic link named
-	// /dev/disk/by-id/scsi-3600508e000000000f8253aac9a1abd0c. The serial
-	// number is 3600508e000000000f8253aac9a1abd0c.
-	//
-	// Some SATA drives (or rather, disk drive vendors) use inconsistent ways
-	// of putting the serial numbers of the disks in this symbolic link name.
-	// For example, here are two SATA drive identifiers (examples come from
-	// @antylama on GH Issue #19):
-	//
-	// /dev/disk/by-id/ata-AXIOMTEK_Corp.-FSA032G300MW5T-H_BCA11704240020001
-	//
-	// in the above identifier, "BCA11704240020001" is the drive serial number.
-	// The vendor name along with what appears to be a vendor model name
-	// (FSA032G300MW5T-H) are also included in the symbolic link name.
-	//
-	// /dev/disk/by-id/ata-WDC_WD10JFCX-68N6GN0_WD-WX31A76R3KFS
-	//
-	// in the above identifier, the serial number of the disk is actually
-	// WD-WX31A76R3KFS, not WX31A76R3KFS. Go figure...
-	path := filepath.Join(PathDevDiskById)
-	links, err := ioutil.ReadDir(path)
+func udevInfo(disk string) (map[string]string, error) {
+	// Get device major:minor numbers
+	devNo, err := ioutil.ReadFile(filepath.Join(pathSysBlock(), disk, "dev"))
 	if err != nil {
-		return "unknown"
+		return nil, err
 	}
-	for _, link := range links {
-		lname := link.Name()
-		lpath := filepath.Join(PathDevDiskById, lname)
-		dest, err := os.Readlink(lpath)
-		if err != nil {
-			continue
-		}
-		dest = filepath.Base(dest)
-		if dest != disk {
-			continue
-		}
-		pos := strings.LastIndex(lname, "_")
-		if pos < 0 {
-			pos = strings.Index(lname, "-")
-		}
-		if pos >= 0 {
-			return lname[pos+1:]
+
+	// Look up block device in udev runtime database
+	udevId := "b" + strings.TrimSpace(string(devNo))
+	udevBytes, err := ioutil.ReadFile(filepath.Join(pathRunUdevData(), udevId))
+	if err != nil {
+		return nil, err
+	}
+
+	udevInfo := make(map[string]string)
+	for _, udevLine := range strings.Split(string(udevBytes), "\n") {
+		if strings.HasPrefix(udevLine, "E:") {
+			if s := strings.SplitN(udevLine[2:], "=", 2); len(s) == 2 {
+				udevInfo[s[0]] = s[1]
+			}
 		}
 	}
-	return "unknown"
+	return udevInfo, nil
+}
+
+func DiskModel(disk string) string {
+	info, err := udevInfo(disk)
+	if err != nil {
+		return UNKNOWN
+	}
+
+	if model, ok := info["ID_MODEL"]; ok {
+		return model
+	}
+	return UNKNOWN
+}
+
+func DiskSerialNumber(disk string) string {
+	info, err := udevInfo(disk)
+	if err != nil {
+		return UNKNOWN
+	}
+
+	// There are two serial number keys, ID_SERIAL and ID_SERIAL_SHORT
+	// The non-_SHORT version often duplicates vendor information collected elsewhere, so use _SHORT.
+	if serial, ok := info["ID_SERIAL_SHORT"]; ok {
+		return serial
+	}
+	return UNKNOWN
+}
+
+func DiskBusPath(disk string) string {
+	info, err := udevInfo(disk)
+	if err != nil {
+		return UNKNOWN
+	}
+
+	// There are two path keys, ID_PATH and ID_PATH_TAG.
+	// The difference seems to be _TAG has funky characters converted to underscores.
+	if path, ok := info["ID_PATH"]; ok {
+		return path
+	}
+	return UNKNOWN
+}
+
+func DiskWWN(disk string) string {
+	info, err := udevInfo(disk)
+	if err != nil {
+		return UNKNOWN
+	}
+
+	// Trying ID_WWN_WITH_EXTENSION and falling back to ID_WWN is the same logic lsblk uses
+	if wwn, ok := info["ID_WWN_WITH_EXTENSION"]; ok {
+		return wwn
+	}
+	if wwn, ok := info["ID_WWN"]; ok {
+		return wwn
+	}
+	return UNKNOWN
 }
 
 func DiskPartitions(disk string) []*Partition {
 	out := make([]*Partition, 0)
-	path := filepath.Join(PathSysBlock, disk)
+	path := filepath.Join(pathSysBlock(), disk)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil
@@ -160,7 +202,7 @@ func Disks() []*Disk {
 	// run. We can get all of this information by examining the /sys/block
 	// and /sys/class/block files
 	disks := make([]*Disk, 0)
-	files, err := ioutil.ReadDir(PathSysBlock)
+	files, err := ioutil.ReadDir(pathSysBlock())
 	if err != nil {
 		return nil
 	}
@@ -172,7 +214,7 @@ func Disks() []*Disk {
 			busType = "SCSI"
 		} else if strings.HasPrefix(dname, "hd") {
 			busType = "IDE"
-		} else if RegexNVMeDev.MatchString(dname) {
+		} else if regexNVMeDev.MatchString(dname) {
 			busType = "NVMe"
 		}
 		if busType == "" {
@@ -180,17 +222,25 @@ func Disks() []*Disk {
 		}
 
 		size := DiskSizeBytes(dname)
-		ss := DiskSectorSizeBytes(dname)
+		pbs := DiskPhysicalBlockSizeBytes(dname)
+		busPath := DiskBusPath(dname)
+		node := DiskNUMANodeID(dname)
 		vendor := DiskVendor(dname)
+		model := DiskModel(dname)
 		serialNo := DiskSerialNumber(dname)
+		wwn := DiskWWN(dname)
 
 		d := &Disk{
-			Name:            dname,
-			SizeBytes:       size,
-			SectorSizeBytes: ss,
-			BusType:         busType,
-			Vendor:          vendor,
-			SerialNumber:    serialNo,
+			Name:                   dname,
+			SizeBytes:              size,
+			PhysicalBlockSizeBytes: pbs,
+			BusType:                busType,
+			BusPath:                busPath,
+			NUMANodeID:             node,
+			Vendor:                 vendor,
+			Model:                  model,
+			SerialNumber:           serialNo,
+			WWN:                    wwn,
 		}
 
 		parts := DiskPartitions(dname)
@@ -213,20 +263,19 @@ func PartitionSizeBytes(part string) uint64 {
 		part = part[4:len(part)]
 	}
 	disk := part[0:3]
-	if m := RegexNVMePart.FindStringSubmatch(part); len(m) > 0 {
+	if m := regexNVMePart.FindStringSubmatch(part); len(m) > 0 {
 		disk = m[1]
 	}
-	path := filepath.Join(PathSysBlock, disk, part, "size")
+	path := filepath.Join(pathSysBlock(), disk, part, "size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
 	}
-	ss := DiskSectorSizeBytes(disk)
 	i, err := strconv.Atoi(strings.TrimSpace(string(contents)))
 	if err != nil {
 		return 0
 	}
-	return uint64(i) * ss
+	return uint64(i) * linuxSectorSize
 }
 
 // Given a full or short partition name, returns the mount point, the type of
@@ -241,7 +290,7 @@ func PartitionInfo(part string) (string, string, bool) {
 	// /etc/mtab entries for mounted partitions look like this:
 	// /dev/sda6 / ext4 rw,relatime,errors=remount-ro,data=ordered 0 0
 	var r io.ReadCloser
-	r, err := os.Open(PathMtab)
+	r, err := os.Open(pathEtcMtab())
 	if err != nil {
 		return "", "", true
 	}

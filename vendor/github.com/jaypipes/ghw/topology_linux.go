@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	PATH_DEVICES_SYSTEM_NODE = "/sys/devices/system/node/"
-)
-
 func topologyFillInfo(info *TopologyInfo) error {
 	nodes, err := TopologyNodes()
 	if err != nil {
@@ -32,7 +28,7 @@ func topologyFillInfo(info *TopologyInfo) error {
 func TopologyNodes() ([]*TopologyNode, error) {
 	nodes := make([]*TopologyNode, 0)
 
-	files, err := ioutil.ReadDir(PATH_DEVICES_SYSTEM_NODE)
+	files, err := ioutil.ReadDir(pathSysDevicesSystemNode())
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +48,7 @@ func TopologyNodes() ([]*TopologyNode, error) {
 			return nil, err
 		}
 		node.Cores = cores
-		caches, err := cachesForNode(node.Id)
+		caches, err := cachesForNode(int(node.Id))
 		if err != nil {
 			return nil, err
 		}

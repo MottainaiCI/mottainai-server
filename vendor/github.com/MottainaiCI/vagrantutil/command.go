@@ -14,8 +14,6 @@ import (
 	"github.com/koding/logging"
 )
 
-var env = append(os.Environ(), "VAGRANT_CHECKPOINT_DISABLE=1")
-
 type command struct {
 	log logging.Logger
 	cwd string
@@ -44,7 +42,7 @@ func newCommand(cwd string, log logging.Logger) *command {
 func (cmd *command) init(args []string) {
 	cmd.cmd = exec.Command("vagrant", args...)
 	cmd.cmd.Dir = cmd.cwd
-	cmd.cmd.Env = env
+	cmd.cmd.Env = append(os.Environ(), "VAGRANT_CHECKPOINT_DISABLE=1")
 
 	cmd.debugf("%s: executing: %v", cmd.cwd, cmd.cmd.Args)
 }
