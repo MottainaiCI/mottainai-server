@@ -223,6 +223,8 @@ func (d *VagrantExecutor) Setup(docID string) error {
 	if d.IsVirtualBox() {
 		os.Setenv("VAGRANT_HOME", d.Context.BuildDir)
 		os.Setenv("VBOX_USER_HOME", d.Context.BuildDir)
+		// XXX: Fix hanging shutdown
+		os.Setenv("SHUTDOWN", "poweroff")
 	}
 
 	if d.IsLibvirt() {
