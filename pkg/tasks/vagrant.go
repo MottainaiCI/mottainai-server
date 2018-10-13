@@ -221,8 +221,11 @@ func (d *VagrantExecutor) Setup(docID string) error {
 	d.Vagrant.ProviderName = d.Provider
 
 	if d.IsVirtualBox() {
+		// Confine VirtualBox environment to BuildDir
 		os.Setenv("VAGRANT_HOME", d.Context.BuildDir)
 		os.Setenv("VBOX_USER_HOME", d.Context.BuildDir)
+		os.Unsetenv("HOME")
+		os.Setenv("HOME", d.Context.BuildDir)
 		// XXX: Fix hanging shutdown
 		os.Setenv("SHUTDOWN", "poweroff")
 	}
