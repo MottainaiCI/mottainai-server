@@ -23,12 +23,61 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package utils
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"strings"
 
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+
 	log "gopkg.in/clog.v1"
 )
+
+//TODO: Git* Can go in a separate object
+func GitClone(url, dir string) (*git.Repository, error) {
+	//os.RemoveAll(dir)
+	r, err := git.PlainClone(dir, false, &git.CloneOptions{
+		URL: url,
+		//Progress: os.Stdout,
+	})
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, errors.New("Failed cloning repo: " + url + " " + dir + " " + err.Error())
+	}
+	return r, nil
+}
+
+func GitCheckoutCommit(r *git.Repository, commit string) error {
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = w.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(commit),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GitFetch(r *git.Repository, remote string, args []string) error {
+	var refs []config.RefSpec
+	for _, ref := range args {
+		refs = append(refs, config.RefSpec(ref))
+	}
+	err := r.Fetch(&git.FetchOptions{
+		RemoteName: remote,
+		RefSpecs:   refs,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // Git executes a git command with the given args as a []string, outputs as a string
 func Git(cmdArgs []string, dir string) (string, error) {
