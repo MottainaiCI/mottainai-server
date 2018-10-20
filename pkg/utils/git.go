@@ -25,14 +25,10 @@ package utils
 import (
 	"errors"
 	"os"
-	"os/exec"
-	"strings"
 
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-
-	log "gopkg.in/clog.v1"
 )
 
 //TODO: Git* Can go in a separate object
@@ -64,6 +60,20 @@ func GitCheckoutCommit(r *git.Repository, commit string) error {
 	return nil
 }
 
+func GitCheckoutPullRequest(repo *git.Repository, remote, pullrequest string) error {
+	if remote == "" {
+		remote = "origin"
+	}
+
+	if err := GitFetch(repo, remote, []string{"refs/pull/" + pullrequest + "/head:CI_test"}); err != nil {
+		return err
+	}
+	if err := GitCheckoutCommit(repo, "CI_test"); err != nil {
+		return err
+	}
+	return nil
+}
+
 func GitFetch(r *git.Repository, remote string, args []string) error {
 	var refs []config.RefSpec
 	for _, ref := range args {
@@ -77,46 +87,4 @@ func GitFetch(r *git.Repository, remote string, args []string) error {
 		return err
 	}
 	return nil
-}
-
-// Git executes a git command with the given args as a []string, outputs as a string
-func Git(cmdArgs []string, dir string) (string, error) {
-	var (
-		cmdOut []byte
-		err    error
-	)
-	cwd, _ := os.Getwd()
-	os.Chdir(dir)
-	cmdName := "git"
-	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
-		log.Error(2, "There was an error running git command: ", err)
-		log.Info(strings.Join(cmdArgs, " "))
-		log.Error(2, string(cmdOut))
-		return "", err
-	}
-	os.Chdir(cwd)
-	result := string(cmdOut)
-	return strings.TrimSpace(result), err
-}
-
-// GitAlignToUpstream executes a fetch --all and reset --hard to origin/master on the given git repository
-func GitAlignToUpstream(workdir string) {
-	GitAlignTo(workdir, "origin/master")
-}
-
-func GitAlignTo(workdir, to string) {
-	log.Info(Git([]string{"fetch", "--all"}, workdir))
-	log.Info(Git([]string{"reset", "--hard", to}, workdir))
-}
-
-func GitPrevCommit(workdir string) (string, error) {
-	result, err := Git([]string{"log", "-2", `--pretty=format:"%h"`}, workdir)
-	temp := strings.Split(result, "\n")
-	return temp[1], err
-}
-
-// GitHead returns the Head of the given repository
-func GitHead(workdir string) string {
-	head, _ := Git([]string{"rev-parse", "HEAD"}, workdir)
-	return head
 }

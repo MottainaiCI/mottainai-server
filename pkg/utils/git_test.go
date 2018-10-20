@@ -85,21 +85,30 @@ func TestGitFetch(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	//os.RemoveAll(tempdir)
 
-	repo, err := GitClone("https://github.com/Sabayon/for-gentoo", tempdir)
+	repo, err := GitClone(testurl, tempdir)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if repo == nil {
 		t.Fatal("Repo should not be nil")
 	}
-	// XXX: Doesn't work yet
-	// err = GitFetch(repo, "origin", []string{"pull/75/head:CI_test"})
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// err = GitCheckoutCommit(repo, "CI_test")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
+	if _, err := os.Stat(tempdir + "/.gitignore"); os.IsNotExist(err) {
+		t.Fatal("File should exist now")
+	}
 
+	err = GitCheckoutCommit(repo, "a3f87d060e6f8bf9c924c8c586d74a35f70448ce")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(tempdir + "/.gitignore"); !os.IsNotExist(err) {
+		t.Fatal("File should not exist now")
+	}
+
+	err = GitCheckoutPullRequest(repo, "origin", "4")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(tempdir + "/.gitignore"); os.IsNotExist(err) {
+		t.Fatal("File should exist now")
+	}
 }

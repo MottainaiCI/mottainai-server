@@ -156,24 +156,20 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 
 	ctx.Dir = gitdir
 
-	_, err = utils.Git([]string{"clone", clone_url, gitdir}, ".")
+	r, err := utils.GitClone(clone_url, gitdir)
 	if err != nil {
+		os.RemoveAll(gitdir)
 		return ctx, errors.New("Failed cloning repo: " + clone_url + " " + gitdir + " " + err.Error())
 	}
-	if kind == "pull_request" {
-		_, err = utils.Git([]string{"fetch", "origin", "pull/" + checkout + "/head:CI_test"}, gitdir)
-		if err != nil {
-			os.RemoveAll(gitdir)
-			return ctx, errors.New("Failed fetching repo: " + err.Error())
-		}
 
-		_, err = utils.Git([]string{"checkout", "CI_test"}, gitdir)
+	if kind == "pull_request" {
+		err = utils.GitCheckoutPullRequest(r, "origin", checkout)
 		if err != nil {
 			os.RemoveAll(gitdir)
 			return ctx, errors.New("Failed checkout repo: " + err.Error())
 		}
 	} else {
-		_, err = utils.Git([]string{"checkout", checkout}, gitdir)
+		err = utils.GitCheckoutCommit(r, checkout)
 		if err != nil {
 			os.RemoveAll(gitdir)
 			return ctx, errors.New("Failed checkout repo: " + err.Error())
