@@ -29,7 +29,7 @@
                           {{$namespace := $.Name}}
                           {{range .Artefacts}}
                           <tr>
-                            <td><a href="{{BuildURI "/namespace/"}}{{$namespace}}{{.}}/" target="_blank">{{.}}</a></td>
+                            <td><a href="{{BuildURI "/namespace/"}}{{$namespace}}{{.}}" target="_blank">{{.}}</a></td>
                           </tr>
                           {{end}}
 
