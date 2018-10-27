@@ -147,9 +147,54 @@ func FromFile(file string) (*Task, error) {
 	}
 	return t, nil
 }
+func PlanFromYaml(file string) (*Plan, error) {
+	var t *Plan
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := yaml.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+func PlanFromJSON(file string) (*Plan, error) {
+	var t *Plan
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := json.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+func PipelineFromJSON(file string) (*Pipeline, error) {
+	var t *Pipeline
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := json.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
 
 func FromYamlFile(file string) (*Task, error) {
 	var t *Task
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return t, err
+	}
+	if err := yaml.Unmarshal(content, &t); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+
+func PipelineFromYaml(file string) (*Pipeline, error) {
+	var t *Pipeline
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		return t, err
