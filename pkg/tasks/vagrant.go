@@ -114,7 +114,7 @@ func (d *VagrantExecutor) BoxRemove(image string) {
 
 func (d *VagrantExecutor) Prune() {
 
-	out, err := d.Vagrant.Halt()
+	out, err := d.Vagrant.PowerOff()
 	if err != nil {
 		d.Report("!! Error in halting the machine" + err.Error())
 	} else {
@@ -226,8 +226,6 @@ func (d *VagrantExecutor) Setup(docID string) error {
 		os.Setenv("VBOX_USER_HOME", d.TaskExecutor.Config.GetAgent().BuildPath)
 		os.Unsetenv("HOME")
 		os.Setenv("HOME", d.TaskExecutor.Config.GetAgent().BuildPath)
-		// XXX: Fix hanging shutdown
-		os.Setenv("SHUTDOWN", "poweroff")
 	}
 
 	if d.IsLibvirt() {
