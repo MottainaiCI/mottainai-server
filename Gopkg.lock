@@ -38,7 +38,7 @@
   branch = "master"
   name = "github.com/MottainaiCI/vagrantutil"
   packages = ["."]
-  revision = "cef76f33b8d1939ef4d4e8f809d50cc27e0f02e9"
+  revision = "c8f45988a24e05de76907af2e9672af54dd3fba0"
 
 [[projects]]
   branch = "master"
@@ -831,6 +831,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "aeaff0b5349277535587d9bd2cf5b4f120fabbd395307d7011d8324050549a5f"
+  inputs-digest = "55dc05b691d90f1e219be307065f71ae90f8d3820b78aead569a368f66c53ac6"
   solver-name = "gps-cdcl"
   solver-version = 1

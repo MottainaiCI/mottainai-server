@@ -246,6 +246,13 @@ func (v *Vagrant) Halt() (<-chan *CommandOutput, error) {
 	return v.vagrantCommand().start("halt")
 }
 
+// PowerOff executes "vagrant halt -f". The returned reader contains the output
+// stream. The client is responsible of calling the Close method of the
+// returned reader.
+func (v *Vagrant) PowerOff() (<-chan *CommandOutput, error) {
+	return v.vagrantCommand().start("halt", "--force")
+}
+
 // Destroy executes "vagrant destroy". The returned reader contains the output
 // stream. The client is responsible of calling the Close method of the
 // returned reader.
@@ -404,7 +411,7 @@ func (v *Vagrant) SSHConfig() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return out, nil	
+	return out, nil
 }
 
 // toArgs converts the given box to argument list for `vagrant box add/remove`
