@@ -33,6 +33,33 @@ import (
 	macaron "gopkg.in/macaron.v1"
 )
 
+func UpdateUser(opts user.UserForm, ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":id")
+	u, err := db.Driver.GetUser(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	if len(opts.Email) > 0 {
+		u.Email = opts.Email
+	}
+	if len(opts.Name) > 0 {
+		u.Name = opts.Name
+	}
+	if len(opts.Password) > 0 {
+		u.Password = opts.Password
+	}
+
+	err = db.Driver.UpdateUser(id, u.ToMap())
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	return nil
+}
+
 func SetManager(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
@@ -253,6 +280,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
 			m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
 			m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
+			m.Post("/api/user/edit/:id", reqSignIn, reqAdmin, bind(user.UserForm{}), UpdateUser)
 		})
 	})
 }
