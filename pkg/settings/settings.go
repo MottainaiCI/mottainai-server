@@ -47,6 +47,7 @@ type WebConfig struct {
 	AppName              string `mapstructure:"application_name"`
 	AppBrandingLogo      string `mapstructure:"application_branding_logo"`
 	AppBrandingLogoSmall string `mapstructure:"application_branding_logo_small"`
+	AppBrandingFavicon   string `mapstructure:"application_branding_favicon"`
 
 	// TODO: TO rename in API URL
 	AppURL string `mapstructure:"application_url"`
@@ -352,6 +353,7 @@ web:
   application_name: %s
 	application_branding_logo: %s
 	application_branding_logo_small: %s
+	application_branding_favicon: %s
 
   application_url: %s
 
@@ -368,7 +370,7 @@ web:
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
-		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppURL,
+		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon, c.AppURL,
 		c.TemplatePath,
 		c.AccessControlAllowOrigin,
 		c.EmbedWebHookServer,
