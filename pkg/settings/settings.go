@@ -44,7 +44,10 @@ type WebConfig struct {
 	HTTPAddr  string `mapstructure:"listenaddress"`
 	HTTPPort  string `mapstructure:"port"`
 
-	AppName string `mapstructure:"application_name"`
+	AppName              string `mapstructure:"application_name"`
+	AppBrandingLogo      string `mapstructure:"application_branding_logo"`
+	AppBrandingLogoSmall string `mapstructure:"application_branding_logo_small"`
+
 	// TODO: TO rename in API URL
 	AppURL string `mapstructure:"application_url"`
 
@@ -347,6 +350,9 @@ web:
   listenaddress: %s
   port: %s
   application_name: %s
+	application_branding_logo: %s
+	application_branding_logo_small: %s
+
   application_url: %s
 
   template_path: %s
@@ -362,7 +368,7 @@ web:
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
-		c.AppName, c.AppURL,
+		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppURL,
 		c.TemplatePath,
 		c.AccessControlAllowOrigin,
 		c.EmbedWebHookServer,

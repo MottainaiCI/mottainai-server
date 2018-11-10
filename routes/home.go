@@ -23,6 +23,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package routes
 
 import (
+	"bytes"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -77,6 +87,44 @@ func SetupWebUI(m *mottainai.Mottainai) *mottainai.Mottainai {
 	return m
 }
 
+func writeImage(w http.ResponseWriter, img string) error {
+
+	infile, err := os.Open(img)
+	if err != nil {
+		// replace this with real error handling
+		return err
+	}
+	defer infile.Close()
+	ext := filepath.Ext(strings.TrimSpace(img))
+	// Decode will figure out what type of image is in the file on its own.
+	// We just have to be sure all the image packages we want are imported.
+	src, _, err := image.Decode(infile)
+	if err != nil {
+		return err
+	}
+
+	buffer := new(bytes.Buffer)
+
+	if ext == ".png" {
+		if err := png.Encode(buffer, src); err != nil {
+			return err
+		}
+
+		w.Header().Set("Content-Type", "image/png")
+	} else if ext == ".jpeg" {
+		if err := jpeg.Encode(buffer, src, nil); err != nil {
+			return err
+		}
+
+		w.Header().Set("Content-Type", "image/jpeg")
+	}
+	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+	if _, err := w.Write(buffer.Bytes()); err != nil {
+		return err
+	}
+	return nil
+}
+
 func Setup(m *macaron.Macaron) {
 
 	m.NotFound(NotFound)
@@ -87,6 +135,24 @@ func Setup(m *macaron.Macaron) {
 
 	m.Invoke(func(config *setting.Config) {
 		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Get("/images/logo", func(ctx *context.Context, db *database.Database) error {
+				if config.GetWeb().AppBrandingLogo != "" {
+					return writeImage(ctx.Resp, config.GetWeb().AppBrandingLogo)
+
+				}
+				ctx.Redirect("/images/mottainai_logo.png")
+				return nil
+				//return writeImage(ctx.Resp, path.Join(config.GetWeb().StaticRootPath, "public", "images", "mottainai_logo.png"))
+			})
+			m.Get("/images/logo_small", func(ctx *context.Context, db *database.Database) error {
+				if config.GetWeb().AppBrandingLogoSmall != "" {
+					return writeImage(ctx.Resp, config.GetWeb().AppBrandingLogoSmall)
+
+				}
+				ctx.Redirect("/images/mottainai_logo_small.png")
+				return nil
+				//return writeImage(ctx.Resp, path.Join(config.GetWeb().StaticRootPath, "public", "images", "mottainai_logo_small.png"))
+			})
 			m.Get("/", func(ctx *context.Context, db *database.Database) error {
 				rtasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
 				if e != nil {
