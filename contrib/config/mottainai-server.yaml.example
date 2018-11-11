@@ -2,7 +2,7 @@
 
 general:
   debug: false
-  # Default 
+  # Default
   logfile: '/var/log/mottainai/mottainai-server.log'
   loglevel: 'DEBUG'
 
@@ -36,6 +36,11 @@ web:
 
   # Define application name.
   # application_name: "Mottainai"
+
+  # Override branding logo
+  # application_branding_logo: "/path/to/your/logo"
+  # application_branding_logo_small: "/path/to/your/logo_small"
+  # application_branding_favicon: "/path/to/your/favicon.ico"
 
   # Web templates directory
   # template_dir: "./"
@@ -138,7 +143,7 @@ agent:
   # Define operations executed by Agent Healtcheck
   health_check_exec:
      - docker system prune --force --all --volumes
-  # health_check_clean_path: 
+  # health_check_clean_path:
 
   # ----------------------------------
   # Docker executor options
@@ -165,4 +170,3 @@ agent:
   # docker_in_docker_endpoint: /var/run/docker.sock
 
   # ----------------------------------
-
