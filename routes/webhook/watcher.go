@@ -28,13 +28,17 @@ import (
 	"strings"
 	"time"
 
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	anagent "github.com/mudler/anagent"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	ggithub "github.com/google/go-github/github"
 )
 
-func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Database, url string) {
+func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config) {
+	url := config.GetWeb().AppURL
+	appName := config.GetWeb().AppName
 	fmt.Println("[Task Watcher] start")
 	var tid anagent.TimerID = anagent.TimerID("global_watcher")
 	watch := make(map[string]string)
@@ -113,6 +117,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				} else {
 					delete(w, k)
 				}
+
 			}
 		}
 

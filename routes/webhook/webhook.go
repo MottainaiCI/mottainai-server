@@ -54,7 +54,6 @@ var (
 	successDesc   = "Build successful."
 	failureDesc   = "Build failed."
 	notfoundDesc  = "No mottainai file found on repo"
-	appName       = "MottainaiCI"
 	task_file     = ".mottainai"
 	pipeline_file = ".mottainai-pipeline"
 )
@@ -74,6 +73,12 @@ type GitContext struct {
 }
 
 func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}, w *mhook.WebHook) error {
+
+	var appName string
+	m.Invoke(func(config *setting.Config) {
+		appName = config.GetWeb().AppName
+	})
+
 	gitc, err := prepareTemp(u, kind, client, db, m, payload)
 	if err != nil {
 		fmt.Println(err)
@@ -138,12 +143,11 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 	if err != nil {
 		return err
 	}
-
 	var url string
-
 	m.Invoke(func(config *setting.Config) {
 		url = config.GetWeb().BuildAbsURL("/tasks/display/" + docID)
 	})
+
 	m.SendTask(docID)
 	// Create the 'pending' status and send it
 	status1 = &ggithub.RepoStatus{State: &pending, TargetURL: &url, Description: &pendingDesc, Context: &appName}
@@ -240,8 +244,10 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 	}
 
 	var url string
+	var appName string
 	m.Invoke(func(config *setting.Config) {
 		url = config.GetWeb().BuildURI("/tasks/display/" + docID)
+		appName = config.GetWeb().AppName
 	})
 	fmt.Println("Sending pipeline", docID)
 	_, err = m.ProcessPipeline(docID)

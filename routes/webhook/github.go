@@ -114,6 +114,11 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 		commit = ref
 	}
 
+	var appName string
+	m.Invoke(func(config *setting.Config) {
+		appName = config.GetWeb().AppName
+	})
+
 	ctx := &GitContext{Uid: pruid, Commit: commit, Owner: owner, UserRepo: user_repo, Checkout: checkout, Repo: repo, Ref: ref, User: gh_user}
 
 	// Check setting if we have to process this.
@@ -205,7 +210,7 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 func SetupGitHub(m *mottainai.Mottainai) {
 
 	m.Invoke(func(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config) {
-		GlobalWatcher(client, a, db, config.GetWeb().AppURL)
+		GlobalWatcher(client, a, db, config)
 	})
 
 	// TODO: Generate tokens for  each user.
