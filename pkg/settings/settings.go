@@ -119,6 +119,12 @@ type AgentConfig struct {
 	DockerCaps        []string `mapstructure:"docker_caps"`
 	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
 
+	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
+	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
+	LxdProfiles            []string          `mapstructure:"lxd_profiles"`
+	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers"`
+	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry"`
+
 	CacheRegistryCredentials map[string]string `mapstructure:"cache_registry"`
 
 	HealthCheckExec      []string `mapstructure:"health_check_exec"`
@@ -234,6 +240,12 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_in_docker_endpoint", "/var/run/docker.sock")
 	viper.SetDefault("agent.docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("agent.docker_caps_drop", []string{})
+
+	viper.SetDefault("agent.lxd_endpoint", "")
+	viper.SetDefault("agent.lxd_config_dir", "")
+	viper.SetDefault("agent.lxd_ephemeral_containers", true)
+	viper.SetDefault("agent.lxd_profiles", []string{})
+	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
 
 	viper.SetDefault("agent.health_check_clean_path", []string{})
 	viper.SetDefault("agent.health_check_exec", []string{})
@@ -361,7 +373,7 @@ web:
 
   access_control_allow_origin: %s
 
-  embed_webhookserver: %s
+  embed_webhookserver: %v
   access_token: %s
   github_token: %s
   github_token_user: %s
@@ -444,7 +456,7 @@ agent:
   standalone: %t
   download_speed_limit: %d
   upload_speed_limit: %d
-  queues: %s
+  queues: %v
 
   docker_endpoint: %s
   docker_keepimg: %t
@@ -453,6 +465,12 @@ agent:
   docker_in_docker_endpoint: %s
   docker_caps: %s
   docker_caps_drop: %s
+
+  lxd_endpoint: %s
+  lxd_config_dir: %s
+  lxd_profiles: %s
+  lxd_ephemeral_containers: %t
+  lxd_cache_registry: %s
 
   cache_registry: %s
   health_check_exec: %s
@@ -465,8 +483,9 @@ agent:
 		c.DockerEndpoint, c.DockerKeepImg,
 		c.DockerPriviledged, c.DockerInDocker,
 		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop,
-		c.CacheRegistryCredentials, c.HealthCheckExec,
-		c.HealthCheckCleanPath)
+		c.LxdEndpoint, c.LxdConfigDir, c.LxdProfiles, c.LxdEphemeralContainers,
+		c.LxdCacheRegistry, c.CacheRegistryCredentials,
+		c.HealthCheckExec, c.HealthCheckCleanPath)
 
 	return ans
 }

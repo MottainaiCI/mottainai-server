@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"errors"
-	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -72,20 +71,11 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
 	th := DefaultTaskHandler(d.Config)
 	task_info := th.FetchTask(fetcher)
-
-	var sharedName, OriginalSharedName string
 	image := task_info.Image
 
-	u, err := url.Parse(task_info.Source)
+	sharedName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
 	if err != nil {
-		OriginalSharedName = image + task_info.Directory
-	} else {
-		OriginalSharedName = image + u.Path + task_info.Directory
-	}
-
-	sharedName, err = utils.StrictStrip(OriginalSharedName)
-	if err != nil {
-		panic(err)
+		return 1, err
 	}
 
 	artdir := d.Context.ArtefactDir
