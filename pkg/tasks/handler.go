@@ -65,6 +65,8 @@ func DefaultTaskHandler(config *setting.Config) *TaskHandler {
 		"virtualbox_execute": VirtualBoxPlayer(config),
 		"virtualbox_vagrant": VirtualBoxPlayer(config),
 
+		"lxd": LxdPlayer(config),
+
 		"error": HandleErr(config),
 		//	"success":        HandleSuccess,
 	},
@@ -86,6 +88,23 @@ func HandleArgs(args ...interface{}) (string, int, error) {
 		docID = args[len(args)-1].(string)
 	}
 	return docID, 0, nil
+}
+
+func LxdPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := NewLxdExecutor(config)
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
+
+		return player.Start(executor)
+	}
 }
 
 func DockerPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
