@@ -49,10 +49,15 @@ func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error
 	return "OK", nil
 }
 
-func NamespaceRemovePath(ctx *context.Context, db *database.Database) (string, error) {
-	name := ctx.Params(":name")
+type RemoveForm struct {
+	Name string `form:"name" binding:"Required`
+	Path string `form:"path" binding:"Required`
+}
+
+func NamespaceRemovePath(uf RemoveForm, ctx *context.Context, db *database.Database) (string, error) {
+	name := uf.Name
 	name, _ = utils.Strip(name)
-	path := ctx.Params(":path")
+	path := uf.Path
 
 	if !ctx.CheckNamespaceBelongs(name) {
 		return ":(", errors.New("Moar permissions are required for this user")

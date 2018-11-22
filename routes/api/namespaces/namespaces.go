@@ -46,7 +46,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
 			m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
 			m.Get("/api/namespace/:name/append/:taskid", reqSignIn, NamespaceAppend)
-			m.Get("/api/namespace/:name/remove/:path", reqSignIn, NamespaceRemovePath)
+			m.Post("/api/namespace/remove", reqSignIn, binding.Bind(RemoveForm{}), NamespaceRemovePath)
 
 			m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
 			m.Post("/api/namespace/upload", reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
