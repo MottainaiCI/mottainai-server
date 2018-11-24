@@ -221,7 +221,7 @@ func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("agent.secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
 	viper.SetDefault("agent.build_path", "/build/")
-	viper.SetDefault("agent.lock_path", "/var/lock/mottainai/")
+	viper.SetDefault("agent.lock_path", "/srv/mottainai/lock")
 	viper.SetDefault("agent.concurrency", 1)
 	viper.SetDefault("agent.agent_key", "")
 	viper.SetDefault("agent.api_key", "")
