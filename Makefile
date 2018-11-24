@@ -17,6 +17,7 @@ LIBEXECDIR ?= /usr/libexec
 SYSCONFDIR ?= /etc
 LOCKDIR ?= /var/lock
 LIBDIR ?= /var/lib
+EXTENSIONS ?=
 
 all: deps multiarch-build install
 
@@ -42,12 +43,22 @@ deps:
 	go get github.com/mattn/goveralls
 
 build:
-	go build
+ifeq ($(EXTENSIONS),)
+		go build
+else
+		go build -tags $(EXTENSIONS)
+endif
 
 multiarch-build:
-	# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
-	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1 -cgo
-	CC="arm-linux-gnueabi-gcc" LD_LIBRARY_PATH=/usr/arm-linux-gnueabi/lib gox -osarch="linux/arm" -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1 -cgo
+ifeq ($(EXTENSIONS),)
+		# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
+		gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
+		CC="arm-linux-gnueabi-gcc" LD_LIBRARY_PATH=/usr/arm-linux-gnueabi/lib gox -osarch="linux/arm" -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
+else
+		# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
+		gox $(BUILD_PLATFORMS) -tags $(EXTENSIONS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1 -cgo
+		CC="arm-linux-gnueabi-gcc" LD_LIBRARY_PATH=/usr/arm-linux-gnueabi/lib gox -tags $(EXTENSIONS) -osarch="linux/arm" -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1 -cgo
+endif
 
 lint:
 	# Checking project code style...

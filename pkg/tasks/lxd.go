@@ -1,3 +1,5 @@
+// +build lxd
+
 /*
 
 Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
@@ -27,6 +29,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	//"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	"container/list"
@@ -37,7 +40,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lxc/lxd/client"
+	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+
+	lxd "github.com/lxc/lxd/client"
 	lxd_config "github.com/lxc/lxd/lxc/config"
 	lxd_utils "github.com/lxc/lxd/lxc/utils"
 	lxd_shared "github.com/lxc/lxd/shared"
@@ -45,13 +50,21 @@ import (
 	"github.com/lxc/lxd/shared/ioprogress"
 )
 
-type LxdExecutor struct {
-	*TaskExecutor
-	LxdClient lxd.ContainerServer
-	LxdConfig *lxd_config.Config
-	// Required for handle cancellable task
-	CurrentLocalOperation lxd.Operation
-	RemoteOperation       lxd.RemoteOperation
+func LxdPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := NewLxdExecutor(config)
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
+
+		return player.Start(executor)
+	}
 }
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -61,6 +74,15 @@ func NewLxdExecutor(config *setting.Config) *LxdExecutor {
 			Config:  config,
 		},
 	}
+}
+
+type LxdExecutor struct {
+	*TaskExecutor
+	LxdClient lxd.ContainerServer
+	LxdConfig *lxd_config.Config
+	// Required for handle cancellable task
+	CurrentLocalOperation lxd.Operation
+	RemoteOperation       lxd.RemoteOperation
 }
 
 func (e *LxdExecutor) Prune() {

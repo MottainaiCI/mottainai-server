@@ -38,7 +38,14 @@ type TaskHandler struct {
 	Config *setting.Config
 	Err    error
 }
+type Handler func(string) (int, error)
 
+func (h *TaskHandler) AddHandler(s string, handler Handler) {
+	h.Tasks[s] = handler
+}
+func (h *TaskHandler) RemoveHandler(s string) {
+	delete(h.Tasks, s)
+}
 func (h *TaskHandler) Exists(s string) bool {
 	if _, ok := h.Tasks[s]; ok {
 		return true
@@ -46,32 +53,26 @@ func (h *TaskHandler) Exists(s string) bool {
 	return false
 }
 
-func (h *TaskHandler) Handler(s string) func(string) (int, error) {
+func (h *TaskHandler) Handler(s string) Handler {
 	if f, ok := h.Tasks[s]; ok {
-		return f.(func(string) (int, error))
+		return f.(Handler)
 	}
 	panic(errors.New("No task handler found!"))
 }
 
+var singletonTaskHandler *TaskHandler
+
+func SetSingleton(th *TaskHandler) {
+	singletonTaskHandler = th
+}
+
 func DefaultTaskHandler(config *setting.Config) *TaskHandler {
-	return &TaskHandler{Tasks: map[string]interface{}{
-
-		"docker_execute": DockerPlayer(config),
-		"docker":         DockerPlayer(config),
-
-		"libvirt_execute": LibvirtPlayer(config),
-		"libvirt_vagrant": LibvirtPlayer(config),
-
-		"virtualbox_execute": VirtualBoxPlayer(config),
-		"virtualbox_vagrant": VirtualBoxPlayer(config),
-
-		"lxd": LxdPlayer(config),
-
-		"error": HandleErr(config),
-		//	"success":        HandleSuccess,
-	},
-		Config: config,
+	if singletonTaskHandler != nil {
+		return singletonTaskHandler
 	}
+	th := GenDefaultTaskHandler(config)
+	SetSingleton(th)
+	return th
 }
 
 func HandleArgs(args ...interface{}) (string, int, error) {
@@ -88,23 +89,6 @@ func HandleArgs(args ...interface{}) (string, int, error) {
 		docID = args[len(args)-1].(string)
 	}
 	return docID, 0, nil
-}
-
-func LxdPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
-	return func(args ...interface{}) (int, error) {
-		docID, e, err := HandleArgs(args...)
-		player := NewPlayer(docID)
-		executor := NewLxdExecutor(config)
-		executor.MottainaiClient = client.NewTokenClient(
-			config.GetWeb().AppURL,
-			config.GetAgent().ApiKey, config)
-		if err != nil {
-			player.EarlyFail(executor, docID, err.Error())
-			return e, err
-		}
-
-		return player.Start(executor)
-	}
 }
 
 func DockerPlayer(config *setting.Config) func(args ...interface{}) (int, error) {

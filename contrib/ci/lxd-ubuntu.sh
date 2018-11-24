@@ -54,8 +54,8 @@ cd mottainai-server
 git checkout lxd-integration
 
 PATH=/usr/lib/go-${GOLANG_VERSION}/bin:\$PATH make deps
-PATH=/usr/lib/go-${GOLANG_VERSION}/bin:\$HOME/go/bin:\$PATH make multiarch-build
-PATH=/usr/lib/go-${GOLANG_VERSION}/bin:\$HOME/go/bin:\$PATH make build-test
+PATH=/usr/lib/go-${GOLANG_VERSION}/bin:\$HOME/go/bin:\$PATH make multiarch-build EXTENSIONS=lxd
+PATH=/usr/lib/go-${GOLANG_VERSION}/bin:\$HOME/go/bin:\$PATH make build-test EXTENSIONS=lxd
 END
 )
 
