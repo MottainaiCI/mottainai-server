@@ -110,7 +110,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 		if err != nil {
 			return ":("
 		}
-		err = mytask.AppendBuildLog(f.Output, db.Config.GetStorage().ArtefactPath, db.Config.GetAgent().LockPath)
+		err = mytask.AppendBuildLog(f.Output, db.Config.GetStorage().ArtefactPath, db.Config.GetWeb().LockPath)
 		if err != nil {
 			fmt.Println("Can't write to buildlog: ", err.Error())
 			return "Error: " + err.Error()

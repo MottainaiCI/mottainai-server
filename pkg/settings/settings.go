@@ -66,6 +66,8 @@ type WebConfig struct {
 	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
 	WebHookGitHubSecret    string `mapstructure:"github_secret"`
 	WebHookToken           string `mapstructure:"webhook_token"`
+
+	LockPath string `mapstructure:"lock_path"`
 }
 
 type StorageConfig struct {
@@ -101,7 +103,6 @@ type BrokerConfig struct {
 type AgentConfig struct {
 	SecretKey         string         `mapstructure:"secret_key"`
 	BuildPath         string         `mapstructure:"build_path"`
-	LockPath          string         `mapstructure:"lock_path"`
 	AgentConcurrency  int            `mapstructure:"concurrency"`
 	AgentKey          string         `mapstructure:"agent_key"`
 	ApiKey            string         `mapstructure:"api_key"`
@@ -198,6 +199,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.github_secret", "")
 	viper.SetDefault("web.github_token_user", "")
 	viper.SetDefault("web.webhook_token", "")
+	viper.SetDefault("web.lock_path", "/srv/mottainai/lock")
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")
@@ -221,7 +223,6 @@ func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("agent.secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
 	viper.SetDefault("agent.build_path", "/build/")
-	viper.SetDefault("agent.lock_path", "/srv/mottainai/lock")
 	viper.SetDefault("agent.concurrency", 1)
 	viper.SetDefault("agent.agent_key", "")
 	viper.SetDefault("agent.api_key", "")
@@ -379,6 +380,8 @@ web:
   github_token_user: %s
   github_secret: %s
   webhook_token: %s
+
+	lock_path: %s
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
@@ -389,7 +392,7 @@ web:
 		c.AccessToken, c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.WebHookGitHubToken)
+		c.WebHookGitHubToken, c.LockPath)
 
 	return ans
 }
@@ -448,7 +451,6 @@ func (c *AgentConfig) String() string {
 agent:
   secret_key: %s
   build_path: %s
-  lock_path: %s
   concurrency: %d
   agent_key: %s
   api_key: %s
@@ -476,7 +478,7 @@ agent:
   health_check_exec: %s
   health_check_clean_path: %s
 
-`, c.SecretKey, c.BuildPath, c.LockPath,
+`, c.SecretKey, c.BuildPath,
 		c.AgentConcurrency, c.AgentKey, c.ApiKey,
 		c.PrivateQueue, c.StandAlone, c.DownloadRateLimit,
 		c.UploadRateLimit, c.Queues,
