@@ -222,7 +222,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("broker.binding_key", "machinery_task")
 
 	viper.SetDefault("agent.secret_key", "vvH5oXJCTwHNGcMe2EJWDUKg9yY6qx")
-	viper.SetDefault("agent.build_path", "/build/")
+	viper.SetDefault("agent.build_path", "/srv/mottainai/build")
 	viper.SetDefault("agent.concurrency", 1)
 	viper.SetDefault("agent.agent_key", "")
 	viper.SetDefault("agent.api_key", "")
@@ -243,7 +243,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_caps_drop", []string{})
 
 	viper.SetDefault("agent.lxd_endpoint", "")
-	viper.SetDefault("agent.lxd_config_dir", "")
+	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/build/lxc/")
 	viper.SetDefault("agent.lxd_ephemeral_containers", true)
 	viper.SetDefault("agent.lxd_profiles", []string{})
 	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
