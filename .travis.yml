@@ -16,11 +16,11 @@ before_install:
   # Fix asm/errno.h: No such file or directory on 386 build
   - sudo cp --archive /usr/include/asm-generic /usr/include/asm
   # - make deps
-  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" make deps
+  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" EXTENSIONS="lxd" make deps
 script:
   #- make multiarch-build
   #- make build-test
-  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" make build-test
+  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" EXTENSIONS="lxd" make build-test
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
