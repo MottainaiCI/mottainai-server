@@ -63,27 +63,41 @@ type TaskExecutor struct {
 }
 
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
+	var err error
 	fetcher := d.MottainaiClient
 	task_info := DefaultTaskHandler(d.Config).FetchTask(fetcher)
-	var err error
+
 	if len(task_info.RootTask) > 0 {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
 			err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
+			if err != nil {
+				d.Report("Error on download artefacts from task " + f)
+				return err
+			}
 		}
 	}
 
 	if len(task_info.Namespace) > 0 {
 		for _, f := range strings.Split(task_info.Namespace, ",") {
 			err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
+			if err != nil {
+				d.Report("Error on download namespace " + f)
+				return err
+			}
 		}
 	}
 
 	if len(task_info.Storage) > 0 {
 		for _, f := range strings.Split(task_info.Storage, ",") {
 			err = fetcher.DownloadArtefactsFromStorage(f, storagedir)
+			if err != nil {
+				d.Report("Error on download data from storage " + f)
+				return err
+			}
 		}
 	}
-	return err
+
+	return nil
 }
 
 func (d *TaskExecutor) UploadArtefacts(folder string) error {
