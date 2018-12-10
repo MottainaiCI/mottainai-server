@@ -37,8 +37,6 @@ import (
 	static "github.com/MottainaiCI/mottainai-server/pkg/static"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	machinery "github.com/RichardKnop/machinery/v1"
-	config "github.com/RichardKnop/machinery/v1/config"
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
@@ -468,28 +466,4 @@ func (m *Mottainai) ReloadCron() {
 		c.Start()
 	})
 
-}
-
-func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Server, error) {
-
-	var amqpConfig *config.AMQPConfig
-	if settings.GetBroker().Type == "amqp" {
-		amqpConfig = &config.AMQPConfig{
-			Exchange:     settings.GetBroker().BrokerExchange,
-			ExchangeType: settings.GetBroker().BrokerExchangeType,
-			BindingKey:   queue + "_key",
-			//BindingKey:   settings.BrokerBindingKey,
-		}
-
-	}
-	var cnf = &config.Config{
-		Broker:          settings.GetBroker().Broker,
-		DefaultQueue:    queue,
-		ResultBackend:   settings.GetBroker().BrokerResultBackend,
-		ResultsExpireIn: settings.GetBroker().ResultsExpireIn,
-		AMQP:            amqpConfig,
-	}
-
-	server, err := machinery.NewServer(cnf)
-	return server, err
 }

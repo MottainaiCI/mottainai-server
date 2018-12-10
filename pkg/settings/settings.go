@@ -98,6 +98,16 @@ type BrokerConfig struct {
 	BrokerExchange      string `mapstructure:"exchange"`
 	BrokerExchangeType  string `mapstructure:"exchange_type"`
 	BrokerBindingKey    string `mapstructure:"binding_key"`
+
+	//Redis
+	MaxIdle                int  `mapstructure:"max_idle"`
+	MaxActive              int  `mapstructure:"max_active"`
+	IdleTimeout            int  `mapstructure:"max_idle_timeout"`
+	Wait                   bool `mapstructure:"wait"`
+	ReadTimeout            int  `mapstructure:"read_timeout"`
+	WriteTimeout           int  `mapstructure:"write_timeout"`
+	ConnectTimeout         int  `mapstructure:"connect_timeout"`
+	DelayedTasksPollPeriod int  `mapstructure:"delayed_tasks_poll_period"`
 }
 
 type AgentConfig struct {
@@ -436,12 +446,25 @@ broker:
   exchange: %s
   exchange_type: %s
   binding_key: %s
+
+	// Redis only
+	max_idle: %d
+	max_active: %d
+	max_idle_timeout: %d
+	wait: %v
+	read_timeout: %d
+	write_timeout: %d
+	connect_timeout: %d
+	delayed_tasks_poll_period: %d
 `,
 		c.Type, c.ResultsExpireIn, c.Broker,
 		c.BrokerDefaultQueue, c.BrokerResultBackend,
 		c.BrokerURI, c.BrokerPass,
 		c.BrokerUser, c.BrokerExchange,
-		c.BrokerExchangeType, c.BrokerBindingKey)
+		c.BrokerExchangeType, c.BrokerBindingKey,
+		c.MaxIdle, c.MaxActive, c.IdleTimeout,
+		c.Wait, c.ReadTimeout, c.WriteTimeout,
+		c.ConnectTimeout, c.DelayedTasksPollPeriod)
 
 	return ans
 }
