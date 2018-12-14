@@ -63,17 +63,15 @@ func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Serv
 		ResultBackend:   settings.GetBroker().BrokerResultBackend,
 		ResultsExpireIn: settings.GetBroker().ResultsExpireIn,
 	}
-
-	if settings.GetBroker().Type == "amqp" {
+	switch broker := settings.GetBroker().Type; broker {
+	case "amqp":
 		cnf.AMQP = &config.AMQPConfig{
 			Exchange:     settings.GetBroker().BrokerExchange,
 			ExchangeType: settings.GetBroker().BrokerExchangeType,
 			BindingKey:   queue + "_key",
 			//BindingKey:   settings.BrokerBindingKey,
 		}
-	}
-
-	if settings.GetBroker().Type == "redis" {
+	case "redis":
 		cnf.Redis = &config.RedisConfig{
 			MaxIdle:                settings.GetBroker().MaxIdle,
 			MaxActive:              settings.GetBroker().MaxActive,
@@ -85,9 +83,7 @@ func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Serv
 			DelayedTasksPollPeriod: settings.GetBroker().DelayedTasksPollPeriod,
 		}
 	}
-
-	server, err := machinery.NewServer(cnf)
-	return server, err
+	return machinery.NewServer(cnf)
 }
 
 func (s *MottainaiServer) Add(queue string, config *setting.Config) *Broker {
