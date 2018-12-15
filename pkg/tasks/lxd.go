@@ -723,6 +723,19 @@ func (l *LxdExecutor) GetImage(image string, remote lxd.ImageServer) (*lxd_api.I
 	return img, err
 }
 
+// Delete alias from image of a specific ContainerServer if available
+func (l *LxdExecutor) DeleteImageAliases4Alias(imageAlias string, server lxd.ContainerServer) error {
+	var err error
+	var img *lxd_api.Image
+
+	img, _ = l.GetImage(imageAlias, server)
+	if img != nil {
+		err = l.DeleteImageAliases(img, server)
+	}
+
+	return err
+}
+
 // Delete all local alias defined on input Image to avoid conflict on pull.
 func (l *LxdExecutor) DeleteImageAliases(image *lxd_api.Image, server lxd.ContainerServer) error {
 	for _, alias := range image.Aliases {
@@ -833,7 +846,7 @@ func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 		//       aliases.
 
 		// Delete local image with same target aliases to avoid error on pull.
-		err = l.DeleteImageAliases(image, l.LxdClient)
+		err = l.DeleteImageAliases4Alias(imageAlias, l.LxdClient)
 
 		// Try to pull image to lxd instance
 		l.Report(fmt.Sprintf(
