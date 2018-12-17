@@ -238,6 +238,7 @@ type ConnectionInfo struct {
 	Certificate string
 	Protocol    string
 	URL         string
+	Project     string
 }
 
 // The ContainerBackupArgs struct is used when creating a container from a backup
@@ -363,6 +364,10 @@ type ContainerCopyArgs struct {
 
 	// The transfer mode, can be "pull" (default), "push" or "relay"
 	Mode string
+
+	// API extension: container_incremental_copy
+	// Perform an incremental copy
+	Refresh bool
 }
 
 // The ContainerSnapshotCopyArgs struct is used to pass additional options during container copy

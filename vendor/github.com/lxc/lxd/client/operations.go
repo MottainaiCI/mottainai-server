@@ -40,13 +40,14 @@ func (op *operation) AddHandler(function func(api.Operation)) (*EventTarget, err
 	}
 
 	// Wrap the function to filter unwanted messages
-	wrapped := func(data interface{}) {
-		newOp := op.extractOperation(data)
-		if newOp == nil {
+	wrapped := func(event api.Event) {
+		newOp := api.Operation{}
+		err := json.Unmarshal(event.Metadata, &newOp)
+		if err != nil || newOp.ID != op.ID {
 			return
 		}
 
-		function(*newOp)
+		function(newOp)
 	}
 
 	return op.listener.AddHandler([]string{"operation"}, wrapped)
@@ -83,11 +84,6 @@ func (op *operation) RemoveHandler(target *EventTarget) error {
 
 // Refresh pulls the current version of the operation and updates the struct
 func (op *operation) Refresh() error {
-	// Don't bother with a manual update if we are listening for events
-	if op.handlerReady {
-		return nil
-	}
-
 	// Get the current version of the operation
 	newOp, _, err := op.r.GetOperation(op.ID)
 	if err != nil {
@@ -136,6 +132,7 @@ func (op *operation) setupListener() error {
 	if op.handlerReady {
 		return nil
 	}
+	op.handlerReady = true
 
 	// Get a new listener
 	if op.listener == nil {
@@ -149,26 +146,27 @@ func (op *operation) setupListener() error {
 
 	// Setup the handler
 	chReady := make(chan bool)
-	_, err := op.listener.AddHandler([]string{"operation"}, func(data interface{}) {
+	_, err := op.listener.AddHandler([]string{"operation"}, func(event api.Event) {
 		<-chReady
 
 		// We don't want concurrency while processing events
 		op.handlerLock.Lock()
 		defer op.handlerLock.Unlock()
 
-		// Get an operation struct out of this data
-		newOp := op.extractOperation(data)
-		if newOp == nil {
-			return
-		}
-
 		// Check if we're done already (because of another event)
 		if op.listener == nil {
 			return
 		}
 
+		// Get an operation struct out of this data
+		newOp := api.Operation{}
+		err := json.Unmarshal(event.Metadata, &newOp)
+		if err != nil || newOp.ID != op.ID {
+			return
+		}
+
 		// Update the struct
-		op.Operation = *newOp
+		op.Operation = newOp
 
 		// And check if we're done
 		if op.StatusCode.IsFinal() {
@@ -232,8 +230,6 @@ func (op *operation) setupListener() error {
 		op.listener.Disconnect()
 		op.listener = nil
 		close(op.chActive)
-
-		op.handlerReady = true
 		close(chReady)
 
 		if op.Err != "" {
@@ -244,37 +240,9 @@ func (op *operation) setupListener() error {
 	}
 
 	// Start processing background updates
-	op.handlerReady = true
 	close(chReady)
 
 	return nil
-}
-
-func (op *operation) extractOperation(data interface{}) *api.Operation {
-	// Extract the metadata
-	meta, ok := data.(map[string]interface{})["metadata"]
-	if !ok {
-		return nil
-	}
-
-	// And attempt to decode it as JSON operation data
-	encoded, err := json.Marshal(meta)
-	if err != nil {
-		return nil
-	}
-
-	newOp := api.Operation{}
-	err = json.Unmarshal(encoded, &newOp)
-	if err != nil {
-		return nil
-	}
-
-	// And now check that it's what we want
-	if newOp.ID != op.ID {
-		return nil
-	}
-
-	return &newOp
 }
 
 // The remoteOperation type represents an ongoing LXD operation between two servers
@@ -302,7 +270,7 @@ func (op *remoteOperation) AddHandler(function func(api.Operation)) (*EventTarge
 	} else {
 		// Generate a mock EventTarget
 		target = &EventTarget{
-			function: func(interface{}) { function(api.Operation{}) },
+			function: func(api.Event) { function(api.Operation{}) },
 			types:    []string{"operation"},
 		}
 	}

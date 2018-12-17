@@ -5,6 +5,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+	"gopkg.in/robfig/cron.v2"
 )
 
 type ContainerAction string
@@ -253,6 +256,7 @@ var KnownContainerConfigKeys = map[string]func(value string) error{
 	"security.devlxd.images": IsBool,
 
 	"security.protection.delete": IsBool,
+	"security.protection.shift":  IsBool,
 
 	"security.idmap.base":     IsUint32,
 	"security.idmap.isolated": IsBool,
@@ -262,6 +266,25 @@ var KnownContainerConfigKeys = map[string]func(value string) error{
 	"security.syscalls.blacklist_compat":  IsBool,
 	"security.syscalls.blacklist":         IsAny,
 	"security.syscalls.whitelist":         IsAny,
+
+	"snapshots.schedule": func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		if len(strings.Split(value, " ")) != 5 {
+			return fmt.Errorf("Schedule must be of the form: <minute> <hour> <day-of-month> <month> <day-of-week>")
+		}
+
+		_, err := cron.Parse(fmt.Sprintf("* %s", value))
+		if err != nil {
+			return errors.Wrap(err, "Error parsing schedule")
+		}
+
+		return nil
+	},
+	"snapshots.schedule.stopped": IsBool,
+	"snapshots.pattern":          IsAny,
 
 	// Caller is responsible for full validation of any raw.* value
 	"raw.apparmor": IsAny,
