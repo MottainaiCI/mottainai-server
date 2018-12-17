@@ -777,6 +777,7 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 	// (missing Cancel method) so DownloadImage is not s
 	l.RemoteOperation, err = to.CopyImage(remote, *i, copyArgs)
 	if err != nil {
+		l.Report("Error on create copy image task " + err.Error())
 		return err
 	}
 
@@ -794,23 +795,14 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 	}
 
 	err = lxd_utils.CancelableWait(l.RemoteOperation, &progress)
-	if err != nil {
-		progress.Done("")
-		l.RemoteOperation = nil
-		return err
-	}
 	progress.Done("")
-
-	// And wait for it to finish
-	err = l.RemoteOperation.Wait()
-	if err != nil {
-		progress.Done("")
-		l.RemoteOperation = nil
-		return err
-	}
-	progress.Done("")
-
 	l.RemoteOperation = nil
+	if err != nil {
+		l.Report("Error on copy image " + err.Error())
+		return err
+	}
+
+	l.Report(fmt.Sprintf("Image %s copy locally.", imageFingerprint))
 	return nil
 }
 
