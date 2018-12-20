@@ -99,7 +99,7 @@ type BrokerConfig struct {
 	BrokerExchangeType  string `mapstructure:"exchange_type"`
 	BrokerBindingKey    string `mapstructure:"binding_key"`
 
-	//Redis
+	// Redis
 	MaxIdle                int  `mapstructure:"max_idle"`
 	MaxActive              int  `mapstructure:"max_active"`
 	IdleTimeout            int  `mapstructure:"max_idle_timeout"`
@@ -108,6 +108,10 @@ type BrokerConfig struct {
 	WriteTimeout           int  `mapstructure:"write_timeout"`
 	ConnectTimeout         int  `mapstructure:"connect_timeout"`
 	DelayedTasksPollPeriod int  `mapstructure:"delayed_tasks_poll_period"`
+
+	// DynamoDB
+	TaskStatesTable string `mapstructure:"task_states_table"`
+	GroupMetasTable string `mapstructure:"group_metas_table"`
 }
 
 type AgentConfig struct {
@@ -456,6 +460,10 @@ broker:
 	write_timeout: %d
 	connect_timeout: %d
 	delayed_tasks_poll_period: %d
+
+	// DynamoDB only
+	task_states_table: %s
+	group_metas_table: %s
 `,
 		c.Type, c.ResultsExpireIn, c.Broker,
 		c.BrokerDefaultQueue, c.BrokerResultBackend,
@@ -464,7 +472,7 @@ broker:
 		c.BrokerExchangeType, c.BrokerBindingKey,
 		c.MaxIdle, c.MaxActive, c.IdleTimeout,
 		c.Wait, c.ReadTimeout, c.WriteTimeout,
-		c.ConnectTimeout, c.DelayedTasksPollPeriod)
+		c.ConnectTimeout, c.DelayedTasksPollPeriod, c.TaskStatesTable, c.GroupMetasTable)
 
 	return ans
 }

@@ -82,6 +82,11 @@ func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Serv
 			ConnectTimeout:         settings.GetBroker().ConnectTimeout,
 			DelayedTasksPollPeriod: settings.GetBroker().DelayedTasksPollPeriod,
 		}
+	case "dynamodb":
+		cnf.DynamoDB = &config.DynamoDBConfig{
+			TaskStatesTable: settings.GetBroker().TaskStatesTable,
+			GroupMetasTable: settings.GetBroker().GroupMetasTable,
+		}
 	}
 	return machinery.NewServer(cnf)
 }
