@@ -42,7 +42,7 @@ type Broker struct {
 
 type BrokerSendOptions struct {
 	Delayed           string
-	TaskName          string
+	Type              string
 	TaskID            string
 	Group, ChordGroup map[string]string
 	Retry             int
@@ -308,7 +308,7 @@ func (b *Broker) SendChord(opts *BrokerSendOptions) (*results.ChordAsyncResult, 
 }
 
 func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error) {
-	taskname := opts.TaskName
+	taskname := opts.Type
 	taskid := opts.TaskID
 	onErr := make([]*machinerytask.Signature, 0)
 

@@ -308,11 +308,11 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		if len(pip.Chord) > 0 {
 			tt := make(map[string]string)
 			for _, m := range pip.Group {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
 			cc := make(map[string]string)
 			for _, m := range pip.Chord {
-				cc[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+				cc[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
 			log.Println("Sending chord ")
 
@@ -338,7 +338,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		if len(pip.Group) > 0 {
 			tt := make(map[string]string)
 			for _, m := range pip.Group {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
 			log.Println("Sending group ")
 
@@ -363,7 +363,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		if len(pip.Chain) > 0 {
 			tt := make(map[string]string)
 			for _, m := range pip.Chain {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].TaskName
+				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
 			log.Println("Sending chain ")
 
@@ -415,15 +415,15 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 
 		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
-		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, TaskName: %v", task.Source, task.Script, task.Directory, task.TaskName)
+		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, Type: %v", task.Source, task.Script, task.Directory, task.Type)
 
-		if !th.Exists(task.TaskName) {
-			fmt.Printf("Could not send task: Invalid task name")
+		if !th.Exists(task.Type) {
+			fmt.Printf("Could not send task: Invalid task type")
 			result = false
 			return
 		}
 
-		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, TaskName: task.TaskName, TaskID: docID})
+		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
 		if err != nil {
 			fmt.Printf("Could not send task: %s", err.Error())
 			d.Driver.UpdateTask(docID, map[string]interface{}{

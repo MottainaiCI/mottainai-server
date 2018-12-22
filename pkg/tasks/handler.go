@@ -175,7 +175,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		directory     string
 		namespace     string
 		commit        string
-		taskname      string
+		tasktype      string
 		output        string
 		image         string
 		status        string
@@ -190,6 +190,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		root_task     string
 		prune         string
 		tag_namespace string
+		name          string
 		cache_image   string
 		cache_clean   string
 		queue         string
@@ -219,6 +220,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 			script = append(script, v.(string))
 		}
 	}
+	if i, ok := t["name"].(string); ok {
+		name = i
+	}
 	if i, ok := t["owner_id"].(string); ok {
 		owner = i
 	}
@@ -241,8 +245,11 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["directory"].(string); ok {
 		directory = str
 	}
+	if str, ok := t["type"].(string); ok {
+		tasktype = str
+	}
 	if str, ok := t["task"].(string); ok {
-		taskname = str
+		tasktype = str
 	}
 	if str, ok := t["namespace"].(string); ok {
 		namespace = str
@@ -266,8 +273,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["status"].(string); ok {
 		status = str
 	}
-	if !h.Exists(taskname) {
-		taskname = ""
+	// Do not crash clients if tasktype is not registered in the server
+	if !h.Exists(tasktype) {
+		tasktype = ""
 	}
 	if str, ok := t["image"].(string); ok {
 		image = str
@@ -336,9 +344,10 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		Script:       script,
 		Delayed:      delayed,
 		Directory:    directory,
-		TaskName:     taskname,
+		Type:         tasktype,
 		Namespace:    namespace,
 		Commit:       commit,
+		Name:         name,
 		Entrypoint:   entrypoint,
 		Output:       output,
 		PublishMode:  publish,

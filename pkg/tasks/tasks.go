@@ -44,11 +44,13 @@ import (
 )
 
 type Task struct {
-	ID           string   `json:"ID" form:"ID"` // ARMv7l overflows :(
+	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
+
+	Name         string   `json:"name" form:"name"`
 	Source       string   `json:"source" form:"source"`
 	Script       []string `json:"script" form:"script"`
 	Directory    string   `json:"directory" form:"directory"`
-	TaskName     string   `json:"task" form:"task"`
+	Type         string   `json:"type" form:"type"`
 	Status       string   `json:"status" form:"status"`
 	Output       string   `json:"output" form:"output"`
 	Result       string   `json:"result" form:"result"`
