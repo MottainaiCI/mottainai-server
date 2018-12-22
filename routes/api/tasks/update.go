@@ -29,8 +29,6 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
 type UpdateTaskForm struct {
@@ -44,7 +42,7 @@ type UpdateTaskForm struct {
 	Key        string ` form:"key"`
 }
 
-func UpdateTaskField(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) error {
+func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
 	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
 		return err
@@ -102,7 +100,7 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 	return nil
 }
 
-func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
+func AppendToTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
 
 	if len(f.Output) > 0 {
 
@@ -119,7 +117,7 @@ func AppendToTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Contex
 	return "OK"
 }
 
-func UpdateTask(f UpdateTaskForm, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
+func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
 
 	if len(f.Status) > 0 {
 		db.Driver.UpdateTask(f.Id, map[string]interface{}{

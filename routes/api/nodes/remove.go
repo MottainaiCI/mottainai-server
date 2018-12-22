@@ -29,8 +29,8 @@ import (
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
-	_, err := Remove(rmqc, ctx, db)
+func APIRemove(ctx *context.Context, db *database.Database) string {
+	_, err := Remove(ctx, db)
 	if err != nil {
 		ctx.NotFound()
 		return ":("
@@ -40,7 +40,7 @@ func APIRemove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Datab
 	return "OK"
 }
 
-func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) (string, error) {
+func Remove(ctx *context.Context, db *database.Database) (string, error) {
 	id := ctx.Params(":id")
 	node, _ := db.Driver.GetNode(id)
 
@@ -49,10 +49,10 @@ func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database
 		return "", err
 	}
 
-	_, err = rmqc.DeleteUser(node.User)
-	if err != nil {
-		return "", err
-	}
+	// RabbitMQ API Client
+	ctx.Invoke(func(rmqc *rabbithole.Client) {
+		_, err = rmqc.DeleteUser(node.User)
+	})
 
-	return "OK", nil
+	return "OK", err
 }

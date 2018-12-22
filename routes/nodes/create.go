@@ -27,12 +27,10 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
-
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Create(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) {
-	_, err := nodesapi.Create(rmqc, ctx, db)
+func Create(ctx *context.Context, db *database.Database) {
+	_, err := nodesapi.Create(ctx, db)
 
 	if err != nil {
 		ctx.ServerError("Failed creating node", err)

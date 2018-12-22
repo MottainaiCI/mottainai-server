@@ -28,11 +28,10 @@ import (
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func Remove(rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) {
-	_, err := nodesapi.Remove(rmqc, ctx, db)
+func Remove(ctx *context.Context, db *database.Database) {
+	_, err := nodesapi.Remove(ctx, db)
 
 	if err != nil {
 		ctx.ServerError("Failed removing node", err)

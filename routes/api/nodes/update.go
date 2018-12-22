@@ -29,8 +29,6 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
 type NodeUpdate struct {
@@ -39,7 +37,7 @@ type NodeUpdate struct {
 	Hostname string `json:"hostname" form:"hostname"`
 }
 
-func Register(nodedata NodeUpdate, rmqc *rabbithole.Client, ctx *context.Context, db *database.Database) string {
+func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) string {
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
 	hostname := nodedata.Hostname
