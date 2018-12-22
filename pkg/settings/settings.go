@@ -88,6 +88,8 @@ type BrokerConfig struct {
 
 	ResultsExpireIn int `mapstructure:"results_expire_in"`
 
+	HandleSignal bool `mapstructure:"handle_signal"`
+
 	/* Broker Settings */
 	Broker              string `mapstructure:"broker"`
 	BrokerDefaultQueue  string `mapstructure:"default_queue"`
@@ -223,6 +225,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("db.engine", "tiedot")
 	viper.SetDefault("db.db_path", "./.DB")
 
+	viper.SetDefault("broker.handle_signal", true)
 	viper.SetDefault("broker.type", "amqp")
 	viper.SetDefault("broker.results_expire_in", 3600)
 	viper.SetDefault("broker.broker", "amqp://guest@127.0.0.1:5672/")
@@ -439,6 +442,7 @@ db_path: %s
 func (c *BrokerConfig) String() string {
 	var ans string = fmt.Sprintf(`
 broker:
+  handle_signal: %v
   type: %s
   results_expire_in: %d
   broker: %s
@@ -465,7 +469,7 @@ broker:
 	task_states_table: %s
 	group_metas_table: %s
 `,
-		c.Type, c.ResultsExpireIn, c.Broker,
+		c.HandleSignal, c.Type, c.ResultsExpireIn, c.Broker,
 		c.BrokerDefaultQueue, c.BrokerResultBackend,
 		c.BrokerURI, c.BrokerPass,
 		c.BrokerUser, c.BrokerExchange,

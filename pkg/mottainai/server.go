@@ -62,6 +62,7 @@ func NewMachineryServer(queue string, settings *setting.Config) (*machinery.Serv
 		DefaultQueue:    queue,
 		ResultBackend:   settings.GetBroker().BrokerResultBackend,
 		ResultsExpireIn: settings.GetBroker().ResultsExpireIn,
+		NoUnixSignals:   !settings.GetBroker().HandleSignal,
 	}
 	switch broker := settings.GetBroker().Type; broker {
 	case "amqp":
