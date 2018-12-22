@@ -36,7 +36,7 @@ import (
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 )
 
-func (m *MottainaiAgent) HealthCheckSetup() {
+func (m *MottainaiAgent) HealthCheckSetup(force bool) {
 	//ID := utils.GenID()
 	//hostname := utils.Hostname()
 	//log.INFO.Println("Worker ID: " + ID)
@@ -51,7 +51,7 @@ func (m *MottainaiAgent) HealthCheckSetup() {
 		//fetcher.RegisterNode(ID, hostname)
 		m.Map(fetcher)
 
-		m.TimerSeconds(int64(800), true, func() { m.HealthClean() })
+		m.TimerSeconds(int64(800), true, func() { m.HealthClean(force) })
 	})
 }
 
@@ -78,13 +78,13 @@ func (m *MottainaiAgent) AgentIsBusy() bool {
 	return busy
 }
 
-func (m *MottainaiAgent) HealthCheckRun() {
-	m.HealthCheckSetup()
+func (m *MottainaiAgent) HealthCheckRun(force bool) {
+	m.HealthCheckSetup(force)
 	m.Anagent.Start()
 }
 
-func (m *MottainaiAgent) HealthClean() {
-	m.CleanBuildDir()
+func (m *MottainaiAgent) HealthClean(force bool) {
+	m.CleanBuildDir(force)
 
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 
@@ -151,7 +151,7 @@ func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
 	return busy
 }
 
-func (m *MottainaiAgent) CleanBuildDir() {
+func (m *MottainaiAgent) CleanBuildDir(force bool) {
 	m.Invoke(func(config *setting.Config) {
 		log.INFO.Println("Cleaning " + config.GetAgent().BuildPath)
 
@@ -168,7 +168,7 @@ func (m *MottainaiAgent) CleanBuildDir() {
 
 		for _, what := range stuff {
 			log.INFO.Println("Found: " + what)
-			if !m.IsAgentBusyWith(what) {
+			if force || !m.IsAgentBusyWith(what) {
 				log.INFO.Println("Removing: " + what)
 				os.RemoveAll(path.Join(config.GetAgent().BuildPath, what))
 			} else {
