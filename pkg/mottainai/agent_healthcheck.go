@@ -55,25 +55,39 @@ func (m *MottainaiAgent) HealthCheckSetup() {
 	})
 }
 
-func (m *MottainaiAgent) HealthClean() {
-	m.CleanBuildDir()
-
+func (m *MottainaiAgent) AgentIsBusy() bool {
+	var busy bool = false
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
-
 		var tlist []agenttasks.Task
 
 		url := config.GetWeb().BuildURI("/api/nodes/tasks/" + config.GetAgent().AgentKey)
 		err := c.GetJSONOptions(url, map[string]string{}, &tlist)
 		if err != nil {
 			log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
-			return
+			busy = true
 		}
 		for _, t := range tlist {
 			if t.IsRunning() {
 				log.INFO.Println("> Task running on the host, skipping deep host cleanup")
-				return
+				busy = true
 			}
 		}
+
+	})
+
+	return busy
+}
+
+func (m *MottainaiAgent) HealthCheckRun() {
+	m.HealthCheckSetup()
+	m.Anagent.Start()
+}
+
+func (m *MottainaiAgent) HealthClean() {
+	m.CleanBuildDir()
+
+	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
+
 		var wg sync.WaitGroup
 
 		wg.Add(2)
@@ -106,7 +120,6 @@ func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 }
 
 func (m *MottainaiAgent) CleanHealthCheckExec() {
-
 	m.Invoke(func(config *setting.Config) {
 		for _, k := range config.GetAgent().HealthCheckExec {
 			log.INFO.Println("> Executing: " + k)
@@ -121,8 +134,25 @@ func (m *MottainaiAgent) CleanHealthCheckExec() {
 	})
 }
 
-func (m *MottainaiAgent) CleanBuildDir() {
+func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
+	var busy bool = true
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
+		c.Doc(id)
+		th := agenttasks.DefaultTaskHandler(config)
+		task_info := th.FetchTask(c)
+		if th.Err != nil {
+			log.INFO.Println("Error fetching task: " + th.Err.Error())
+			return
+		}
+		if task_info.IsDone() || task_info.ID == "" {
+			busy = false
+		}
+	})
+	return busy
+}
+
+func (m *MottainaiAgent) CleanBuildDir() {
+	m.Invoke(func(config *setting.Config) {
 		log.INFO.Println("Cleaning " + config.GetAgent().BuildPath)
 
 		stuff, err := utils.ListAll(config.GetAgent().BuildPath)
@@ -137,16 +167,8 @@ func (m *MottainaiAgent) CleanBuildDir() {
 		}()
 
 		for _, what := range stuff {
-			c.Doc(what)
-			th := agenttasks.DefaultTaskHandler(config)
-			task_info := th.FetchTask(c)
-			if th.Err != nil {
-				log.INFO.Println("Error fetching task: " + th.Err.Error())
-				continue
-			}
 			log.INFO.Println("Found: " + what)
-			log.INFO.Println(task_info)
-			if task_info.IsDone() || task_info.ID == "" {
+			if !m.IsAgentBusyWith(what) {
 				log.INFO.Println("Removing: " + what)
 				os.RemoveAll(path.Join(config.GetAgent().BuildPath, what))
 			} else {

@@ -47,12 +47,6 @@ func NewAgent() *MottainaiAgent {
 	return &MottainaiAgent{Anagent: anagent.New()}
 }
 
-func (m *MottainaiAgent) HealthCheckRun() {
-	m.HealthCheckSetup()
-
-	m.Anagent.Start()
-}
-
 const MAXTIMER = 720
 const MINTIMER = 50
 const R = 3.81199961
