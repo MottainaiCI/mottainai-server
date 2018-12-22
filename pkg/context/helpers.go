@@ -58,7 +58,19 @@ func (c *Context) CheckPipelinePermissions(pip *task.Pipeline) bool {
 	return false
 }
 
+func (c *Context) CheckUser() bool {
+	if c.User != nil {
+		return true
+	}
+	c.NoPermission()
+	return false
+}
+
 func (c *Context) CheckTaskPermissions(task *task.Task) bool {
+	if !c.CheckUser() {
+		return false
+	}
+
 	if c.User.IsManagerOrAdmin() {
 		return true
 	}
