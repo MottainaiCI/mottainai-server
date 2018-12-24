@@ -37,20 +37,12 @@ import (
 )
 
 func (m *MottainaiAgent) HealthCheckSetup(force bool) {
-	//ID := utils.GenID()
-	//hostname := utils.Hostname()
-	//log.INFO.Println("Worker ID: " + ID)
-	//log.INFO.Println("Worker Hostname: " + hostname)
-
 	m.Invoke(func(config *setting.Config) {
 		th := agenttasks.DefaultTaskHandler(config)
 		m.Map(th)
 		fetcher := client.NewClient(config.GetWeb().AppURL, config)
 		fetcher.Token = config.GetAgent().ApiKey
-
-		//fetcher.RegisterNode(ID, hostname)
 		m.Map(fetcher)
-
 		m.TimerSeconds(int64(800), true, func() { m.HealthClean(force) })
 	})
 }

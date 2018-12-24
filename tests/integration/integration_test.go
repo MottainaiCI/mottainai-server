@@ -32,9 +32,9 @@ import (
 	token "github.com/MottainaiCI/mottainai-server/pkg/token"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	node "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	helpers "github.com/MottainaiCI/mottainai-server/tests/helpers"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -58,12 +58,11 @@ func init() {
 func TestUpload(t *testing.T) {
 	//t.Parallel()
 	binding.MaxMemory = int64(1024 * 1024 * 1)
-	config.GetDatabase().DBPath = "./DB"
 
 	defer os.RemoveAll(config.GetDatabase().DBPath)
 	defer os.RemoveAll(config.GetStorage().ArtefactPath)
-
-	db := database.NewDatabase("tiedot", config)
+	db := helpers.InitDB(config)
+	defer helpers.CleanDB()
 
 	u := &user.User{}
 	u.Name = "test"
@@ -121,7 +120,9 @@ func TestUpload(t *testing.T) {
 
 	fetcher := client.NewTokenClient(config.GetWeb().AppURL, tok.Key, config)
 	fetcher.Doc(tid)
-	testFile := "integration_test.go"
+	helpers.CreateFile(20000, "test_upload")
+	testFile := "test_upload"
+	defer os.RemoveAll(testFile)
 
 	config.GetAgent().AgentKey = node.Key
 	fetcher.RegisterNode("foo", "bar")
