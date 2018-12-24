@@ -114,8 +114,8 @@ func TestNewFetcher(t *testing.T) {
 		args args
 		want *Fetcher
 	}{
-		{"Create", args{"20"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "20", Config: config}},
-		{"Create2", args{"String"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "String", Config: config}},
+		{"Create", args{"20"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "20", Config: config, ChunkSize: 512}},
+		{"Create2", args{"String"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "String", Config: config, ChunkSize: 512}},
 	}
 
 	for _, tt := range tests {
@@ -143,7 +143,7 @@ func TestNewBasicClient(t *testing.T) {
 		name string
 		want *Fetcher
 	}{
-		{"Basic", &Fetcher{Config: config}},
+		{"Basic", &Fetcher{Config: config, ChunkSize: 512}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -283,7 +283,7 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	}
 
 	url := f.Config.GetWeb().BuildURI("/api/tasks/artefact/upload")
-	if err := f.UploadLargeFile(url, opts, "file", fullpath, 1024); err != nil {
+	if err := f.UploadLargeFile(url, opts, "file", fullpath, f.ChunkSize); err != nil {
 		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
 		return err
 	}
@@ -301,7 +301,7 @@ func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) 
 	}
 
 	url := f.Config.GetWeb().BuildURI("/api/namespace/upload")
-	if err := f.UploadLargeFile(url, opts, "file", fullpath, 1024); err != nil {
+	if err := f.UploadLargeFile(url, opts, "file", fullpath, f.ChunkSize); err != nil {
 		return err
 	}
 	return nil

@@ -61,6 +61,7 @@ type HttpClient interface {
 	SetTaskField(string, string) ([]byte, error)
 	RegisterNode(string, string) ([]byte, error)
 	Doc(string)
+	SetUploadChunkSize(int)
 	SetupTask()
 	FinishTask()
 	ErrorTask()
@@ -70,8 +71,9 @@ type HttpClient interface {
 }
 
 type Fetcher struct {
-	BaseURL string
-	docID   string
+	ChunkSize int
+	BaseURL   string
+	docID     string
 	// TODO: this could be handled directly from Config
 	Token string
 	// TODO: this could be handled directly from Config
@@ -103,7 +105,7 @@ func NewFetcher(docID string, config *setting.Config) *Fetcher {
 
 func NewBasicClient(config *setting.Config) *Fetcher {
 	// Basic constructor
-	f := &Fetcher{Config: config}
+	f := &Fetcher{Config: config, ChunkSize: 512}
 	if len(config.TLSCert) > 0 {
 		f.TrustedCert = config.TLSCert
 	}
@@ -155,6 +157,10 @@ func (f *Fetcher) newHttpClient() *http.Client {
 		c.Jar = *f.Jar
 	}
 	return c
+}
+
+func (f *Fetcher) SetUploadChunkSize(s int) {
+	f.ChunkSize = s
 }
 
 func (f *Fetcher) setAuthHeader(r *http.Request) *http.Request {

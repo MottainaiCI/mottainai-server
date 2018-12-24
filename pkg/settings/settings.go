@@ -127,6 +127,7 @@ type AgentConfig struct {
 	DownloadRateLimit int64          `mapstructure:"download_speed_limit"`
 	UploadRateLimit   int64          `mapstructure:"upload_speed_limit"`
 	Queues            map[string]int `mapstructure:"queues"`
+	UploadChunkSize   int            `mapstructure:"upload_chunk_size"`
 
 	DockerEndpoint    string   `mapstructure:"docker_endpoint"`
 	DockerKeepImg     bool     `mapstructure:"docker_keepimg"`
@@ -247,6 +248,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.standalone", false)
 	viper.SetDefault("agent.upload_speed_limit", 0)
 	viper.SetDefault("agent.download_speed_limit", 0)
+	viper.SetDefault("agent.upload_chunk_size", 512)
 
 	viper.SetDefault("agent.queues", map[string]int{})
 	viper.SetDefault("agent.cache_registry", map[string]int{})
@@ -494,6 +496,7 @@ agent:
   download_speed_limit: %d
   upload_speed_limit: %d
   queues: %v
+	upload_chunk_size: %d
 
   docker_endpoint: %s
   docker_keepimg: %t
@@ -516,7 +519,7 @@ agent:
 `, c.SecretKey, c.BuildPath,
 		c.AgentConcurrency, c.AgentKey, c.ApiKey,
 		c.PrivateQueue, c.StandAlone, c.DownloadRateLimit,
-		c.UploadRateLimit, c.Queues,
+		c.UploadRateLimit, c.Queues, c.UploadChunkSize,
 		c.DockerEndpoint, c.DockerKeepImg,
 		c.DockerPriviledged, c.DockerInDocker,
 		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop,

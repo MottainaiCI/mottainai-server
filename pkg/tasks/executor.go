@@ -185,6 +185,7 @@ func (d *TaskExecutor) Report(v ...interface{}) {
 func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.DocID = docID
 	fetcher := d.MottainaiClient
+	d.MottainaiClient.SetUploadChunkSize(d.Config.GetAgent().UploadChunkSize)
 	fetcher.Doc(docID)
 	ID := utils.GenID()
 	hostname := utils.Hostname()
