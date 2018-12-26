@@ -23,10 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"os"
 	"testing"
 
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
-	helpers "github.com/MottainaiCI/mottainai-server/tests/helpers"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
@@ -42,8 +42,8 @@ func TestInsertOrganization(t *testing.T) {
 	config.Viper.SetTypeByDefaultValue(true)
 	config.Unmarshal()
 
-	db := helpers.InitDB(config)
-	defer helpers.CleanDB()
+	config.GetDatabase().DBPath = "./DB"
+	defer os.RemoveAll(config.GetDatabase().DBPath)
 
 	db := New(config.GetDatabase().DBPath)
 	db.GetAgent().Map(config)
