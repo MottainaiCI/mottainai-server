@@ -120,7 +120,7 @@ func TestUpload(t *testing.T) {
 
 	fetcher := client.NewTokenClient(config.GetWeb().AppURL, tok.Key, config)
 	fetcher.Doc(tid)
-	helpers.CreateFile(20000, "test_upload")
+	helpers.CreateFile(1000, "test_upload")
 	testFile := "test_upload"
 	defer os.RemoveAll(testFile)
 
