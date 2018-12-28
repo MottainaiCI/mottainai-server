@@ -62,6 +62,18 @@ type TaskExecutor struct {
 	Config          *setting.Config
 }
 
+func (d *TaskExecutor) HandleTaskStop(timedout bool) (int, error) {
+	if timedout {
+		d.Report("!! Task timeout!")
+	}
+	d.Report(ABORT_EXECUTION_ERROR)
+	d.MottainaiClient.AbortTask()
+	if timedout {
+		return 1, errors.New(ABORT_EXECUTION_ERROR)
+	}
+	return 0, errors.New(ABORT_EXECUTION_ERROR)
+}
+
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	var err error
 	fetcher := d.MottainaiClient

@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"errors"
 	"os"
 	"strings"
 	"time"
@@ -48,6 +47,7 @@ func NewVagrantExecutor(config *setting.Config) *VagrantExecutor {
 			Config:  config,
 		}}
 }
+
 func (e *VagrantExecutor) Clean() error {
 	e.Prune()
 	return e.TaskExecutor.Clean()
@@ -285,13 +285,7 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		task_info = th.FetchTask(fetcher)
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
-			if timedout {
-				d.Report("Task timeout!")
-			}
-			d.Report(ABORT_EXECUTION_ERROR)
-			d.Prune()
-			fetcher.AbortTask()
-			return 0, errors.New(ABORT_EXECUTION_ERROR)
+			return d.HandleTaskStop(timedout)
 		}
 		d.Report(line.Line)
 		if line.Error != nil {
@@ -313,15 +307,8 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		task_info = th.FetchTask(fetcher)
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
-			if timedout {
-				d.Report("!! Task timeout!")
-			}
-			d.Report(ABORT_EXECUTION_ERROR)
-			d.Prune()
-			fetcher.AbortTask()
-			return 0, errors.New(ABORT_EXECUTION_ERROR)
+			return d.HandleTaskStop(timedout)
 		}
-
 		d.Report(out)
 		if res.Error != nil {
 			err = d.UploadArtefacts(d.Context.ArtefactDir)
