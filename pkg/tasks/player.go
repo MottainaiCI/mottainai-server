@@ -69,12 +69,12 @@ func (p *Player) Start(e Executor) (int, error) {
 
 	res, err := e.Play(p.TaskID)
 	if err != nil {
-		if err.Error() == ABORT_EXECUTION_ERROR {
-			return 0, nil
-		}
+		//if err.Error() == ABORT_EXECUTION_ERROR {
+		//		return 0, nil
+		//	}
 		errmsg := "Play phase error (Exit with: " + strconv.Itoa(res) + ") : " + err.Error()
 		e.Fail(errmsg)
-		return 1, errors.New(errmsg)
+		return res, errors.New(errmsg)
 	} else {
 		e.Success(res)
 	}
