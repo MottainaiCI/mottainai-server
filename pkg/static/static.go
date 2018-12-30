@@ -23,13 +23,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package static
 
 import (
-	"log"
 	"net/http"
 	"path"
 	"path/filepath"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	logrus "github.com/sirupsen/logrus"
 
 	"strings"
 	"sync"
@@ -88,7 +89,7 @@ func Static(directory string, accessControlAllowOrigin string, config *setting.C
 	staticOpt ...macaron.StaticOptions) macaron.Handler {
 	opt := prepareStaticOptions(directory, config, staticOpt)
 
-	return func(ctx *context.Context, log *log.Logger, config *setting.Config) {
+	return func(ctx *context.Context, log *logging.Logger, config *setting.Config) {
 		staticHandler(ctx, log, config, opt, func(ctx *context.Context) bool { return true }, accessControlAllowOrigin)
 	}
 }
@@ -97,7 +98,7 @@ func AuthStatic(fn func(*context.Context) bool, directory string, accessControlA
 	config *setting.Config, staticOpt ...macaron.StaticOptions) macaron.Handler {
 	opt := prepareStaticOptions(directory, config, staticOpt)
 
-	return func(ctx *context.Context, log *log.Logger, config *setting.Config) {
+	return func(ctx *context.Context, log *logging.Logger, config *setting.Config) {
 		staticHandler(ctx, log, config, opt, fn, accessControlAllowOrigin)
 	}
 }
@@ -132,7 +133,7 @@ func (fs staticFileSystem) Open(name string) (http.File, error) {
 	return fs.dir.Open(name)
 }
 
-func staticHandler(ctx *context.Context, log *log.Logger,
+func staticHandler(ctx *context.Context, log *logging.Logger,
 	config *setting.Config, opt macaron.StaticOptions,
 	fn func(*context.Context) bool, accessControlAllowOrigin string) bool {
 
@@ -206,7 +207,10 @@ func staticHandler(ctx *context.Context, log *log.Logger,
 	}
 
 	if !opt.SkipLogging {
-		log.Println("[Static] Serving " + file)
+		log.WithFields(logrus.Fields{
+			"component": "web",
+			"path":      file,
+		}).Info("Serving static")
 	}
 	if len(accessControlAllowOrigin) > 0 {
 		// Set CORS headers for browser-based git clients

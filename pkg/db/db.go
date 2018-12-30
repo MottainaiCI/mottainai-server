@@ -23,8 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
-	"fmt"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
@@ -230,7 +228,6 @@ func NewDatabase(backend string, config *setting.Config) *Database {
 		DBInstance = &Database{Backend: backend, Config: config}
 	}
 	if backend == "tiedot" {
-		fmt.Println("Tiedot backend")
 		DBInstance.Driver = tiedot.New(config.GetDatabase().DBPath)
 	}
 

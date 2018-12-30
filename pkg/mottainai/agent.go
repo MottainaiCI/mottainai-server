@@ -29,6 +29,9 @@ import (
 	"time"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	logrus "github.com/sirupsen/logrus"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
 
@@ -94,6 +97,14 @@ func (m *MottainaiAgent) Run() error {
 	server := NewServer()
 
 	m.Invoke(func(config *setting.Config) {
+
+		logger := logging.New()
+		logger.SetupWithConfig(true, config)
+		logger.WithFields(logrus.Fields{
+			"component": "agent",
+		}).Info("Starting")
+		log.Set(logger)
+		m.Map(logger)
 
 		broker := server.Add(config.GetBroker().BrokerDefaultQueue, config)
 		th := agenttasks.DefaultTaskHandler(config)

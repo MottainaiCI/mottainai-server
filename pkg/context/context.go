@@ -30,6 +30,9 @@ import (
 	"net/http"
 	"time"
 
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	logrus "github.com/sirupsen/logrus"
+
 	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
@@ -124,7 +127,12 @@ func (c *Context) Handle(status int, title string, err error) {
 		c.Data["Title"] = "Page Not Found"
 	case http.StatusInternalServerError:
 		c.Data["Title"] = "Internal Server Error"
-		fmt.Println(3, "%s: %v", title, err)
+		c.Invoke(func(logger *logging.Logger) {
+			logger.WithFields(logrus.Fields{
+				"component": "core",
+				"error":     err,
+			}).Error("Error on ", title)
+		})
 		if c.IsLogged && c.User.IsAdmin() {
 			c.Data["ErrorMsg"] = err
 		}

@@ -24,7 +24,6 @@ package tasksapi
 
 import (
 	"errors"
-	"fmt"
 
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
@@ -45,8 +44,6 @@ func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *c
 
 func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
-	fmt.Println("Starting task ", id)
-
 	mytask, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		return err

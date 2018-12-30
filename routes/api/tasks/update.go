@@ -24,8 +24,10 @@ package tasksapi
 
 import (
 	"errors"
-	"fmt"
 	"time"
+
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	logrus "github.com/sirupsen/logrus"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -100,18 +102,19 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 	return nil
 }
 
-func AppendToTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
-
+func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
 	if len(f.Output) > 0 {
-
 		mytask, err := db.Driver.GetTask(db.Config, f.Id)
 		if err != nil {
 			return ":("
 		}
 		err = mytask.AppendBuildLog(f.Output, db.Config.GetStorage().ArtefactPath, db.Config.GetWeb().LockPath)
 		if err != nil {
-			fmt.Println("Can't write to buildlog: ", err.Error())
-			return "Error: " + err.Error()
+			logger.WithFields(logrus.Fields{
+				"component": "api",
+				"error":     err.Error(),
+			}).Error("Can't write to buildlog")
+			return "Can't write to buildlog, Error: " + err.Error()
 		}
 	}
 	return "OK"

@@ -28,9 +28,9 @@ import (
 	"os"
 	"path"
 
-	log "log"
-
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	template "github.com/MottainaiCI/mottainai-server/pkg/template"
+	logrus "github.com/sirupsen/logrus"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -60,12 +60,19 @@ func New() *Mottainai {
 func Classic(config *setting.Config) *Mottainai {
 	cl := macaron.New()
 	m := &Mottainai{Macaron: cl}
+	logger := logging.New()
+	logger.SetupWithConfig(true, config)
+	logger.WithFields(logrus.Fields{
+		"component": "core",
+	}).Info("Starting")
+
+	m.Map(logger)
 	m.Map(config)
 	cl.Map(config)
 	database.NewDatabase("tiedot", config)
 
 	m.Map(database.DBInstance)
-	m.Use(macaron.Logger())
+	m.Use(logging.MacaronLogger())
 	m.Use(macaron.Recovery())
 
 	// TODO: This down deserve config section. Note for _csrf is duplicated in auth
@@ -146,9 +153,6 @@ func Classic(config *setting.Config) *Mottainai {
 	}
 	template.Setup(m.Macaron)
 
-	m.Invoke(func(l *log.Logger) {
-		l.SetPrefix("[ Mottainai ] ")
-	})
 	m.Use(captcha.Captchaer(captcha.Options{
 		SubURL: config.GetWeb().AppSubURL,
 	}))
@@ -224,7 +228,7 @@ func (m *Mottainai) Start() error {
 
 	server := NewServer()
 
-	m.Invoke(func(config *setting.Config) {
+	m.Invoke(func(config *setting.Config, l *logging.Logger) {
 		server.Add(config.GetBroker().BrokerDefaultQueue, config)
 		if config.GetBroker().Type == "amqp" {
 			rmqc, r_error := rabbithole.NewClient(
@@ -238,7 +242,10 @@ func (m *Mottainai) Start() error {
 		}
 
 		th := agenttasks.DefaultTaskHandler(config)
-		fmt.Println("DB  with " + config.GetDatabase().DBPath)
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"path":      config.GetDatabase().DBPath,
+		}).Info("Database Configuration")
 
 		c := cron.New()
 
@@ -254,7 +261,10 @@ func (m *Mottainai) Start() error {
 			SetupWebHookAgent(m)
 		}
 
-		log.Println("Listen: ", m.url())
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"url":       m.url(),
+		}).Info("WebUI listening")
 
 		//m.Run()
 		var err error
@@ -265,7 +275,10 @@ func (m *Mottainai) Start() error {
 		}
 
 		if err != nil {
-			log.Fatal(4, "Fail to start server: %v", err)
+			l.WithFields(logrus.Fields{
+				"component": "web",
+				"error":     err,
+			}).Fatal("Failed to start server")
 		}
 		c.Stop()
 	})
@@ -288,7 +301,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	result := true
 	var rerr error
 	m.Invoke(func(d *database.Database, server *MottainaiServer,
-		th *agenttasks.TaskHandler, config *setting.Config) {
+		th *agenttasks.TaskHandler, config *setting.Config, l *logging.Logger) {
 		pip, err := d.Driver.GetPipeline(config, docID)
 		if err != nil {
 			rerr = err
@@ -298,11 +311,18 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		var broker *Broker
 		if len(pip.Queue) > 0 {
 			broker = server.Get(pip.Queue, config)
-			log.Println("Sending pipeline to queue ", pip.Queue)
-
+			l.WithFields(logrus.Fields{
+				"component":   "core",
+				"queue":       pip.Queue,
+				"pipeline_id": docID,
+			}).Info("Sending pipeline")
 		} else {
 			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
-			log.Println("Sending pipeline to queue ", config.GetBroker().BrokerDefaultQueue)
+			l.WithFields(logrus.Fields{
+				"component":   "core",
+				"queue":       config.GetBroker().BrokerDefaultQueue,
+				"pipeline_id": docID,
+			}).Info("Sending pipeline")
 		}
 
 		if len(pip.Chord) > 0 {
@@ -314,12 +334,18 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			for _, m := range pip.Chord {
 				cc[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
-			log.Println("Sending chord ")
-
+			l.WithFields(logrus.Fields{
+				"component":   "core",
+				"pipeline_id": docID,
+			}).Info("Sending Chord")
 			_, err := broker.SendChord(&BrokerSendOptions{Retry: pip.Trials(), ChordGroup: cc, Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
-				fmt.Printf("Could not send task: %s", err.Error())
+				l.WithFields(logrus.Fields{
+					"component":   "core",
+					"pipeline_id": docID,
+					"error":       err.Error(),
+				}).Error("Could not send pipeline")
 				for _, t := range pip.Tasks {
 					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
@@ -340,12 +366,18 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			for _, m := range pip.Group {
 				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
-			log.Println("Sending group ")
-
+			l.WithFields(logrus.Fields{
+				"component":   "core",
+				"pipeline_id": docID,
+			}).Info("Sending Group")
 			_, err := broker.SendGroup(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
-				fmt.Printf("Could not send group: %s", err.Error())
+				l.WithFields(logrus.Fields{
+					"component":   "core",
+					"pipeline_id": docID,
+					"error":       err.Error(),
+				}).Error("Error sending group")
 				for _, t := range pip.Tasks {
 					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
@@ -365,13 +397,18 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			for _, m := range pip.Chain {
 				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
 			}
-			log.Println("Sending chain ")
-
+			l.WithFields(logrus.Fields{
+				"component":   "core",
+				"pipeline_id": docID,
+			}).Info("Sending Chain")
 			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
-				log.Println("Could not send task: ", err.Error())
-
+				l.WithFields(logrus.Fields{
+					"component":   "core",
+					"pipeline_id": docID,
+					"error":       err.Error(),
+				}).Error("Sending Chain")
 				for _, t := range pip.Tasks {
 					d.Driver.UpdateTask(t.ID, map[string]interface{}{
 						"result": "error",
@@ -386,6 +423,11 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			return
 		}
 
+		l.WithFields(logrus.Fields{
+			"component":   "core",
+			"pipeline_id": docID,
+		}).Info("Pipeline sent")
+
 	})
 
 	return result, rerr
@@ -394,7 +436,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := true
 	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, th *agenttasks.TaskHandler, config *setting.Config) {
+	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
 
 		task, err := d.Driver.GetTask(config, docID)
 		if err != nil {
@@ -405,27 +447,45 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 		var broker *Broker
 		if len(task.Queue) > 0 {
 			broker = server.Get(task.Queue, config)
-			log.Println("Sending task to queue ", task.Queue)
-
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"queue":     task.Queue,
+			}).Info("Sending task")
 		} else {
 			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
-			log.Println("Sending task to queue ", config.GetBroker().BrokerDefaultQueue)
-
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"queue":     config.GetBroker().BrokerDefaultQueue,
+			}).Info("Sending task")
 		}
 
 		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
-		fmt.Printf("Task Source: %v, Script: %v, Directory: %v, Type: %v", task.Source, task.Script, task.Directory, task.Type)
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"task_id":   docID,
+			"type":      task.Type,
+		}).Debug("Task")
 
 		if !th.Exists(task.Type) {
-			fmt.Printf("Could not send task: Invalid task type")
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"error":     "Could not send task: Invalid task type",
+			}).Error("Invalid task type")
 			result = false
 			return
 		}
 
 		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
 		if err != nil {
-			fmt.Printf("Could not send task: %s", err.Error())
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"error":     err.Error(),
+			}).Error("Error while sending task")
 			d.Driver.UpdateTask(docID, map[string]interface{}{
 				"result": "error",
 				"status": "done",
@@ -435,15 +495,24 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			result = false
 			return
 		}
+
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"task_id":   docID,
+		}).Info("Task sent")
+
 	})
 	return result, err
 }
 
 func (m *Mottainai) LoadPlans() {
-	m.Invoke(func(c *cron.Cron, d *database.Database, config *setting.Config) {
+	m.Invoke(func(c *cron.Cron, d *database.Database, l *logging.Logger, config *setting.Config) {
 
 		for _, plan := range d.Driver.AllPlans(config) {
-			fmt.Println("Loading plan: ", plan.Task, plan)
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"plan_id":   plan.ID,
+			}).Debug("Loading plan")
 			id := plan.ID
 			c.AddFunc(plan.Planned, func() {
 				plan, _ := d.Driver.GetPlan(config, id)

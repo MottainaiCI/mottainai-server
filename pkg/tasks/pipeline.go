@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strconv"
 	"time"
@@ -111,7 +110,7 @@ func (t *Pipeline) ToMap(serialize bool) map[string]interface{} {
 		tag := typeField.Tag
 
 		// XXX: Otherwise gob is confused
-		fmt.Println(valueField.Type(), reflect.ValueOf(t.Tasks).Kind())
+		//fmt.Println(valueField.Type(), reflect.ValueOf(t.Tasks).Kind())
 		if valueField.Kind() == reflect.ValueOf(t.Tasks).Kind() && serialize {
 			m := make(map[string]interface{})
 			elem, _ := valueField.Interface().(map[string]Task)

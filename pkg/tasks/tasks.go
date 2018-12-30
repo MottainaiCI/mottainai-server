@@ -24,7 +24,6 @@ package agenttasks
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ghodss/yaml"
 
@@ -413,7 +412,6 @@ func (t *Task) IsPublishAppendMode() bool {
 }
 
 func (t *Task) HandleStatus(namespacePath string, artefactPath string) {
-	fmt.Println("Handlestatus called")
 	if t.Status == setting.TASK_STATE_DONE {
 		if t.ExitStatus == "0" {
 			t.OnSuccess(namespacePath, artefactPath)
@@ -437,17 +435,12 @@ func (t *Task) Artefacts(artefactPath string) []string {
 }
 
 func (t *Task) Done() {
-	fmt.Println("Build done")
 }
 
 func (t *Task) OnFailure() {
-	fmt.Println("Build failed")
-
 }
 
 func (t *Task) OnSuccess(namespacePath string, artefactPath string) {
-	fmt.Println("Build succeeded")
-
 	if len(t.TagNamespace) > 0 {
 		ns := namespace.NewFromMap(map[string]interface{}{"name": t.TagNamespace, "path": t.TagNamespace})
 		if t.IsPublishAppendMode() {

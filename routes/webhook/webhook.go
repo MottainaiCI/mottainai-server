@@ -25,13 +25,15 @@ package webhook
 import (
 	stdctx "context"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"strings"
 
 	anagent "github.com/mudler/anagent"
 
+	logrus "github.com/sirupsen/logrus"
+
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 	mhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
@@ -75,13 +77,18 @@ type GitContext struct {
 func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}, w *mhook.WebHook) error {
 
 	var appName string
-	m.Invoke(func(config *setting.Config) {
+	var logger *logging.Logger
+	m.Invoke(func(config *setting.Config, l *logging.Logger) {
 		appName = config.GetWeb().AppName
+		logger = l
 	})
 
 	gitc, err := prepareTemp(u, kind, client, db, m, payload)
 	if err != nil {
-		fmt.Println(err)
+		logger.WithFields(logrus.Fields{
+			"component": "webhook_global_watcher",
+			"error":     err.Error(),
+		}).Error("Error while preparing temp directory")
 		strerr := err.Error()
 		client.Repositories.CreateStatus(stdctx.Background(), gitc.Owner, gitc.Repo, gitc.Ref, &ggithub.RepoStatus{State: &failure, Description: &strerr, Context: &appName})
 		return err
@@ -172,6 +179,11 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 
 func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}, w *mhook.WebHook) error {
 
+	var logger *logging.Logger
+	m.Invoke(func(l *logging.Logger) {
+		logger = l
+	})
+
 	gitc, err := prepareTemp(u, kind, client, db, m, payload)
 	if err != nil {
 		return err
@@ -249,10 +261,18 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 		url = config.GetWeb().BuildURI("/tasks/display/" + docID)
 		appName = config.GetWeb().AppName
 	})
-	fmt.Println("Sending pipeline", docID)
+	logger.WithFields(logrus.Fields{
+		"component":   "webhook_global_watcher",
+		"pipeline_id": docID,
+	}).Debug("Sending pipeline")
+
 	_, err = m.ProcessPipeline(docID)
 	if err != nil {
-		fmt.Println(err)
+		logger.WithFields(logrus.Fields{
+			"component":   "webhook_global_watcher",
+			"pipeline_id": docID,
+			"error":       err.Error(),
+		}).Error("While sending")
 		return err
 	}
 
@@ -264,7 +284,10 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 	m.Invoke(func(a *anagent.Anagent) {
 		data := strings.Join([]string{kind, owner, repo, ref, "pipeline", docID}, ",")
 		a.Invoke(func(w map[string]string) {
-			fmt.Println("Add event to global watcher")
+			logger.WithFields(logrus.Fields{
+				"component": "webhook_global_watcher",
+				"event":     "add",
+			}).Debug("Add event to global watcher")
 			a.Lock()
 			defer a.Unlock()
 			w[pruid] = data

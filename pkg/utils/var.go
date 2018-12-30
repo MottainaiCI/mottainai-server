@@ -122,8 +122,6 @@ func GenID() string {
 
 	net, _ := ghw.Network()
 
-	fmt.Println(net.String())
-
 	for _, nic := range net.NICs {
 		io.WriteString(id, nic.Name)
 		io.WriteString(id, nic.MacAddress)

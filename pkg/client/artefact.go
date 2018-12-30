@@ -253,10 +253,8 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 		panic(err)
 	} else {
 		var bodyContent []byte
-		fmt.Println(strconv.Itoa(resp.StatusCode))
 		resp.Body.Read(bodyContent)
 		resp.Body.Close()
-		fmt.Println(string(bodyContent))
 	}
 	return nil
 }

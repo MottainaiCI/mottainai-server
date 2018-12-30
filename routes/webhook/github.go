@@ -25,7 +25,6 @@ package webhook
 import (
 	stdctx "context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -35,9 +34,10 @@ import (
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	mhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
 
-	anagent "github.com/mudler/anagent"
+	logrus "github.com/sirupsen/logrus"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	mottainai "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -51,34 +51,57 @@ import (
 
 // HandlePullRequest handles GitHub pull_request events
 func HandlePullRequest(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai, w *mhook.WebHook) {
-
-	fmt.Println("Handling Pull Request")
 	pl := payload.(github.PullRequestPayload)
-	if pl.Action == "closed" {
-		return
-	}
-	m.Invoke(func(mo *mottainai.Mottainai, client *ggithub.Client, db *database.Database) {
+
+	m.Invoke(func(mo *mottainai.Mottainai, l *logging.Logger, client *ggithub.Client, db *database.Database) {
+
+		l.WithFields(logrus.Fields{
+			"component": "webhook",
+			"event":     "github_pr",
+		}).Debug("Pull request received")
+
+		if pl.Action == "closed" {
+			return
+		}
+
 		if err := SendTask(u, "pull_request", client, db, mo, payload, w); err != nil {
-			fmt.Println("Failed sending task", err)
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_pr",
+				"error":     err.Error(),
+			}).Error("Failed sending task")
 		}
 		if err := SendPipeline(u, "pull_request", client, db, mo, payload, w); err != nil {
-			fmt.Println("Failed sending pipeline", err)
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_pr",
+				"error":     err.Error(),
+			}).Error("Failed sending pipeline")
 		}
 	})
 }
 
 // HandlePush handles GitHub push events
 func HandlePush(u *user.User, payload interface{}, header webhooks.Header, m *mottainai.Mottainai, w *mhook.WebHook) {
-
-	fmt.Println("Handling Push")
-
-	m.Invoke(func(client *ggithub.Client, db *database.Database) {
+	m.Invoke(func(client *ggithub.Client, l *logging.Logger, db *database.Database) {
+		l.WithFields(logrus.Fields{
+			"component": "webhook",
+			"event":     "github_push",
+		}).Debug("Push received")
 
 		if err := SendTask(u, "push", client, db, m, payload, w); err != nil {
-			fmt.Println("Failed sending task", err)
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_push",
+				"error":     err.Error(),
+			}).Error("Failed sending task")
 		}
 		if err := SendPipeline(u, "push", client, db, m, payload, w); err != nil {
-			fmt.Println("Failed sending task", err)
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_push",
+				"error":     err.Error(),
+			}).Error("Failed sending pipeline")
 		}
 	})
 }
@@ -124,7 +147,6 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 	// Check setting if we have to process this.
 	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_ENABLED)
 	if err == nil && uuu.IsDisabled() {
-		fmt.Println("Webhooks disabled from system settings")
 		return ctx, errors.New("Webhooks disabled")
 	}
 
@@ -194,14 +216,12 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_PR_ENABLED)
 	if err == nil && !uuu.IsDisabled() {
 		hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
-			fmt.Println("Received webhook for PR")
 			HandlePullRequest(u, payload, header, m, w)
 		}, github.PullRequestEvent)
 	}
 	//owner := u
 
 	hook.RegisterEvents(func(payload interface{}, header webhooks.Header) {
-		fmt.Println("Received webhook for push")
 		HandlePush(u, payload, header, m, w)
 	}, github.PushEvent)
 	return hook
@@ -209,25 +229,32 @@ func GenGitHubHook(db *database.Database, m *mottainai.Mottainai, w *mhook.WebHo
 
 func SetupGitHub(m *mottainai.Mottainai) {
 
-	m.Invoke(func(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config) {
-		GlobalWatcher(client, a, db, config)
-	})
-
 	// TODO: Generate tokens for  each user.
 	// Let user add repo in specific collection, and check against that
-	m.Post("/webhook/:uid/github", RequiresWebHookSetting, func(ctx *context.Context, db *database.Database, resp http.ResponseWriter, req *http.Request) {
+	m.Post("/webhook/:uid/github", RequiresWebHookSetting, func(l *logging.Logger, ctx *context.Context, db *database.Database, resp http.ResponseWriter, req *http.Request) {
 		uid := ctx.Params(":uid")
-		fmt.Println("Received payload for ", uid)
+		l.WithFields(logrus.Fields{
+			"component": "webhook",
+			"event":     "github_post",
+			"uid":       uid,
+		}).Debug("Received payload")
+
 		w, err := db.Driver.GetWebHook(uid)
 		if err != nil {
-			fmt.Println("No webhook found for ", uid)
-
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_post",
+				"uid":       uid,
+			}).Error("No webhook found")
 			return
 		}
 		u, err := db.Driver.GetUser(w.OwnerId)
 		if err != nil {
-			fmt.Println("No user found for ", uid)
-
+			l.WithFields(logrus.Fields{
+				"component": "webhook",
+				"event":     "github_post",
+				"uid":       uid,
+			}).Error("No user found")
 			return
 		}
 		hook := GenGitHubHook(db, m, &w, &u)
