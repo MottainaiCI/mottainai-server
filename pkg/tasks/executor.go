@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -114,7 +115,12 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 
 func (d *TaskExecutor) UploadArtefacts(folder string) error {
 	err := filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-		return d.MottainaiClient.UploadFile(path, folder)
+		e := d.MottainaiClient.UploadFile(path, folder)
+		if e != nil {
+			d.Report(fmt.Sprintf("Error on upload file %s: ", path) + e.Error())
+		}
+
+		return e
 	})
 
 	if err != nil {
