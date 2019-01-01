@@ -1080,6 +1080,11 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 			WriteCloser: f,
 			Tracker: &ioprogress.ProgressTracker{
 				Handler: func(bytesReceived int64, speed int64) {
+
+					l.Report(fmt.Sprintf("%s (%s/s)\n",
+						lxd_shared.GetByteSizeString(bytesReceived, 2),
+						lxd_shared.GetByteSizeString(speed, 2)))
+
 					progress.UpdateProgress(ioprogress.ProgressData{
 						Text: fmt.Sprintf("%s (%s/s)",
 							lxd_shared.GetByteSizeString(bytesReceived, 2),
@@ -1089,11 +1094,12 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 		}
 
 		_, err = io.Copy(writer, buf)
+		progress.Done("")
 		if err != nil {
-			progress.Done("")
+			l.Report(fmt.Sprintf("Error on pull file %s", target))
 			return err
 		}
-		progress.Done("")
+
 	} else if resp.Type == "symlink" {
 		linkTarget, err := ioutil.ReadAll(buf)
 		if err != nil {
