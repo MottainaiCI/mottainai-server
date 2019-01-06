@@ -160,7 +160,13 @@ func (m *MottainaiAgent) CleanBuildDir(force bool) {
 
 		for _, what := range stuff {
 			log.INFO.Println("Found: " + what)
+
 			if force || !m.IsAgentBusyWith(what) {
+				if what == "lxc" {
+					log.INFO.Println("Keeping: " + what)
+					continue
+				}
+
 				log.INFO.Println("Removing: " + what)
 				os.RemoveAll(path.Join(config.GetAgent().BuildPath, what))
 			} else {
