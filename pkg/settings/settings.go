@@ -104,7 +104,7 @@ type BrokerConfig struct {
 	// Redis
 	MaxIdle                int  `mapstructure:"max_idle"`
 	MaxActive              int  `mapstructure:"max_active"`
-	IdleTimeout            int  `mapstructure:"max_idle_timeout"`
+	IdleTimeout            int  `mapstructure:"idle_timeout"`
 	Wait                   bool `mapstructure:"wait"`
 	ReadTimeout            int  `mapstructure:"read_timeout"`
 	WriteTimeout           int  `mapstructure:"write_timeout"`
