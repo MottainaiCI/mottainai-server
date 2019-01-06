@@ -187,10 +187,10 @@ agent:
   # servercerts directory. We use as default path:
   # build_path + "lxc"
   # that could be verifies with this command:
-  # LXD_CONF=/build/lxc/ lxc remote list
+  # LXD_CONF=/srv/mottainai/lxc lxc remote list
   #
   # For use a different path for LXD configuration file
-  # set this param.
+  # set this param. Default is: /srv/mottainai/lxc
   # lxd_config_dir: ""
 
   # Maintains container on server after task is ended

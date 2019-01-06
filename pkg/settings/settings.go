@@ -262,7 +262,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_caps_drop", []string{})
 
 	viper.SetDefault("agent.lxd_endpoint", "")
-	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/build/lxc/")
+	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
 	viper.SetDefault("agent.lxd_ephemeral_containers", true)
 	viper.SetDefault("agent.lxd_profiles", []string{})
 	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
