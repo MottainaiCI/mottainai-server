@@ -201,6 +201,19 @@ func (d *TaskExecutor) Report(v ...interface{}) {
 }
 
 func (d *TaskExecutor) Setup(docID string) error {
+
+	// Handle Pre-execution task commands
+	for _, k := range d.Config.GetAgent().PreTaskHookExec {
+		d.Report("> Pre-Executing: " + k)
+		args := strings.Split(k, " ")
+		cmdName := args[0]
+		out, stderr, err := utils.Cmd(cmdName, args[1:])
+		if err != nil {
+			d.Report("!! Error: " + err.Error() + ": " + stderr)
+		}
+		d.Report(out)
+	}
+
 	d.Context.DocID = docID
 	fetcher := d.MottainaiClient
 	d.MottainaiClient.SetUploadChunkSize(d.Config.GetAgent().UploadChunkSize)
