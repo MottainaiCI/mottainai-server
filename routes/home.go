@@ -127,21 +127,21 @@ func Setup(m *macaron.Macaron) {
 				if config.GetWeb().AppBrandingFavicon != "" {
 					return writeImage(ctx.Resp, ctx.Req.Request, config.GetWeb().AppBrandingFavicon, "/images/favicon")
 				}
-				ctx.Redirect("/favicon.ico")
+				ctx.Redirect(config.GetWeb().BuildURI("/favicon.ico"))
 				return nil
 			})
 			m.Get("/images/logo", func(ctx *context.Context, db *database.Database) error {
 				if config.GetWeb().AppBrandingLogo != "" {
 					return writeImage(ctx.Resp, ctx.Req.Request, config.GetWeb().AppBrandingLogo, "/images/logo")
 				}
-				ctx.Redirect("/images/mottainai_logo.png")
+				ctx.Redirect(config.GetWeb().BuildURI("/images/mottainai_logo.png"))
 				return nil
 			})
 			m.Get("/images/logo_small", func(ctx *context.Context, db *database.Database) error {
 				if config.GetWeb().AppBrandingLogoSmall != "" {
 					return writeImage(ctx.Resp, ctx.Req.Request, config.GetWeb().AppBrandingLogoSmall, "/images/logo_small")
 				}
-				ctx.Redirect("/images/mottainai_logo_small.png")
+				ctx.Redirect(config.GetWeb().BuildURI("/images/mottainai_logo_small.png"))
 				return nil
 			})
 			m.Get("/", func(ctx *context.Context, db *database.Database) error {
