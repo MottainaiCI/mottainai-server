@@ -214,7 +214,8 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 
 	l.Report("Completed phase of artefacts download!")
 
-	containerName = "mottainai-" + task_info.Image + "-" + task_info.ID
+	containerName = "mottainai-" + strings.Replace(task_info.Image, "/", "_", 0) +
+		"-" + task_info.ID
 
 	err = l.LaunchContainer(containerName, imageFingerprint, cachedImage)
 	if err != nil {
