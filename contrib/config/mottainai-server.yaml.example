@@ -145,6 +145,10 @@ agent:
      - docker system prune --force --all --volumes
   # health_check_clean_path:
 
+  # Define a list of operations executed before any task.
+  # pre_task_hook_exec:
+  #   - script1
+
   # ----------------------------------
   # Docker executor options
   # ----------------------------------
