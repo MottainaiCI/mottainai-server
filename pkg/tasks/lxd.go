@@ -696,6 +696,10 @@ func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, 
 		}
 	}
 
+	if fingerprint == "" {
+		err = fmt.Errorf("No image found with alias or fingerprint %s", image)
+	}
+
 	return fingerprint, srv, srv_name, err
 }
 
