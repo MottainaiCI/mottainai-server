@@ -622,6 +622,7 @@ func (l *LxdExecutor) DoAction2Container(name, action string) error {
 
 	l.CurrentLocalOperation, err = l.LxdClient.UpdateContainerState(name, req, "")
 	if err != nil {
+		l.Report("Error on update container state: " + err.Error())
 		return err
 	}
 
@@ -631,6 +632,7 @@ func (l *LxdExecutor) DoAction2Container(name, action string) error {
 
 	_, err = l.CurrentLocalOperation.AddHandler(progress.UpdateOp)
 	if err != nil {
+		l.Report("Error on add handerl to progress bar: " + err.Error())
 		l.CurrentLocalOperation = nil
 		progress.Done("")
 		return err
