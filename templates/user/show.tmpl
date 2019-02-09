@@ -9,7 +9,7 @@
                                   {{if .IsAdmin}}{{template "user/auth/action" .}}{{end}}
                                   {{end}}
                                     <div class="media">
-                                        <i class="align-self-center mr-3 fa fa-2x fa-user-o"></i>
+                                      <img class="user-avatar rounded-circle" src="{{GenAvatar .User.Name 48}}" alt="Avatar">
                                         <div class="media-body">
                                             <h2 class="text-light display-6">{{.User.Name}}</h2>
                                             <p>ID: {{.User.ID}}</p>

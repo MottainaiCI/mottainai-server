@@ -27,6 +27,7 @@ import (
 	"html/template"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -116,6 +117,9 @@ func NewFuncMap(config *setting.Config) []template.FuncMap {
 		"Sha1":      Sha1,
 		"ShortSHA1": utils.ShortSHA1,
 		"MD5":       utils.MD5,
+		"GenAvatar": func(name string, size int) string {
+			return "https://avatars.moe/Default/" + string(utils.MD5(name)) + "/" + strconv.Itoa(size) + ".jpg"
+		},
 	}}
 }
 
