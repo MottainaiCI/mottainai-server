@@ -5,5 +5,6 @@ sudo: required
 env:
   - GHW_TESTING_SKIP_GPU=1
 script:
+  - make dep
   - make test
-  - go run ghwc/main.go
+  - go run cmd/ghwc/main.go

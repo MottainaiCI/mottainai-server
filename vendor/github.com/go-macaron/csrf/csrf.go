@@ -58,6 +58,8 @@ type csrf struct {
 	Form string
 	// Cookie name value for setting and getting csrf token.
 	Cookie string
+	//Cookie domain
+	CookieDomain string
 	//Cookie path
 	CookiePath string
 	// Cookie HttpOnly flag value used for the csrf token.
@@ -123,6 +125,8 @@ type Options struct {
 	Form string
 	// Cookie value used to set and get token.
 	Cookie string
+	// Cookie domain.
+	CookieDomain string
 	// Cookie path.
 	CookiePath     string
 	CookieHttpOnly bool
@@ -187,6 +191,7 @@ func Generate(options ...Options) macaron.Handler {
 			Header:         opt.Header,
 			Form:           opt.Form,
 			Cookie:         opt.Cookie,
+			CookieDomain:   opt.CookieDomain,
 			CookiePath:     opt.CookiePath,
 			CookieHttpOnly: opt.CookieHttpOnly,
 			ErrorFunc:      opt.ErrorFunc,
@@ -222,7 +227,7 @@ func Generate(options ...Options) macaron.Handler {
 			// FIXME: actionId.
 			x.Token = GenerateToken(x.Secret, x.ID, "POST")
 			if opt.SetCookie {
-				ctx.SetCookie(opt.Cookie, x.Token, 0, opt.CookiePath, "", opt.Secure, opt.CookieHttpOnly, time.Now().AddDate(0, 0, 1))
+				ctx.SetCookie(opt.Cookie, x.Token, 0, opt.CookiePath, opt.CookieDomain, opt.Secure, opt.CookieHttpOnly, time.Now().AddDate(0, 0, 1))
 			}
 		}
 

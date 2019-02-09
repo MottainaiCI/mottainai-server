@@ -8,21 +8,22 @@ package ghw
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type GraphicsCard struct {
 	// the PCI address where the graphics card can be found
-	Address string
+	Address string `json:"address"`
 	// The "index" of the card on the bus (generally not useful information,
 	// but might as well include it)
-	Index int
+	Index int `json:"index"`
 	// pointer to a PCIDevice struct that describes the vendor and product
 	// model, etc
-	DeviceInfo *PCIDevice
-	// Array of topology nodes that the graphics card is affined to. Will be empty
-	// if the architecture is not NUMA.
-	Nodes []*TopologyNode
+	// NOTE(jaypipes): Don't serialize the PCI device information until pcidb
+	// library is updated to marshal properly
+	DeviceInfo *PCIDevice `json:"-"`
+	// Topology node that the graphics card is affined to. Will be nil if the
+	// architecture is not NUMA.
+	Node *TopologyNode `json:"node,omitempty"`
 }
 
 func (card *GraphicsCard) String() string {
@@ -31,17 +32,8 @@ func (card *GraphicsCard) String() string {
 		deviceStr = card.DeviceInfo.String()
 	}
 	nodeStr := ""
-	if len(card.Nodes) > 0 {
-		x := 0
-		nodeStr = " NUMA nodes ["
-		for _, node := range card.Nodes {
-			if x > 0 {
-				nodeStr += ","
-			}
-			nodeStr += strconv.Itoa(int(node.Id))
-			x++
-		}
-		nodeStr += "] "
+	if card.Node != nil {
+		nodeStr = fmt.Sprintf(" [affined to NUMA node %d]", card.Node.Id)
 	}
 	return fmt.Sprintf(
 		"card #%d %s@%s",
@@ -52,13 +44,16 @@ func (card *GraphicsCard) String() string {
 }
 
 type GPUInfo struct {
-	GraphicsCards []*GraphicsCard
+	GraphicsCards []*GraphicsCard `json:"cards"`
 }
 
-func GPU() (*GPUInfo, error) {
+func GPU(opts ...*WithOption) (*GPUInfo, error) {
+	mergeOpts := mergeOptions(opts...)
+	ctx := &context{
+		chroot: *mergeOpts.Chroot,
+	}
 	info := &GPUInfo{}
-	err := gpuFillInfo(info)
-	if err != nil {
+	if err := ctx.gpuFillInfo(info); err != nil {
 		return nil, err
 	}
 	return info, nil
@@ -74,4 +69,22 @@ func (i *GPUInfo) String() string {
 		len(i.GraphicsCards),
 		numCardsStr,
 	)
+}
+
+// simple private struct used to encapsulate gpu information in a top-level
+// "gpu" YAML/JSON map/object key
+type gpuPrinter struct {
+	Info *GPUInfo `json:"gpu"`
+}
+
+// YAMLString returns a string with the gpu information formatted as YAML
+// under a top-level "gpu:" key
+func (i *GPUInfo) YAMLString() string {
+	return safeYAML(gpuPrinter{i})
+}
+
+// JSONString returns a string with the gpu information formatted as JSON
+// under a top-level "gpu:" key
+func (i *GPUInfo) JSONString(indent bool) string {
+	return safeJSON(gpuPrinter{i}, indent)
 }

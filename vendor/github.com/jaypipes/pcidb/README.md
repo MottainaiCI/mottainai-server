@@ -1,7 +1,9 @@
 # `pcidb` - the Golang PCI DB library [![Build Status](https://travis-ci.org/jaypipes/pcidb.svg?branch=master)](https://travis-ci.org/jaypipes/pcidb)
 
 `pcidb` is a small Golang library for programmatic querying of PCI vendor,
-product and class information
+product and class information.
+
+We currently [test](https://travis-ci.org/jaypipes/pcidb/) `pcidb` on Linux, Windows and MacOSX.
 
 ## Usage
 
@@ -13,46 +15,67 @@ The `pcidb.New()` function returns a `pcidb.PCIDB` struct. The `pcidb.PCIDB`
 struct contains a number of fields that may be queried for PCI information:
 
 * `pcidb.PCIDB.Classes` is a map, keyed by the PCI class ID (a hex-encoded
-  string) of pointers to `pcidb.PCIClass` structs, one for each class of PCI
+  string) of pointers to `pcidb.Class` structs, one for each class of PCI
   device known to `pcidb`
 * `pcidb.PCIDB.Vendors` is a map, keyed by the PCI vendor ID (a hex-encoded
-  string) of pointers to `pcidb.PCIVendor` structs, one for each PCI vendor
+  string) of pointers to `pcidb.Vendor` structs, one for each PCI vendor
   known to `pcidb`
 * `pcidb.PCIDB.Products` is a map, keyed by the PCI product ID* (a hex-encoded
-  string) of pointers to `pcidb.PCIProduct` structs, one for each PCI product
+  string) of pointers to `pcidb.Product` structs, one for each PCI product
   known to `pcidb`
 
 **NOTE**: PCI products are often referred to by their "device ID". We use
 the term "product ID" in `pcidb` because it more accurately reflects what the
 identifier is for: a specific product line produced by the vendor.
 
+### Overriding the root mountpoint `pcidb` uses
+
+The default root mountpoint that `pcidb` uses when looking for information
+about the host system is `/`. So, for example, when looking up known PCI IDS DB
+files on Linux, `pcidb` will attempt to discover a pciids DB file at
+`/usr/share/misc/pci.ids`. If you are calling `pcidb` from a system that has an
+alternate root mountpoint, you can either set the `PCIDB_CHROOT` environment
+variable to that alternate path, or call the `pcidb.New()` function with the
+`pcidb.WithChroot()` modifier.
+
+For example, if you are executing from within an application container that has
+bind-mounted the root host filesystem to the mount point `/host`, you would set
+`PCIDB_CHROOT` to `/host` so that pcidb can find files like
+`/usr/share/misc/pci.ids` at `/host/usr/share/misc/pci.ids`.
+
+Alternately, you can use the `pcidb.WithChroot()` function like so:
+
+```go
+pci := pcidb.New(pcidb.WithChroot("/host"))
+```
+
 ### PCI device classes
 
 Let's take a look at the PCI device class information and how to query the PCI
 database for class, subclass, and programming interface information.
 
-Each `pcidb.PCIClass` struct contains the following fields:
+Each `pcidb.Class` struct contains the following fields:
 
-* `pcidb.PCIClass.Id` is the hex-encoded string identifier for the device
+* `pcidb.Class.ID` is the hex-encoded string identifier for the device
   class
-* `pcidb.PCIClass.Name` is the common name/description of the class
-* `pcidb.PCIClass.Subclasses` is an array of pointers to
-  `pcidb.PCISubclass` structs, one for each subclass in the device class
+* `pcidb.Class.Name` is the common name/description of the class
+* `pcidb.Class.Subclasses` is an array of pointers to
+  `pcidb.Subclass` structs, one for each subclass in the device class
 
-Each `pcidb.PCISubclass` struct contains the following fields:
+Each `pcidb.Subclass` struct contains the following fields:
 
-* `pcidb.PCISubclass.Id` is the hex-encoded string identifier for the device
+* `pcidb.Subclass.ID` is the hex-encoded string identifier for the device
   subclass
-* `pcidb.PCISubclass.Name` is the common name/description of the subclass
-* `pcidb.PCISubclass.ProgrammingInterfaces` is an array of pointers to
-  `pcidb.PCIProgrammingInterface` structs, one for each programming interface
+* `pcidb.Subclass.Name` is the common name/description of the subclass
+* `pcidb.Subclass.ProgrammingInterfaces` is an array of pointers to
+  `pcidb.ProgrammingInterface` structs, one for each programming interface
    for the device subclass
 
-Each `pcidb.PCIProgrammingInterface` struct contains the following fields:
+Each `pcidb.ProgrammingInterface` struct contains the following fields:
 
-* `pcidb.PCIProgrammingInterface.Id` is the hex-encoded string identifier for
+* `pcidb.ProgrammingInterface.ID` is the hex-encoded string identifier for
   the programming interface
-* `pcidb.PCIProgrammingInterface.Name` is the common name/description for the
+* `pcidb.ProgrammingInterface.Name` is the common name/description for the
   programming interface
 
 ```go
@@ -71,11 +94,11 @@ func main() {
 	}
 
 	for _, devClass := range pci.Classes {
-		fmt.Printf(" Device class: %v ('%v')\n", devClass.Name, devClass.Id)
+		fmt.Printf(" Device class: %v ('%v')\n", devClass.Name, devClass.ID)
         for _, devSubclass := range devClass.Subclasses {
-            fmt.Printf("    Device subclass: %v ('%v')\n", devSubclass.Name, devSubclass.Id)
+            fmt.Printf("    Device subclass: %v ('%v')\n", devSubclass.Name, devSubclass.ID)
             for _, progIface := range devSubclass.ProgrammingInterfaces {
-                fmt.Printf("        Programming interface: %v ('%v')\n", progIface.Name, progIface.Id)
+                fmt.Printf("        Programming interface: %v ('%v')\n", progIface.Name, progIface.ID)
             }
         }
 	}
@@ -113,21 +136,21 @@ Example output from my personal workstation, snipped for brevity:
 Let's take a look at the PCI vendor information and how to query the PCI
 database for vendor information and the products a vendor supplies.
 
-Each `pcidb.PCIVendor` struct contains the following fields:
+Each `pcidb.Vendor` struct contains the following fields:
 
-* `pcidb.PCIVendor.Id` is the hex-encoded string identifier for the vendor
-* `pcidb.PCIVendor.Name` is the common name/description of the vendor
-* `pcidb.PCIVendor.Products` is an array of pointers to `pcidb.PCIProduct`
+* `pcidb.Vendor.ID` is the hex-encoded string identifier for the vendor
+* `pcidb.Vendor.Name` is the common name/description of the vendor
+* `pcidb.Vendor.Products` is an array of pointers to `pcidb.Product`
   structs, one for each product supplied by the vendor
 
-Each `pcidb.PCIProduct` struct contains the following fields:
+Each `pcidb.Product` struct contains the following fields:
 
-* `pcidb.PCIProduct.VendorId` is the hex-encoded string identifier for the
+* `pcidb.Product.VendorID` is the hex-encoded string identifier for the
   product's vendor
-* `pcidb.PCIProduct.Id` is the hex-encoded string identifier for the product
-* `pcidb.PCIProduct.Name` is the common name/description of the subclass
-* `pcidb.PCIProduct.Subsystems` is an array of pointers to
-  `pcidb.PCIProduct` structs, one for each "subsystem" (sometimes called
+* `pcidb.Product.ID` is the hex-encoded string identifier for the product
+* `pcidb.Product.Name` is the common name/description of the subclass
+* `pcidb.Product.Subsystems` is an array of pointers to
+  `pcidb.Product` structs, one for each "subsystem" (sometimes called
   "sub-device" in PCI literature) for the product
 
 **NOTE**: A subsystem product may have a different vendor than its "parent" PCI
@@ -146,7 +169,7 @@ import (
 	"github.com/jaypipes/pcidb"
 )
 
-type ByCountProducts []*pcidb.PCIVendor
+type ByCountProducts []*pcidb.Vendor
 
 func (v ByCountProducts) Len() int {
 	return len(v)
@@ -166,7 +189,7 @@ func main() {
 		fmt.Printf("Error getting PCI info: %v", err)
 	}
 
-	vendors := make([]*pcidb.PCIVendor, len(pci.Vendors))
+	vendors := make([]*pcidb.Vendor, len(pci.Vendors))
 	x := 0
 	for _, vendor := range pci.Vendors {
 		vendors[x] = vendor
@@ -178,7 +201,7 @@ func main() {
 	fmt.Println("Top 5 vendors by product")
 	fmt.Println("====================================================")
 	for _, vendor := range vendors[0:5] {
-		fmt.Printf("%v ('%v') has %d products\n", vendor.Name, vendor.Id, len(vendor.Products))
+		fmt.Printf("%v ('%v') has %d products\n", vendor.Name, vendor.ID, len(vendor.Products))
 	}
 }
 ```
@@ -211,7 +234,7 @@ import (
 	"github.com/jaypipes/pcidb"
 )
 
-type ByCountSeparateSubvendors []*pcidb.PCIProduct
+type ByCountSeparateSubvendors []*pcidb.Product
 
 func (v ByCountSeparateSubvendors) Len() int {
 	return len(v)
@@ -222,23 +245,23 @@ func (v ByCountSeparateSubvendors) Swap(i, j int) {
 }
 
 func (v ByCountSeparateSubvendors) Less(i, j int) bool {
-	iVendor := v[i].VendorId
+	iVendor := v[i].VendorID
 	iSetSubvendors := make(map[string]bool, 0)
 	iNumDiffSubvendors := 0
-	jVendor := v[j].VendorId
+	jVendor := v[j].VendorID
 	jSetSubvendors := make(map[string]bool, 0)
 	jNumDiffSubvendors := 0
 
 	for _, sub := range v[i].Subsystems {
-		if sub.VendorId != iVendor {
-			iSetSubvendors[sub.VendorId] = true
+		if sub.VendorID != iVendor {
+			iSetSubvendors[sub.VendorID] = true
 		}
 	}
 	iNumDiffSubvendors = len(iSetSubvendors)
 
 	for _, sub := range v[j].Subsystems {
-		if sub.VendorId != jVendor {
-			jSetSubvendors[sub.VendorId] = true
+		if sub.VendorID != jVendor {
+			jSetSubvendors[sub.VendorID] = true
 		}
 	}
 	jNumDiffSubvendors = len(jSetSubvendors)
@@ -252,7 +275,7 @@ func main() {
 		fmt.Printf("Error getting PCI info: %v", err)
 	}
 
-	products := make([]*pcidb.PCIProduct, len(pci.Products))
+	products := make([]*pcidb.Product, len(pci.Products))
 	x := 0
 	for _, product := range pci.Products {
 		products[x] = product
@@ -264,24 +287,24 @@ func main() {
 	fmt.Println("Top 2 products by # different subvendors")
 	fmt.Println("====================================================")
 	for _, product := range products[0:2] {
-		vendorId := product.VendorId
-		vendor := pci.Vendors[vendorId]
+		vendorID := product.VendorID
+		vendor := pci.Vendors[vendorID]
 		setSubvendors := make(map[string]bool, 0)
 
 		for _, sub := range product.Subsystems {
-			if sub.VendorId != vendorId {
-				setSubvendors[sub.VendorId] = true
+			if sub.VendorID != vendorID {
+				setSubvendors[sub.VendorID] = true
 			}
 		}
-		fmt.Printf("%v ('%v') from %v\n", product.Name, product.Id, vendor.Name)
+		fmt.Printf("%v ('%v') from %v\n", product.Name, product.ID, vendor.Name)
 		fmt.Printf(" -> %d subsystems under the following different vendors:\n", len(setSubvendors))
-		for subvendorId, _ := range setSubvendors {
-			subvendor, exists := pci.Vendors[subvendorId]
+		for subvendorID, _ := range setSubvendors {
+			subvendor, exists := pci.Vendors[subvendorID]
 			subvendorName := "Unknown subvendor"
 			if exists {
 				subvendorName = subvendor.Name
 			}
-			fmt.Printf("      - %v ('%v')\n", subvendorName, subvendorId)
+			fmt.Printf("      - %v ('%v')\n", subvendorName, subvendorID)
 		}
 	}
 }

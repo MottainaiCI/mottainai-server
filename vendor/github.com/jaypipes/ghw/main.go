@@ -6,50 +6,88 @@
 
 package ghw
 
+import "fmt"
+
 const (
 	UNKNOWN = "unknown"
 )
 
-type HostInfo struct {
-	Memory   *MemoryInfo
-	Block    *BlockInfo
-	CPU      *CPUInfo
-	Topology *TopologyInfo
-	Network  *NetworkInfo
-	GPU      *GPUInfo
+// Concrete merged set of configuration switches that act as an execution
+// context when calling internal discovery methods
+type context struct {
+	chroot string
 }
 
-func Host() (*HostInfo, error) {
-	info := &HostInfo{}
-	mem, err := Memory()
-	if err != nil {
+type HostInfo struct {
+	Memory   *MemoryInfo   `json:"memory"`
+	Block    *BlockInfo    `json:"block"`
+	CPU      *CPUInfo      `json:"cpu"`
+	Topology *TopologyInfo `json:"topology"`
+	Network  *NetworkInfo  `json:"network"`
+	GPU      *GPUInfo      `json:"gpu"`
+}
+
+// Host returns a pointer to a HostInfo struct that contains fields with
+// information about the host system's CPU, memory, network devices, etc
+func Host(opts ...*WithOption) (*HostInfo, error) {
+	mergeOpts := mergeOptions(opts...)
+	ctx := &context{
+		chroot: *mergeOpts.Chroot,
+	}
+	mem := &MemoryInfo{}
+	if err := ctx.memFillInfo(mem); err != nil {
 		return nil, err
 	}
-	info.Memory = mem
-	block, err := Block()
-	if err != nil {
+	block := &BlockInfo{}
+	if err := ctx.blockFillInfo(block); err != nil {
 		return nil, err
 	}
-	info.Block = block
-	cpu, err := CPU()
-	if err != nil {
+	cpu := &CPUInfo{}
+	if err := ctx.cpuFillInfo(cpu); err != nil {
 		return nil, err
 	}
-	info.CPU = cpu
-	topology, err := Topology()
-	if err != nil {
+	topology := &TopologyInfo{}
+	if err := ctx.topologyFillInfo(topology); err != nil {
 		return nil, err
 	}
-	info.Topology = topology
-	net, err := Network()
-	if err != nil {
+	net := &NetworkInfo{}
+	if err := ctx.netFillInfo(net); err != nil {
 		return nil, err
 	}
-	info.Network = net
-	gpu, err := GPU()
-	if err != nil {
+	gpu := &GPUInfo{}
+	if err := ctx.gpuFillInfo(gpu); err != nil {
 		return nil, err
 	}
-	info.GPU = gpu
-	return info, nil
+	return &HostInfo{
+		CPU:      cpu,
+		Memory:   mem,
+		Block:    block,
+		Topology: topology,
+		Network:  net,
+		GPU:      gpu,
+	}, nil
+}
+
+func (info *HostInfo) String() string {
+	return fmt.Sprintf(
+		"%s\n%s\n%s\n%s\n%s\n%s\n",
+		info.Block.String(),
+		info.CPU.String(),
+		info.GPU.String(),
+		info.Memory.String(),
+		info.Network.String(),
+		info.Topology.String(),
+	)
+}
+
+// YAMLString returns a string with the host information formatted as YAML
+// under a top-level "host:" key
+func (i *HostInfo) YAMLString() string {
+	return safeYAML(i)
+}
+
+// JSONString returns a string with the host information formatted as JSON
+// under a top-level "host:" key
+func (i *HostInfo) JSONString(indent bool) string {
+	return safeJSON(i, indent)
 }

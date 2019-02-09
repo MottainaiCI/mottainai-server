@@ -8,50 +8,44 @@ package ghw
 
 import (
 	"fmt"
-	"strings"
 )
 
+type NICCapability struct {
+	Name      string `json:"name"`
+	IsEnabled bool   `json:"is_enabled"`
+	CanEnable bool   `json:"can_enable"`
+}
+
 type NIC struct {
-	Name            string
-	BusType         string
-	Driver          string
-	MacAddress      string
-	Model           string
-	Vendor          string
-	IsVirtual       bool
-	EnabledFeatures []string
+	Name         string           `json:"name"`
+	MacAddress   string           `json:"mac_address"`
+	IsVirtual    bool             `json:"is_virtual"`
+	Capabilities []*NICCapability `json:"capabilities"`
 }
 
 func (n *NIC) String() string {
-	vendorStr := ""
-	if n.Vendor != "" {
-		vendorStr = " [" + strings.TrimSpace(n.Vendor) + "]"
-	}
-	modelStr := ""
-	if n.Model != "" {
-		modelStr = " - " + strings.TrimSpace(n.Model)
-	}
 	isVirtualStr := ""
 	if n.IsVirtual {
 		isVirtualStr = " (virtual)"
 	}
 	return fmt.Sprintf(
-		"%s%s%s%s",
+		"%s%s",
 		n.Name,
-		vendorStr,
-		modelStr,
 		isVirtualStr,
 	)
 }
 
 type NetworkInfo struct {
-	NICs []*NIC
+	NICs []*NIC `json:"nics"`
 }
 
-func Network() (*NetworkInfo, error) {
+func Network(opts ...*WithOption) (*NetworkInfo, error) {
+	mergeOpts := mergeOptions(opts...)
+	ctx := &context{
+		chroot: *mergeOpts.Chroot,
+	}
 	info := &NetworkInfo{}
-	err := netFillInfo(info)
-	if err != nil {
+	if err := ctx.netFillInfo(info); err != nil {
 		return nil, err
 	}
 	return info, nil
@@ -62,4 +56,22 @@ func (i *NetworkInfo) String() string {
 		"net (%d NICs)",
 		len(i.NICs),
 	)
+}
+
+// simple private struct used to encapsulate net information in a
+// top-level "net" YAML/JSON map/object key
+type netPrinter struct {
+	Info *NetworkInfo `json:"network"`
+}
+
+// YAMLString returns a string with the net information formatted as YAML
+// under a top-level "net:" key
+func (i *NetworkInfo) YAMLString() string {
+	return safeYAML(netPrinter{i})
+}
+
+// JSONString returns a string with the net information formatted as JSON
+// under a top-level "net:" key
+func (i *NetworkInfo) JSONString(indent bool) string {
+	return safeJSON(netPrinter{i}, indent)
 }

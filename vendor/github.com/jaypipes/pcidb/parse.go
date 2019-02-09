@@ -11,21 +11,21 @@ import (
 	"strings"
 )
 
-func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
+func parseDBFile(db *PCIDB, scanner *bufio.Scanner) error {
 	inClassBlock := false
-	db.Classes = make(map[string]*PCIClass, 20)
-	db.Vendors = make(map[string]*PCIVendor, 200)
-	db.Products = make(map[string]*PCIProduct, 1000)
-	subclasses := make([]*PCISubclass, 0)
-	progIfaces := make([]*PCIProgrammingInterface, 0)
-	var curClass *PCIClass
-	var curSubclass *PCISubclass
-	var curProgIface *PCIProgrammingInterface
-	vendorProducts := make([]*PCIProduct, 0)
-	var curVendor *PCIVendor
-	var curProduct *PCIProduct
-	var curSubsystem *PCIProduct
-	productSubsystems := make([]*PCIProduct, 0)
+	db.Classes = make(map[string]*Class, 20)
+	db.Vendors = make(map[string]*Vendor, 200)
+	db.Products = make(map[string]*Product, 1000)
+	subclasses := make([]*Subclass, 0)
+	progIfaces := make([]*ProgrammingInterface, 0)
+	var curClass *Class
+	var curSubclass *Subclass
+	var curProgIface *ProgrammingInterface
+	vendorProducts := make([]*Product, 0)
+	var curVendor *Vendor
+	var curProduct *Product
+	var curSubsystem *Product
+	productSubsystems := make([]*Product, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
 		// skip comments and blank lines
@@ -42,17 +42,17 @@ func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
 			if curClass != nil {
 				// finalize existing class because we found a new class block
 				curClass.Subclasses = subclasses
-				subclasses = make([]*PCISubclass, 0)
+				subclasses = make([]*Subclass, 0)
 			}
 			inClassBlock = true
-			classId := string(lineBytes[2:4])
+			classID := string(lineBytes[2:4])
 			className := string(lineBytes[6:])
-			curClass = &PCIClass{
-				Id:         classId,
+			curClass = &Class{
+				ID:         classID,
 				Name:       className,
 				Subclasses: subclasses,
 			}
-			db.Classes[curClass.Id] = curClass
+			db.Classes[curClass.ID] = curClass
 			continue
 		}
 
@@ -65,17 +65,17 @@ func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
 			if curVendor != nil {
 				// finalize existing vendor because we found a new vendor block
 				curVendor.Products = vendorProducts
-				vendorProducts = make([]*PCIProduct, 0)
+				vendorProducts = make([]*Product, 0)
 			}
 			inClassBlock = false
-			vendorId := string(lineBytes[0:4])
+			vendorID := string(lineBytes[0:4])
 			vendorName := string(lineBytes[6:])
-			curVendor = &PCIVendor{
-				Id:       vendorId,
+			curVendor = &Vendor{
+				ID:       vendorID,
 				Name:     vendorName,
 				Products: vendorProducts,
 			}
-			db.Vendors[curVendor.Id] = curVendor
+			db.Vendors[curVendor.ID] = curVendor
 			continue
 		}
 
@@ -97,12 +97,12 @@ func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
 				if curSubclass != nil {
 					// finalize existing subclass because we found a new subclass block
 					curSubclass.ProgrammingInterfaces = progIfaces
-					progIfaces = make([]*PCIProgrammingInterface, 0)
+					progIfaces = make([]*ProgrammingInterface, 0)
 				}
-				subclassId := string(lineBytes[1:3])
+				subclassID := string(lineBytes[1:3])
 				subclassName := string(lineBytes[5:])
-				curSubclass = &PCISubclass{
-					Id:   subclassId,
+				curSubclass = &Subclass{
+					ID:   subclassID,
 					Name: subclassName,
 					ProgrammingInterfaces: progIfaces,
 				}
@@ -111,14 +111,14 @@ func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
 				if curProduct != nil {
 					// finalize existing product because we found a new product block
 					curProduct.Subsystems = productSubsystems
-					productSubsystems = make([]*PCIProduct, 0)
+					productSubsystems = make([]*Product, 0)
 				}
-				productId := string(lineBytes[1:5])
+				productID := string(lineBytes[1:5])
 				productName := string(lineBytes[7:])
-				productKey := curVendor.Id + productId
-				curProduct = &PCIProduct{
-					VendorId: curVendor.Id,
-					Id:       productId,
+				productKey := curVendor.ID + productID
+				curProduct = &Product{
+					VendorID: curVendor.ID,
+					ID:       productID,
 					Name:     productName,
 				}
 				vendorProducts = append(vendorProducts, curProduct)
@@ -139,20 +139,20 @@ func parsePCIIdsFile(db *PCIDB, scanner *bufio.Scanner) error {
 			//
 			// \t\t0e11 4091  Smart Array 6i
 			if inClassBlock {
-				progIfaceId := string(lineBytes[2:4])
+				progIfaceID := string(lineBytes[2:4])
 				progIfaceName := string(lineBytes[6:])
-				curProgIface = &PCIProgrammingInterface{
-					Id:   progIfaceId,
+				curProgIface = &ProgrammingInterface{
+					ID:   progIfaceID,
 					Name: progIfaceName,
 				}
 				progIfaces = append(progIfaces, curProgIface)
 			} else {
-				vendorId := string(lineBytes[2:6])
-				subsystemId := string(lineBytes[7:11])
+				vendorID := string(lineBytes[2:6])
+				subsystemID := string(lineBytes[7:11])
 				subsystemName := string(lineBytes[13:])
-				curSubsystem = &PCIProduct{
-					VendorId: vendorId,
-					Id:       subsystemId,
+				curSubsystem = &Product{
+					VendorID: vendorID,
+					ID:       subsystemID,
 					Name:     subsystemName,
 				}
 				productSubsystems = append(productSubsystems, curSubsystem)

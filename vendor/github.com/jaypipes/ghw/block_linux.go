@@ -17,14 +17,14 @@ import (
 )
 
 const (
-	linuxSectorSize = 512
+	sectorSize = 512
 )
 
 var regexNVMeDev = regexp.MustCompile(`^nvme\d+n\d+$`)
 var regexNVMePart = regexp.MustCompile(`^(nvme\d+n\d+)p\d+$`)
 
-func blockFillInfo(info *BlockInfo) error {
-	info.Disks = Disks()
+func (ctx *context) blockFillInfo(info *BlockInfo) error {
+	info.Disks = ctx.disks()
 	var tpb uint64
 	for _, d := range info.Disks {
 		tpb += d.SizeBytes
@@ -33,10 +33,24 @@ func blockFillInfo(info *BlockInfo) error {
 	return nil
 }
 
+// DiskPhysicalBlockSizeBytes has been deprecated in 0.2. Please use the
+// Disk.PhysicalBlockSizeBytes attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskPhysicalBlockSizeBytes(disk string) uint64 {
+	msg := `
+The DiskPhysicalBlockSizeBytes() function has been DEPRECATED and will be
+removed in the 1.0 release of ghw. Please use the Disk.PhysicalBlockSizeBytes
+attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskPhysicalBlockSizeBytes(disk)
+}
+
+func (ctx *context) diskPhysicalBlockSizeBytes(disk string) uint64 {
 	// We can find the sector size in Linux by looking at the
 	// /sys/block/$DEVICE/queue/physical_block_size file in sysfs
-	path := filepath.Join(pathSysBlock(), disk, "queue", "physical_block_size")
+	path := filepath.Join(ctx.pathSysBlock(), disk, "queue", "physical_block_size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
@@ -48,10 +62,23 @@ func DiskPhysicalBlockSizeBytes(disk string) uint64 {
 	return uint64(i)
 }
 
+// DiskSizeBytes has been deprecated in 0.2. Please use the Disk.SizeBytes
+// attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskSizeBytes(disk string) uint64 {
+	msg := `
+The DiskSizeBytes() function has been DEPRECATED and will be
+removed in the 1.0 release of ghw. Please use the Disk.SizeBytes attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskSizeBytes(disk)
+}
+
+func (ctx *context) diskSizeBytes(disk string) uint64 {
 	// We can find the number of 512-byte sectors by examining the contents of
 	// /sys/block/$DEVICE/size and calculate the physical bytes accordingly.
-	path := filepath.Join(pathSysBlock(), disk, "size")
+	path := filepath.Join(ctx.pathSysBlock(), disk, "size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
@@ -60,16 +87,29 @@ func DiskSizeBytes(disk string) uint64 {
 	if err != nil {
 		return 0
 	}
-	return uint64(i) * linuxSectorSize
+	return uint64(i) * sectorSize
 }
 
+// DiskNUMANodeID has been deprecated in 0.2. Please use the Disk.NUMANodeID
+// attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskNUMANodeID(disk string) int {
-	link, err := os.Readlink(filepath.Join(pathSysBlock(), disk))
+	msg := `
+The DiskNUMANodeID() function has been DEPRECATED and will be
+removed in the 1.0 release of ghw. Please use the Disk.NUMANodeID attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskNUMANodeID(disk)
+}
+
+func (ctx *context) diskNUMANodeID(disk string) int {
+	link, err := os.Readlink(filepath.Join(ctx.pathSysBlock(), disk))
 	if err != nil {
 		return -1
 	}
 	for partial := link; strings.HasPrefix(partial, "../devices/"); partial = filepath.Base(partial) {
-		if nodeContents, err := ioutil.ReadFile(filepath.Join(pathSysBlock(), partial, "numa_node")); err != nil {
+		if nodeContents, err := ioutil.ReadFile(filepath.Join(ctx.pathSysBlock(), partial, "numa_node")); err != nil {
 			if nodeInt, err := strconv.Atoi(string(nodeContents)); err != nil {
 				return nodeInt
 			}
@@ -78,10 +118,22 @@ func DiskNUMANodeID(disk string) int {
 	return -1
 }
 
+// DiskVendor has been deprecated in 0.2. Please use the Disk.Vendor attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskVendor(disk string) string {
+	msg := `
+The DiskVendor() function has been DEPRECATED and will be
+removed in the 1.0 release of ghw. Please use the Disk.Vendor attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskVendor(disk)
+}
+
+func (ctx *context) diskVendor(disk string) string {
 	// In Linux, the vendor for a disk device is found in the
 	// /sys/block/$DEVICE/device/vendor file in sysfs
-	path := filepath.Join(pathSysBlock(), disk, "device", "vendor")
+	path := filepath.Join(ctx.pathSysBlock(), disk, "device", "vendor")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return UNKNOWN
@@ -89,16 +141,16 @@ func DiskVendor(disk string) string {
 	return strings.TrimSpace(string(contents))
 }
 
-func udevInfo(disk string) (map[string]string, error) {
+func (ctx *context) udevInfo(disk string) (map[string]string, error) {
 	// Get device major:minor numbers
-	devNo, err := ioutil.ReadFile(filepath.Join(pathSysBlock(), disk, "dev"))
+	devNo, err := ioutil.ReadFile(filepath.Join(ctx.pathSysBlock(), disk, "dev"))
 	if err != nil {
 		return nil, err
 	}
 
 	// Look up block device in udev runtime database
-	udevId := "b" + strings.TrimSpace(string(devNo))
-	udevBytes, err := ioutil.ReadFile(filepath.Join(pathRunUdevData(), udevId))
+	udevID := "b" + strings.TrimSpace(string(devNo))
+	udevBytes, err := ioutil.ReadFile(filepath.Join(ctx.pathRunUdevData(), udevID))
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +166,20 @@ func udevInfo(disk string) (map[string]string, error) {
 	return udevInfo, nil
 }
 
+// DiskModel has been deprecated in 0.2. Please use the Disk.Model attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskModel(disk string) string {
-	info, err := udevInfo(disk)
+	msg := `
+The DiskModel() function has been DEPRECATED and will be removed in the 1.0
+release of ghw. Please use the Disk.Model attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskModel(disk)
+}
+
+func (ctx *context) diskModel(disk string) string {
+	info, err := ctx.udevInfo(disk)
 	if err != nil {
 		return UNKNOWN
 	}
@@ -126,8 +190,20 @@ func DiskModel(disk string) string {
 	return UNKNOWN
 }
 
+// DiskSerialNumber has been deprecated in 0.2. Please use the Disk.SerialNumber attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskSerialNumber(disk string) string {
-	info, err := udevInfo(disk)
+	msg := `
+The DiskSerialNumber() function has been DEPRECATED and will be removed in the
+1.0 release of ghw. Please use the Disk.SerialNumber attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskSerialNumber(disk)
+}
+
+func (ctx *context) diskSerialNumber(disk string) string {
+	info, err := ctx.udevInfo(disk)
 	if err != nil {
 		return UNKNOWN
 	}
@@ -140,8 +216,20 @@ func DiskSerialNumber(disk string) string {
 	return UNKNOWN
 }
 
+// DiskBusPath has been deprecated in 0.2. Please use the Disk.BusPath attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskBusPath(disk string) string {
-	info, err := udevInfo(disk)
+	msg := `
+The DiskBusPath() function has been DEPRECATED and will be removed in the 1.0
+release of ghw. Please use the Disk.BusPath attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskBusPath(disk)
+}
+
+func (ctx *context) diskBusPath(disk string) string {
+	info, err := ctx.udevInfo(disk)
 	if err != nil {
 		return UNKNOWN
 	}
@@ -154,8 +242,20 @@ func DiskBusPath(disk string) string {
 	return UNKNOWN
 }
 
+// DiskWWN has been deprecated in 0.2. Please use the Disk.WWN attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskWWN(disk string) string {
-	info, err := udevInfo(disk)
+	msg := `
+The DiskWWN() function has been DEPRECATED and will be removed in the 1.0
+release of ghw. Please use the Disk.WWN attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskWWN(disk)
+}
+
+func (ctx *context) diskWWN(disk string) string {
+	info, err := ctx.udevInfo(disk)
 	if err != nil {
 		return UNKNOWN
 	}
@@ -170,9 +270,21 @@ func DiskWWN(disk string) string {
 	return UNKNOWN
 }
 
+// DiskPartitions has been deprecated in 0.2. Please use the Disk.Partitions attribute.
+// TODO(jaypipes): Remove in 1.0.
 func DiskPartitions(disk string) []*Partition {
+	msg := `
+The DiskPartitions() function has been DEPRECATED and will be removed in the
+1.0 release of ghw. Please use the Disk.Partitions attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.diskPartitions(disk)
+}
+
+func (ctx *context) diskPartitions(disk string) []*Partition {
 	out := make([]*Partition, 0)
-	path := filepath.Join(pathSysBlock(), disk)
+	path := filepath.Join(ctx.pathSysBlock(), disk)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil
@@ -182,8 +294,8 @@ func DiskPartitions(disk string) []*Partition {
 		if !strings.HasPrefix(fname, disk) {
 			continue
 		}
-		size := PartitionSizeBytes(fname)
-		mp, pt, ro := PartitionInfo(fname)
+		size := ctx.partitionSizeBytes(fname)
+		mp, pt, ro := ctx.partitionInfo(fname)
 		p := &Partition{
 			Name:       fname,
 			SizeBytes:  size,
@@ -196,39 +308,53 @@ func DiskPartitions(disk string) []*Partition {
 	return out
 }
 
+// Disks has been deprecated in 0.2. Please use the BlockInfo.Disks attribute.
+// TODO(jaypipes): Remove in 1.0.
 func Disks() []*Disk {
+	msg := `
+The Disks() function has been DEPRECATED and will be removed in the
+1.0 release of ghw. Please use the BlockInfo.Disks attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.disks()
+}
+
+func (ctx *context) disks() []*Disk {
 	// In Linux, we could use the fdisk, lshw or blockdev commands to list disk
 	// information, however all of these utilities require root privileges to
 	// run. We can get all of this information by examining the /sys/block
 	// and /sys/class/block files
 	disks := make([]*Disk, 0)
-	files, err := ioutil.ReadDir(pathSysBlock())
+	files, err := ioutil.ReadDir(ctx.pathSysBlock())
 	if err != nil {
 		return nil
 	}
 	for _, file := range files {
 		dname := file.Name()
 
-		var busType string
+		busType := BUS_TYPE_UNKNOWN
 		if strings.HasPrefix(dname, "sd") {
-			busType = "SCSI"
+			busType = BUS_TYPE_SCSI
 		} else if strings.HasPrefix(dname, "hd") {
-			busType = "IDE"
+			busType = BUS_TYPE_IDE
+		} else if strings.HasPrefix(dname, "vd") {
+			busType = BUS_TYPE_VIRTIO
 		} else if regexNVMeDev.MatchString(dname) {
-			busType = "NVMe"
+			busType = BUS_TYPE_NVME
 		}
-		if busType == "" {
+		if busType == BUS_TYPE_UNKNOWN {
 			continue
 		}
 
-		size := DiskSizeBytes(dname)
-		pbs := DiskPhysicalBlockSizeBytes(dname)
-		busPath := DiskBusPath(dname)
-		node := DiskNUMANodeID(dname)
-		vendor := DiskVendor(dname)
-		model := DiskModel(dname)
-		serialNo := DiskSerialNumber(dname)
-		wwn := DiskWWN(dname)
+		size := ctx.diskSizeBytes(dname)
+		pbs := ctx.diskPhysicalBlockSizeBytes(dname)
+		busPath := ctx.diskBusPath(dname)
+		node := ctx.diskNUMANodeID(dname)
+		vendor := ctx.diskVendor(dname)
+		model := ctx.diskModel(dname)
+		serialNo := ctx.diskSerialNumber(dname)
+		wwn := ctx.diskWWN(dname)
 
 		d := &Disk{
 			Name:                   dname,
@@ -243,7 +369,7 @@ func Disks() []*Disk {
 			WWN:                    wwn,
 		}
 
-		parts := DiskPartitions(dname)
+		parts := ctx.diskPartitions(dname)
 		// Map this Disk object into the Partition...
 		for _, part := range parts {
 			part.Disk = d
@@ -256,17 +382,27 @@ func Disks() []*Disk {
 	return disks
 }
 
+// PartitionSizeBytes has been deprecated in 0.2. Please use the
+// Partition.SizeBytes attribute.  TODO(jaypipes): Remove in 1.0.
 func PartitionSizeBytes(part string) uint64 {
+	msg := `
+The PartitionSizeBytes() function has been DEPRECATED and will be removed in
+the 1.0 release of ghw. Please use the Partition.SizeBytes attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.partitionSizeBytes(part)
+}
+
+func (ctx *context) partitionSizeBytes(part string) uint64 {
 	// Allow calling PartitionSize with either the full partition name
 	// "/dev/sda1" or just "sda1"
-	if strings.HasPrefix(part, "/dev") {
-		part = part[4:len(part)]
-	}
+	part = strings.TrimPrefix(part, "/dev")
 	disk := part[0:3]
 	if m := regexNVMePart.FindStringSubmatch(part); len(m) > 0 {
 		disk = m[1]
 	}
-	path := filepath.Join(pathSysBlock(), disk, part, "size")
+	path := filepath.Join(ctx.pathSysBlock(), disk, part, "size")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0
@@ -275,12 +411,24 @@ func PartitionSizeBytes(part string) uint64 {
 	if err != nil {
 		return 0
 	}
-	return uint64(i) * linuxSectorSize
+	return uint64(i) * sectorSize
+}
+
+// PartitionInfo has been deprecated in 0.2. Please use the Partition struct.
+// TODO(jaypipes): Remove in 1.0.
+func PartitionInfo(part string) (string, string, bool) {
+	msg := `
+The PartitionInfo() function has been DEPRECATED and will be removed in
+the 1.0 release of ghw. Please use the Partition struct.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.partitionInfo(part)
 }
 
 // Given a full or short partition name, returns the mount point, the type of
 // the partition and whether it's readonly
-func PartitionInfo(part string) (string, string, bool) {
+func (ctx *context) partitionInfo(part string) (string, string, bool) {
 	// Allow calling PartitionInfo with either the full partition name
 	// "/dev/sda1" or just "sda1"
 	if !strings.HasPrefix(part, "/dev") {
@@ -290,11 +438,11 @@ func PartitionInfo(part string) (string, string, bool) {
 	// /etc/mtab entries for mounted partitions look like this:
 	// /dev/sda6 / ext4 rw,relatime,errors=remount-ro,data=ordered 0 0
 	var r io.ReadCloser
-	r, err := os.Open(pathEtcMtab())
+	r, err := os.Open(ctx.pathEtcMtab())
 	if err != nil {
 		return "", "", true
 	}
-	defer r.Close()
+	defer safeClose(r)
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -360,17 +508,53 @@ func parseMtabEntry(line string) *mtabEntry {
 	return res
 }
 
+// PartitionMountPoint has been deprecated in 0.2. Please use the
+// Partition.MountPoint attribute.  TODO(jaypipes): Remove in 1.0.
 func PartitionMountPoint(part string) string {
-	mp, _, _ := PartitionInfo(part)
+	msg := `
+The PartitionMountPoint() function has been DEPRECATED and will be removed in
+the 1.0 release of ghw. Please use the Partition.MountPoint attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.partitionMountPoint(part)
+}
+
+func (ctx *context) partitionMountPoint(part string) string {
+	mp, _, _ := ctx.partitionInfo(part)
 	return mp
 }
 
+// PartitionType has been deprecated in 0.2. Please use the
+// Partition.Type attribute.  TODO(jaypipes): Remove in 1.0.
 func PartitionType(part string) string {
-	_, pt, _ := PartitionInfo(part)
+	msg := `
+The PartitionType() function has been DEPRECATED and will be removed in
+the 1.0 release of ghw. Please use the Partition.Type attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.partitionType(part)
+}
+
+func (ctx *context) partitionType(part string) string {
+	_, pt, _ := ctx.partitionInfo(part)
 	return pt
 }
 
+// PartitionIsReadOnly has been deprecated in 0.2. Please use the
+// Partition.IsReadOnly attribute.  TODO(jaypipes): Remove in 1.0.
 func PartitionIsReadOnly(part string) bool {
-	_, _, ro := PartitionInfo(part)
+	msg := `
+The PartitionIsReadOnly() function has been DEPRECATED and will be removed in
+the 1.0 release of ghw. Please use the Partition.IsReadOnly attribute.
+`
+	warn(msg)
+	ctx := contextFromEnv()
+	return ctx.partitionIsReadOnly(part)
+}
+
+func (ctx *context) partitionIsReadOnly(part string) bool {
+	_, _, ro := ctx.partitionInfo(part)
 	return ro
 }

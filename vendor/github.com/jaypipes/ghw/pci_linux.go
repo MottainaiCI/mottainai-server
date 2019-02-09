@@ -15,37 +15,38 @@ import (
 	"github.com/jaypipes/pcidb"
 )
 
-func pciFillInfo(info *PCIInfo) error {
-	db, err := pcidb.New()
+func (ctx *context) pciFillInfo(info *PCIInfo) error {
+	db, err := pcidb.New(pcidb.WithChroot(ctx.chroot))
 	if err != nil {
 		return err
 	}
 	info.Classes = db.Classes
 	info.Vendors = db.Vendors
 	info.Products = db.Products
+	info.ctx = ctx
 	return nil
 }
 
-func getPCIDeviceModaliasPath(address string) string {
+func (ctx *context) getPCIDeviceModaliasPath(address string) string {
 	pciAddr := PCIAddressFromString(address)
 	if pciAddr == nil {
 		return ""
 	}
 	return filepath.Join(
-		pathSysBusPciDevices(),
+		ctx.pathSysBusPciDevices(),
 		pciAddr.Domain+":"+pciAddr.Bus+":"+pciAddr.Slot+"."+pciAddr.Function,
 		"modalias",
 	)
 }
 
 type deviceModaliasInfo struct {
-	vendorId     string
-	productId    string
-	subproductId string
-	subvendorId  string
-	classId      string
-	subclassId   string
-	progIfaceId  string
+	vendorID     string
+	productID    string
+	subproductID string
+	subvendorID  string
+	classID      string
+	subclassID   string
+	progIfaceID  string
 }
 
 func parseModaliasFile(fp string) *deviceModaliasInfo {
@@ -71,153 +72,154 @@ func parseModaliasFile(fp string) *deviceModaliasInfo {
 	// bc03 -- PCI base class
 	// sc00 -- PCI subclass
 	// i00 -- programming interface
-	vendorId := strings.ToLower(string(data[9:13]))
-	productId := strings.ToLower(string(data[18:22]))
-	subvendorId := strings.ToLower(string(data[28:32]))
-	subproductId := strings.ToLower(string(data[38:42]))
-	classId := string(data[44:46])
-	subclassId := string(data[48:50])
-	progIfaceId := string(data[51:53])
+	vendorID := strings.ToLower(string(data[9:13]))
+	productID := strings.ToLower(string(data[18:22]))
+	subvendorID := strings.ToLower(string(data[28:32]))
+	subproductID := strings.ToLower(string(data[38:42]))
+	classID := string(data[44:46])
+	subclassID := string(data[48:50])
+	progIfaceID := string(data[51:53])
 	return &deviceModaliasInfo{
-		vendorId:     vendorId,
-		productId:    productId,
-		subproductId: subproductId,
-		subvendorId:  subvendorId,
-		classId:      classId,
-		subclassId:   subclassId,
-		progIfaceId:  progIfaceId,
+		vendorID:     vendorID,
+		productID:    productID,
+		subproductID: subproductID,
+		subvendorID:  subvendorID,
+		classID:      classID,
+		subclassID:   subclassID,
+		progIfaceID:  progIfaceID,
 	}
 }
 
-// Returns a pointer to a pcidb.PCIVendor struct matching the supplied vendor
+// Returns a pointer to a pcidb.Vendor struct matching the supplied vendor
 // ID string. If no such vendor ID string could be found, returns the
-// pcidb.PCIVendor struct populated with "unknown" vendor Name attribute and
+// pcidb.Vendor struct populated with "unknown" vendor Name attribute and
 // empty Products attribute.
-func findPCIVendor(info *PCIInfo, vendorId string) *pcidb.PCIVendor {
-	vendor := info.Vendors[vendorId]
+func findPCIVendor(info *PCIInfo, vendorID string) *pcidb.Vendor {
+	vendor := info.Vendors[vendorID]
 	if vendor == nil {
-		return &pcidb.PCIVendor{
-			Id:       vendorId,
+		return &pcidb.Vendor{
+			ID:       vendorID,
 			Name:     UNKNOWN,
-			Products: []*pcidb.PCIProduct{},
+			Products: []*pcidb.Product{},
 		}
 	}
 	return vendor
 }
 
-// Returns a pointer to a pcidb.PCIProduct struct matching the supplied vendor
+// Returns a pointer to a pcidb.Product struct matching the supplied vendor
 // and product ID strings. If no such product could be found, returns the
-// pcidb.PCIProduct struct populated with "unknown" product Name attribute and
+// pcidb.Product struct populated with "unknown" product Name attribute and
 // empty Subsystems attribute.
 func findPCIProduct(
 	info *PCIInfo,
-	vendorId string,
-	productId string,
-) *pcidb.PCIProduct {
-	product := info.Products[vendorId+productId]
+	vendorID string,
+	productID string,
+) *pcidb.Product {
+	product := info.Products[vendorID+productID]
 	if product == nil {
-		return &pcidb.PCIProduct{
-			Id:         productId,
+		return &pcidb.Product{
+			ID:         productID,
 			Name:       UNKNOWN,
-			Subsystems: []*pcidb.PCIProduct{},
+			Subsystems: []*pcidb.Product{},
 		}
 	}
 	return product
 }
 
-// Returns a pointer to a pcidb.PCIProduct struct matching the supplied vendor,
+// Returns a pointer to a pcidb.Product struct matching the supplied vendor,
 // product, subvendor and subproduct ID strings. If no such product could be
-// found, returns the pcidb.PCIProduct struct populated with "unknown" product
+// found, returns the pcidb.Product struct populated with "unknown" product
 // Name attribute and empty Subsystems attribute.
 func findPCISubsystem(
 	info *PCIInfo,
-	vendorId string,
-	productId string,
-	subvendorId string,
-	subproductId string,
-) *pcidb.PCIProduct {
-	product := info.Products[vendorId+productId]
-	subvendor := info.Vendors[subvendorId]
+	vendorID string,
+	productID string,
+	subvendorID string,
+	subproductID string,
+) *pcidb.Product {
+	product := info.Products[vendorID+productID]
+	subvendor := info.Vendors[subvendorID]
 	if subvendor != nil && product != nil {
 		for _, p := range product.Subsystems {
-			if p.Id == subproductId {
+			if p.ID == subproductID {
 				return p
 			}
 		}
 	}
-	return &pcidb.PCIProduct{
-		VendorId: subvendorId,
-		Id:       subproductId,
+	return &pcidb.Product{
+		VendorID: subvendorID,
+		ID:       subproductID,
 		Name:     UNKNOWN,
 	}
 }
 
-// Returns a pointer to a pcidb.PCIClass struct matching the supplied class ID
+// Returns a pointer to a pcidb.Class struct matching the supplied class ID
 // string. If no such class ID string could be found, returns the
-// pcidb.PCIClass struct populated with "unknown" class Name attribute and
+// pcidb.Class struct populated with "unknown" class Name attribute and
 // empty Subclasses attribute.
-func findPCIClass(info *PCIInfo, classId string) *pcidb.PCIClass {
-	class := info.Classes[classId]
+func findPCIClass(info *PCIInfo, classID string) *pcidb.Class {
+	class := info.Classes[classID]
 	if class == nil {
-		return &pcidb.PCIClass{
-			Id:         classId,
+		return &pcidb.Class{
+			ID:         classID,
 			Name:       UNKNOWN,
-			Subclasses: []*pcidb.PCISubclass{},
+			Subclasses: []*pcidb.Subclass{},
 		}
 	}
 	return class
 }
 
-// Returns a pointer to a pcidb.PCISubclass struct matching the supplied class
+// Returns a pointer to a pcidb.Subclass struct matching the supplied class
 // and subclass ID strings.  If no such subclass could be found, returns the
-// pcidb.PCISubclass struct populated with "unknown" subclass Name attribute
+// pcidb.Subclass struct populated with "unknown" subclass Name attribute
 // and empty ProgrammingInterfaces attribute.
 func findPCISubclass(
 	info *PCIInfo,
-	classId string,
-	subclassId string,
-) *pcidb.PCISubclass {
-	class := info.Classes[classId]
+	classID string,
+	subclassID string,
+) *pcidb.Subclass {
+	class := info.Classes[classID]
 	if class != nil {
 		for _, sc := range class.Subclasses {
-			if sc.Id == subclassId {
+			if sc.ID == subclassID {
 				return sc
 			}
 		}
 	}
-	return &pcidb.PCISubclass{
-		Id:   subclassId,
+	return &pcidb.Subclass{
+		ID:   subclassID,
 		Name: UNKNOWN,
-		ProgrammingInterfaces: []*pcidb.PCIProgrammingInterface{},
+		ProgrammingInterfaces: []*pcidb.ProgrammingInterface{},
 	}
 }
 
-// Returns a pointer to a pcidb.PCIProgrammingInterface struct matching the
+// Returns a pointer to a pcidb.ProgrammingInterface struct matching the
 // supplied class, subclass and programming interface ID strings.  If no such
 // programming interface could be found, returns the
-// pcidb.PCIProgrammingInterface struct populated with "unknown" Name attribute
+// pcidb.ProgrammingInterface struct populated with "unknown" Name attribute
 func findPCIProgrammingInterface(
 	info *PCIInfo,
-	classId string,
-	subclassId string,
-	progIfaceId string,
-) *pcidb.PCIProgrammingInterface {
-	subclass := findPCISubclass(info, classId, subclassId)
+	classID string,
+	subclassID string,
+	progIfaceID string,
+) *pcidb.ProgrammingInterface {
+	subclass := findPCISubclass(info, classID, subclassID)
 	for _, pi := range subclass.ProgrammingInterfaces {
-		if pi.Id == progIfaceId {
+		if pi.ID == progIfaceID {
 			return pi
 		}
 	}
-	return &pcidb.PCIProgrammingInterface{
-		Id:   progIfaceId,
+	return &pcidb.ProgrammingInterface{
+		ID:   progIfaceID,
 		Name: UNKNOWN,
 	}
 }
 
-// Returns a pointer to a PCIDevice struct that describes the PCI device at
-// the requested address. If no such device could be found, returns nil
+// GetDevice returns a pointer to a PCIDevice struct that describes the PCI
+// device at the requested address. If no such device could be found, returns
+// nil
 func (info *PCIInfo) GetDevice(address string) *PCIDevice {
-	fp := getPCIDeviceModaliasPath(address)
+	fp := info.ctx.getPCIDeviceModaliasPath(address)
 	if fp == "" {
 		return nil
 	}
@@ -227,30 +229,30 @@ func (info *PCIInfo) GetDevice(address string) *PCIDevice {
 		return nil
 	}
 
-	vendor := findPCIVendor(info, modaliasInfo.vendorId)
+	vendor := findPCIVendor(info, modaliasInfo.vendorID)
 	product := findPCIProduct(
 		info,
-		modaliasInfo.vendorId,
-		modaliasInfo.productId,
+		modaliasInfo.vendorID,
+		modaliasInfo.productID,
 	)
 	subsystem := findPCISubsystem(
 		info,
-		modaliasInfo.vendorId,
-		modaliasInfo.productId,
-		modaliasInfo.subvendorId,
-		modaliasInfo.subproductId,
+		modaliasInfo.vendorID,
+		modaliasInfo.productID,
+		modaliasInfo.subvendorID,
+		modaliasInfo.subproductID,
 	)
-	class := findPCIClass(info, modaliasInfo.classId)
+	class := findPCIClass(info, modaliasInfo.classID)
 	subclass := findPCISubclass(
 		info,
-		modaliasInfo.classId,
-		modaliasInfo.subclassId,
+		modaliasInfo.classID,
+		modaliasInfo.subclassID,
 	)
 	progIface := findPCIProgrammingInterface(
 		info,
-		modaliasInfo.classId,
-		modaliasInfo.subclassId,
-		modaliasInfo.progIfaceId,
+		modaliasInfo.classID,
+		modaliasInfo.subclassID,
+		modaliasInfo.progIfaceID,
 	)
 
 	return &PCIDevice{
@@ -264,16 +266,17 @@ func (info *PCIInfo) GetDevice(address string) *PCIDevice {
 	}
 }
 
-// Returns a list of pointers to PCIDevice structs present on the host system
+// ListDevices returns a list of pointers to PCIDevice structs present on the
+// host system
 func (info *PCIInfo) ListDevices() []*PCIDevice {
 	devs := make([]*PCIDevice, 0)
 	// We scan the /sys/bus/pci/devices directory which contains a collection
 	// of symlinks. The names of the symlinks are all the known PCI addresses
 	// for the host. For each address, we grab a *PCIDevice matching the
 	// address and append to the returned array.
-	links, err := ioutil.ReadDir(pathSysBusPciDevices())
+	links, err := ioutil.ReadDir(info.ctx.pathSysBusPciDevices())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to read /sys/bus/pci/devices")
+		_, _ = fmt.Fprintf(os.Stderr, "error: failed to read /sys/bus/pci/devices")
 		return nil
 	}
 	var dev *PCIDevice
@@ -281,7 +284,7 @@ func (info *PCIInfo) ListDevices() []*PCIDevice {
 		addr := link.Name()
 		dev = info.GetDevice(addr)
 		if dev == nil {
-			fmt.Fprintf(os.Stderr, "error: failed to get device information for PCI address %s\n", addr)
+			_, _ = fmt.Fprintf(os.Stderr, "error: failed to get device information for PCI address %s\n", addr)
 		} else {
 			devs = append(devs, dev)
 		}

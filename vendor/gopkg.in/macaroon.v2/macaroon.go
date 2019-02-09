@@ -3,7 +3,7 @@
 // Decentralized Authorization in the Cloud"
 // (http://theory.stanford.edu/~ataly/Papers/macaroons.pdf)
 //
-// See the macaroon bakery packages at http://godoc.org/gopkg.in/macaroon-bakery.v1
+// See the macaroon bakery packages at http://godoc.org/gopkg.in/macaroon-bakery.v2
 // for higher level services and operations that use macaroons.
 package macaroon
 
@@ -29,7 +29,27 @@ type Macaroon struct {
 	version  Version
 }
 
-// Caveat holds a first person or third party caveat.
+// Equal reports whether m has exactly the same content as m1.
+func (m *Macaroon) Equal(m1 *Macaroon) bool {
+	if m == m1 || m == nil || m1 == nil {
+		return m == m1
+	}
+	if m.location != m1.location ||
+		!bytes.Equal(m.id, m1.id) ||
+		m.sig != m1.sig ||
+		m.version != m1.version ||
+		len(m.caveats) != len(m1.caveats) {
+		return false
+	}
+	for i, c := range m.caveats {
+		if !c.Equal(m1.caveats[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// Caveat holds a first party or third party caveat.
 type Caveat struct {
 	// Id holds the id of the caveat. For first
 	// party caveats this holds the condition;
@@ -46,6 +66,13 @@ type Caveat struct {
 	// as part of the caveat, so should only
 	// be used as a hint.
 	Location string
+}
+
+// Equal reports whether c is equal to c1.
+func (c Caveat) Equal(c1 Caveat) bool {
+	return bytes.Equal(c.Id, c1.Id) &&
+		bytes.Equal(c.VerificationId, c1.VerificationId) &&
+		c.Location == c1.Location
 }
 
 // isThirdParty reports whether the caveat must be satisfied
@@ -127,6 +154,12 @@ func (m *Macaroon) Caveats() []Caveat {
 
 // appendCaveat appends a caveat without modifying the macaroon's signature.
 func (m *Macaroon) appendCaveat(caveatId, verificationId []byte, loc string) {
+	if len(verificationId) == 0 {
+		// Ensure that an empty vid is always represented by nil,
+		// so that marshalers don't procuce spurious zero-length
+		// vid fields which can confuse some verifiers.
+		verificationId = nil
+	}
 	m.caveats = append(m.caveats, Caveat{
 		Id:             caveatId,
 		VerificationId: verificationId,

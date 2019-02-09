@@ -31,7 +31,7 @@
 
 [[constraint]]
   name = "github.com/RichardKnop/machinery"
-  version = "v1.5.3"
+  version = "v1.5.5"
 
 [[constraint]]
   branch = "master"
