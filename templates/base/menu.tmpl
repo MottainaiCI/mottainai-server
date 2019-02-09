@@ -1,79 +1,53 @@
-<!-- Left Panel -->
 
-<aside id="left-panel" class="left-panel">
-<nav class="navbar navbar-expand-sm navbar-default">
-
-    <div class="navbar-header">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fa fa-bars"></i>
-        </button>
-        <a class="navbar-brand" href="{{BuildURI "/"}}"><img src="{{BuildURI "/images/logo"}}" alt="Logo"></a>
-        <a class="navbar-brand hidden" href="{{BuildURI "/"}}"><img src="{{BuildURI "/images/logo_small"}}" alt="Logo"></a>
-    </div>
-
-    <div id="main-menu" class="main-menu collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-            <li>
-              <a href="{{BuildURI "/"}}"> <i class="menu-icon fa fa-dashboard"></i>Dashboard </a>
-            </li>
-            <h3 class="menu-title">Control panel</h3><!-- /.menu-title -->
-        <!--    <li class="menu-item-has-children dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-tasks"></i>Tasks</a>
-                <ul class="sub-menu children dropdown-menu">
-                    <li><i class="ti ti-view-list-alt"></i><a href="/tasks">List</a></li>
-                    <li><i class="fa fa-plus-square-o"></i><a href="/tasks/add">Add</a></li>
-
-
-                </ul>
-            </li>
-          -->
-            <li >
-              <a href="{{BuildURI "/tasks"}}"> <i class="menu-icon fa fa-tasks"></i>Tasks </a>
-            </li>
-          <!--  <li class="menu-item-has-children dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-sitemap"></i>Nodes</a>
-                <ul class="sub-menu children dropdown-menu">
-                  <li><i class="ti ti-view-list-alt"></i><a href="/nodes">List</a></li>
-                  <li><i class="fa fa-plus-square-o"></i><a href="/nodes/add">Add</a></li>
-
-
-                </ul>
-            </li>-->
-            <!--
-            <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
-            -->
-            <li >
-              <a href="{{BuildURI "/nodes"}}"> <i class="menu-icon fa fa-sitemap"></i>Nodes </a>
-            </li>
-          <!--  <li class="menu-item-has-children dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-cloud"></i>Namespaces</a>
-                <ul class="sub-menu children dropdown-menu">
-                    <li><i class="ti ti-view-list-alt"></i><a href="/namespaces">List</a></li>
-                </ul>
-            </li> -->
-            <li >
-              <a href="{{BuildURI "/namespaces"}}"> <i class="menu-icon fa fa-cloud"></i>Namespaces </a>
-            </li>
-        </ul>
-    </div><!-- /.navbar-collapse -->
-</nav>
-</aside><!-- /#left-panel -->
-
-<!-- Right Panel -->
 <div id="right-panel" class="right-panel">
           <!-- Header-->
-          <header id="header" class="header">
+          <header id="header" class="header menunavbar ">
+              <div class="header-menu ">
+                <div class="col-sm-7 ">
 
-              <div class="header-menu">
+                  <div id="main-menu" class="main-menu float-left ">
+                    <a href="{{BuildURI "/"}}" class="link"><img src="{{BuildURI "/images/logo_small"}}" width=32 alt="Logo"></a>
 
-                  <div class="col-sm-7">
-                      <a id="menuToggle" class="menutoggle pull-left"><i class="fa fa fa-tasks"></i></a>
-                      <div class="header-left">
+                      <a href="{{BuildURI "/"}}" class="link hover"> <i class="menu-icon fa fa-dashboard"></i> Dashboard </a>
 
-                      </div>
-                  </div>
+                      <!--    <li class="menu-item-has-children dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-tasks"></i>Tasks</a>
+                              <ul class="sub-menu children dropdown-menu">
+                                  <li><i class="ti ti-view-list-alt"></i><a href="/tasks">List</a></li>
+                                  <li><i class="fa fa-plus-square-o"></i><a href="/tasks/add">Add</a></li>
 
-                  <div class="col-sm-5">
+
+                              </ul>
+                          </li>
+                        -->
+
+                            <a href="{{BuildURI "/tasks"}}" class="link hover"> <i class="menu-icon fa fa-tasks"></i> Tasks </a>
+
+                        <!--  <li class="menu-item-has-children dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-sitemap"></i>Nodes</a>
+                              <ul class="sub-menu children dropdown-menu">
+                                <li><i class="ti ti-view-list-alt"></i><a href="/nodes">List</a></li>
+                                <li><i class="fa fa-plus-square-o"></i><a href="/nodes/add">Add</a></li>
+
+
+                              </ul>
+                          </li>-->
+                          <!--
+                          <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
+                          -->
+                            <a href="{{BuildURI "/nodes"}}" class="link hover"> <i class="menu-icon fa fa-sitemap"></i> Nodes </a>
+                        <!--  <li class="menu-item-has-children dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-cloud"></i>Namespaces</a>
+                              <ul class="sub-menu children dropdown-menu">
+                                  <li><i class="ti ti-view-list-alt"></i><a href="/namespaces">List</a></li>
+                              </ul>
+                          </li> -->
+                            <a href="{{BuildURI "/namespaces"}}" class="link hover"> <i class="menu-icon fa fa-cloud"></i> Namespaces </a>
+                    </div>
+                </div>
+
+
+                  <div class="col-sm-5 ">
                       <div class="user-area dropdown float-right">
 
                         {{if eq .LoggedUserName ""}}

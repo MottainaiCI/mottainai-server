@@ -1,3 +1,42 @@
+/* Style the navigation bar */
+.menunavbar {
+  /*width: 100%;
+  background-color: #eee;
+  overflow: auto;*/
+}
+
+/* Navbar links */
+.menunavbar .link {
+  float: left;
+  text-align: center;
+}
+
+.menunavbar .hover {
+  float: left;
+  text-align: center;
+  padding: 12px;
+  color: black;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+/* Navbar links on mouse-over */
+.menunavbar .hover:hover {
+  background-color: #eee;
+}
+
+/* Current/active navbar link */
+.menunavbar .active {
+  /*background-color: #4CAF50;*/
+}
+
+/* Add responsiveness - will automatically display the navbar vertically instead of horizontally on screens less than 500 pixels
+@media screen and (max-width: 500px) {
+  .menunavbar a {
+    float: none;
+    display: block;
+  }
+} */
 /* This css file is to over write bootstarp css
 --------------------------------------------------------- /
 * Theme Name: Sufee-Admin Admin Template
