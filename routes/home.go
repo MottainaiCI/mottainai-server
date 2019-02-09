@@ -43,6 +43,7 @@ import (
 	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
 	tokenroute "github.com/MottainaiCI/mottainai-server/routes/token"
 
+	"github.com/MottainaiCI/mottainai-server/routes/plans"
 	"github.com/MottainaiCI/mottainai-server/routes/webhook"
 	macaron "gopkg.in/macaron.v1"
 
@@ -186,6 +187,7 @@ func Setup(m *macaron.Macaron) {
 	})
 
 	tasks.Setup(m)
+	plans.Setup(m)
 	nodesroute.Setup(m)
 	namespaceroute.Setup(m)
 	tokenroute.Setup(m)

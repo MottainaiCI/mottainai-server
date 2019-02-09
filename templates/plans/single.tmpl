@@ -1,0 +1,23 @@
+
+<table id="all-tasks" class="table">
+  {{template "plans/table_head" .}}
+  <tbody>
+    {{range .Plans}}
+      {{template "plans/row" .}}
+    {{end}}
+  </tbody>
+</table>
+<script src="{{BuildURI "/assets/js/lib/data-table/datatables.min.js"}}"></script>
+<script src="{{BuildURI "/assets/js/lib/data-table/dataTables.bootstrap.min.js"}}"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+ $.extend( true, $.fn.dataTable.defaults, { "language": { "search": "Filter (regex)" }, "bFilter": true, "oSearch": { "sSearch": "", "bRegex": true } });
+ $("time.timeago").timeago();
+ $("#all-tasks").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+ $('#all-tasks').DataTable( {"order": [[ 5, 'desc' ]]});
+ $("#taskuser-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+ $('#taskuser-data-table').DataTable({"order": [[ 5, 'desc' ]]});
+} );
+</script>

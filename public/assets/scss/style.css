@@ -21,7 +21,7 @@
 }
 
 /* Navbar links on mouse-over */
-.menunavbar .hover:hover {
+.menunavbar .hover:hover,.hoverusermenu:hover {
   background-color: #eee;
 }
 

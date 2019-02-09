@@ -1,18 +1,20 @@
 <div class="dropdown float-right">
-   <button class="btn bg-dark dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton" data-toggle="dropdown">
+   <button class="btn btn-sm bg-dark dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton" data-toggle="dropdown">
        <i class="fa fa-cog"></i>
    </button>
    <div class="dropdown-menu bg-dark" aria-labelledby="dropdownMenuButton">
+     <h6 class="dropdown-header"><i class="fa fa-cog"></i> User options</h6>
+
        <div class="dropdown-menu-content ">
 
-         <a href="{{BuildURI "/user/delete/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
           <hr>
-          <a href="{{BuildURI "/user/set/admin/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-rocket"></i>&nbsp; Make admin</button></a>
-          <a href="{{BuildURI "/user/unset/admin/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove admin</button></a>
+          <a href="{{BuildURI "/user/set/admin/"}}{{.ID}}"><button type="button" class="btn-dark btn btn-sm btn-block"><i class="fa fa-rocket"></i>&nbsp; Make admin</button></a>
+          <a href="{{BuildURI "/user/unset/admin/"}}{{.ID}}"><button type="button" class="btn-dark btn btn-sm btn-block"><i class="ti-close"></i>&nbsp; Remove admin</button></a>
           <hr>
-          <a href="{{BuildURI "/user/set/manager/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="fa fa-shield"></i>&nbsp; Make manager</button></a>
-          <a href="{{BuildURI "/user/unset/manager/"}}{{.ID}}"><button type="button" class="btn btn-dark btn-lg btn-block"><i class="ti-close"></i>&nbsp; Remove manager</button></a>
-
+          <a href="{{BuildURI "/user/set/manager/"}}{{.ID}}"><button type="button" class="btn-dark btn btn-sm btn-block"><i class="fa fa-shield"></i>&nbsp; Make manager</button></a>
+          <a href="{{BuildURI "/user/unset/manager/"}}{{.ID}}"><button type="button" class="btn-dark btn btn-sm btn-block"><i class="ti-close"></i>&nbsp; Remove manager</button></a>
+          <hr>
+          <a href="{{BuildURI "/user/delete/"}}{{.ID}}"><button type="button" class="btn-dark btn btn-sm btn-block"><i class="fa fa-trash"></i>&nbsp; Delete</button></a>
        </div>
    </div>
 </div>

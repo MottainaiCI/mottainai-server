@@ -22,6 +22,7 @@
                         -->
 
                             <a href="{{BuildURI "/tasks"}}" class="link hover"> <i class="menu-icon fa fa-tasks"></i> Tasks </a>
+                            <a href="{{BuildURI "/plans"}}" class="link hover"> <i class="menu-icon fa fa-clock-o"></i> Plans </a>
 
                         <!--  <li class="menu-item-has-children dropdown">
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-sitemap"></i>Nodes</a>
@@ -48,24 +49,30 @@
 
 
                   <div class="col-sm-5 ">
+
+
                       <div class="user-area dropdown float-right">
 
                         {{if eq .LoggedUserName ""}}
                           <a class="nav-link" href="{{BuildURI "/user/login"}}"><i class="fa fa-user"></i> Login</a>
                         {{else}}
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <img class="user-avatar rounded-circle" src="{{GenAvatar .LoggedUserName 32}}" alt="Avatar"><i class="fa fa-arrow-down"></i>
+                          </a>
+
+                          <div class="user-menu dropdown-menu">
+                            <a class="nav-link hoverusermenu"  href="{{BuildURI "/user/show/"}}{{.LoggedUserID}}">
                               {{if eq .IsAdmin "yes"}}
                               <i class="fa fa-rocket"></i>
                               {{else}}
                               <i class="fa fa-user"></i>
-                              {{end}} {{.LoggedUserName}}
-                          </a>
-
-                          <div class="user-menu dropdown-menu">
-                            {{if .IsManagerOrAdmin}}<a class="nav-link" href="{{BuildURI "/user/list"}}"><i class="fa fa-users"></i> List</a>{{end}}
-                              <a class="nav-link"  href="{{BuildURI "/token"}}"> <i class="fa fa-key"></i>Access tokens</a>
-                              <a class="nav-link"  href="{{BuildURI "/user/show/"}}{{.LoggedUserID}}"> <i class="fa fa-user"></i>Profile</a>
-                              <a class="nav-link" href="{{BuildURI "/user/logout"}}"><i class="fa fa-power-off"></i> Logout</a>
+                              {{end}}
+                              {{.LoggedUserName}}
+                            </a>
+                            <hr>
+                            {{if .IsManagerOrAdmin}}<a class="nav-link hoverusermenu" href="{{BuildURI "/user/list"}}"><i class="fa fa-users"></i> User List</a>{{end}}
+                              <a class="nav-link hoverusermenu"  href="{{BuildURI "/token"}}"> <i class="fa fa-key"></i> API keys</a>
+                              <a class="nav-link hoverusermenu" href="{{BuildURI "/user/logout"}}"><i class="fa fa-power-off"></i> Logout</a>
                           </div>
                         {{end}}
                       </div>

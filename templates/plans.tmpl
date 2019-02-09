@@ -1,0 +1,18 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+<div class="col-lg-12">
+   <div class="card">
+       <div class="card-header">
+          <strong class="card-title">Plans list</strong>
+       </div>
+       <div class="card-body">
+
+        {{template "plans/single" .}}
+
+       </div>
+   </div>
+</div>
+<!-- /# column -->
+
+{{template "base/footer" .}}

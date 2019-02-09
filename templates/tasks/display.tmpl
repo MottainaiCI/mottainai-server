@@ -112,6 +112,7 @@
 
 
 <div class="breadcrumbs">
+
     <div class="col-sm-4">
         <div class="page-header float-left">
             <div class="page-title">
@@ -119,6 +120,7 @@
             </div>
         </div>
     </div>
+
     <div class="col-sm-8">
         <div class="page-header float-right">
             <div class="page-title">
@@ -128,6 +130,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 
@@ -161,10 +164,11 @@
                                                 <i class="align-self-center rounded-circle mr-3  fa fa-info text-light"></i>
                                               </a>
                                               <div class="media-body">
-                                                  <h4 class="text-light display-6">{{if .Task.Source}}Source repository: {{.Task.Source}}{{end}} <span class="pull-right">{{if .Task.Directory}}Directory: {{.Task.Directory}}{{end}}</span></h4>
+                                                  <h4 class="text-light display-6">{{if .Task.Source}}Source repository: {{.Task.Source}}{{end}}
+                                                  <span class="pull-right">{{if .Task.Directory}}Directory: {{.Task.Directory}}{{end}}</span></h4>
+                                                  {{template "tasks/action" .Task}}
                                               </div>
                                           </div>
-                                          {{template "tasks/action" .Task}}
                                       </div>
 
 

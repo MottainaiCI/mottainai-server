@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2019  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -70,11 +70,11 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 	return docID, nil
 }
 
-func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
-	id := ctx.Params(":id")
+func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ctx *context.Context) error {
 	plan, err := db.Driver.GetPlan(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
+		return err
 	}
 
 	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) || !ctx.CheckPlanPermissions(&plan) {
@@ -88,4 +88,9 @@ func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Datab
 
 	m.ReloadCron()
 	return nil
+}
+
+func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
+	id := ctx.Params(":id")
+	return PlanDeleteById(id, db, m, ctx)
 }
