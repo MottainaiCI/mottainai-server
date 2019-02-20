@@ -106,8 +106,8 @@ func NewFetcher(docID string, config *setting.Config) *Fetcher {
 func NewBasicClient(config *setting.Config) *Fetcher {
 	// Basic constructor
 	f := &Fetcher{Config: config, ChunkSize: 512}
-	if len(config.TLSCert) > 0 {
-		f.TrustedCert = config.TLSCert
+	if len(config.GetGeneral().TLSCert) > 0 {
+		f.TrustedCert = config.GetGeneral().TLSCert
 	}
 	return f
 }

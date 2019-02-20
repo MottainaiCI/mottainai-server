@@ -268,8 +268,9 @@ func (m *Mottainai) Start() error {
 
 		//m.Run()
 		var err error
-		if len(config.TLSCert) > 0 && len(config.TLSKey) > 0 {
-			err = http.ListenAndServeTLS(m.listenAddr(), config.TLSCert, config.TLSKey, m)
+		if len(config.GetGeneral().TLSCert) > 0 && len(config.GetGeneral().TLSKey) > 0 {
+			err = http.ListenAndServeTLS(m.listenAddr(),
+				config.GetGeneral().TLSCert, config.GetGeneral().TLSKey, m)
 		} else {
 			err = http.ListenAndServe(m.listenAddr(), m)
 		}

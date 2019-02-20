@@ -38,8 +38,8 @@ func New() *Logger { return &Logger{Logger: logrus.New()} }
 
 func (l *Logger) SetupWithConfig(defaultLogger bool, config *setting.Config) {
 	l.Setup(defaultLogger)
-	if len(config.LogLevel) > 0 {
-		switch config.LogLevel {
+	if len(config.GetGeneral().LogLevel) > 0 {
+		switch config.GetGeneral().LogLevel {
 		case "info":
 			l.SetLevel(logrus.InfoLevel)
 		case "warn":

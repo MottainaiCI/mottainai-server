@@ -152,16 +152,18 @@ type AgentConfig struct {
 	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path"`
 }
 
+type GeneralConfig struct {
+	Debug    bool   `mapstructure:"debug"`
+	LogFile  string `mapstructure:"logfile"`
+	LogLevel string `mapstructure:"loglevel"`
+	TLSCert  string `mapstructure:"tls_cert"`
+	TLSKey   string `mapstructure:"tls_key"`
+}
+
 type Config struct {
 	Viper *v.Viper
 
-	// General pameter
-	Debug    bool   `mapstructure:"general.debug"`
-	LogFile  string `mapstructure:"general.logfile"`
-	LogLevel string `mapstructure:"general.loglevel"`
-	TLSCert  string `mapstructure:"general.tls_cert"`
-	TLSKey   string `mapstructure:"general.tls_key"`
-
+	General  GeneralConfig  `mapstructure:"general"`
 	Web      WebConfig      `mapstructure:"web"`
 	Storage  StorageConfig  `mapstructure:"storage"`
 	Database DatabaseConfig `mapstructure:"db"`
@@ -187,6 +189,10 @@ func (c *Config) GetBroker() *BrokerConfig {
 
 func (c *Config) GetAgent() *AgentConfig {
 	return &c.Agent
+}
+
+func (c *Config) GetGeneral() *GeneralConfig {
+	return &c.General
 }
 
 func (c *Config) GenDefault() {
@@ -279,7 +285,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("general.tls_key", "")
 	viper.SetDefault("general.debug", false)
 	viper.SetDefault("general.logfile", "")
-	viper.SetDefault("general.loglevel", "")
+	viper.SetDefault("general.loglevel", "info")
 }
 
 func (c *Config) Unmarshal() error {
@@ -388,9 +394,9 @@ web:
   listenaddress: %s
   port: %s
   application_name: %s
-	application_branding_logo: %s
-	application_branding_logo_small: %s
-	application_branding_favicon: %s
+  application_branding_logo: %s
+  application_branding_logo_small: %s
+  application_branding_favicon: %s
 
   application_url: %s
 
@@ -405,7 +411,7 @@ web:
   github_secret: %s
   webhook_token: %s
 
-	lock_path: %s
+  lock_path: %s
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
@@ -438,8 +444,8 @@ storage:
 func (c *DatabaseConfig) String() string {
 	var ans string = fmt.Sprintf(`
 db:
-engine: %s
-db_path: %s
+  engine: %s
+  db_path: %s
 `,
 		c.DBEngine, c.DBPath)
 
@@ -462,19 +468,19 @@ broker:
   exchange_type: %s
   binding_key: %s
 
-	// Redis only
-	max_idle: %d
-	max_active: %d
-	max_idle_timeout: %d
-	wait: %v
-	read_timeout: %d
-	write_timeout: %d
-	connect_timeout: %d
-	delayed_tasks_poll_period: %d
+  // Redis only
+  max_idle: %d
+  max_active: %d
+  idle_timeout: %d
+  wait: %v
+  read_timeout: %d
+  write_timeout: %d
+  connect_timeout: %d
+  delayed_tasks_poll_period: %d
 
-	// DynamoDB only
-	task_states_table: %s
-	group_metas_table: %s
+  // DynamoDB only
+  task_states_table: %s
+  group_metas_table: %s
 `,
 		c.HandleSignal, c.Type, c.ResultsExpireIn, c.Broker,
 		c.BrokerDefaultQueue, c.BrokerResultBackend,
@@ -501,7 +507,7 @@ agent:
   download_speed_limit: %d
   upload_speed_limit: %d
   queues: %v
-	upload_chunk_size: %d
+  upload_chunk_size: %d
 
   docker_endpoint: %s
   docker_keepimg: %t
@@ -538,6 +544,21 @@ agent:
 	return ans
 }
 
+func (c *GeneralConfig) String() string {
+	var ans string = fmt.Sprintf(`
+general:
+  debug: %t
+  logfile: %s
+  loglevel: %s
+  tls_cert: %s
+  tls_key: ***********************
+`,
+		c.Debug, c.LogFile, c.LogLevel,
+		c.TLSCert)
+
+	return ans
+}
+
 func (c *Config) String() string {
 	// TODO: Currently I don't find a way to create a json from
 	//       with viper to a io.Writer (or string)
@@ -552,19 +573,14 @@ configfile: %s
 
 %s
 
-debug: %t
-logfile: %s
-loglevel: %s
-tls_cert: %s
-tls_key: ***********************
+%s
 `,
 		c.Viper.Get("config"),
 		c.Web.String(),
 		c.Broker.String(),
 		c.Storage.String(),
 		c.Agent.String(),
-		c.Debug, c.LogFile, c.LogLevel,
-		c.TLSCert)
+		c.General.String())
 
 	return ans
 }
