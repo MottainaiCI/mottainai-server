@@ -26,6 +26,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -57,11 +58,14 @@ func initConfig(config *s.Config) {
 
 	config.Viper.AutomaticEnv()
 
+	// Create EnvKey Replacer for handle complex structure
+	replacer := strings.NewReplacer(".", "__")
+	config.Viper.SetEnvKeyReplacer(replacer)
+
 	// Set config file name (without extension)
 	config.Viper.SetConfigName(s.MOTTAINAI_CONFIGNAME)
 
 	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
 }
 
 func initCommand(rootCmd *cobra.Command, config *s.Config) {
