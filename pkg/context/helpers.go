@@ -66,6 +66,17 @@ func (c *Context) CheckUser() bool {
 	return false
 }
 
+func (c *Context) CheckUserOrManager() bool {
+	if c.User == nil {
+		return false
+	}
+
+	if c.User.IsManagerOrAdmin() {
+		return true
+	}
+	return false
+}
+
 func (c *Context) CheckTaskPermissions(task *task.Task) bool {
 	if !c.CheckUser() {
 		return false
