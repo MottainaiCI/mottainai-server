@@ -1,0 +1,49 @@
+version: '3'
+services:
+  mottainai:
+    image: mottainaici/server
+    environment:
+      - MOTTAINAI_BROKER__TYPE=redis
+      - MOTTAINAI_BROKER__BROKER=redis://redis:6379/1
+      - MOTTAINAI_BROKER__RESULT_BACKEND=redis://redis:6379/2
+      - MOTTAINAI_BROKER__DEFAULT_QUEUE=standard
+      - MOTTAINAI_BROKER__EXCHANGE=jobs
+      - MOTTAINAI_WEB__LISTENADDRESS=0.0.0.0
+      - MOTTAINAI_WEB__ROOT_PATH=/var/lib/mottainai/
+    ports:
+      - 0.0.0.0:4545:9090
+    networks:
+      - redis-net
+    depends_on:
+      - redis
+    command: ["web"]
+    restart: unless-stopped
+    volumes:
+    # For static config:
+    #- ./mottainai-server.yaml:/etc/mottainai/mottainai-server.yaml
+    - mottainai-db:/srv/mottainai/web/db
+    - mottainai-artifacts:/srv/mottainai/web/artefact
+    - mottainai-namespaces:/srv/mottainai/web/namespaces
+    - mottainai-storages:/srv/mottainai/web/storage
+
+  redis:
+    image: redis:4.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - redis-net
+    volumes:
+      - redis-data:/data
+
+networks:
+  redis-net:
+
+volumes:
+  redis-data:
+  mottainai-db:
+  mottainai-artifacts:
+  mottainai-namespaces:
+  mottainai-storages:
