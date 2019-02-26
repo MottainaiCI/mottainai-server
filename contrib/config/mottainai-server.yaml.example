@@ -264,4 +264,8 @@ agent:
   #    Define binary tool used by LXD for create image from container.
   #    Instead of use xz could be better pxz that use multiple cores for compression.
   #    compression_algorithm: "none"
+  #
+  #    Define number of seconds before wait for LXD operations.
+  #    Workaround used on ARM devices. Default is 1.
+  #    wait_sleep: "5"
   # ----------------------------------

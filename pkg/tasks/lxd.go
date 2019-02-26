@@ -29,6 +29,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	//"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -281,6 +283,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	var res int
 	res, err = l.ExecCommand(containerName, execute_script, targetWorkDir, &task_info)
 	if err != nil || res != 0 {
+		l.Report("Error on exec command: " + err.Error())
 		return 1, err
 	}
 
@@ -307,6 +310,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		// Stop container for create image.
 		err = l.DoAction2Container(containerName, "stop")
 		if err != nil {
+			l.Report("Error on stop container: " + err.Error())
 			return 1, err
 		}
 
@@ -455,7 +459,7 @@ func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *Task) (
 		return "", err
 	}
 
-	err = l.CurrentLocalOperation.Wait()
+	err = l.waitOperation(nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -493,6 +497,7 @@ func (l *LxdExecutor) CleanUpContainer(containerName string, task *Task) error {
 
 	err = l.DoAction2Container(containerName, "stop")
 	if err != nil {
+		l.Report("Error on stop container: " + err.Error())
 		return err
 	}
 
@@ -500,6 +505,7 @@ func (l *LxdExecutor) CleanUpContainer(containerName string, task *Task) error {
 		// Delete container
 		l.CurrentLocalOperation, err = l.LxdClient.DeleteContainer(containerName)
 		if err != nil {
+			l.Report("Error on delete container: " + err.Error())
 			return err
 		}
 	}
@@ -567,7 +573,7 @@ func (l *LxdExecutor) LaunchContainer(name, fingerprint string, cachedImage bool
 		return err
 	}
 
-	err = lxd_utils.CancelableWait(l.RemoteOperation, &progress)
+	err = l.waitOperation(nil, &progress)
 	if err != nil {
 		progress.Done("")
 		return err
@@ -638,7 +644,7 @@ func (l *LxdExecutor) DoAction2Container(name, action string) error {
 		return err
 	}
 
-	err = l.CurrentLocalOperation.Wait()
+	err = l.waitOperation(nil, &progress)
 	progress.Done("")
 	if err != nil {
 		l.CurrentLocalOperation = nil
@@ -801,7 +807,7 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 		return err
 	}
 
-	err = lxd_utils.CancelableWait(l.RemoteOperation, &progress)
+	err = l.waitOperation(nil, &progress)
 	progress.Done("")
 	l.RemoteOperation = nil
 	if err != nil {
@@ -1071,6 +1077,7 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 		if err != nil {
 			return err
 		}
+
 		defer f.Close()
 
 		err = os.Chmod(target, os.FileMode(resp.Mode))
@@ -1183,18 +1190,22 @@ func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *
 		DataDone: make(chan bool),
 	}
 
+	var err error
 	// Run the command in the container
-	op, err := l.LxdClient.ExecContainer(nameContainer, req, &execArgs)
+	l.CurrentLocalOperation, err = l.LxdClient.ExecContainer(nameContainer, req, &execArgs)
 	if err != nil {
+		l.Report("Error on exec command: " + err.Error())
 		return 1, err
 	}
 
 	// Wait for the operation to complete
-	err = op.Wait()
+	err = l.waitOperation(nil, nil)
 	if err != nil {
+		l.Report("Erro on waiting execution of commands: " + err.Error())
 		return 1, err
 	}
-	opAPI := op.Get()
+	opAPI := l.CurrentLocalOperation.Get()
+	l.CurrentLocalOperation = nil
 
 	// Wait for any remaining I/O to be flushed
 	<-execArgs.DataDone
@@ -1277,4 +1288,48 @@ func (l *LxdExecutor) GetContainerName(task *Task) string {
 	}
 
 	return ans
+}
+
+func (l *LxdExecutor) waitOperation(rawOp interface{}, p *lxd_utils.ProgressRenderer) error {
+
+	var op interface{} = rawOp
+	var err error = nil
+
+	// NOTE: currently on ARM we have a weird behavior where the process that waits
+	//       for LXD operation often remain blocked. It seems related to a concurrency
+	//       problem on initializing Golang channel.
+	//       As a workaround, I sleep some seconds before waiting for a response.
+
+	// Retrieve value of sleep before waiting execution of the operation.
+	sec, okType := l.Config.GetAgent().LxdCacheRegistry["wait_sleep"]
+	if !okType || sec == "" {
+		// By default I wait for 1 seconds.
+		time.Sleep(1000 * time.Millisecond)
+	} else if i, e := strconv.Atoi(sec); e == nil && i > 0 {
+		duration, err := time.ParseDuration(fmt.Sprintf("%ds", i))
+		if err == nil {
+			time.Sleep(duration)
+		}
+	}
+
+	// TODO: Verify if could be a valid idea permit to use wait not cancelable.
+	// err = op.Wait()
+
+	if rawOp == nil {
+		if l.CurrentLocalOperation != nil {
+			op = l.CurrentLocalOperation
+		} else if l.RemoteOperation != nil {
+			op = l.RemoteOperation
+		} else {
+			l.Report("WARN: No operations found.")
+		}
+	}
+
+	if p != nil {
+		err = lxd_utils.CancelableWait(op, p)
+	} else {
+		err = lxd_utils.CancelableWait(op, nil)
+	}
+
+	return err
 }
