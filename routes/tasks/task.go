@@ -51,6 +51,9 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/tasks/delete/:id", reqSignIn, Delete)
 			m.Get("/tasks/clone/:id", reqSignIn, Clone)
 
+			m.Get("/pipeline/:id", reqSignIn, DisplayPipeline)
+			m.Get("/pipelines", reqSignIn, DisplayAllPipelines)
+
 			//Public
 			m.Get("/tasks/display/:id", reqSignIn, DisplayTask)
 			m.Get("/tasks/artefacts/:id", reqSignIn, ShowArtefacts)

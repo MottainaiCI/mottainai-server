@@ -1,0 +1,82 @@
+{{template "base/head" .}}
+{{template "base/menu" .}}
+
+
+<div class="breadcrumbs">
+
+    <div class="col-sm-4">
+        <div class="page-header float-left">
+            <div class="page-title">
+                <h1>Pipeline {{.Pipeline.Name}}</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-8">
+        <div class="page-header float-right">
+            <div class="page-title">
+                <ol class="breadcrumb text-right">
+                    <li class="active">{{.Pipeline.ID}}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+                            <div class="col-md-12">
+                              <aside class="profile-nav alt">
+                                  <section class="card">
+                                      <div class="card-header user-header alt bg-dark">
+                                          <div class="media">
+                                            <a href="{{BuildURI "/pipelines"}}">
+                                                <i class="align-self-center rounded-circle mr-3  fa fa-info text-light"></i>
+                                              </a>
+                                              <div class="media-body">
+                                                  <h4 class="text-light display-6">Type: {{if .Pipeline.Chain}}Chain {{end}}{{if .Pipeline.Chord}}Chord {{end}}{{if .Pipeline.Group}}Group {{end}}pipeline
+                                              </div>
+                                          </div>
+                                      </div>
+
+
+                                      <ul class="list-group list-group-flush">
+                                        {{range .Pipeline.Tasks}}
+                                        <li class="list-group-item">
+                                                <a href="{{BuildURI "/tasks/display/"}}{{.ID}}">
+{{.Name}}
+                                            <span class="pull-right badge ">
+<i class="fa fa-tasks"></i>
+Task :
+
+                                          {{if eq .Status "running"}}
+                                              <i class="fa fa-circle-o-notch fa-spin font-info" aria-hidden="true"></i>
+                                              {{else if eq .Result "success"}}
+                                                  <i class="fa fa-check-circle font-success" aria-hidden="true"></i>
+                                                {{else if eq .Result "error"}}
+                                                  <i class="fa fa-exclamation-triangle font-warning" aria-hidden="true"></i>
+                                                  {{else if eq .Result "failed"}}
+                                                  <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                                                  {{else}}
+                                                  <i class="fa fa-question" aria-hidden="true"></i>
+                                                  {{end}}
+                                        <span class="badge" ><h6> {{.ID}} </h6></span>
+
+                                          </span>
+                                          </a>
+                                          </li>
+
+                                          {{end}}
+                                        </ul>
+
+                                  </section>
+                              </aside>
+                            </div>
+
+<!-- /# column -->
+
+
+
+{{template "base/footer" .}}

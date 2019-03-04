@@ -1,0 +1,20 @@
+
+<table id="all-pipelines" class="table">
+  {{template "pipelines/table_head" .}}
+  <tbody>
+    {{range .Pipelines}}
+      {{template "pipelines/row" .}}
+    {{end}}
+  </tbody>
+</table>
+<script src="{{BuildURI "/assets/js/lib/data-table/datatables.min.js"}}"></script>
+<script src="{{BuildURI "/assets/js/lib/data-table/dataTables.bootstrap.min.js"}}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+ $.extend( true, $.fn.dataTable.defaults, { "language": { "search": "Filter (regex)" }, "bFilter": true, "oSearch": { "sSearch": "", "bRegex": true } });
+ $("time.timeago").timeago();
+ $("#all-pipelines").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
+ $('#all-pipelines').DataTable( {"order": [[ 2, 'desc' ]]});
+} );
+</script>

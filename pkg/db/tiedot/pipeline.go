@@ -84,6 +84,17 @@ func (d *Database) UpdatePipeline(docID string, t map[string]interface{}) error 
 	return d.UpdateDoc(PipelinesColl, docID, t)
 }
 
+func (d *Database) UpdateLivePipelineData(config *setting.Config, pip *agenttasks.Pipeline) error {
+	for k, t := range pip.Tasks {
+		ta, err := d.GetTask(config, t.ID)
+		if err != nil {
+			return err
+		}
+		pip.Tasks[k] = ta
+	}
+	return nil
+}
+
 func (d *Database) GetPipeline(config *setting.Config, docID string) (agenttasks.Pipeline, error) {
 	doc, err := d.GetDoc(PipelinesColl, docID)
 	if err != nil {
@@ -93,6 +104,7 @@ func (d *Database) GetPipeline(config *setting.Config, docID string) (agenttasks
 
 	t := th.NewPipelineFromMap(doc)
 	t.ID = docID
+	//err = d.UpdateLivePipelineData(config, &t)
 	return t, err
 }
 

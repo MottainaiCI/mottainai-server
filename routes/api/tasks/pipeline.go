@@ -76,27 +76,36 @@ func ShowAllPipelines(ctx *context.Context, db *database.Database) {
 
 }
 
-func PipelineShow(ctx *context.Context, db *database.Database) error {
-	id := ctx.Params(":id")
-	pip, err := db.Driver.GetPipeline(db.Config, id)
+func APIPipelineShow(ctx *context.Context, db *database.Database) error {
+	pip, err := PipelineShow(ctx, db)
 	if err != nil {
 		return err
 	}
 
+	ctx.JSON(200, pip)
+	return nil
+}
+
+func PipelineShow(ctx *context.Context, db *database.Database) (*task.Pipeline, error) {
+	id := ctx.Params(":id")
+	pip, err := db.Driver.GetPipeline(db.Config, id)
+	if err != nil {
+		return &task.Pipeline{}, err
+	}
+
 	if !ctx.CheckPipelinePermissions(&pip) {
-		return errors.New("Moar permissions are required for this user")
+		return &task.Pipeline{}, errors.New("Moar permissions are required for this user")
 	}
 
 	for k, t := range pip.Tasks {
 		ta, err := db.Driver.GetTask(db.Config, t.ID)
 		if err != nil {
-			return err
+			return &task.Pipeline{}, err
 		}
 		pip.Tasks[k] = ta
 	}
 
-	ctx.JSON(200, pip)
-	return nil
+	return &pip, nil
 }
 
 func PipelineYaml(ctx *context.Context, db *database.Database) string {
