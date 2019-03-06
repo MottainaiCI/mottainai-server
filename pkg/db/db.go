@@ -140,6 +140,7 @@ type DatabaseDriver interface {
 	AllTasks(config *setting.Config) []agenttasks.Task
 	AllUserTask(config *setting.Config, id string) ([]agenttasks.Task, error)
 	AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error)
+	GetTaskByStatus(*setting.Config, string) ([]agenttasks.Task, error)
 
 	// Token
 	InsertToken(t *token.Token) (string, error)

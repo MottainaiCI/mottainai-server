@@ -65,6 +65,31 @@ func GetTaskJson(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, task)
 }
 
+func APIShowTaskByStatus(ctx *context.Context, db *database.Database) {
+	ctx.JSON(200, ShowTaskByStatus(ctx, db))
+}
+
+// TODO: We shouldn't have queries here but in the db interface
+func ShowTaskByStatus(ctx *context.Context, db *database.Database) []task.Task {
+
+	status := ctx.Params(":status")
+	tasks, e := db.Driver.GetTaskByStatus(db.Config, status)
+	if e != nil {
+		return []task.Task{}
+	}
+	var res []task.Task
+
+	// Query result are document IDs
+	for _, task := range tasks {
+		// Read document
+
+		if ctx.CheckUserOrManager() || ctx.CheckTaskPermissions(&task) {
+			res = append(res, task)
+		}
+	}
+	return res
+}
+
 func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 	id := ctx.Params(":id")
 	pos := ctx.ParamsInt(":pos")

@@ -60,7 +60,7 @@
                 $(document).ready(function() {
                   $("time.timeago").timeago();
                   $("#node-list-all").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
-                  $('#node-list-all').DataTable();
+                  $('#node-list-all').DataTable({ stateSave: true, stateDuration: -1 });
                 } );
             </script>
 

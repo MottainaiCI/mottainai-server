@@ -369,7 +369,7 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#artefacts-table').DataTable();
+  $('#artefacts-table').DataTable({ stateSave: true, stateDuration: -1});
   $("time.timeago").timeago();
  $.ajax({
    url: "{{BuildURI "/api/tasks/"}}{{.Task.ID}}",

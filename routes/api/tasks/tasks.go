@@ -48,6 +48,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
 			m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)
 			m.Get("/api/tasks/clone/:id", reqSignIn, CloneTask)
+			m.Get("/api/tasks/status/:status", reqSignIn, APIShowTaskByStatus)
 
 			m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
 			m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)

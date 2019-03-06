@@ -15,6 +15,6 @@ $(document).ready(function() {
  $.extend( true, $.fn.dataTable.defaults, { "language": { "search": "Filter (regex)" }, "bFilter": true, "oSearch": { "sSearch": "", "bRegex": true } });
  $("time.timeago").timeago();
  $("#all-pipelines").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
- $('#all-pipelines').DataTable( {"order": [[ 2, 'desc' ]]});
+ $('#all-pipelines').DataTable( {"order": [[ 2, 'desc' ]], stateSave: true, stateDuration: -1});
 } );
 </script>

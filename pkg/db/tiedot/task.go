@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"errors"
 	"strconv"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
@@ -94,6 +95,47 @@ func (d *Database) GetTask(config *setting.Config, docID string) (agenttasks.Tas
 	t := th.NewTaskFromMap(doc)
 	t.ID = docID
 	return t, err
+}
+
+func (d *Database) GetTaskByStatus(config *setting.Config, status string) ([]agenttasks.Task, error) {
+	var res []agenttasks.Task
+
+	var query string
+	switch status {
+	case "running":
+		query = `[{"eq": "running", "in": ["status"]}]`
+	case "waiting":
+		query = `[{"eq": "waiting", "in": ["status"]}]`
+	case "stop":
+		query = `[{"eq": "stop", "in": ["status"]}]`
+	case "stopped":
+		query = `[{"eq": "stopped", "in": ["status"]}]`
+	case "error":
+		query = `[{"eq": "error", "in": ["result"]}]`
+	case "failed":
+		query = `[{"eq": "failed", "in": ["result"]}]`
+	case "success":
+		query = `[{"eq": "success", "in": ["result"]}]`
+	default:
+		return res, errors.New("No valid status supplied")
+	}
+
+	queryResult, e := d.FindDoc(TaskColl, query)
+	if e != nil {
+		return res, e
+	}
+
+	// Query result are document IDs
+	for docid := range queryResult {
+		// Read document
+		t, err := d.GetTask(config, docid)
+		if err != nil {
+			return []agenttasks.Task{}, err
+		}
+		res = append(res, t)
+
+	}
+	return res, nil
 }
 
 func (d *Database) GetTaskArtefacts(id string) ([]artefact.Artefact, error) {

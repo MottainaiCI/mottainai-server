@@ -3,9 +3,12 @@
 
         <div class="content mt-3">
 
+          <div class="row">
+
           <div class="col-xl-3 col-lg-6">
                 <div class="card">
                     <div class="card-body">
+                      <a href="{{BuildURI "/tasks/status/running"}}" target="_blank">
                         <div class="stat-widget-one">
                             <div class="stat-icon dib"><i class="fa  fa-play-circle text-primary border-primary"></i></div>
                             <div class="stat-content dib">
@@ -13,6 +16,7 @@
                                 <div class="stat-digit">{{.RunningTasks}}</div>
                             </div>
                         </div>
+                      </a>
                     </div>
                 </div>
             </div>
@@ -20,6 +24,7 @@
             <div class="col-xl-3 col-lg-6">
                 <div class="card">
                     <div class="card-body">
+                      <a href="{{BuildURI "/tasks"}}" target="_blank">
                         <div class="stat-widget-one">
                             <div class="stat-icon dib"><i class="fa fa-bars text-dark border-dark"></i></div>
                             <div class="stat-content dib">
@@ -27,6 +32,7 @@
                                 <div class="stat-digit">{{.TotalTasks}}</div>
                             </div>
                         </div>
+                      </a>
                     </div>
                 </div>
             </div>
@@ -34,6 +40,7 @@
             <div class="col-xl-3 col-lg-6">
                 <div class="card">
                     <div class="card-body">
+                      <a href="{{BuildURI "/tasks/status/error"}}" target="_blank">
                         <div class="stat-widget-one">
                             <div class="stat-icon dib"><i class="fa fa-times-circle-o text-danger border-danger"></i></div>
                             <div class="stat-content dib">
@@ -41,6 +48,7 @@
                                 <div class="stat-digit">{{.ErroredTasks}}</div>
                             </div>
                         </div>
+                      </a>
                     </div>
                 </div>
             </div>
@@ -48,6 +56,7 @@
             <div class="col-xl-3 col-lg-6">
                 <div class="card">
                     <div class="card-body">
+                      <a href="{{BuildURI "/tasks/status/waiting"}}" target="_blank">
                         <div class="stat-widget-one">
                             <div class="stat-icon dib"><i class="fa fa-pause text-warning border-warning"></i></div>
                             <div class="stat-content dib">
@@ -55,10 +64,46 @@
                                 <div class="stat-digit">{{.WaitingTasks}}</div>
                             </div>
                         </div>
+                      </a>
                     </div>
                 </div>
             </div>
 
+            <div class="col-xl-3 col-lg-6">
+                  <div class="card">
+                      <div class="card-body">
+                        <a href="{{BuildURI "/tasks/status/stopped"}}" target="_blank">
+                          <div class="stat-widget-one">
+                              <div class="stat-icon dib"><i class="fa  fa-stop-circle text-secondary border-secondary"></i></div>
+                              <div class="stat-content dib">
+                                  <div class="stat-text">Tasks stopped</div>
+                                  <div class="stat-digit">{{.StoppedTasks}}</div>
+                              </div>
+                          </div>
+                        </a>
+                      </div>
+                  </div>
+              </div>
+
+            <div class="col-xl-3 col-lg-6">
+                  <div class="card">
+                      <div class="card-body">
+                        <a href="{{BuildURI "/tasks/status/stop"}}" target="_blank">
+                          <div class="stat-widget-one">
+                              <div class="stat-icon dib"><i class="fa  fa-pause-circle text-muted border-dark"></i></div>
+                              <div class="stat-content dib">
+                                  <div class="stat-text">Tasks being stopped right now</div>
+                                  <div class="stat-digit">{{.InStopTasks}}</div>
+                              </div>
+                          </div>
+                        </a>
+                      </div>
+                  </div>
+              </div>
+
+            </div>
+
+            <div class="row">
 
             <div class="col-sm-6 col-lg-3">
                       <div class="card text-white bg-flat-color-2">
@@ -68,28 +113,34 @@
                               </h4>
                               <p class="text-light">Created tasks</p>
 
-                              <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                              <div class="chart-wrapper px-0" style="height:70px;" height="70">
                                   <canvas id="dailychart"></canvas>
                               </div>
 
                           </div>
                       </div>
-                  </div>
+
+
+
+            </div>
                   <!--/.col-->
 
-                  <div class="col-sm-6 col-lg-3">
+                <div class="col-sm-6 col-lg-3">
                             <div class="card text-white bg-flat-color-5">
+                              <a href="{{BuildURI "/tasks/status/success"}}" target="_blank">
+
                                 <div class="card-body pb-0">
                                     <h4 class="mb-0">
                                         <span class="count">{{.SucceededTasks}}</span>
                                     </h4>
-                                    <p class="text-light">Succeeded tasks</p>
-
-                                    <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                      <p class="text-light">Succeeded tasks</p>
+                                    <div class="chart-wrapper px-0" style="height:70px;" height="70">
                                         <canvas id="succeededchart"></canvas>
                                     </div>
 
                                 </div>
+                              </a>
+
                             </div>
                         </div>
                         <!--/.col-->
@@ -97,15 +148,17 @@
                   <div class="col-sm-6 col-lg-3">
                             <div class="card text-white bg-flat-color-4">
                                 <div class="card-body pb-0">
+                                  <a href="{{BuildURI "/tasks/status/failed"}}" target="_blank">
+
                                     <h4 class="mb-0">
                                         <span class="count">{{.FailedTasks}}</span>
                                     </h4>
                                     <p class="text-light">Failed tasks</p>
 
-                                    <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
+                                    <div class="chart-wrapper px-0" style="height:70px;" height="70">
                                         <canvas id="failedchart"></canvas>
                                     </div>
-
+                                  </a>
                                 </div>
                             </div>
                         </div>
@@ -114,6 +167,8 @@
                         <div class="col-sm-6 col-lg-3">
                                   <div class="card text-white bg-flat-color-4">
                                       <div class="card-body pb-0">
+                                        <a href="{{BuildURI "/tasks/status/error"}}" target="_blank">
+
                                           <h4 class="mb-0">
                                               <span class="count">{{.ErroredTasks}}</span>
                                           </h4>
@@ -122,12 +177,12 @@
                                           <div class="chart-wrapper px-0" style="height:70px;" height="70"/>
                                               <canvas id="erroredchart"></canvas>
                                           </div>
-
+                                          </a>
                                       </div>
                                   </div>
                               </div>
                               <!--/.col-->
-
+</div>
 
             <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
 

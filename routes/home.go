@@ -146,39 +146,51 @@ func Setup(m *macaron.Macaron) {
 				return nil
 			})
 			m.Get("/", func(ctx *context.Context, db *database.Database) error {
-				rtasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+				rtasks, e := db.Driver.GetTaskByStatus(db.Config, "running")
 				if e != nil {
 					return e
 				}
 				running_tasks := len(rtasks)
-				wtasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+				wtasks, e := db.Driver.GetTaskByStatus(db.Config, "waiting")
 				if e != nil {
 					return e
 				}
 				waiting_tasks := len(wtasks)
-				etasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+				etasks, e := db.Driver.GetTaskByStatus(db.Config, "error")
 				if e != nil {
 					return e
 				}
 				error_tasks := len(etasks)
-				ftasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+				ftasks, e := db.Driver.GetTaskByStatus(db.Config, "failed")
 				if e != nil {
 					return e
 				}
 				failed_tasks := len(ftasks)
-				stasks, e := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+				stasks, e := db.Driver.GetTaskByStatus(db.Config, "success")
 				if e != nil {
 					return e
 				}
 				succeeded_tasks := len(stasks)
+				stoppedtasks, e := db.Driver.GetTaskByStatus(db.Config, "stopped")
+				if e != nil {
+					return e
+				}
+				instoptasks, e := db.Driver.GetTaskByStatus(db.Config, "stop")
+				if e != nil {
+					return e
+				}
+
+				stopped_tasks := len(stoppedtasks)
+				instop_tasks := len(instoptasks)
 
 				ctx.Data["TotalTasks"] = len(db.Driver.ListDocs("Tasks"))
-
 				ctx.Data["RunningTasks"] = running_tasks
 				ctx.Data["WaitingTasks"] = waiting_tasks
 				ctx.Data["ErroredTasks"] = error_tasks
 				ctx.Data["SucceededTasks"] = succeeded_tasks
 				ctx.Data["FailedTasks"] = failed_tasks
+				ctx.Data["StoppedTasks"] = stopped_tasks
+				ctx.Data["InStopTasks"] = instop_tasks
 
 				template.TemplatePreview(ctx, "index", db.Config)
 				return nil

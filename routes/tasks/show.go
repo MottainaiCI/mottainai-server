@@ -82,6 +82,15 @@ func DisplayTask(ctx *context.Context, db *database.Database) {
 	template.TemplatePreview(ctx, "tasks/display", db.Config)
 }
 
+// TODO: We shouldn't have queries here but in the db interface
+func ShowTaskByStatus(ctx *context.Context, db *database.Database) {
+
+	ctx.Data["Tasks"] = tasksapi.ShowTaskByStatus(ctx, db)
+	ctx.Data["Status"] = ctx.Params(":status")
+	template.TemplatePreview(ctx, "tasks/search", db.Config)
+
+}
+
 func ShowAll(ctx *context.Context, db *database.Database) {
 	all, mine := tasksapi.All(ctx, db)
 

@@ -16,6 +16,6 @@ $(document).ready(function() {
 
  $("time.timeago").timeago();
  $("#taskuser-data-table").on('draw.dt', function(){ jQuery("time.timeago").timeago(); });
- $('#taskuser-data-table').DataTable({"order": [[ 4, 'desc' ]]});
+ $('#taskuser-data-table').DataTable({"order": [[ 4, 'desc' ]], stateSave: true, stateDuration: -1});
 } );
 </script>
