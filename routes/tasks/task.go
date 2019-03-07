@@ -43,6 +43,7 @@ func Setup(m *macaron.Macaron) {
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
 			m.Get("/tasks", reqSignIn, ShowAll)
+			m.Get("/tasks/my", reqSignIn, ShowMyTasks)
 			m.Get("/tasks/add", reqSignIn, Add)
 			m.Post("/tasks", reqSignIn, bind(agenttasks.Task{}), Create)
 			m.Get("/tasks/:id", reqSignIn, DisplayTask)
