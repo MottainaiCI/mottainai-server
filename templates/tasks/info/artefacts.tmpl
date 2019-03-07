@@ -1,0 +1,17 @@
+{{if .Task.Namespace}}
+  Uses:
+  <a href="{{BuildURI "/namespaces/show/"}}{{.Task.Namespace}}" target="_blank">
+  <span class="badge badge-secondary"><i class="fa fa-download"></i>&nbsp; {{.Task.Namespace}}</span>
+  </a>
+{{end}}
+
+{{if .Task.TagNamespace}}
+  &nbsp; Tags automatically:
+<a href="{{BuildURI "/namespaces/show/"}}{{.Task.TagNamespace}}" target="_blank">
+  <span class="badge badge-warning"><i class="fa fa-tag"></i>&nbsp; {{.Task.TagNamespace}}</span>
+</a>
+{{end}}
+
+<a href="{{BuildURI "/artefact/"}}{{.Task.ID}}/" target="_blank">
+<span class="badge badge-info"><i class="fa fa-external-link"></i>&nbsp; Artefacts</span>
+</a>

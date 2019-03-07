@@ -1,0 +1,51 @@
+
+{{if .Task.Directory}}
+<span class="badge badge-secondary"><i class="fa fa-folder"></i>&nbsp; Directory: {{.Task.Directory}}</span>
+{{end}}
+{{if .Task.Source}}
+<span class="badge badge-secondary">
+ <i class="fa fa-code"></i>&nbsp; Source: {{.Task.Source}}
+</span>
+{{end}}
+
+{{if .Task.ExitStatus}}
+<span class="badge badge-info">
+    <i class="fa  fa-chevron-right"></i>&nbsp; Exit with: {{.Task.ExitStatus}}</span>
+</span>
+{{end}}
+
+{{if .WaitingTime}}
+<span class="badge badge-info">
+    <i class="fa fa-clock-o"></i>&nbsp; Waited time {{.WaitingTime}}s
+</span>
+{{end}}
+
+{{if .Task.CreatedTime}}
+<span class="badge badge-info">
+      <i class="fa fa-clock-o"></i>&nbsp; Created <time class="timeago" datetime="{{.Task.CreatedTime}}">{{.Task.CreatedTime}}</time>
+</span>
+{{end}}
+
+{{if .Task.EndTime}}
+<span class="badge badge-info">
+    <i class="fa fa-clock-o"></i>&nbsp; Finished <time class="timeago" datetime="{{.Task.EndTime}}">{{.Task.EndTime}}</time>
+</span>
+{{end}}
+
+{{if .Task.StartTime}}
+<span class="badge badge-info">
+    <i class="fa fa-clock-o"></i>&nbsp; Started <time class="timeago" datetime="{{.Task.StartTime}}">{{.Task.StartTime}}</time>
+</span>
+{{end}}
+
+{{if .Task.Image}}
+ <span class="badge badge-info">
+       <i class="fa fa-cloud"></i>&nbsp; Image {{.Task.Image}}
+</span>
+{{end}}
+
+{{if .Task.Queue}}
+ <span class="badge badge-dark">
+       <i class="fa fa-paper-plane"></i>&nbsp; Queue {{.Task.Queue}}
+</span>
+{{end}}

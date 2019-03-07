@@ -1,6 +1,19 @@
 <script src="{{BuildURI "/assets/js/vendor/gotime.js"}}"></script>
 <script src="{{BuildURI "/assets/js/vendor/jquery.timeago.js"}}"></script>
 
+<script type="text/javascript">
+$(document).ready(function() {
+  var btns = document.querySelectorAll('button');
+  var clipboard = new ClipboardJS(btns);
+  clipboard.on('success', function(e) {
+      console.log(e);
+  });
+  clipboard.on('error', function(e) {
+      console.log(e);
+  });
+});
+</script>
+
 		<div class="col-lg-12">
 
 			<hr>

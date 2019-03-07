@@ -1,0 +1,22 @@
+
+{{if .Task.Type}}
+     <span class="badge badge-secondary"><i class="fa fa-cogs"></i>{{.Task.Type}}</span>
+{{end}}
+{{if .TaskNode }}
+<a href="{{BuildURI "/nodes/show/"}}{{.TaskNode.ID}}" target="_blank">
+  <span class="badge badge-secondary"><i class="fa fa-sitemap"></i>&nbsp; Node: {{if .TaskNode.Hostname}} {{.TaskNode.Hostname}} {{else}} {{.TaskNode.ID}}  {{end}}</span>
+</a>
+{{end}}
+
+<a href="{{BuildURI "/artefact/"}}{{.Task.ID}}/build_{{.Task.ID}}.log" target="_blank">
+  <span class="badge badge-secondary"><i class="fa fa-file"></i>&nbsp; Log</span>
+</a>
+
+
+<a href="{{BuildURI "/api/tasks/"}}{{.Task.ID}}" target="_blank">
+  <span class="badge badge-secondary"><i class="fa fa-download"></i>&nbsp; JSON</span>
+</a>
+
+<a href="{{BuildURI "/api/tasks/"}}{{.Task.ID}}.yaml" target="_blank">
+  <span class="badge badge-secondary"><i class="fa fa-download"></i>&nbsp; YAML</span>
+</a>

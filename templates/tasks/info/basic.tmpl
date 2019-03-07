@@ -1,0 +1,17 @@
+<h6>
+<strong class="card-title">
+  {{.Task.Name}} <span class="badge badge-pill badge-secondary">{{.Task.ID}}</span>
+</strong>
+{{if .Task.Status}}<span class="badge badge-info">{{.Task.Status}}</span>{{end}}
+{{if .Task.Result}}<span class='badge badge-{{if eq .Task.Result "success"}}success{{end}}{{if eq .Task.Result "error"}}danger{{end}}'> Result:  {{.Task.Result}}</span> {{end}}
+
+  {{if .TaskOwner }}
+  <small>
+  <a href="{{BuildURI "/user/show/"}}{{.TaskOwner.ID}}" class="text-light" target="_blank">
+    <span class="badge  badge-secondary">
+      <i class="fa fa-user-o"></i>&nbsp; {{.TaskOwner.Name}}
+    </span>
+  </a>
+  </small>
+  {{end}}
+</h6>
