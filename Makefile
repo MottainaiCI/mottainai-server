@@ -18,6 +18,7 @@ SYSCONFDIR ?= /etc
 LOCKDIR ?= /var/lock
 LIBDIR ?= /var/lib
 EXTENSIONS ?=
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 all: deps multiarch-build install
 
@@ -63,6 +64,28 @@ lint:
 
 test:
 	go test -v -tags all -cover -race ./...
+
+docker-test:
+	docker run -v $(ROOT_DIR)/:/test \
+	-e ACCEPT_LICENSE=* \
+	--entrypoint /bin/bash -ti --user root --rm mottainaici/server -c \
+	"mkdir -p /root/go/src/github.com/MottainaiCI && \
+	cp -rf /test /root/go/src/github.com/MottainaiCI/mottainai-server && \
+	cd /root/go/src/github.com/MottainaiCI/mottainai-server && \
+	echo '>> Installing required deps' && \
+	equo i gcc go > /dev/null 2>&1 && \
+	echo '>> Running tests' && \
+	make deps test"
+
+compose-test-run: build
+		@tmpdir=`mktemp --tmpdir -d`; \
+		cp -rf $(ROOT_DIR)/contrib/docker-compose "$$tmpdir"; \
+		pushd "$$tmpdir/docker-compose"; \
+		trap 'docker-compose down --rmi all -v --remove-orphans;rm -rf "$$tmpdir"' EXIT; \
+		echo ">> Server will be avilable at: http://127.0.0.1:4545" ; \
+		sed -i "s|#- ./mottainai-server.yaml:/etc/mottainai/mottainai-server.yaml|- "$(ROOT_DIR)"/mottainai-server:/usr/bin/mottainai-server|g" docker-compose.yml; \
+		sed -i "s|# For static config:|- "$(ROOT_DIR)":/var/lib/mottainai|g" docker-compose.yml; \
+		docker-compose up
 
 install:
 	install -d $(DESTDIR)$(LOCKDIR)
