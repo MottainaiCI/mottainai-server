@@ -806,6 +806,12 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 
 				if fds["0"] != "" {
 					args.Stdin.Close()
+
+					// Empty the stdin channel but don't block on it as
+					// stdin may be stuck in Read()
+					go func() {
+						<-dones[0]
+					}()
 				}
 
 				for _, conn := range conns {
@@ -1032,6 +1038,11 @@ func (r *ProtocolLXD) GetContainerSnapshot(containerName string, name string) (*
 
 // CreateContainerSnapshot requests that LXD creates a new snapshot for the container
 func (r *ProtocolLXD) CreateContainerSnapshot(containerName string, snapshot api.ContainerSnapshotsPost) (Operation, error) {
+	// Validate the request
+	if snapshot.ExpiresAt != nil && !r.HasExtension("snapshot_expiry_creation") {
+		return nil, fmt.Errorf("The server is missing the required \"snapshot_expiry_creation\" API extension")
+	}
+
 	// Send the request
 	op, _, err := r.queryOperation("POST", fmt.Sprintf("/containers/%s/snapshots", url.QueryEscape(containerName)), snapshot, "")
 	if err != nil {

@@ -521,6 +521,22 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:e84bae51919a75761844008b1d5f9a64045ab9d013e48d3d8ab4f167985fbc0c"
+  name = "github.com/juju/clock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9c5c9712527c7986f012361e7d13756b4d99543d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:60835a4fa946b3c4b595438a07d447305ed4fc9ce95a7a5d0c06ffeea490d5a9"
+  name = "github.com/juju/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e65537c515d77e35697c471d6c2755375cb3adc4"
+
+[[projects]]
+  branch = "master"
   digest = "1:9c37e3c7a2dc5e5ec5748c0955ef9bf48bf2a02e81454164ba431c6fce9cb004"
   name = "github.com/juju/go4"
   packages = ["lock"]
@@ -542,6 +558,25 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "d5e5a8405ef9633c84af42fbcc734ec8dd73c198"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9283bc630eca6ec3bd81c69736210799dd497d73e5467a719f2fe16ba677a95d"
+  name = "github.com/juju/schema"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "64a6158e90710d0a16c6bd3cf0a6be6b2e80193c"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2e5ffe1dc910d08b42b37a3cdd1b2b805bc6cc551ad3f9c962471640d80c55f7"
+  name = "github.com/juju/utils"
+  packages = [
+    ".",
+    "keyvalues",
+  ]
+  pruneopts = "UT"
+  revision = "bf9cc5bdd62dabc40b7f634b39a5e2dc44d44c45"
 
 [[projects]]
   branch = "master"
@@ -593,7 +628,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:83d95e3b48601e6a9e322ce749425064d4f97f3126c4143a641960471e5a5ea2"
+  digest = "1:352a9e74031979a98d1748c17074a179acbb9a95592c2abded5aad909a55bc53"
   name = "github.com/lxc/lxd"
   packages = [
     "client",
@@ -610,7 +645,7 @@
     "shared/termios",
   ]
   pruneopts = "UT"
-  revision = "fe0844d45b32f11b05832e3f88cbf97e6bf9b484"
+  revision = "ff65274fc19c52e1439e74ca449befbd45197ecd"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
@@ -1199,6 +1234,17 @@
   version = "v1.41.0"
 
 [[projects]]
+  branch = "v1"
+  digest = "1:dfb628da2831f1a38d2e6482b2a08d507c47da558aa370b4b5a8b2897f8ebccd"
+  name = "gopkg.in/juju/environschema.v1"
+  packages = [
+    ".",
+    "form",
+  ]
+  pruneopts = "UT"
+  revision = "7359fc7857abe2b11b5b3e23811a9c64cb6b01e0"
+
+[[projects]]
   digest = "1:3d43a1d68f315a1c4c2cd20ee4d35c96695f17637502366341ac43b7813ea95f"
   name = "gopkg.in/macaron.v1"
   packages = ["."]
@@ -1207,13 +1253,14 @@
   version = "v1.3.2"
 
 [[projects]]
-  digest = "1:c444bfd08694c60973915ba5f0995b682152f235c8ba7acc59b54ef2759f25ee"
+  digest = "1:83590f2a0c660cfff66876d6adf373e162e4063c19e7f4cace1cdb9f1eba6050"
   name = "gopkg.in/macaroon-bakery.v2"
   packages = [
     "bakery",
     "bakery/checkers",
     "bakery/internal/macaroonpb",
     "httpbakery",
+    "httpbakery/form",
     "internal/httputil",
   ]
   pruneopts = "UT"
