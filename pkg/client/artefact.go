@@ -163,7 +163,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 			}
 			d.AppendTaskOutput("[Download]  " + d.BaseURL + "/" + artefact_type + "/" + to_download + file + " to " + filepath.Join(target, file))
 			if ok, err := d.Download(d.BaseURL+"/"+artefact_type+"/"+to_download+file, filepath.Join(target, file)); !ok {
-				d.AppendTaskOutput("[Download] failed : " + err.Error())
+				d.AppendTaskOutput("[Download] failed for file " + file + " : " + err.Error())
 				trials--
 			} else {
 				done = false
