@@ -42,6 +42,8 @@ deps:
 	go get github.com/mitchellh/gox
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/mattn/goveralls
+	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/onsi/gomega/...
 
 build:
 ifeq ($(EXTENSIONS),)
@@ -65,16 +67,16 @@ lint:
 test:
 	go test -v -tags all -cover -race ./...
 
+ginkgo-test:
+	ginkgo -p -r --randomizeAllSpecs -failOnPending --trace
+
 docker-test:
 	docker run -v $(ROOT_DIR)/:/test \
 	-e ACCEPT_LICENSE=* \
-	--entrypoint /bin/bash -ti --user root --rm mottainaici/server -c \
+	--entrypoint /bin/bash -ti --user root --rm mottainaici/test -c \
 	"mkdir -p /root/go/src/github.com/MottainaiCI && \
 	cp -rf /test /root/go/src/github.com/MottainaiCI/mottainai-server && \
 	cd /root/go/src/github.com/MottainaiCI/mottainai-server && \
-	echo '>> Installing required deps' && \
-	equo i gcc go > /dev/null 2>&1 && \
-	echo '>> Running tests' && \
 	make deps test"
 
 compose-test-run: build
