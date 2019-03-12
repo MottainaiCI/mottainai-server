@@ -24,8 +24,22 @@ package utils
 
 import (
 	"encoding/base64"
+	"net/url"
 	"strings"
 )
+
+func PathEscape(path string) string {
+
+	var encoded string
+
+	for _, part := range strings.Split(path, "/") {
+		encoded += url.QueryEscape(part) + "/"
+	}
+
+	encoded = strings.TrimSuffix(encoded, "/")
+
+	return encoded
+}
 
 // BasicAuthDecode decodes username and password portions of HTTP Basic Authentication
 // from encoded content.

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018-2019  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -33,6 +33,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 
 	storageci "github.com/MottainaiCI/mottainai-server/pkg/storage"
 )
@@ -161,9 +163,11 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 				d.AppendTaskOutput("[Download] Error: " + err.Error())
 				return err
 			}
-			d.AppendTaskOutput("[Download]  " + d.BaseURL + "/" + artefact_type + "/" + to_download + file + " to " + filepath.Join(target, file))
-			if ok, err := d.Download(d.BaseURL+"/"+artefact_type+"/"+to_download+file, filepath.Join(target, file)); !ok {
-				d.AppendTaskOutput("[Download] failed for file " + file + " : " + err.Error())
+			location := d.BaseURL + "/" + artefact_type + "/" + to_download + utils.PathEscape(file)
+
+			d.AppendTaskOutput("[Download]  " + location + " to " + filepath.Join(target, file))
+			if ok, err := d.Download(location, filepath.Join(target, file)); !ok {
+				d.AppendTaskOutput("[Download] failed : " + err.Error())
 				trials--
 			} else {
 				done = false
