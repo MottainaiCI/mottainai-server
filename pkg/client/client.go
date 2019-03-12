@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2019  Ettore Di Giacinto <mudler@gentoo.org>
 Some code portions and re-implemented design are also coming
 from the Gogs project, which is using the go-macaron framework and was
 really source of ispiration. Kudos to them!
@@ -39,6 +39,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mxk/go-flowrate/flowrate"
 
@@ -125,7 +126,7 @@ func (f *Fetcher) Doc(id string) {
 
 func (f *Fetcher) newHttpClient() *http.Client {
 
-	c := &http.Client{}
+	c := &http.Client{Timeout: time.Second * 60}
 
 	if len(f.TrustedCert) > 0 {
 		rootCAs, _ := x509.SystemCertPool()
