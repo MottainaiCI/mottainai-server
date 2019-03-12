@@ -24,6 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[override]]
+  source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
+  name = "gopkg.in/fsnotify.v1"
 
 [[constraint]]
   branch = "master"
@@ -85,10 +88,6 @@
   name = "github.com/Unknwon/com"
   branch = "master"
 
-[prune]
-  go-tests = true
-  unused-packages = true
-
 [[constraint]]
   name = "github.com/google/go-github"
   version = "15.0.0"
@@ -96,3 +95,14 @@
 [[constraint]]
   branch = "master"
   name = "github.com/lxc/lxd"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+  #non-go = true
+
+[[prune.project]]
+name = "github.com/lxc/lxd"
+unused-packages = false
+#non-go = false
+
