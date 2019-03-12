@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2019  Ettore Di Giacinto <mudler@gentoo.org>
 Some code portions and re-implemented design are also coming
 from the Gogs project, which is using the go-macaron framework and was
 really source of ispiration. Kudos to them!
@@ -20,605 +20,138 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package client
+package client_test
 
 import (
-	"net/http"
-	"reflect"
-	"testing"
+	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"github.com/mudler/anagent"
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
+	. "github.com/MottainaiCI/mottainai-server/pkg/client"
+	helpers "github.com/MottainaiCI/mottainai-server/tests/helpers"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestNewTokenClient(t *testing.T) {
+// a little code dup for coverage (see tests/helpers)
+func NewFakeClient() (*Fetcher, error) {
+	if len(helpers.Tokens) == 0 {
+		return nil, errors.New("No tokens registered in the helper")
+	}
 
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
-
-	type args struct {
-		host  string
-		token string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Fetcher
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewTokenClient(tt.args.host, tt.args.token, config); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewTokenClient() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	return NewTokenClient(helpers.Config.GetWeb().AppURL, helpers.Tokens[0].Key, helpers.Config), nil
 }
 
-func TestNewClient(t *testing.T) {
-
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
-
-	type args struct {
-		host string
+func OSReadDir(root string) ([]string, error) {
+	var files []string
+	f, err := os.Open(root)
+	if err != nil {
+		return files, err
 	}
-	tests := []struct {
-		name string
-		args args
-		want *Fetcher
-	}{
-		// TODO: Add test cases.
+	fileInfo, err := f.Readdir(-1)
+	f.Close()
+	if err != nil {
+		return files, err
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewClient(tt.args.host, config); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewClient() = %v, want %v", got, tt.want)
-			}
-		})
+	for _, file := range fileInfo {
+		files = append(files, file.Name())
 	}
+	return files, nil
 }
 
-func TestNewFetcher(t *testing.T) {
+var _ = Describe("Client", func() {
+	dir, err := ioutil.TempDir("", "client_test")
+	defer os.RemoveAll(dir) // clean up
+	errserver := helpers.StartServer(dir)
 
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
+	Describe("Client download", func() {
+		Context("Default fixture ", func() {
+			It("Get all the task artefacts", func() {
 
-	type args struct {
-		docID string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Fetcher
-	}{
-		{"Create", args{"20"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "20", Config: config, ChunkSize: 512}},
-		{"Create2", args{"String"}, &Fetcher{BaseURL: config.GetWeb().AppURL, docID: "String", Config: config, ChunkSize: 512}},
-	}
+				Expect(err).ToNot(HaveOccurred())
+				Expect(errserver).ToNot(HaveOccurred())
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewFetcher(tt.args.docID, config); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewFetcher() = %v, want %v", got, tt.want)
-			}
+				download, err := ioutil.TempDir("", "client_download")
+				Expect(err).ToNot(HaveOccurred())
+				defer os.RemoveAll(download) // clean up
+
+				fetcher, err := NewFakeClient()
+				Expect(err).ToNot(HaveOccurred())
+
+				fixtures := []string{"fixture1#test.vvvsz", "fixture1", "fixture2", "fixture3.sh", "b000gy.@bogyy"}
+
+				fixture1 := filepath.Join(helpers.Config.GetStorage().ArtefactPath, helpers.Tasks[0], "simple")
+				os.MkdirAll(fixture1, os.ModePerm)
+
+				for _, f := range fixtures {
+					helpers.CreateFile(10, filepath.Join(fixture1, f))
+				}
+
+				// Create a fake artefact for task id 11111
+				fixture2 := filepath.Join(helpers.Config.GetStorage().ArtefactPath, helpers.Tasks[0], "#test:")
+				os.MkdirAll(fixture2, os.ModePerm)
+				for _, f := range fixtures {
+					helpers.CreateFile(10, filepath.Join(fixture2, f))
+				}
+
+				fetcher.DownloadArtefactsFromTask(helpers.Tasks[0], download)
+
+				for _, f := range fixtures {
+					_, err = os.Stat(filepath.Join(download, "simple", f))
+					Expect(err).ToNot(HaveOccurred())
+					_, err = os.Stat(filepath.Join(download, "#test:", f))
+					Expect(err).ToNot(HaveOccurred())
+				}
+
+			})
 		})
-	}
-}
+	})
 
-func TestNewBasicClient(t *testing.T) {
+	Describe("Task report", func() {
+		Context("Default task", func() {
+			It("Reports the output correctly", func() {
+				fetcher, err := NewFakeClient()
+				Expect(err).ToNot(HaveOccurred())
+				fetcher.Doc(helpers.Tasks[0])
+				_, err = fetcher.AppendTaskOutput("test")
+				Expect(err).ToNot(HaveOccurred())
+				_, err = fetcher.AppendTaskOutput("foobar")
+				Expect(err).ToNot(HaveOccurred())
 
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
+				logfile := filepath.Join(helpers.Config.GetStorage().ArtefactPath, helpers.Tasks[0], "build_"+helpers.Tasks[0]+".log")
+				_, err = os.Stat(logfile)
+				Expect(err).ToNot(HaveOccurred())
 
-	tests := []struct {
-		name string
-		want *Fetcher
-	}{
-		{"Basic", &Fetcher{Config: config, ChunkSize: 512}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewBasicClient(config); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewBasicClient() = %v, want %v", got, tt.want)
-			}
+				dat, err := ioutil.ReadFile(logfile)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(dat)).Should(ContainSubstring("test"))
+				Expect(string(dat)).Should(ContainSubstring("foobar"))
+			})
 		})
-	}
-}
 
-func TestNew(t *testing.T) {
+		Context("Executor Report", func() {
+			It("Reports the output correctly", func() {
+				fetcher, err := NewFakeClient()
+				Expect(err).ToNot(HaveOccurred())
+				fetcher.Doc(helpers.Tasks[0])
 
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
+				e := tasks.TaskExecutor{MottainaiClient: fetcher, Context: tasks.NewExecutorContext(), Config: helpers.Config}
+				e.Report("hunk1", "mottainai")
 
-	type args struct {
-		docID string
-		a     *anagent.Anagent
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Fetcher
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := New(tt.args.docID, tt.args.a, config); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("New() = %v, want %v", got, tt.want)
-			}
+				logfile := filepath.Join(helpers.Config.GetStorage().ArtefactPath, helpers.Tasks[0], "build_"+helpers.Tasks[0]+".log")
+				_, err = os.Stat(logfile)
+				Expect(err).ToNot(HaveOccurred())
+
+				dat, err := ioutil.ReadFile(logfile)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(dat)).Should(ContainSubstring("hunk1"))
+				Expect(string(dat)).Should(ContainSubstring("mottainai"))
+			})
 		})
-	}
-}
 
-func TestFetcher_Doc(t *testing.T) {
-	var config *setting.Config
-	config = setting.NewConfig(nil)
-	// Set env variable
-	config.Viper.SetEnvPrefix(setting.MOTTAINAI_ENV_PREFIX)
-	config.Viper.AutomaticEnv()
-	config.Viper.SetDefault("config", "")
-	config.Viper.SetDefault("etcd-config", false)
-	config.Viper.SetTypeByDefaultValue(true)
-	config.Unmarshal()
+	})
 
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-				Config:        config,
-			}
-			f.Doc(tt.args.id)
-		})
-	}
-}
-
-func TestFetcher_newHttpClient(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   *http.Client
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			if got := f.newHttpClient(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.newHttpClient() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_setAuthHeader(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *http.Request
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			if got := f.setAuthHeader(tt.args.r); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.setAuthHeader() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_GetJSONOptions(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		url    string
-		option map[string]string
-		target interface{}
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			if err := f.GetJSONOptions(tt.args.url, tt.args.option, tt.args.target); (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.GetJSONOptions() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestFetcher_GetOptions(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		url    string
-		option map[string]string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			got, err := f.GetOptions(tt.args.url, tt.args.option)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.GetOptions() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.GetOptions() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_GenericForm(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		URL    string
-		option map[string]interface{}
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			got, err := f.GenericForm(tt.args.URL, tt.args.option)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.GenericForm() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.GenericForm() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_Form(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		URL    string
-		option map[string]string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			got, err := f.Form(tt.args.URL, tt.args.option)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.Form() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.Form() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_PostOptions(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		URL    string
-		option map[string]string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			got, err := f.PostOptions(tt.args.URL, tt.args.option)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.PostOptions() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.PostOptions() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFetcher_UploadLargeFile(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		uri       string
-		params    map[string]string
-		paramName string
-		filePath  string
-		chunkSize int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			if err := f.UploadLargeFile(tt.args.uri, tt.args.params, tt.args.paramName, tt.args.filePath, tt.args.chunkSize); (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.UploadLargeFile() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestFetcher_Upload(t *testing.T) {
-	type fields struct {
-		BaseURL       string
-		docID         string
-		Token         string
-		TrustedCert   string
-		Jar           *http.CookieJar
-		Agent         *anagent.Anagent
-		ActiveReports bool
-	}
-	type args struct {
-		uri       string
-		params    map[string]string
-		paramName string
-		path      string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *http.Request
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &Fetcher{
-				BaseURL:       tt.fields.BaseURL,
-				docID:         tt.fields.docID,
-				Token:         tt.fields.Token,
-				TrustedCert:   tt.fields.TrustedCert,
-				Jar:           tt.fields.Jar,
-				Agent:         tt.fields.Agent,
-				ActiveReports: tt.fields.ActiveReports,
-			}
-			got, err := f.Upload(tt.args.uri, tt.args.params, tt.args.paramName, tt.args.path)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Fetcher.Upload() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Fetcher.Upload() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+})
