@@ -196,7 +196,7 @@ func (d *TaskExecutor) Report(v ...interface{}) {
 		}
 	}
 	if d.Context.StandardOutput {
-		log.Println(v)
+		log.Println(v...)
 	}
 }
 

@@ -27,9 +27,8 @@ import (
 	"io"
 	"os"
 
+	docker "github.com/fsouza/go-dockerclient"
 	log "gopkg.in/clog.v1"
-
-	"github.com/fsouza/go-dockerclient"
 )
 
 // Config represent the yaml configuration file
@@ -77,7 +76,7 @@ func ContainerOutputAttach(callback func(string), client *docker.Client, contain
 			callback(scanner.Text())
 		}
 		if err := scanner.Err(); err != nil {
-			log.Info("There was an error with the scanner in attached container", err)
+			log.Info("There was an error with the scanner in attached container:" + err.Error())
 		}
 	}(r, container)
 	return nil
