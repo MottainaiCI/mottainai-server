@@ -126,7 +126,7 @@ func (f *Fetcher) Doc(id string) {
 
 func (f *Fetcher) newHttpClient() *http.Client {
 
-	c := &http.Client{Timeout: time.Second * 60}
+	c := &http.Client{Timeout: time.Second * time.Duration(f.Config.GetGeneral().ClientTimeout)}
 
 	if len(f.TrustedCert) > 0 {
 		rootCAs, _ := x509.SystemCertPool()

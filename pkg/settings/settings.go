@@ -153,11 +153,12 @@ type AgentConfig struct {
 }
 
 type GeneralConfig struct {
-	Debug    bool   `mapstructure:"debug"`
-	LogFile  string `mapstructure:"logfile"`
-	LogLevel string `mapstructure:"loglevel"`
-	TLSCert  string `mapstructure:"tls_cert"`
-	TLSKey   string `mapstructure:"tls_key"`
+	Debug         bool   `mapstructure:"debug"`
+	LogFile       string `mapstructure:"logfile"`
+	LogLevel      string `mapstructure:"loglevel"`
+	TLSCert       string `mapstructure:"tls_cert"`
+	TLSKey        string `mapstructure:"tls_key"`
+	ClientTimeout int    `mapstructure:"client_timeout"`
 }
 
 type Config struct {
@@ -285,6 +286,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("general.tls_key", "")
 	viper.SetDefault("general.debug", false)
 	viper.SetDefault("general.logfile", "")
+	viper.SetDefault("general.client_timeout", 360)
 	viper.SetDefault("general.loglevel", "info")
 }
 
@@ -552,9 +554,10 @@ general:
   loglevel: %s
   tls_cert: %s
   tls_key: ***********************
+	client_timeout: %d
 `,
 		c.Debug, c.LogFile, c.LogLevel,
-		c.TLSCert)
+		c.TLSCert, c.ClientTimeout)
 
 	return ans
 }
