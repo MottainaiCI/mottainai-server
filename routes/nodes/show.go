@@ -28,7 +28,6 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
@@ -53,20 +52,21 @@ func Show(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
-	p_queue := node.Hostname + node.NodeID
+	//p_queue := node.Hostname + node.NodeID
 
 	ctx.Data["Node"] = node
-	tasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
-	var node_tasks = make([]agenttasks.Task, 0)
-	for i, _ := range tasks {
-		t, _ := db.Driver.GetTask(db.Config, i)
-		node_tasks = append(node_tasks, t)
-	}
-	sort.Slice(node_tasks[:], func(i, j int) bool {
-		return node_tasks[i].CreatedTime > node_tasks[j].CreatedTime
+	tasks, _ := db.Driver.AllNodeTask(db.Config, node.ID)
+	//tasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "`+p_queue+`", "in": ["queue"]}]`)
+	// var node_tasks = make([]agenttasks.Task, 0)
+	// for i, _ := range tasks {
+	// 	t, _ := db.Driver.GetTask(db.Config, strconv.Itoa(i))
+	// 	node_tasks = append(node_tasks, t)
+	// }
+	sort.Slice(tasks[:], func(i, j int) bool {
+		return tasks[i].CreatedTime > tasks[j].CreatedTime
 	})
 
-	ctx.Data["Tasks"] = node_tasks
+	ctx.Data["Tasks"] = tasks
 	if ctx.CheckUserOrManager() {
 		apikeys, err := db.Driver.GetTokensByUserID(ctx.User.ID)
 		if err != nil {
