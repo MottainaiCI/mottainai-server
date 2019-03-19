@@ -68,6 +68,10 @@ type WebConfig struct {
 	WebHookToken           string `mapstructure:"webhook_token"`
 
 	LockPath string `mapstructure:"lock_path"`
+
+	HealthCheckInterval int `mapstructure:"healthcheck_interval"`
+	TaskDeadline        int `mapstructure:"task_deadline"`
+	NodeDeadline        int `mapstructure:"node_deadline"`
 }
 
 type StorageConfig struct {
@@ -227,6 +231,9 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.github_token_user", "")
 	viper.SetDefault("web.webhook_token", "")
 	viper.SetDefault("web.lock_path", "/srv/mottainai/lock")
+	viper.SetDefault("web.task_deadline", 21600) // 6h
+	viper.SetDefault("web.node_deadline", 21600)
+	viper.SetDefault("web.healthcheck_interval", 800)
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")
@@ -414,6 +421,10 @@ web:
   webhook_token: %s
 
   lock_path: %s
+
+	task_deadline: %d
+	node_deadline: %d
+	healthcheck_interval: %d
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
@@ -424,7 +435,7 @@ web:
 		c.AccessToken, c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.WebHookGitHubToken, c.LockPath)
+		c.WebHookGitHubToken, c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
 
 	return ans
 }

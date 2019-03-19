@@ -76,6 +76,7 @@ type Task struct {
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
 	EndTime     string `json:"end_time" form:"end_time"`
+	UpdatedTime string `json:"last_update_time" form:"last_update_time"`
 	Queue       string `json:"queue" form:"queue"`
 	Retry       string `json:"retry" form:"retry"`
 
@@ -213,6 +214,7 @@ func (t *Task) Reset() {
 	t.ExitStatus = ""
 	t.CreatedTime = time.Now().Format("20060102150405")
 	t.EndTime = ""
+	t.UpdatedTime = ""
 	t.Owner = ""
 	t.Node = ""
 	t.StartTime = ""

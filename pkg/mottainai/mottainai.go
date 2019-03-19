@@ -265,6 +265,7 @@ func (m *Mottainai) Start() error {
 			"component": "core",
 			"url":       m.url(),
 		}).Info("WebUI listening")
+		m.HealthCheckRun(config.GetWeb().HealthCheckInterval) // Start server HealthCheck daemon
 
 		//m.Run()
 		var err error

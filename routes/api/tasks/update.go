@@ -44,6 +44,12 @@ type UpdateTaskForm struct {
 	Key        string ` form:"key"`
 }
 
+func SyncTaskLastUpdate(id string, db *database.Database) {
+	db.Driver.UpdateTask(id, map[string]interface{}{
+		"last_update_time": time.Now().Format("20060102150405"),
+	})
+}
+
 func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
 	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
@@ -78,6 +84,8 @@ func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Databa
 				t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 			}
 		}
+
+		SyncTaskLastUpdate(f.Id, db)
 	}
 
 	return nil
@@ -98,11 +106,18 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 	db.Driver.UpdateTask(f.Id, map[string]interface{}{
 		"node_id": node.ID,
 	})
-
+	SyncTaskLastUpdate(f.Id, db)
 	return nil
 }
 
 func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
+	mytask, err := db.Driver.GetTask(db.Config, f.Id)
+	if err != nil {
+		return err.Error()
+	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return "Moar permissions are required for this user"
+	}
 	if len(f.Output) > 0 {
 		mytask, err := db.Driver.GetTask(db.Config, f.Id)
 		if err != nil {
@@ -117,6 +132,7 @@ func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context
 			return "Can't write to buildlog, Error: " + err.Error()
 		}
 	}
+	SyncTaskLastUpdate(f.Id, db)
 	return "OK"
 }
 
@@ -146,6 +162,6 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) s
 		return ":( "
 	}
 	t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
-
+	SyncTaskLastUpdate(f.Id, db)
 	return "OK"
 }
