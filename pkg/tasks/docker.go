@@ -142,8 +142,6 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	}
 	//var args []string
 	var git_root_path = d.Context.RootTaskDir
-	var git_build_root_path = path.Join(git_root_path, task_info.Directory)
-
 	var storage_path = "storage"
 	var artefact_path = "artefacts"
 
@@ -154,8 +152,6 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	if len(task_info.StoragePath) > 0 {
 		storage_path = task_info.StoragePath
 	}
-
-	var storage_root_path = path.Join(git_build_root_path, storage_path)
 
 	var ContainerBinds []string
 
@@ -168,14 +164,14 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	if d.Config.GetAgent().DockerInDocker {
 		ContainerBinds = append(ContainerBinds, d.Config.GetAgent().DockerEndpointDiD+":/var/run/docker.sock")
-		ContainerBinds = append(ContainerBinds, path.Join(git_build_root_path, artefact_path)+":"+path.Join(git_build_root_path, artefact_path))
-		ContainerBinds = append(ContainerBinds, storage_root_path+":"+storage_root_path)
+		ContainerBinds = append(ContainerBinds, path.Join(d.Context.HostPath(task_info.Directory), artefact_path)+":"+d.Context.ContainerPath(artefact_path))
+		ContainerBinds = append(ContainerBinds, path.Join(d.Context.HostPath(task_info.Directory), storage_path)+":"+d.Context.ContainerPath(storage_path))
 
-		artefactdir = path.Join(git_build_root_path, artefact_path)
-		storagedir = storage_root_path
+		artefactdir = path.Join(d.Context.HostPath(task_info.Directory), artefact_path)
+		storagedir = d.Context.ContainerPath(storage_path)
 	} else {
-		ContainerBinds = append(ContainerBinds, artdir+":"+path.Join(git_build_root_path, artefact_path))
-		ContainerBinds = append(ContainerBinds, storagetmp+":"+storage_root_path)
+		ContainerBinds = append(ContainerBinds, artdir+":"+d.Context.ContainerPath(artefact_path))
+		ContainerBinds = append(ContainerBinds, storagetmp+":"+d.Context.ContainerPath(storage_path))
 
 		artefactdir = artdir
 		storagedir = storagetmp
@@ -197,7 +193,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		CapDrop:    d.Config.GetAgent().DockerCapsDrop,
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
-	var containerconfig = &docker.Config{Image: image, WorkingDir: git_build_root_path}
+	var containerconfig = &docker.Config{Image: image, WorkingDir: d.Context.HostPath(task_info.Directory)}
 	d.Report("Execute: " + execute_script)
 	if len(execute_script) > 0 {
 		containerconfig.Cmd = []string{"-c", "pwd;ls -liah;" + execute_script}
@@ -223,7 +219,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		d.Report("- " + v)
 	}
 
-	d.Report("Container working dir: " + git_build_root_path)
+	d.Report("Container working dir: " + d.Context.HostPath(task_info.Directory))
 	d.Report("Image: " + containerconfig.Image)
 
 	container, err := docker_client.CreateContainer(docker.CreateContainerOptions{
@@ -232,7 +228,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		d.Report("Error creating container: " + err.Error())
+		return 1, err
 	}
 
 	utils.ContainerOutputAttach(func(s string) {
@@ -247,7 +244,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	err = docker_client.StartContainer(container.ID, &createContHostConfig)
 	if err != nil {
-		panic(err)
+		d.Report("Error starting container: " + err.Error())
+		return 1, err
 	}
 	d.Report("Started Container " + container.ID)
 

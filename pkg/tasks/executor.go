@@ -42,20 +42,8 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-//TODO:
-type ExecutorContext struct {
-	ArtefactDir, StorageDir, NamespaceDir         string
-	BuildDir, SourceDir, RootTaskDir, RealRootDir string
-	DocID                                         string
-	StandardOutput                                bool
-}
-
 const ABORT_EXECUTION_ERROR = "Aborting execution"
 const ABORT_DUPLICATE_ERROR = "Task picked up twice"
-
-func NewExecutorContext() *ExecutorContext {
-	return &ExecutorContext{StandardOutput: true}
-}
 
 type TaskExecutor struct {
 	MottainaiClient client.HttpClient
@@ -237,6 +225,8 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Report("> Build started!\n")
 
 	d.Context.RootTaskDir = path.Join(d.Config.GetAgent().BuildPath, task_info.ID)
+	d.Context.TaskRelativeDir = task_info.Directory
+
 	tmp_buildpath := path.Join(d.Context.RootTaskDir, "temp")
 	dir := path.Join(tmp_buildpath, "root")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
