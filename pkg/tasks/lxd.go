@@ -227,23 +227,22 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	// Push workdir to container
 	var localWorkDir, targetWorkDir, targetArtefactDir, targetStorageDir string
 
-	targetWorkDir = "/mottainai/build"
-	// TODO: Handle path with / correctly
-	targetArtefactDir = targetWorkDir + "/" + artefact_path
-	targetStorageDir = targetWorkDir + "/" + storage_path
+	// Inside container I use the same path configured on agent with task id
+	targetWorkDir = l.Context.RootTaskDir
+	targetArtefactDir = l.Context.ContainerPath(artefact_path)
+	targetStorageDir = l.Context.ContainerPath(storage_path)
 
 	if len(l.Context.SourceDir) > 0 {
 		if len(task_info.Directory) > 0 {
-			// TODO: Handle / if not present and unclean path
 			// NOTE: Last / it's needed to avoid to drop last directory on push directory
-			localWorkDir = l.Context.SourceDir + task_info.Directory + "/"
+			localWorkDir = strings.TrimRight(path.Join(l.Context.SourceDir, l.Context.TaskRelativeDir), "/") + "/"
 		} else {
-			localWorkDir = l.Context.SourceDir + "/"
+			localWorkDir = strings.TrimRight(l.Context.SourceDir, "/") + "/"
 		}
 	} else {
 		// NOTE: I use BuildDir to avoid execution of low level mkdir command
 		//       on container. We can replase this with a mkdir to target
-		localWorkDir = l.Context.BuildDir
+		localWorkDir = strings.TrimRight(l.Context.BuildDir, "/") + "/"
 	}
 
 	if foundCachedImage {
