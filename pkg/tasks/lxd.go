@@ -285,7 +285,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		if err != nil {
 			l.Report("Error on exec command: " + err.Error())
 		} else {
-			l.Report("Execution failed: " + res)
+			l.Report(fmt.Sprintf("Execution failed: %d", res))
 		}
 		return 1, err
 	}
