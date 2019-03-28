@@ -159,7 +159,6 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		return 1, err
 	}
 
-	// TODO: Handle cache image
 	if len(task_info.Image) > 0 {
 
 		// NOTE: If cache image is enable and cache clean is disable then i
@@ -283,7 +282,11 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	var res int
 	res, err = l.ExecCommand(containerName, execute_script, targetWorkDir, &task_info)
 	if err != nil || res != 0 {
-		l.Report("Error on exec command: " + err.Error())
+		if err != nil {
+			l.Report("Error on exec command: " + err.Error())
+		} else {
+			l.Report("Execution failed: " + res)
+		}
 		return 1, err
 	}
 
