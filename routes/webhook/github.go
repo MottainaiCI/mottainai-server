@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
@@ -106,8 +107,9 @@ func HandlePush(u *user.User, payload interface{}, header webhooks.Header, m *mo
 	})
 }
 
-func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}) (*GitContext, error) {
-	var pruid, commit, owner, user_repo, checkout, repo, ref, gh_user, clone_url string
+func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database.Database, m *mottainai.Mottainai, payload interface{}, w *mhook.WebHook) (*GitContext, error) {
+	var pruid, commit, owner, user_repo, checkout, repo, ref, gh_user, clone_url, filter_ref string
+
 	if kind == "pull_request" {
 		pl := payload.(github.PullRequestPayload)
 		clone_url = pl.PullRequest.Base.Repo.CloneURL
@@ -122,6 +124,7 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 		owner = pl.PullRequest.Base.User.Login
 		repo = pl.PullRequest.Base.Repo.Name
 		ref = pl.PullRequest.Head.Sha
+		filter_ref = kind + "-" + pl.PullRequest.Base.Ref // allow to create complex filters: pull_request-develop, pull_request-master
 		checkout = strconv.FormatInt(number, 10)
 	} else {
 		push := payload.(github.PushPayload)
@@ -135,6 +138,18 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 		pruid = ref + repo
 		checkout = ref
 		commit = ref
+		filter_ref = push.Ref
+	}
+	// Filter by ref: If hook contains a filter defined, it has to match the ref of the push, or we discard it
+	if len(w.Filter) > 0 {
+		includeRegex, err := regexp.Compile(w.Filter)
+		if err != nil {
+			return nil, errors.New("Webhook filter invalid")
+		}
+
+		if !includeRegex.Match([]byte(filter_ref)) {
+			return nil, errors.New("Webhook filtered")
+		}
 	}
 
 	var appName string

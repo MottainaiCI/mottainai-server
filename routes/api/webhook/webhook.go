@@ -65,6 +65,9 @@ func Setup(m *macaron.Macaron) {
 			m.Post("/api/webhook/update/pipeline/:id", RequiresWebHookSetting, bind(agenttasks.PipelineForm{}), reqSignIn, UpdatePipeline)
 			m.Post("/api/webhook/delete/task/:id", RequiresWebHookSetting, reqSignIn, DeleteTask)
 			m.Post("/api/webhook/delete/pipeline/:id", RequiresWebHookSetting, reqSignIn, DeletePipeline)
+
+			m.Post("/api/webhook/set", RequiresWebHookSetting, reqSignIn, bind(WebhookUpdate{}), SetWebHookField)
+
 		})
 	})
 }

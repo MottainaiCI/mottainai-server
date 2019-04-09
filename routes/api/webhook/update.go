@@ -101,8 +101,55 @@ func UpdateTaskWebHook(ctx *context.Context, db *database.Database, task agentta
 	return nil
 }
 
+type WebhookUpdate struct {
+	Id    string `form:"id" binding:"Required"`
+	Value string `form:"value"`
+	Key   string ` form:"key"`
+}
+
+func UpdateWebHook(upd WebhookUpdate, ctx *context.Context, db *database.Database) error {
+	id := upd.Id
+
+	webhook, err := db.Driver.GetWebHook(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+
+	e := errors.New("Insufficient permission to update webhook")
+
+	if ctx.IsLogged {
+		if webhook.OwnerId != ctx.User.ID && !ctx.User.IsAdmin() {
+			ctx.ServerError("Failed updating webhook pipeline", e)
+			return e
+		}
+	} else {
+		ctx.ServerError("Failed updating webhook pipeline", e)
+		return e
+	}
+
+	values := webhook.ToMap()
+	values[upd.Key] = upd.Value
+
+	err = db.Driver.UpdateWebHook(id, values)
+	if err != nil {
+		ctx.ServerError("Failed updating webhook", err)
+		return err
+	}
+	return nil
+}
+
 func UpdateTask(ctx *context.Context, db *database.Database, task agenttasks.Task) string {
 	err := UpdateTaskWebHook(ctx, db, task)
+	if err != nil {
+		return ":("
+	}
+
+	return "OK"
+}
+
+func SetWebHookField(ctx *context.Context, db *database.Database, upd WebhookUpdate) string {
+	err := UpdateWebHook(upd, ctx, db)
 	if err != nil {
 		return ":("
 	}

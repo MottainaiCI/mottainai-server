@@ -51,6 +51,7 @@ type WebHook struct {
 	OwnerId  string `json:"owner_id" form:"owner_id"`
 	Task     string `json:"default_task" form:"default_task"`
 	Pipeline string `json:"default_pipeline" form:"default_pipeline"`
+	Filter   string `json:"filter" form:"filter"`
 }
 
 func (t *WebHook) HasTask() bool {

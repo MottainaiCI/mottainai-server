@@ -83,14 +83,17 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 		logger = l
 	})
 
-	gitc, err := prepareTemp(u, kind, client, db, m, payload)
+	gitc, err := prepareTemp(u, kind, client, db, m, payload, w)
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"component": "webhook_global_watcher",
 			"error":     err.Error(),
 		}).Error("Error while preparing temp directory")
 		strerr := err.Error()
-		client.Repositories.CreateStatus(stdctx.Background(), gitc.Owner, gitc.Repo, gitc.Ref, &ggithub.RepoStatus{State: &failure, Description: &strerr, Context: &appName})
+		if gitc != nil {
+			client.Repositories.CreateStatus(stdctx.Background(), gitc.Owner, gitc.Repo, gitc.Ref, &ggithub.RepoStatus{State: &failure, Description: &strerr, Context: &appName})
+
+		}
 		return err
 	}
 	defer os.RemoveAll(gitc.Dir)
@@ -184,7 +187,7 @@ func SendPipeline(u *user.User, kind string, client *ggithub.Client, db *databas
 		logger = l
 	})
 
-	gitc, err := prepareTemp(u, kind, client, db, m, payload)
+	gitc, err := prepareTemp(u, kind, client, db, m, payload, w)
 	if err != nil {
 		return err
 	}
