@@ -73,6 +73,12 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	task_info := th.FetchTask(fetcher)
 	image := task_info.Image
 
+	instruction := NewDebugInstruction(task_info.Script)
+	if len(task_info.Entrypoint) > 0 {
+		instruction = NewDefaultInstruction(task_info.Entrypoint, task_info.Script)
+	}
+	instruction.SetEnvironment(task_info.Environment)
+
 	sharedName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
 	if err != nil {
 		return 1, err
@@ -82,11 +88,6 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	storagetmp := d.Context.StorageDir
 	git_repo_dir := d.Context.SourceDir
 
-	var execute_script = "mottainai-run"
-
-	if len(task_info.Script) > 0 {
-		execute_script = strings.Join(task_info.Script, " && ")
-	}
 	// XXX: To replace with PID handling and background process.
 	// XXX: Exp. in docker container
 	// XXX: Start with docker, monitor it.
@@ -193,27 +194,14 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		CapDrop:    d.Config.GetAgent().DockerCapsDrop,
 		//	LogConfig:  docker.LogConfig{Type: "json-file"}
 	}
-	var containerconfig = &docker.Config{Image: image, WorkingDir: d.Context.HostPath(task_info.Directory)}
-	d.Report("Execute: " + execute_script)
-	if len(execute_script) > 0 {
-		containerconfig.Cmd = []string{"-c", "pwd;ls -liah;" + execute_script}
-		containerconfig.Entrypoint = []string{"/bin/bash"}
+	var containerconfig = &docker.Config{
+		Image: image, WorkingDir: d.Context.HostPath(task_info.Directory),
+		Cmd:        instruction.CommandList(),
+		Entrypoint: instruction.EntrypointList(),
+		Env:        instruction.EnvironmentList(),
 	}
-
-	if len(task_info.Entrypoint) > 0 {
-		containerconfig.Entrypoint = task_info.Entrypoint
-		containerconfig.Cmd = task_info.Script
-		d.Report("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
-	}
-
-	if len(task_info.Environment) > 0 {
-		containerconfig.Env = task_info.Environment
-		//	d.Report("Env: ")
-		//	for _, e := range task_info.Environment {
-		//		d.Report("- " + e)
-		//	}
-	}
-
+	d.Report("Entrypoint: " + strings.Join(containerconfig.Entrypoint, ","))
+	d.Report("Commands: " + instruction.ToScript())
 	d.Report("Binds: ")
 	for _, v := range ContainerBinds {
 		d.Report("- " + v)
