@@ -32,12 +32,19 @@ type Instruction interface {
 
 	SetEnvironment(env []string)
 	EnvironmentList() []string
+
+	SetMounts(mounts []string)
+	AddMount(mount string)
+	MountsList() []string
+
+	Report(Executor)
 }
 
 type DefaultInstruction struct {
 	Script      []string
 	Environment []string
 	Entrypoint  []string
+	Mounts      []string
 }
 
 func (d *DefaultInstruction) ToScript() string {
@@ -52,12 +59,39 @@ func (d *DefaultInstruction) EntrypointList() []string {
 	return d.Entrypoint
 }
 
+func (d *DefaultInstruction) AddMount(mount string) {
+	d.Mounts = append(d.Mounts, mount)
+}
+
+func (d *DefaultInstruction) SetMounts(mounts []string) {
+	d.Mounts = mounts
+}
+
+func (d *DefaultInstruction) MountsList() []string {
+	return d.Mounts
+}
+
 func (d *DefaultInstruction) SetEnvironment(env []string) {
 	d.Environment = env
 }
 
 func (d *DefaultInstruction) EnvironmentList() []string {
 	return d.Environment
+}
+
+func (instruction *DefaultInstruction) Report(d Executor) {
+	d.Report("Entrypoint: ")
+	for _, v := range instruction.EntrypointList() {
+		d.Report("- " + v)
+	}
+	d.Report("Commands: ")
+	for _, v := range instruction.CommandList() {
+		d.Report("- " + v)
+	}
+	d.Report("Binds: ")
+	for _, v := range instruction.MountsList() {
+		d.Report("- " + v)
+	}
 }
 
 func NewDebugInstruction(script []string) Instruction {
@@ -72,4 +106,15 @@ func NewBashInstruction(script []string) Instruction {
 
 func NewDefaultInstruction(entrypoint, script []string) Instruction {
 	return &DefaultInstruction{Script: script, Entrypoint: entrypoint}
+}
+
+func NewInstructionFromTask(task Task) Instruction {
+	instruction := NewDebugInstruction(task.Script)
+	if len(task.Entrypoint) > 0 {
+		instruction = NewDefaultInstruction(task.Entrypoint, task.Script)
+	}
+	instruction.SetEnvironment(task.Environment)
+	instruction.SetMounts(task.Binds)
+
+	return instruction
 }

@@ -34,6 +34,7 @@ type Executor interface {
 	Fail(string)
 	Success(int)
 	ExitStatus(int)
+	Report(...interface{})
 }
 
 const SETUP_ERROR_MESSAGE = "Setup phase error: "

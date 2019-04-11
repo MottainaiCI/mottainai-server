@@ -57,7 +57,9 @@ func (t *TestExecutor) Clean() error {
 func (t *TestExecutor) Fail(s string) {
 	t.Failed = true
 }
+func (t *TestExecutor) Report(v ...interface{}) {
 
+}
 func (t *TestExecutor) Success(e int) {
 	t.SuccessCode = e
 }

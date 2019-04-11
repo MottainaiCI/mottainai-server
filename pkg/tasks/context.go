@@ -35,16 +35,76 @@ type ExecutorContext struct {
 	StandardOutput                                                 bool
 }
 
-func (ctx *ExecutorContext) ContainerPath(p string) string {
-	if strings.HasPrefix(p, "/") {
-		return p
+func (ctx *ExecutorContext) ContainerPath(p ...string) string {
+	if strings.HasPrefix(p[0], "/") {
+		return path.Join(p...)
 	}
 
-	return path.Join(ctx.RootTaskDir, ctx.TaskRelativeDir, p)
+	var final = path.Join(ctx.RootTaskDir, ctx.TaskRelativeDir)
+	for _, a := range p {
+		final = path.Join(final, a)
+	}
+	return final
 }
 
-func (ctx *ExecutorContext) HostPath(p string) string {
-	return path.Join(ctx.RootTaskDir, p)
+func (ctx *ExecutorContext) HostPath(p ...string) string {
+	var final = ctx.RootTaskDir
+	for _, a := range p {
+		final = path.Join(final, a)
+	}
+	return final
+}
+
+func (ctx *ExecutorContext) ResolveMounts(i Instruction) {
+	if len(ctx.SourceDir) > 0 {
+		i.AddMount(ctx.SourceDir + ":" + ctx.RootTaskDir)
+	}
+}
+
+type ArtefactMapping struct {
+	ArtefactPath string
+	StoragePath  string
+}
+
+func (ctx *ExecutorContext) Report(d Executor) {
+	d.Report("Container working dir: " + ctx.HostPath(ctx.TaskRelativeDir))
+}
+
+// ResolveTaskArtefacts given an ArtefactMapping to relative directories and an instruction as input, returns a mapping relative to the host directories used
+// and updates the instruction with the new mapping that has been setted
+// if hostmapping is setted, it will replicate the same folders between container and host
+func (ctx *ExecutorContext) ResolveArtefactsMounts(m ArtefactMapping, i Instruction, hostmapping bool) ArtefactMapping {
+	artdir := ctx.ArtefactDir
+	storagetmp := ctx.StorageDir
+
+	var storage_path = "storage"
+	var artefact_path = "artefacts"
+	var artefactdir string
+	var storagedir string
+
+	if len(m.ArtefactPath) > 0 {
+		artefact_path = m.ArtefactPath
+	}
+
+	if len(m.StoragePath) > 0 {
+		storage_path = m.StoragePath
+	}
+
+	if hostmapping {
+		artefactdir = ctx.HostPath(ctx.TaskRelativeDir, artefact_path)
+		storagedir = ctx.ContainerPath(storage_path)
+
+		i.AddMount(artefactdir + ":" + ctx.ContainerPath(artefact_path))
+		i.AddMount(ctx.HostPath(ctx.TaskRelativeDir, storage_path) + ":" + ctx.ContainerPath(storage_path))
+	} else {
+		artefactdir = artdir
+		storagedir = storagetmp
+
+		i.AddMount(artdir + ":" + ctx.ContainerPath(artefact_path))
+		i.AddMount(storagetmp + ":" + ctx.ContainerPath(storage_path))
+	}
+
+	return ArtefactMapping{ArtefactPath: artefactdir, StoragePath: storagedir}
 }
 
 func NewExecutorContext() *ExecutorContext {

@@ -42,6 +42,14 @@ var _ = Describe("Instruction", func() {
 				Expect(NewDefaultInstruction([]string{}, []string{}).ToScript()).Should(Equal(""))
 			})
 		})
+		Context("MountList()", func() {
+			i.SetMounts([]string{"foo"})
+			i.AddMount("test")
+			It("adds the mount as-is", func() {
+				Expect(i.MountsList()[0]).Should(Equal("foo"))
+				Expect(i.MountsList()[1]).Should(Equal("test"))
+			})
+		})
 	})
 
 	Describe("NewDebugInstruction", func() {
@@ -57,6 +65,15 @@ var _ = Describe("Instruction", func() {
 				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd", "ls -liah", "echo 'bar' && echo 'foo'"}))
 			})
 		})
+
+		Context("MountList()", func() {
+			instruction.SetMounts([]string{"foo"})
+			instruction.AddMount("test")
+			It("adds the mount as-is", func() {
+				Expect(instruction.MountsList()[0]).Should(Equal("foo"))
+				Expect(instruction.MountsList()[1]).Should(Equal("test"))
+			})
+		})
 	})
 
 	Describe("NewBashInstruction", func() {
@@ -70,6 +87,41 @@ var _ = Describe("Instruction", func() {
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
 				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "echo 'bar'", "echo 'foo'"}))
+			})
+		})
+
+		Context("MountList()", func() {
+			instruction.SetMounts([]string{"foo"})
+			instruction.AddMount("test")
+			It("adds the mount as-is", func() {
+				Expect(instruction.MountsList()[0]).Should(Equal("foo"))
+				Expect(instruction.MountsList()[1]).Should(Equal("test"))
+			})
+		})
+	})
+
+	Describe("NewInstructionFromTask", func() {
+		instruction := NewInstructionFromTask(Task{Script: []string{"echo 'bar'", "echo 'foo'"}, Binds: []string{"test:foo"}})
+
+		Context("ToScript() Converts them to one string", func() {
+			It("simply joins them", func() {
+				Expect(instruction.ToScript()).Should(Equal("-c && pwd && ls -liah && echo 'bar' && echo 'foo'"))
+			})
+		})
+		Context("CommandList()", func() {
+			It("return all the commands", func() {
+				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd", "ls -liah", "echo 'bar' && echo 'foo'"}))
+			})
+		})
+
+		Context("MountList()", func() {
+			It("adds the mount as-is", func() {
+				Expect(instruction.MountsList()[0]).Should(Equal("test:foo"))
+
+				instruction.SetMounts([]string{"foo"})
+				instruction.AddMount("test")
+				Expect(instruction.MountsList()[0]).Should(Equal("foo"))
+				Expect(instruction.MountsList()[1]).Should(Equal("test"))
 			})
 		})
 	})

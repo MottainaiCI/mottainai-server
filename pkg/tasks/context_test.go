@@ -31,9 +31,9 @@ import (
 )
 
 var _ = Describe("Context", func() {
+
 	ctx := NewExecutorContext()
-	ctx.RootTaskDir = "a"
-	ctx.TaskRelativeDir = "b"
+	i := NewDefaultInstruction([]string{}, []string{})
 
 	Describe("Context Structure", func() {
 		Context("When container paths are absolute", func() {
@@ -47,6 +47,18 @@ var _ = Describe("Context", func() {
 			})
 		})
 
+		Context("When container paths are relative", func() {
+			It("resolves them to the git folder", func() {
+				Expect(ctx.ContainerPath("foo", "bar")).Should(Equal(path.Join(ctx.RootTaskDir, ctx.TaskRelativeDir, "foo", "bar")))
+			})
+		})
+
+		Context("When host paths are absolute", func() {
+			It("keeps them absolute", func() {
+				Expect(ctx.ContainerPath("/foo", "bar")).Should(Equal(path.Join("/foo", "bar")))
+			})
+		})
+
 		Context("When host paths are absolute", func() {
 			It("resolves them to the git folder", func() {
 				Expect(ctx.HostPath("/foo")).Should(Equal(path.Join(ctx.RootTaskDir, "foo")))
@@ -57,6 +69,63 @@ var _ = Describe("Context", func() {
 				Expect(ctx.HostPath("foo")).Should(Equal(path.Join(ctx.RootTaskDir, "foo")))
 			})
 		})
+
+		Context("When host paths are relative", func() {
+			It("resolves them to the root task folder", func() {
+				Expect(ctx.HostPath("foo", "bar")).Should(Equal(path.Join(ctx.RootTaskDir, "foo", "bar")))
+			})
+		})
+
 	})
 
+	BeforeEach(func() {
+		ctx = NewExecutorContext()
+		ctx.RootTaskDir = "/c"
+		ctx.TaskRelativeDir = "d"
+		ctx.ArtefactDir = "/a"
+		ctx.StorageDir = "/b"
+		i = NewDefaultInstruction([]string{}, []string{})
+	})
+
+	Describe("Context path resolution", func() {
+		Context("With host mapping and no custom path supplied (artefact_path, storage_path)", func() {
+			It("resolves the source repository mount", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{}, i, true)
+
+				Expect(i.MountsList()[0]).Should(Equal("/c/d/artefacts:/c/d/artefacts"))
+				Expect(i.MountsList()[1]).Should(Equal("/c/d/storage:/c/d/storage"))
+				Expect(mapping.ArtefactPath).Should(Equal("/c/d/artefacts"))
+				Expect(mapping.StoragePath).Should(Equal("/c/d/storage"))
+			})
+		})
+
+		Context("Without host mapping", func() {
+			It("resolves the source repository mount", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{}, i, false)
+
+				Expect(i.MountsList()[0]).Should(Equal("/a:/c/d/artefacts"))
+				Expect(i.MountsList()[1]).Should(Equal("/b:/c/d/storage"))
+				Expect(mapping.ArtefactPath).Should(Equal("/a"))
+				Expect(mapping.StoragePath).Should(Equal("/b"))
+			})
+
+			It("resolves the source repository mount with custom paths (abs)", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{ArtefactPath: "/blob/", StoragePath: "/blab/"}, i, false)
+
+				Expect(i.MountsList()[0]).Should(Equal("/a:/blob"))
+				Expect(i.MountsList()[1]).Should(Equal("/b:/blab"))
+				Expect(mapping.ArtefactPath).Should(Equal("/a"))
+				Expect(mapping.StoragePath).Should(Equal("/b"))
+			})
+
+			It("resolves the source repository mount with custom paths (relative)", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{ArtefactPath: "blob/", StoragePath: "blab/"}, i, false)
+
+				Expect(i.MountsList()[0]).Should(Equal("/a:/c/d/blob"))
+				Expect(i.MountsList()[1]).Should(Equal("/b:/c/d/blab"))
+				Expect(mapping.ArtefactPath).Should(Equal("/a"))
+				Expect(mapping.StoragePath).Should(Equal("/b"))
+			})
+		})
+	})
 })
