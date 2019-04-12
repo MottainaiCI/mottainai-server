@@ -44,5 +44,5 @@ func InitDB(config *setting.Config) *database.Database {
 	}
 	config.GetDatabase().DBPath = tempdir
 	dbDir = tempdir
-	return database.NewDatabase("tiedot", config)
+	return database.NewDatabase(config)
 }
