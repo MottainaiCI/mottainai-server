@@ -1,0 +1,70 @@
+version: '3'
+services:
+  mottainai:
+    image: mottainaici/server
+    environment:
+      - MOTTAINAI_BROKER__TYPE=redis
+      - MOTTAINAI_BROKER__BROKER=redis://redis:6379/1
+      - MOTTAINAI_BROKER__RESULT_BACKEND=redis://redis:6379/2
+      - MOTTAINAI_BROKER__DEFAULT_QUEUE=standard
+      - MOTTAINAI_BROKER__EXCHANGE=jobs
+      - MOTTAINAI_WEB__LISTENADDRESS=0.0.0.0
+      - MOTTAINAI_WEB__ROOT_PATH=/var/lib/mottainai/
+    ports:
+      - 0.0.0.0:4545:9090
+    networks:
+      - redis-net
+      - arango-net
+    depends_on:
+      - redis
+      - arangodb
+    command: ["web"]
+    restart: unless-stopped
+    volumes:
+    # For static config:
+    #- ./mottainai-server.yaml:/etc/mottainai/mottainai-server.yaml
+    - mottainai-db:/srv/mottainai/web/db
+    - mottainai-artifacts:/srv/mottainai/web/artefact
+    - mottainai-namespaces:/srv/mottainai/web/namespaces
+    - mottainai-storages:/srv/mottainai/web/storage
+    # de-comment for arangodb support
+    - ./arangodb.yml:/etc/mottainai/mottainai-server.yaml
+  arangodb:
+    image: arangodb/arangodb
+    restart: unless-stopped
+    hostname: arangodb
+    networks:
+      - arango-net
+    ports:
+    #  - 0.0.0.0:8529:8529
+      - 8529:8529
+    environment:
+      - ARANGO_NO_AUTH=1
+    # - ARANGO_ROOT_PASSWORD=openSesame
+    command: ["arangod", "--server.endpoint","tcp://0.0.0.0:8529"]
+    volumes:
+      - arangodb-data:/var/lib/arangodb3
+
+  redis:
+    image: redis:4.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - redis-net
+    volumes:
+      - redis-data:/data
+
+networks:
+  redis-net:
+  arango-net:
+
+volumes:
+  redis-data:
+  arangodb-data:
+  mottainai-db:
+  mottainai-artifacts:
+  mottainai-namespaces:
+  mottainai-storages:
