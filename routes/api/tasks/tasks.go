@@ -53,7 +53,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
 			m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)
 			m.Get("/api/tasks/update", reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
-			m.Get("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
+			m.Post("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
 			m.Get("/api/tasks/updatefield", reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
 			m.Get("/api/tasks/update/node", reqSignIn, bind(UpdateTaskForm{}), SetNode)
 

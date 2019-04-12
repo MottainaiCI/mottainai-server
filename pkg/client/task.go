@@ -137,7 +137,7 @@ func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
 		fmt.Println(output)
 	}
 	url := f.Config.GetWeb().BuildURI("/api/tasks/append")
-	return f.GetOptions(url, map[string]string{
+	return f.PostOptions(url, map[string]string{
 		"id":     f.docID,
 		"output": output,
 	})

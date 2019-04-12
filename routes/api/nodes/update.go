@@ -49,28 +49,22 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	n := db.Driver.AllNodes()
 
-	nodesfound, err := db.Driver.FindDoc("Nodes", `[{"eq": "`+key+`", "in": ["key"]}]`)
-	if err != nil || len(nodesfound) > 1 || len(nodesfound) == 0 {
+	nodefound, err := db.Driver.GetNodeByKey(key)
+	if err != nil {
 		ctx.NotFound()
-		return ":("
+		return "no node found :("
 	}
 
-	//var mynode nodes.Node
-	var mynodeid string
-	// Query result are document IDs
-	for id := range nodesfound {
-		//	mynode, _ = db.Driver.GetNode(id)
-		mynodeid = id
-	}
+	// Find my position between nodes
 	var pos int
 	for p, i := range n {
-		if i.ID == mynodeid {
+		if i.ID == nodefound.ID {
 			pos = p
 		}
 	}
 
 	hb := time.Now().Format("20060102150405")
-	db.Driver.UpdateNode(mynodeid, map[string]interface{}{
+	db.Driver.UpdateNode(nodefound.ID, map[string]interface{}{
 		"nodeid":      nodeid,
 		"hostname":    hostname,
 		"last_report": hb,
