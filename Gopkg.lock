@@ -130,6 +130,27 @@
   revision = "41959bdd855fb7db467f78865d5f9044507df1cd"
 
 [[projects]]
+  branch = "master"
+  digest = "1:c90db9d0826d30996d158b55b26bd04be2eb3b4f641470fba6e940f9db8e2171"
+  name = "github.com/arangodb/go-driver"
+  packages = [
+    ".",
+    "cluster",
+    "http",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "544fae7debeb82a8b1e5af81444cacf4bccf904b"
+
+[[projects]]
+  branch = "master"
+  digest = "1:32d36a3706e61f538557172ff61c9435dd7d63d8907f74198e21e665c176e5ba"
+  name = "github.com/arangodb/go-velocypack"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7896a965b4adc3bcc556b17d494537e30b4c1bd7"
+
+[[projects]]
   digest = "1:20f41f36fc0218b0050c058f64d46a839e5cced3b7929ae1b8ca2d787a4b31cf"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -1497,6 +1518,8 @@
     "github.com/RichardKnop/machinery/v1/log",
     "github.com/RichardKnop/machinery/v1/tasks",
     "github.com/Unknwon/com",
+    "github.com/arangodb/go-driver",
+    "github.com/arangodb/go-driver/http",
     "github.com/fsouza/go-dockerclient",
     "github.com/ghodss/yaml",
     "github.com/go-macaron/binding",
