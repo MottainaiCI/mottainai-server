@@ -57,12 +57,12 @@ var _ = Describe("Instruction", func() {
 
 		Context("ToScript() Converts them to one string", func() {
 			It("simply joins them", func() {
-				Expect(instruction.ToScript()).Should(Equal("-c && pwd && ls -liah && echo 'bar' && echo 'foo'"))
+				Expect(instruction.ToScript()).Should(Equal("-c && pwd;ls -liah;echo 'bar' && echo 'foo'"))
 			})
 		})
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
-				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd", "ls -liah", "echo 'bar' && echo 'foo'"}))
+				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd;ls -liah;echo 'bar' && echo 'foo'"}))
 			})
 		})
 
@@ -105,12 +105,12 @@ var _ = Describe("Instruction", func() {
 
 		Context("ToScript() Converts them to one string", func() {
 			It("simply joins them", func() {
-				Expect(instruction.ToScript()).Should(Equal("-c && pwd && ls -liah && echo 'bar' && echo 'foo'"))
+				Expect(instruction.ToScript()).Should(Equal("-c && pwd;ls -liah;echo 'bar' && echo 'foo'"))
 			})
 		})
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
-				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd", "ls -liah", "echo 'bar' && echo 'foo'"}))
+				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd;ls -liah;echo 'bar' && echo 'foo'"}))
 			})
 		})
 

@@ -95,7 +95,7 @@ func (instruction *DefaultInstruction) Report(d Executor) {
 }
 
 func NewDebugInstruction(script []string) Instruction {
-	return NewBashInstruction([]string{"pwd", "ls -liah", NewDefaultInstruction([]string{}, script).ToScript()})
+	return NewBashInstruction([]string{"pwd;ls -liah;" + NewDefaultInstruction([]string{}, script).ToScript()})
 }
 
 func NewBashInstruction(script []string) Instruction {

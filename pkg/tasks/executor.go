@@ -322,7 +322,7 @@ func (t *TaskExecutor) Close() error {
 }
 
 func (t *TaskExecutor) CreateSharedImageName(task *Task) (string, error) {
-	var ans, OriginalSharedName string
+	var OriginalSharedName string
 	image := task.Image
 
 	u, err := url.Parse(task.Source)
@@ -332,6 +332,5 @@ func (t *TaskExecutor) CreateSharedImageName(task *Task) (string, error) {
 		OriginalSharedName = image + u.Path + task.Directory
 	}
 
-	ans, err = utils.StrictStrip(OriginalSharedName)
-	return ans, err
+	return utils.StrictStrip(OriginalSharedName)
 }
