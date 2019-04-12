@@ -24,6 +24,7 @@ package database
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
+	arango "github.com/MottainaiCI/mottainai-server/pkg/db/arangodb"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
@@ -224,14 +225,20 @@ type Database struct {
 
 var DBInstance *Database
 
-func NewDatabase(backend string, config *setting.Config) *Database {
+func NewDatabase(config *setting.Config) *Database {
 	if DBInstance == nil {
-		DBInstance = &Database{Backend: backend, Config: config}
+		DBInstance = &Database{Backend: config.GetDatabase().DBEngine, Config: config}
 	}
-	if backend == "tiedot" {
+	// TODO: refactor this
+	switch config.GetDatabase().DBEngine {
+	case "tiedot":
 		DBInstance.Driver = tiedot.New(config.GetDatabase().DBPath)
+	case "arangodb":
+		DBInstance.Driver = arango.New(config.GetDatabase().DatabaseName,
+			config.GetDatabase().User, config.GetDatabase().Password,
+			config.GetDatabase().CertPath, config.GetDatabase().KeyPath,
+			config.GetDatabase().Endpoints)
 	}
-
 	DBInstance.Driver.GetAgent().Map(config)
 	DBInstance.Driver.Init()
 	DBInstance.Config = config

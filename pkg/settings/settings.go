@@ -85,6 +85,13 @@ type StorageConfig struct {
 type DatabaseConfig struct {
 	DBEngine string `mapstructure:"engine"`
 	DBPath   string `mapstructure:"db_path"`
+
+	Endpoints    []string `mapstructure:"db_endpoints"`
+	User         string   `mapstructure:"db_user"`
+	DatabaseName string   `mapstructure:"db_name"`
+	Password     string   `mapstructure:"db_password"`
+	CertPath     string   `mapstructure:"db_certpath"`
+	KeyPath      string   `mapstructure:"db_keypath"`
 }
 
 type BrokerConfig struct {
@@ -459,9 +466,14 @@ func (c *DatabaseConfig) String() string {
 db:
   engine: %s
   db_path: %s
+	endpoints: %s
+	db_name: %s
+	db_password: ****
+	db_certpath: %s
+	db_keypath: %s
+	db_user: %s
 `,
-		c.DBEngine, c.DBPath)
-
+		c.DBEngine, c.DBPath, c.Endpoints, c.DatabaseName, c.CertPath, c.KeyPath, c.User)
 	return ans
 }
 

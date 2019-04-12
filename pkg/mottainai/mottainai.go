@@ -69,7 +69,7 @@ func Classic(config *setting.Config) *Mottainai {
 	m.Map(logger)
 	m.Map(config)
 	cl.Map(config)
-	database.NewDatabase("tiedot", config)
+	database.NewDatabase(config)
 
 	m.Map(database.DBInstance)
 	m.Use(logging.MacaronLogger())

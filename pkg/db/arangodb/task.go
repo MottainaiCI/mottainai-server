@@ -20,11 +20,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tiedot
+package arangodb
 
 import (
 	"errors"
-	"strconv"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -104,56 +103,75 @@ func (d *Database) GetTaskByStatus(config *setting.Config, status string) ([]age
 	var query string
 	switch status {
 	case "running":
-		query = `[{"eq": "running", "in": ["status"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.status == "running"
+			RETURN c`
 	case "waiting":
-		query = `[{"eq": "waiting", "in": ["status"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.status == "waiting"
+			RETURN c`
 	case "stop":
-		query = `[{"eq": "stop", "in": ["status"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.status == "stop"
+			RETURN c`
 	case "stopped":
-		query = `[{"eq": "stopped", "in": ["status"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.status == "stopped"
+			RETURN c`
 	case "error":
-		query = `[{"eq": "error", "in": ["result"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.result == "error"
+			RETURN c`
 	case "failed":
-		query = `[{"eq": "failed", "in": ["result"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.result == "failed"
+			RETURN c`
 	case "success":
-		query = `[{"eq": "success", "in": ["result"]}]`
+		query = `FOR c IN ` + TaskColl + `
+			FILTER c.result == "success"
+			RETURN c`
 	default:
 		return res, errors.New("No valid status supplied")
 	}
 
-	queryResult, e := d.FindDoc(TaskColl, query)
-	if e != nil {
-		return res, e
+	queryResult, err := d.FindDoc("", query)
+	if err != nil {
+		return res, err
 	}
 
 	// Query result are document IDs
-	for docid := range queryResult {
+	for id, _ := range queryResult {
+
 		// Read document
-		t, err := d.GetTask(config, docid)
+		t, err := d.GetTask(config, id)
 		if err != nil {
-			return []agenttasks.Task{}, err
+			return res, err
 		}
 		res = append(res, t)
-
 	}
 	return res, nil
+
 }
 
 func (d *Database) GetTaskArtefacts(id string) ([]artefact.Artefact, error) {
-	queryResult, err := d.FindDoc(ArtefactColl, `[{"eq": `+id+`, "in": ["task"]}]`)
+
+	queryResult, err := d.FindDoc("", `FOR c IN `+ArtefactColl+`
+		FILTER c.task == "`+id+`"
+		RETURN c`)
+
 	var res []artefact.Artefact
 	if err != nil {
-		return []artefact.Artefact{}, err
+		return res, err
 	}
 
 	// Query result are document IDs
-	for docid := range queryResult {
-		// Read document
-		art, err := d.GetArtefact(docid)
-		if err != nil {
-			return []artefact.Artefact{}, err
-		}
+	for id, _ := range queryResult {
 
+		// Read document
+		art, err := d.GetArtefact(id)
+		if err != nil {
+			return res, err
+		}
 		res = append(res, art)
 	}
 	return res, nil
@@ -164,52 +182,67 @@ func (d *Database) ListTasks() []dbcommon.DocItem {
 }
 
 func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
-	tasks := d.DB().Use(TaskColl)
-	tasks_id := make([]agenttasks.Task, 0)
-	th := agenttasks.DefaultTaskHandler(config)
 
-	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		t := th.NewTaskFromJson(docContent)
-		t.ID = strconv.Itoa(id)
+	tasks_id := make([]agenttasks.Task, 0)
+	docs, err := d.FindDoc("", "FOR c IN "+TaskColl+" return c")
+	if err != nil {
+		return tasks_id
+	}
+
+	for k, _ := range docs {
+		t, err := d.GetTask(config, k)
+		if err != nil {
+			return tasks_id
+		}
 		tasks_id = append(tasks_id, t)
-		return true
-	})
+	}
+
 	return tasks_id
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
-	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["node_id"]}]`)
+	queryResult, err := d.FindDoc("", `FOR c IN `+TaskColl+`
+		FILTER c.node_id == "`+id+`"
+		RETURN c`)
+
 	var res []agenttasks.Task
 	if err != nil {
 		return res, err
 	}
-	for docid := range queryResult {
+
+	// Query result are document IDs
+	for id, _ := range queryResult {
 
 		// Read document
-		t, err := d.GetTask(config, docid)
+		t, err := d.GetTask(config, id)
 		if err != nil {
 			return res, err
 		}
-
 		res = append(res, t)
 	}
 	return res, nil
+
 }
 
 func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
-	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["owner_id"]}]`)
+
+	queryResult, err := d.FindDoc("", `FOR c IN `+TaskColl+`
+		FILTER c.owner_id == "`+id+`"
+		RETURN c`)
+
 	var res []agenttasks.Task
 	if err != nil {
 		return res, err
 	}
-	for docid := range queryResult {
+
+	// Query result are document IDs
+	for id, _ := range queryResult {
 
 		// Read document
-		t, err := d.GetTask(config, docid)
+		t, err := d.GetTask(config, id)
 		if err != nil {
 			return res, err
 		}
-
 		res = append(res, t)
 	}
 	return res, nil
