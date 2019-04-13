@@ -137,14 +137,6 @@ func SendTask(u *user.User, kind string, client *ggithub.Client, db *database.Da
 	}
 
 	t.Owner = gitc.StoredUser.ID
-	if kind == "pull_request" {
-		//	t.Namespace = "" // do not allow automatic tag from PR
-		t.TagNamespace = ""
-		t.Storage = ""
-		t.Binds = []string{}
-		t.RootTask = ""
-	}
-
 	t.Source = user_repo
 	t.Commit = commit
 	t.Queue = QueueSetting(db)
