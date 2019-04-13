@@ -78,8 +78,14 @@ func (d *DockerExecutor) HandleCacheImagePush(req StateRequest, task_info Task) 
 		}
 	}
 }
-func (d *DockerExecutor) ResolveCachedImage(sharedName string, task_info Task) (string, error) {
+func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, error) {
 	image := task_info.Image
+	// That's the image we will update in case caching is enabled
+	sharedName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
+	if err != nil {
+		return "", err
+	}
+
 	if len(task_info.Image) > 0 {
 		if len(task_info.CacheImage) > 0 {
 			if img, err := d.FindImage(sharedName); err == nil {
@@ -139,14 +145,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 
 	d.Context.ResolveMounts(instruction)
 
-	// That's the image we will update in case caching is enabled
-	cachedImageName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
-	if err != nil {
-		return 1, err
-	}
-
 	// That is the image we are using for the build
-	image, err := d.ResolveCachedImage(cachedImageName, task_info)
+	image, err := d.ResolveCachedImage(task_info)
 	if err != nil {
 		return 1, err
 	}
@@ -190,8 +190,8 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	d.Report("Created container ID: " + container.ID)
 	request := StateRequest{
 		ContainerID:   container.ID,
-		ImagesToClean: []string{cachedImageName, image},
-		CacheImage:    cachedImageName,
+		ImagesToClean: []string{image},
+		CacheImage:    image,
 		Prune:         len(task_info.Prune) > 0,
 	}
 
