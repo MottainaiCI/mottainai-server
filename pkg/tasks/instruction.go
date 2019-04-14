@@ -92,6 +92,14 @@ func (instruction *DefaultInstruction) Report(d Executor) {
 	for _, v := range instruction.MountsList() {
 		d.Report("- " + v)
 	}
+	d.Report("Envs: ")
+	for _, v := range instruction.EnvironmentList() {
+		// redact env values, display keys
+		result := strings.SplitAfter(v, "=")
+		if len(result) > 0 {
+			d.Report(result[0])
+		}
+	}
 }
 
 func NewDebugInstruction(script []string) Instruction {

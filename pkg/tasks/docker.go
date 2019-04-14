@@ -89,7 +89,7 @@ func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, error) {
 	if len(task_info.Image) > 0 {
 		if len(task_info.CacheImage) > 0 {
 			if img, err := d.FindImage(sharedName); err == nil {
-				d.Report("Cached image found: " + img + " " + sharedName)
+				d.Report(">> Cached image found: " + img + " " + sharedName)
 				if len(task_info.CacheClean) > 0 {
 					d.Report("Not using previously cached image - deleting image: " + sharedName)
 					d.RemoveImage(sharedName)
@@ -116,19 +116,19 @@ func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, error) {
 
 					if e := d.PullImage(toPull); e == nil {
 						image = toPull
-						d.Report("Using pulled image:  " + image)
+						d.Report(">> Using pulled image:  " + image)
 					} else {
-						d.Report("No image could be fetched by cache registry")
+						d.Report(">> No image could be fetched by cache registry")
 					}
 				}
 			}
 		}
 
-		d.Report("Pulling image: " + image)
+		d.Report(">> Pulling image: " + image)
 		if err := d.PullImage(image); err != nil {
 			return "", err
 		}
-		d.Report("Pulling image: DONE!")
+		d.Report(">> Pulling image: DONE!")
 	}
 	return image, nil
 }
@@ -160,12 +160,13 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		instruction.AddMount(d.Config.GetAgent().DockerEndpointDiD + ":/var/run/docker.sock")
 	}
 
+	instruction.Report(d)
+	d.Context.Report(d)
+
 	if err := d.DownloadArtefacts(mapping.ArtefactPath, mapping.StoragePath); err != nil {
 		return 1, err
 	}
-
-	instruction.Report(d)
-	d.Context.Report(d)
+	d.Report(">> Creating container..")
 
 	container, err := d.DockerClient.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
@@ -203,7 +204,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		d.Report("Starting container error: " + err.Error())
 		return 1, err
 	}
-	d.Report("Started Container " + container.ID)
+	d.Report(">> Started Container " + container.ID)
 
 	// We always update the cache image
 	return d.Handle(request, mapping)

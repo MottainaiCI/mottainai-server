@@ -68,6 +68,14 @@ type ArtefactMapping struct {
 
 func (ctx *ExecutorContext) Report(d Executor) {
 	d.Report("Container working dir: " + ctx.HostPath(ctx.TaskRelativeDir))
+	d.Report("Context TaskRelativeDir: " + ctx.TaskRelativeDir)
+	d.Report("Context BuildDir: " + ctx.BuildDir)
+	d.Report("Context SourceDir: " + ctx.SourceDir)
+	d.Report("Context RootTaskDir: " + ctx.RootTaskDir)
+	d.Report("Context RealRootDir: " + ctx.RealRootDir)
+	d.Report("Context StorageDir: " + ctx.StorageDir)
+	d.Report("Context ArtefactDir: " + ctx.ArtefactDir)
+	d.Report("Context NamespaceDir: " + ctx.NamespaceDir)
 }
 
 // ResolveTaskArtefacts given an ArtefactMapping to relative directories and an instruction as input, returns a mapping relative to the host directories used
@@ -92,10 +100,10 @@ func (ctx *ExecutorContext) ResolveArtefactsMounts(m ArtefactMapping, i Instruct
 
 	if hostmapping {
 		artefactdir = ctx.HostPath(ctx.TaskRelativeDir, artefact_path)
-		storagedir = ctx.ContainerPath(storage_path)
+		storagedir = ctx.HostPath(ctx.TaskRelativeDir, storage_path)
 
 		i.AddMount(artefactdir + ":" + ctx.ContainerPath(artefact_path))
-		i.AddMount(ctx.HostPath(ctx.TaskRelativeDir, storage_path) + ":" + ctx.ContainerPath(storage_path))
+		i.AddMount(storagedir + ":" + ctx.ContainerPath(storage_path))
 	} else {
 		artefactdir = artdir
 		storagedir = storagetmp

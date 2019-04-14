@@ -88,7 +88,7 @@ var _ = Describe("Context", func() {
 	})
 
 	Describe("Context path resolution", func() {
-		Context("With host mapping and no custom path supplied (artefact_path, storage_path)", func() {
+		Context("With host mapping", func() {
 			It("resolves the source repository mount", func() {
 				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{}, i, true)
 
@@ -96,6 +96,24 @@ var _ = Describe("Context", func() {
 				Expect(i.MountsList()[1]).Should(Equal("/c/d/storage:/c/d/storage"))
 				Expect(mapping.ArtefactPath).Should(Equal("/c/d/artefacts"))
 				Expect(mapping.StoragePath).Should(Equal("/c/d/storage"))
+			})
+
+			It("resolves the source repository mount with absolute path", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{ArtefactPath: "/c", StoragePath: "/z"}, i, true)
+
+				Expect(i.MountsList()[0]).Should(Equal("/c/d/c:/c"))
+				Expect(i.MountsList()[1]).Should(Equal("/c/d/z:/z"))
+				Expect(mapping.ArtefactPath).Should(Equal("/c/d/c"))
+				Expect(mapping.StoragePath).Should(Equal("/c/d/z"))
+			})
+
+			It("resolves the source repository mount with relative path", func() {
+				mapping := ctx.ResolveArtefactsMounts(ArtefactMapping{ArtefactPath: "c", StoragePath: "z"}, i, true)
+
+				Expect(i.MountsList()[0]).Should(Equal("/c/d/c:/c/d/c"))
+				Expect(i.MountsList()[1]).Should(Equal("/c/d/z:/c/d/z"))
+				Expect(mapping.ArtefactPath).Should(Equal("/c/d/c"))
+				Expect(mapping.StoragePath).Should(Equal("/c/d/z"))
 			})
 		})
 
