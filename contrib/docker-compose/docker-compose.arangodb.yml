@@ -10,6 +10,9 @@ services:
       - MOTTAINAI_BROKER__EXCHANGE=jobs
       - MOTTAINAI_WEB__LISTENADDRESS=0.0.0.0
       - MOTTAINAI_WEB__ROOT_PATH=/var/lib/mottainai/
+      - MOTTAINAI_STORAGE__STORAGE_PATH=/srv/mottainai/web/storage
+      - MOTTAINAI_STORAGE__ARTEFACT_PATH=/srv/mottainai/web/artefact
+      - MOTTAINAI_STORAGE__NAMESPACE_PATH=/srv/mottainai/web/namespaces
     ports:
       - 0.0.0.0:4545:9090
     networks:
