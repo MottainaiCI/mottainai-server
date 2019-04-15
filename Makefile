@@ -83,7 +83,8 @@ compose-test-run: build
 		@tmpdir=`mktemp --tmpdir -d`; \
 		cp -rf $(ROOT_DIR)/contrib/docker-compose "$$tmpdir"; \
 		pushd "$$tmpdir/docker-compose"; \
-		trap 'docker-compose down --rmi all -v --remove-orphans;rm -rf "$$tmpdir"' EXIT; \
+		mv docker-compose.arangodb.yml docker-compose.yml; \
+		trap 'docker-compose down -v --remove-orphans;rm -rf "$$tmpdir"' EXIT; \
 		echo ">> Server will be avilable at: http://127.0.0.1:4545" ; \
 		sed -i "s|#- ./mottainai-server.yaml:/etc/mottainai/mottainai-server.yaml|- "$(ROOT_DIR)"/mottainai-server:/usr/bin/mottainai-server|g" docker-compose.yml; \
 		sed -i "s|# For static config:|- "$(ROOT_DIR)":/var/lib/mottainai|g" docker-compose.yml; \
