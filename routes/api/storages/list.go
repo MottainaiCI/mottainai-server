@@ -45,9 +45,13 @@ func StorageShow(ctx *context.Context, db *database.Database) {
 	ns, err := db.Driver.GetStorage(id)
 
 	if err != nil {
-		ctx.ServerError(err.Error(), err)
-		//ctx.NotFound()
-		return
+		// Try once more if we supplied it by name
+		ns, err = db.Driver.SearchStorage(id)
+		if err != nil {
+			//ctx.ServerError(err.Error(), err)
+			ctx.NotFound()
+			return
+		}
 	}
 	if !ctx.CheckStoragePermissions(&ns) {
 		ctx.NoPermission()
@@ -65,8 +69,12 @@ func StorageListArtefacts(ctx *context.Context, db *database.Database) {
 
 	st, err := db.Driver.GetStorage(id)
 	if err != nil {
-		ctx.ServerError(err.Error(), err)
-		return
+		// Try once more if we supplied it by name
+		st, err = db.Driver.SearchStorage(id)
+		if err != nil {
+			ctx.ServerError(err.Error(), err)
+			return
+		}
 	}
 	if !ctx.CheckStoragePermissions(&st) {
 		ctx.NoPermission()

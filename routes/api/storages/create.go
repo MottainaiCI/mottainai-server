@@ -40,10 +40,15 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	name, _ = utils.Strip(name)
 
 	if !ctx.CheckStorageBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		return "Insufficient permissions :(", errors.New("Moar permissions are required for this user")
 	}
 	if _, err := db.Driver.SearchStorage(name); err == nil {
-		return "Storage with same name already present", err
+		return "Storage with same name already present :(", err
+	}
+
+	err := os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, name), os.ModePerm)
+	if err != nil {
+		return "Failed creating storage directory :( " + err.Error(), err
 	}
 
 	docID, err := db.Driver.CreateStorage(map[string]interface{}{
@@ -53,11 +58,7 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	})
 	//
 	if err != nil {
-		return "", err
-	}
-	err = os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, name), os.ModePerm)
-	if err != nil {
-		return ":(", err
+		return "Unable to create storage :(", err
 	}
 
 	return docID, nil
