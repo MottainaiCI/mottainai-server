@@ -154,7 +154,7 @@ func Classic(config *setting.Config) *Mottainai {
 	template.Setup(m.Macaron)
 
 	m.Use(captcha.Captchaer(captcha.Options{
-		SubURL: config.GetWeb().AppSubURL,
+		URLPrefix: config.GetWeb().BuildURI("/captcha/"),
 	}))
 
 	m.Use(context.Contexter())
