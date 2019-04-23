@@ -78,12 +78,31 @@ func (d *DockerExecutor) HandleCacheImagePush(req StateRequest, task_info Task) 
 		}
 	}
 }
-func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, error) {
+
+func (d *DockerExecutor) ImageToCacheName(image string) string {
+
+	if t, oktype := d.Config.GetAgent().CacheRegistryCredentials["type"]; oktype && t == "docker" {
+
+		toPull := purgeImageName(image)
+		if e, ok := d.Config.GetAgent().CacheRegistryCredentials["entity"]; ok {
+			toPull = e + "/" + toPull
+		}
+
+		if baseUrl, okb := d.Config.GetAgent().CacheRegistryCredentials["baseurl"]; okb {
+			toPull = baseUrl + toPull
+		}
+
+		return toPull
+	}
+	return image
+}
+
+func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, string, error) {
 	image := task_info.Image
 	// That's the image we will update in case caching is enabled
 	sharedName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
 	if err != nil {
-		return "", err
+		return "", sharedName, err
 	}
 
 	if len(task_info.Image) > 0 {
@@ -101,36 +120,26 @@ func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, error) {
 			}
 
 			if len(task_info.CacheClean) == 0 {
-				// Retrieve cached image into the hub
-				if t, oktype := d.Config.GetAgent().CacheRegistryCredentials["type"]; oktype && t == "docker" {
+				toPull := d.ImageToCacheName(sharedName)
 
-					toPull := purgeImageName(sharedName)
-					if e, ok := d.Config.GetAgent().CacheRegistryCredentials["entity"]; ok {
-						toPull = e + "/" + toPull
-					}
-					d.Report("Try to pull cache (" + toPull + ") image from defined registry or from dockerhub")
+				d.Report("Try to pull cache (" + toPull + ") image from defined registry or from dockerhub")
 
-					if baseUrl, okb := d.Config.GetAgent().CacheRegistryCredentials["baseurl"]; okb {
-						toPull = baseUrl + toPull
-					}
-
-					if e := d.PullImage(toPull); e == nil {
-						image = toPull
-						d.Report(">> Using pulled image:  " + image)
-					} else {
-						d.Report(">> No image could be fetched by cache registry")
-					}
+				if e := d.PullImage(toPull); e == nil {
+					image = toPull
+					d.Report(">> Using pulled image:  " + image)
+				} else {
+					d.Report(">> No image could be fetched by cache registry")
 				}
 			}
 		}
 
 		d.Report(">> Pulling image: " + image)
 		if err := d.PullImage(image); err != nil {
-			return "", err
+			return "", sharedName, err
 		}
 		d.Report(">> Pulling image: DONE!")
 	}
-	return image, nil
+	return image, sharedName, nil
 }
 
 func (d *DockerExecutor) AttachContainerReport(container *docker.Container) {
@@ -146,7 +155,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	d.Context.ResolveMounts(instruction)
 
 	// That is the image we are using for the build
-	image, err := d.ResolveCachedImage(task_info)
+	image, cachedimage, err := d.ResolveCachedImage(task_info)
 	if err != nil {
 		return 1, err
 	}
@@ -192,7 +201,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	request := StateRequest{
 		ContainerID:   container.ID,
 		ImagesToClean: []string{image},
-		CacheImage:    image,
+		CacheImage:    cachedimage,
 		Prune:         len(task_info.Prune) > 0,
 	}
 
@@ -349,29 +358,31 @@ func (d *DockerExecutor) PushImage(image string) error {
 
 		if okname && okpassword {
 			baseurl, okbaseurl := d.Config.GetAgent().CacheRegistryCredentials["baseurl"]
-			entity, okentity := d.Config.GetAgent().CacheRegistryCredentials["entity"]
 			imageopts := docker.PushImageOptions{}
 			auth := docker.AuthConfiguration{}
 			auth.Password = password
 			auth.Username = username
 			serveraddress, okserveraddress := d.Config.GetAgent().CacheRegistryCredentials["serveraddress"]
+
+			imageopts.Name = d.ImageToCacheName(image)
+
 			if okserveraddress {
 				auth.ServerAddress = serveraddress
 			}
-			if okentity {
-				imageopts.Name = entity + "/" + purgeImageName(image)
+
+			if d.ImageToCacheName(image) != image {
 				if err := d.NewImageFrom(image, imageopts.Name, "latest"); err != nil {
 					return err
 				}
 				d.MottainaiClient.AppendTaskOutput("Tagged image: " + image + " ----> " + imageopts.Name)
-			} else {
-				imageopts.Name = purgeImageName(image)
 			}
-			d.MottainaiClient.AppendTaskOutput("Pushing image: " + imageopts.Name)
 
 			if okbaseurl {
 				imageopts.Registry = baseurl
 			}
+
+			d.MottainaiClient.AppendTaskOutput("Pushing image: " + imageopts.Name)
+
 			return d.DockerClient.PushImage(imageopts, auth)
 		}
 	} else {
