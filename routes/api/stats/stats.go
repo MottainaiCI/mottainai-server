@@ -51,37 +51,41 @@ type Stats struct {
 func Info(ctx *context.Context, db *database.Database) {
 
 	ctx.Invoke(func(config *setting.Config) {
-		rtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "running", "in": ["status"]}]`)
+
+		rtasks, e := db.Driver.GetTaskByStatus(db.Config, "running")
+		if e != nil {
+			ctx.ServerError("Failed getting stats", e)
+			return
+		}
 		running_tasks := len(rtasks)
-		wtasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "waiting", "in": ["status"]}]`)
+		wtasks, e := db.Driver.GetTaskByStatus(db.Config, "waiting")
+		if e != nil {
+			ctx.ServerError("Failed getting stats", e)
+			return
+		}
 		waiting_tasks := len(wtasks)
-		etasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "error", "in": ["result"]}]`)
+		etasks, e := db.Driver.GetTaskByStatus(db.Config, "error")
+		if e != nil {
+			ctx.ServerError("Failed getting stats", e)
+			return
+		}
 		error_tasks := len(etasks)
-		ftasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "failed", "in": ["result"]}]`)
+		ftasks, e := db.Driver.GetTaskByStatus(db.Config, "failed")
+		if e != nil {
+			ctx.ServerError("Failed getting stats", e)
+			return
+		}
 		failed_tasks := len(ftasks)
-		stasks, _ := db.Driver.FindDoc("Tasks", `[{"eq": "success", "in": ["result"]}]`)
+		stasks, e := db.Driver.GetTaskByStatus(db.Config, "success")
+		if e != nil {
+			ctx.ServerError("Failed getting stats", e)
+			return
+		}
 		succeeded_tasks := len(stasks)
 
-		var fail_task = make([]agenttasks.Task, 0)
-		for i, _ := range ftasks {
-			t, _ := db.Driver.GetTask(config, i)
-			fail_task = append(fail_task, t)
-		}
-		var failed = GetStats(fail_task)
-
-		var err_tasks = make([]agenttasks.Task, 0)
-		for i, _ := range etasks {
-			t, _ := db.Driver.GetTask(config, i)
-			err_tasks = append(err_tasks, t)
-		}
-		var errored = GetStats(err_tasks)
-
-		var suc_tasks = make([]agenttasks.Task, 0)
-		for i, _ := range stasks {
-			t, _ := db.Driver.GetTask(config, i)
-			suc_tasks = append(suc_tasks, t)
-		}
-		var succeded = GetStats(suc_tasks)
+		var failed = GetStats(ftasks)
+		var errored = GetStats(etasks)
+		var succeded = GetStats(stasks)
 
 		atasks := db.Driver.AllTasks(config)
 		var created = GetStats(atasks)
