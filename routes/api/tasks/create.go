@@ -29,7 +29,6 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -56,32 +55,6 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 		opts.Owner = ctx.User.ID
 	}
 
-	// Check setting if we have to process this.
-	uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_OVERWRITE)
-	if err != nil {
-		return "", err
-	}
-	if uuu.IsEnabled() {
-		wtasks, e := db.Driver.GetTaskByStatus(db.Config, "waiting")
-		if e != nil {
-			return "", err
-		}
-		for _, task := range wtasks {
-			if task.TagNamespace == opts.TagNamespace {
-				return "Namespace protected (tasks targeting this namespace are in waiting)", errors.New("Tasks targeting this namespace are in waiting")
-			}
-		}
-		rtasks, e := db.Driver.GetTaskByStatus(db.Config, "running")
-		if e != nil {
-			return "", err
-		}
-		for _, task := range rtasks {
-			if task.TagNamespace == opts.TagNamespace {
-				return "Namespace protected (tasks targeting this namespace already running)", errors.New("Tasks targeting this namespace are already running")
-			}
-		}
-	}
-
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
 		return ":(", errors.New("Moar permissions are required for this user")
 	}
@@ -90,8 +63,10 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	if err != nil {
 		return "", err
 	}
-	m.SendTask(docID)
-
+	sent, err := m.SendTask(docID)
+	if !sent {
+		return "Error sending task: " + err.Error(), err
+	}
 	return docID, nil
 }
 
