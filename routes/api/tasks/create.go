@@ -63,8 +63,8 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	if err != nil {
 		return "", err
 	}
-	sent, err := m.SendTask(docID)
-	if !sent {
+
+	if _, err := m.SendTask(docID); err != nil {
 		return "Error sending task: " + err.Error(), err
 	}
 	return docID, nil

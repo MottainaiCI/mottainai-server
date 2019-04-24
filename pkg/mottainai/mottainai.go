@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package mottainai
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -451,65 +452,59 @@ func (m *Mottainai) FailTask(task, reason string) {
 }
 
 func (m *Mottainai) SendTask(docID string) (bool, error) {
-	result := true
+	result := false
 	var err error
 	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
 
 		task, err := d.Driver.GetTask(config, docID)
 		if err != nil {
 			m.FailTask(docID, "Failed getting task information")
-			result = false
+
 			return
 		}
 
 		// Check setting if we have to process this.
 		if protectOverwrite, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_OVERWRITE); protectOverwrite.IsEnabled() {
 			// Check for waiting/running tasks and do not send in such case
-			wtasks, e := d.Driver.GetTaskByStatus(d.Config, "waiting")
-			if e != nil {
+			wtasks, err := d.Driver.GetTaskByStatus(d.Config, "waiting")
+			if err != nil {
 				m.FailTask(docID, "Failed getting task information")
-				result = false
 				return
 			}
 			for _, t := range wtasks {
 				if t.TagNamespace == task.TagNamespace {
+					err = errors.New("Task targeting same namespace is waiting to start")
 					m.FailTask(docID, "Task targeting same namespace is waiting to start")
-					result = false
 					return
 				}
 			}
-			rtasks, e := d.Driver.GetTaskByStatus(d.Config, "running")
-			if e != nil {
+			rtasks, err := d.Driver.GetTaskByStatus(d.Config, "running")
+			if err != nil {
 				m.FailTask(docID, "Failed getting task information")
-				result = false
 				return
 			}
 			for _, t := range rtasks {
 				if t.TagNamespace == task.TagNamespace {
-					m.FailTask(docID, "Task targeting same namespace already running")
-					result = false
+					err = errors.New("Task targeting same namespace already running")
+					m.FailTask(docID, err.Error())
 					return
 				}
 			}
 		}
 
 		task.ClearBuildLog(config.GetStorage().ArtefactPath)
-		var broker *Broker
+
+		q := config.GetBroker().BrokerDefaultQueue
 		if len(task.Queue) > 0 {
-			broker = server.Get(task.Queue, config)
-			l.WithFields(logrus.Fields{
-				"component": "core",
-				"task_id":   docID,
-				"queue":     task.Queue,
-			}).Info("Sending task")
-		} else {
-			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
-			l.WithFields(logrus.Fields{
-				"component": "core",
-				"task_id":   docID,
-				"queue":     config.GetBroker().BrokerDefaultQueue,
-			}).Info("Sending task")
+			q = task.Queue
 		}
+
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"task_id":   docID,
+			"queue":     q,
+		}).Info("Sending task")
+		broker := server.Get(q, config)
 
 		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
@@ -520,17 +515,17 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 		}).Debug("Task")
 
 		if !th.Exists(task.Type) {
-			m.FailTask(docID, "Could not send task: Invalid task type")
-			result = false
+			err = errors.New("Could not send task: Invalid task type")
+			m.FailTask(docID, err.Error())
 			return
 		}
 
 		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
 		if err != nil {
 			m.FailTask(docID, "Backend error, could not send task to broker: "+err.Error())
-			result = false
 			return
 		}
+		result = true
 
 		l.WithFields(logrus.Fields{
 			"component": "core",
