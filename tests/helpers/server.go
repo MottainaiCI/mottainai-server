@@ -42,6 +42,7 @@ var Config *setting.Config
 var Tokens []*token.Token
 var Nodes []*node.Node
 var Tasks []string
+var FixtureTaskData map[string]interface{}
 
 func InitConfig(path string) {
 	//os.RemoveAll(path)
@@ -110,7 +111,7 @@ func SetFixture(db *database.Database) error {
 }
 
 // Dup for other test suites
-func NewClient() (*client.Fetcher, error) {
+func NewClient() (client.HttpClient, error) {
 	if len(Tokens) == 0 {
 		return nil, errors.New("No tokens registered in the helper")
 	}
@@ -137,6 +138,8 @@ func SetRuntimeFixture() error {
 		dat[n] = "test"
 	}
 
+	dat["type"] = "docker" // must be a valid one!
+
 	res, err := c.GenericForm("/api/tasks", dat)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create task fixture")
@@ -147,7 +150,7 @@ func SetRuntimeFixture() error {
 	}
 
 	Tasks = append(Tasks, tid)
-
+	FixtureTaskData = dat
 	return nil
 }
 

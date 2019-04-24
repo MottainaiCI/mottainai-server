@@ -106,11 +106,11 @@ func TestUpload(t *testing.T) {
 		dat[n] = "test"
 	}
 
-	res, err := c.GenericForm("/api/tasks", dat)
+	res, err := c.CreateTask(dat)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	tid := string(res)
+	tid := res.ID
 
 	fmt.Println("Created Task:", tid)
 
