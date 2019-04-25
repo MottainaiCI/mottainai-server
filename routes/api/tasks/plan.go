@@ -46,28 +46,32 @@ func PlannedTask(ctx *context.Context, db *database.Database) error {
 		return err
 	}
 	if !ctx.CheckPlanPermissions(&plan) {
-		return errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	ctx.JSON(200, plan)
 	return nil
 }
 
-func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Plan) (string, error) {
+func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Plan) error {
 	opts.Reset()
 	fields := opts.ToMap()
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) || !ctx.CheckPlanPermissions(&opts) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	docID, err := db.Driver.CreatePlan(fields)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	m.ReloadCron()
-	return docID, nil
+
+	ctx.APICreationSuccess(docID, "plan")
+	return nil
 }
 
 func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ctx *context.Context) error {
@@ -90,7 +94,6 @@ func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ct
 	return nil
 }
 
-func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
-	id := ctx.Params(":id")
-	return PlanDeleteById(id, db, m, ctx)
+func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
+	return PlanDeleteById(ctx.Params(":id"), db, m, ctx)
 }

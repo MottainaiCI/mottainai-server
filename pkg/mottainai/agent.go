@@ -63,8 +63,7 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string) {
 	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true, func(a *anagent.Anagent, c *client.Fetcher) {
 		if res, err := c.RegisterNode(ID, hostname); err == nil {
 			d := time.Duration(MINTIMER * time.Second)
-			data := string(res)
-			population := strings.Split(data, ",")
+			population := strings.Split(res.Data, ",")
 			if len(population) == 2 {
 				nodes, e := strconv.Atoi(population[0])
 				if e != nil {

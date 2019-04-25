@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -37,14 +38,13 @@ type NodeUpdate struct {
 	Hostname string `json:"hostname" form:"hostname"`
 }
 
-func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) string {
+func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) error {
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
 	hostname := nodedata.Hostname
 
 	if len(key) == 0 {
-		ctx.NotFound()
-		return ":("
+		return errors.New("Invalid key")
 	}
 
 	n := db.Driver.AllNodes()
@@ -52,7 +52,7 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 	nodefound, err := db.Driver.GetNodeByKey(key)
 	if err != nil {
 		ctx.NotFound()
-		return "no node found :("
+		return nil
 	}
 
 	// Find my position between nodes
@@ -70,5 +70,6 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 		"last_report": hb,
 	})
 
-	return strings.Join([]string{strconv.Itoa(len(n)), strconv.Itoa(pos)}, ",")
+	ctx.APIEventData(strings.Join([]string{strconv.Itoa(len(n)), strconv.Itoa(pos)}, ","))
+	return nil
 }

@@ -30,13 +30,14 @@ import (
 	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
-func APICreate(ctx *context.Context, db *database.Database) string {
+func APICreate(ctx *context.Context, db *database.Database) error {
 	id, err := Create(ctx, db)
 	if err != nil {
-		return ":( Error: " + err.Error()
+		return err
 	}
 
-	return id
+	ctx.APICreationSuccess(id, "node")
+	return nil
 }
 
 func Create(ctx *context.Context, db *database.Database) (string, error) {

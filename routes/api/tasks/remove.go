@@ -30,13 +30,14 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
-func APIDelete(ctx *context.Context, db *database.Database) string {
+func APIDelete(ctx *context.Context, db *database.Database) error {
 	err := Delete(ctx, db)
 	if err != nil {
-		ctx.NotFound()
-		return ""
+		return err
 	}
-	return "OK"
+
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func Delete(ctx *context.Context, db *database.Database) error {
@@ -44,7 +45,7 @@ func Delete(ctx *context.Context, db *database.Database) error {
 
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
-		return err
+		return errors.New("Task not found")
 	}
 	if !ctx.CheckTaskPermissions(&task) {
 		return errors.New("Moar permissions are required for this user")
@@ -53,5 +54,6 @@ func Delete(ctx *context.Context, db *database.Database) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

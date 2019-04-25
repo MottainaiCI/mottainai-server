@@ -139,29 +139,32 @@ func UpdateWebHook(upd WebhookUpdate, ctx *context.Context, db *database.Databas
 	return nil
 }
 
-func UpdateTask(ctx *context.Context, db *database.Database, task agenttasks.Task) string {
+func UpdateTask(ctx *context.Context, db *database.Database, task agenttasks.Task) error {
 	err := UpdateTaskWebHook(ctx, db, task)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func SetWebHookField(ctx *context.Context, db *database.Database, upd WebhookUpdate) string {
+func SetWebHookField(ctx *context.Context, db *database.Database, upd WebhookUpdate) error {
 	err := UpdateWebHook(upd, ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func UpdatePipeline(ctx *context.Context, db *database.Database, pipeform agenttasks.PipelineForm) string {
+func UpdatePipeline(ctx *context.Context, db *database.Database, pipeform agenttasks.PipelineForm) error {
 	err := UpdatePipelineWebHook(ctx, db, pipeform)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }

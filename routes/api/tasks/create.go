@@ -32,15 +32,14 @@ import (
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
-// TODO: Add dup.
-
-func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) string {
+func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) error {
 	docID, err := Create(m, th, ctx, db, opts)
 	if err != nil {
-		ctx.NotFound()
-		return ""
+		return err
 	}
-	return docID
+
+	ctx.APICreationSuccess(docID, "task")
+	return nil
 }
 
 func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
@@ -56,7 +55,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	}
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		return "", errors.New("More permissions required")
 	}
 
 	docID, err := db.Driver.InsertTask(&opts)
@@ -65,13 +64,12 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	}
 
 	if _, err := m.SendTask(docID); err != nil {
-		return "Error sending task: " + err.Error(), err
+		return "", err
 	}
 	return docID, nil
 }
 
-func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
-	id := ctx.Params(":id")
+func CloneAndSend(id string, m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
 
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
@@ -79,7 +77,8 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 	}
 
 	if !ctx.CheckNamespaceBelongs(task.TagNamespace) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return "", nil
 	}
 
 	docID, err := db.Driver.CloneTask(db.Config, id)
@@ -93,7 +92,20 @@ func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 		})
 	}
 
-	m.SendTask(docID)
-
+	if _, err := m.SendTask(docID); err != nil {
+		return "", err
+	}
 	return docID, nil
+}
+
+func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":id")
+
+	docID, err := CloneAndSend(id, m, th, ctx, db)
+	if err != nil {
+		return err
+	}
+
+	ctx.APICreationSuccess(docID, "task")
+	return nil
 }

@@ -22,11 +22,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package client
 
-func (f *Fetcher) RegisterNode(ID, hostname string) ([]byte, error) {
+import (
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+)
+
+func (f *Fetcher) RegisterNode(ID, hostname string) (event.APIResponse, error) {
 	url := f.Config.GetWeb().BuildURI("/api/nodes/register")
-	return f.PostOptions(url, map[string]string{
+	data, err := f.PostOptions(url, map[string]string{
 		"key":      f.Config.GetAgent().AgentKey,
 		"nodeid":   ID,
 		"hostname": hostname,
 	})
+	if err != nil {
+		return event.APIResponse{}, err
+	}
+	return event.DecodeAPIResponse(data)
 }

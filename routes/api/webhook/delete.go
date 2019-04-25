@@ -87,19 +87,21 @@ func DeletePipelineWebHook(ctx *context.Context, db *database.Database) error {
 	}
 	return nil
 }
-func DeletePipeline(ctx *context.Context, db *database.Database) string {
+func DeletePipeline(ctx *context.Context, db *database.Database) error {
 	err := DeletePipelineWebHook(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
-func DeleteTask(ctx *context.Context, db *database.Database) string {
+func DeleteTask(ctx *context.Context, db *database.Database) error {
 	err := DeleteTaskWebHook(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }

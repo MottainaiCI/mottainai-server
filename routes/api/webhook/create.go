@@ -49,16 +49,17 @@ func CreateWebHook(ctx *context.Context, db *database.Database) (*webhook.WebHoo
 	return t, nil
 }
 
-func Create(ctx *context.Context, db *database.Database) string {
+func Create(ctx *context.Context, db *database.Database) error {
 	t, err := CreateWebHook(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 	_, err = db.Driver.InsertWebHook(t)
 	if err != nil {
 		ctx.ServerError("Failed creating webhook", err)
-		return ":("
+		return err
 	}
 
-	return t.Key
+	ctx.APICreationSuccess(t.Key, "webhook")
+	return nil
 }

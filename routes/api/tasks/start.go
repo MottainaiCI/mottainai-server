@@ -33,27 +33,27 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 )
 
-func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) string {
+func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
 	err := SendStartTask(m, th, ctx, db)
 	if err != nil {
-		ctx.NotFound()
-		return ":("
+		return err
 	}
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	mytask, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
-		return err
+		return errors.New("Task not found")
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
-		return errors.New("Moar permissions are required for this user")
+		return errors.New("More permission required")
 	}
 
 	if mytask.IsWaiting() || mytask.IsRunning() {
-		return errors.New("Waiting/running - can't start")
+		return errors.New("Task is already waiting or running, refusing to start")
 	}
 
 	_, err = m.SendTask(id)

@@ -40,6 +40,7 @@ func GetTaskYaml(ctx *context.Context, db *database.Database) string {
 		return ""
 	}
 	if !ctx.CheckTaskPermissions(&task) {
+		ctx.NoPermission()
 		return ""
 	}
 
@@ -60,6 +61,7 @@ func GetTaskJson(ctx *context.Context, db *database.Database) {
 		return
 	}
 	if !ctx.CheckTaskPermissions(&task) {
+		ctx.NoPermission()
 		return
 	}
 	ctx.JSON(200, task)
@@ -100,6 +102,8 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 		return ""
 	}
 	if !ctx.CheckTaskPermissions(&task) {
+		ctx.NoPermission()
+
 		return ""
 	}
 
@@ -116,7 +120,8 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 		return ""
 	}
 	if !ctx.CheckTaskPermissions(&task) {
-		return "Moar permissions are required for this user"
+		ctx.NoPermission()
+		return ""
 	}
 
 	return task.TailLog(pos, db.Config.GetStorage().ArtefactPath, db.Config.GetWeb().LockPath)

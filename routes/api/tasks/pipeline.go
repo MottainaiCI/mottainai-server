@@ -128,12 +128,14 @@ func PipelineYaml(ctx *context.Context, db *database.Database) string {
 	return string(y)
 }
 
-func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *context.Context, db *database.Database, o task.PipelineForm) (string, error) {
+func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *context.Context, db *database.Database, o task.PipelineForm) error {
 	var tasks map[string]task.Task
+
 	d := gob.NewDecoder(bytes.NewBuffer([]byte(o.Tasks)))
 	if err := d.Decode(&tasks); err != nil {
-		panic(err)
+		return err
 	}
+
 	opts := o.Pipeline
 	opts.Tasks = tasks
 	opts.Reset()
@@ -145,13 +147,14 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 			f.Owner = ctx.User.ID
 		}
 		if !ctx.CheckNamespaceBelongs(t.TagNamespace) {
-			return ":(", errors.New("Moar permissions are required for this user")
+			ctx.NoPermission()
+			return nil
 		}
 		f.Status = setting.TASK_STATE_WAIT
 
 		id, err := db.Driver.CreateTask(f.ToMap())
 		if err != nil {
-			return "", err
+			return err
 		}
 		f.ID = id
 		opts.Tasks[i] = f
@@ -164,11 +167,12 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *c
 
 	docID, err := db.Driver.CreatePipeline(fields)
 	if err != nil {
-		return "", err
+		return err
 	}
 	m.ProcessPipeline(docID)
 
-	return docID, nil
+	ctx.APICreationSuccess(docID, "pipeline")
+	return nil
 }
 
 func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
@@ -179,7 +183,8 @@ func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.D
 	}
 
 	if !ctx.CheckPipelinePermissions(&pips) {
-		return errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	err = db.Driver.DeletePipeline(id)

@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storagesapi
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -32,47 +31,52 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
-func StorageDelete(ctx *context.Context, db *database.Database) (string, error) {
+func StorageDelete(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	//name, _ = utils.Strip(name)
 
 	storage, err := db.Driver.GetStorage(id)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
 	if !ctx.CheckStoragePermissions(&storage) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	err = db.Driver.DeleteStorage(id)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 	err = os.RemoveAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path))
 	if err != nil {
-		return ":(", err
+		return err
 	}
-	return "OK", nil
+
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func StorageRemovePath(ctx *context.Context, db *database.Database) (string, error) {
+func StorageRemovePath(ctx *context.Context, db *database.Database) error {
 	path := ctx.Params(":path")
 	id := ctx.Params(":id")
 	//name, _ = utils.Strip(name)
 
 	storage, err := db.Driver.GetStorage(id)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
 	if !ctx.CheckStoragePermissions(&storage) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	err = os.RemoveAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, path))
 	if err != nil {
-		return ":(", err
+		return err
 	}
-	return "OK", nil
+	ctx.APIActionSuccess()
+	return nil
 }

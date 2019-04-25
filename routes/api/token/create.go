@@ -47,16 +47,17 @@ func CreateToken(ctx *context.Context, db *database.Database) (*token.Token, err
 	return t, nil
 }
 
-func Create(ctx *context.Context, db *database.Database) string {
+func Create(ctx *context.Context, db *database.Database) error {
 	t, err := CreateToken(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 	_, err = db.Driver.InsertToken(t)
 	if err != nil {
 		ctx.ServerError("Failed creating token", err)
-		return ":("
+		return err
 	}
 
-	return t.Key
+	ctx.APICreationSuccess(t.Key, "token")
+	return nil
 }

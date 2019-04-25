@@ -100,22 +100,24 @@ func SetAdmin(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
-func SetManagerUser(ctx *context.Context, db *database.Database) string {
+func SetManagerUser(ctx *context.Context, db *database.Database) error {
 	err := SetManager(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func SetAdminUser(ctx *context.Context, db *database.Database) string {
+func SetAdminUser(ctx *context.Context, db *database.Database) error {
 	err := SetAdmin(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func UnSetManager(ctx *context.Context, db *database.Database) error {
@@ -156,22 +158,24 @@ func UnSetAdmin(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
-func UnSetAdminUser(ctx *context.Context, db *database.Database) string {
+func UnSetAdminUser(ctx *context.Context, db *database.Database) error {
 	err := UnSetAdmin(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func UnSetManagerUser(ctx *context.Context, db *database.Database) string {
+func UnSetManagerUser(ctx *context.Context, db *database.Database) error {
 	err := UnSetManager(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func Delete(ctx *context.Context, db *database.Database) error {
@@ -197,14 +201,15 @@ func Delete(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
-func DeleteUser(ctx *context.Context, db *database.Database) string {
+func DeleteUser(ctx *context.Context, db *database.Database) error {
 
 	err := Delete(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func List(c *context.Context, db *database.Database) []user.User {
@@ -236,7 +241,7 @@ func ListUsers(c *context.Context, db *database.Database) {
 	c.JSON(200, List(c, db))
 }
 
-func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
+func CreateUser(ctx *context.Context, db *database.Database, opts user.UserForm) error {
 	var u *user.User = &user.User{
 		Name:     opts.Name,
 		Email:    opts.Email,
@@ -249,10 +254,11 @@ func CreateUser(db *database.Database, opts user.UserForm) (string, error) {
 
 	r, err := db.Driver.InsertAndSaltUser(u)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
-	return r, nil
+	ctx.APICreationSuccess(r, "user")
+	return nil
 }
 
 func Setup(m *macaron.Macaron) {

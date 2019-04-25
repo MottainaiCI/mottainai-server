@@ -33,35 +33,39 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, db.Driver.AllSettings())
 }
 
-func APICreate(ctx *context.Context, db *database.Database, s Setting) string {
+func APICreate(ctx *context.Context, db *database.Database, s Setting) error {
 
 	id, err := db.Driver.InsertSetting(&setting.Setting{Key: s.Key, Value: s.Value})
 	if err != nil {
-		ctx.ServerError("Failed insert", err)
-		return ""
+		return err
 	}
-	return id
+
+	ctx.APICreationSuccess(id, "setting")
+	return nil
 }
 
-func APIRemove(db *database.Database, ctx *context.Context) {
+func APIRemove(db *database.Database, ctx *context.Context) error {
 	key := ctx.Params(":key")
 	uuu, err := db.Driver.GetSettingByKey(key)
 	if err != nil {
-		ctx.ServerError("Failed remove", err)
+		return err
 	}
 
 	err = db.Driver.DeleteSetting(uuu.ID)
 	if err != nil {
-		ctx.ServerError("Failed remove", err)
+		return err
 	}
+
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func APIUpdate(ctx *context.Context, db *database.Database, s Setting) {
+func APIUpdate(ctx *context.Context, db *database.Database, s Setting) error {
 	uuu, err := db.Driver.GetSettingByKey(s.Key)
 	if err != nil {
-		ctx.ServerError("Failed update", err)
+		return err
 	}
 	uuu.Key = s.Key
 	uuu.Value = s.Value
-	db.Driver.UpdateSetting(uuu.ID, uuu.ToMap())
+	return db.Driver.UpdateSetting(uuu.ID, uuu.ToMap())
 }

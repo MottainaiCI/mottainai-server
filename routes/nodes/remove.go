@@ -31,7 +31,7 @@ import (
 )
 
 func Remove(ctx *context.Context, db *database.Database) {
-	_, err := nodesapi.Remove(ctx, db)
+	err := nodesapi.Remove(ctx, db)
 
 	if err != nil {
 		ctx.ServerError("Failed removing node", err)

@@ -35,20 +35,21 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-func StorageCreate(ctx *context.Context, db *database.Database) (string, error) {
+func StorageCreate(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
 
 	if !ctx.CheckStorageBelongs(name) {
-		return "Insufficient permissions :(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 	if _, err := db.Driver.SearchStorage(name); err == nil {
-		return "Storage with same name already present :(", err
+		return errors.New("Storage with same name already exists")
 	}
 
 	err := os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, name), os.ModePerm)
 	if err != nil {
-		return "Failed creating storage directory :( " + err.Error(), err
+		return err
 	}
 
 	docID, err := db.Driver.CreateStorage(map[string]interface{}{
@@ -58,10 +59,11 @@ func StorageCreate(ctx *context.Context, db *database.Database) (string, error) 
 	})
 	//
 	if err != nil {
-		return "Unable to create storage :(", err
+		return err
 	}
 
-	return docID, nil
+	ctx.APICreationSuccess(docID, "storage")
+	return nil
 }
 
 type StorageForm struct {
@@ -81,7 +83,8 @@ func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) 
 		return err
 	}
 	if !ctx.CheckStorageBelongs(storage.Path) {
-		errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, uf.Path), os.ModePerm)

@@ -43,6 +43,7 @@ import (
 
 	"github.com/mxk/go-flowrate/flowrate"
 
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 
@@ -60,7 +61,7 @@ type HttpClient interface {
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) ([]byte, error)
-	RegisterNode(string, string) ([]byte, error)
+	RegisterNode(string, string) (event.APIResponse, error)
 	Doc(string)
 	SetUploadChunkSize(int)
 	SetupTask()

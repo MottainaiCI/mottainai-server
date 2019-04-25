@@ -32,29 +32,29 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceTag(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	taskid := ctx.Params(":taskid")
 	name, _ = utils.Strip(name)
 
 	if len(name) == 0 {
-		return ":( No namespace name given", nil
+		return errors.New("No namespace name given")
 	}
 
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		return errors.New("Moar permissions are required for this user")
 	}
 
 	task, err := db.Driver.GetTask(db.Config, taskid)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
 	err = ns.Tag(task.ID, db.Config.GetStorage().NamespacePath,
 		db.Config.GetStorage().ArtefactPath)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 	// artefacts, err := db.Driver.GetTaskArtefacts(taskid)
 	// if err != nil {
@@ -85,55 +85,58 @@ func NamespaceTag(ctx *context.Context, db *database.Database) (string, error) {
 	//
 	// }
 
-	return "OK", nil
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func NamespaceAppend(ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceAppend(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	taskid := ctx.Params(":taskid")
 	name, _ = utils.Strip(name)
 
 	if len(name) == 0 {
-		return ":( No namespace name given", nil
+		return errors.New("No namespace name given")
 	}
 
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		return errors.New("Moar permissions are required for this user")
 	}
 
 	task, err := db.Driver.GetTask(db.Config, taskid)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
 	err = ns.Append(task.ID, db.Config.GetStorage().NamespacePath,
 		db.Config.GetStorage().ArtefactPath)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
-	return "OK", nil
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func NamespaceClone(ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceClone(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	from := ctx.Params(":from")
 	name, _ = utils.Strip(name)
 	from, _ = utils.Strip(from)
 
 	if len(name) == 0 {
-		return ":( No namespace name given", nil
+		return errors.New("No namespace name given")
 	}
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		return errors.New("Moar permissions are required for this user")
 	}
 	ns := namespace.NewFromMap(map[string]interface{}{"name": name, "path": name})
 	err := ns.Clone(namespace.NewFromMap(map[string]interface{}{"name": from, "path": from}),
 		db.Config.GetStorage().NamespacePath)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
-	return "OK", nil
+	ctx.APIActionSuccess()
+	return nil
 }

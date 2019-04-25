@@ -531,7 +531,6 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			"component": "core",
 			"task_id":   docID,
 		}).Info("Task sent")
-
 	})
 	return result, err
 }

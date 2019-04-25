@@ -46,7 +46,9 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 
 func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
 
-	docID, err := tasksapi.CloneTask(m, th, ctx, db)
+	id := ctx.Params(":id")
+
+	docID, err := tasksapi.CloneAndSend(id, m, th, ctx, db)
 	if err != nil {
 		ctx.NotFound()
 	} else {

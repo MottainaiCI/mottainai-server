@@ -30,13 +30,13 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
-func APIStop(ctx *context.Context, db *database.Database) string {
+func APIStop(ctx *context.Context, db *database.Database) error {
 	err := Stop(ctx, db)
 	if err != nil {
-		ctx.NotFound()
-		return ":("
+		return err
 	}
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }
 
 func Stop(ctx *context.Context, db *database.Database) error {
@@ -50,10 +50,10 @@ func Stop(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	mytask, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
-		return err
+		return errors.New("Task not found")
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
-		return errors.New("Moar permissions are required for this user")
+		return errors.New("More permissions required")
 	}
 	err = db.Driver.UpdateTask(id, map[string]interface{}{
 		"status": "stop",

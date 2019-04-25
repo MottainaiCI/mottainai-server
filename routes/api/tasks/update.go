@@ -110,18 +110,19 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 	return nil
 }
 
-func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
+func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
 	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
-		return err.Error()
+		return err
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
-		return "Moar permissions are required for this user"
+		ctx.NoPermission()
+		return nil
 	}
 	if len(f.Output) > 0 {
 		mytask, err := db.Driver.GetTask(db.Config, f.Id)
 		if err != nil {
-			return ":("
+			return errors.New("Task not found")
 		}
 		err = mytask.AppendBuildLog(f.Output, db.Config.GetStorage().ArtefactPath, db.Config.GetWeb().LockPath)
 		if err != nil {
@@ -129,14 +130,16 @@ func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context
 				"component": "api",
 				"error":     err.Error(),
 			}).Error("Can't write to buildlog")
-			return "Can't write to buildlog, Error: " + err.Error()
+			return err
 		}
 	}
 	SyncTaskLastUpdate(f.Id, db)
-	return "OK"
+
+	ctx.APIActionSuccess()
+	return nil
 }
 
-func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) string {
+func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
 
 	if len(f.Status) > 0 {
 		db.Driver.UpdateTask(f.Id, map[string]interface{}{
@@ -159,9 +162,10 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) s
 
 	t, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
-		return ":( "
+		return errors.New("Task not found")
 	}
 	t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 	SyncTaskLastUpdate(f.Id, db)
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }

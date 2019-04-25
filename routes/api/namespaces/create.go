@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
-	"errors"
 	"io"
 	"mime/multipart"
 	"os"
@@ -36,12 +35,13 @@ import (
 
 const NameSpacesPrefix = "::"
 
-func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceCreate(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
 
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	// docID, _ := db.CreateNamespace(map[string]interface{}{
@@ -51,10 +51,11 @@ func NamespaceCreate(ctx *context.Context, db *database.Database) (string, error
 
 	err := os.MkdirAll(filepath.Join(db.Config.GetStorage().NamespacePath, name), os.ModePerm)
 	if err != nil {
-		return ":(", err
+		return err
 	}
 
-	return "OK", nil
+	ctx.APIActionSuccess()
+	return nil
 }
 
 type NamespaceForm struct {
@@ -74,7 +75,8 @@ func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Databa
 	}
 
 	if !ctx.CheckNamespaceBelongs(uf.Namespace) {
-		errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	os.MkdirAll(filepath.Join(db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
@@ -85,5 +87,6 @@ func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Databa
 	}
 	io.Copy(f, file)
 
+	ctx.APIActionSuccess()
 	return nil
 }

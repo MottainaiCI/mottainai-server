@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
-	"errors"
 	"io"
 	"mime/multipart"
 	"os"
@@ -47,7 +46,7 @@ func AllArtefactList(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, artefacts)
 }
 
-func ArtefactList(ctx *context.Context, db *database.Database) {
+func ArtefactList(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	// artefacts, err := db.Driver.GetTaskArtefacts(id)
 	// if err != nil {
@@ -60,15 +59,17 @@ func ArtefactList(ctx *context.Context, db *database.Database) {
 	// }
 	t, err := db.Driver.GetTask(db.Config, id)
 	if !ctx.CheckTaskPermissions(&t) {
-		return
+		ctx.NoPermission()
+		return nil
 	}
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	artefacts := t.Artefacts(db.Config.GetStorage().ArtefactPath)
 
 	ctx.JSON(200, artefacts)
+	return nil
 }
 
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) error {
@@ -82,7 +83,8 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	}
 
 	if !ctx.CheckTaskPermissions(&task) {
-		return errors.New("Insufficient permissions")
+		ctx.NoPermission()
+		return nil
 	}
 
 	var f *os.File = nil
@@ -101,5 +103,7 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 		"task": task.ID,
 		//"namespace": task.Namespace,
 	})
+
+	ctx.APIActionSuccess()
 	return nil
 }

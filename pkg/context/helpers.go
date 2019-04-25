@@ -23,11 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package context
 
 import (
+	"runtime"
 	"strings"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	storage "github.com/MottainaiCI/mottainai-server/pkg/storage"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -207,4 +209,27 @@ func CheckStoragePermission(ctx *Context) bool {
 	}
 
 	return true
+}
+
+// API Helpers
+
+func (c *Context) APIActionSuccess() {
+	c.APIEventReport(event.APIResponse{ObjType: "action", Processed: "true", Status: "ok"})
+}
+
+func (c *Context) APICreationSuccess(id, objType string) {
+	c.APIEventReport(event.APIResponse{ID: id, ObjType: objType, Processed: "true", Status: "ok"})
+}
+
+func (c *Context) APIEventData(data string) {
+	c.APIEventReport(event.APIResponse{Data: data, Processed: "true", Status: "ok"})
+}
+
+func (c *Context) APIEventReport(e event.APIResponse) {
+	pc, _, _, ok := runtime.Caller(2)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		e.Event = details.Name()
+	}
+	c.JSON(200, e)
 }

@@ -59,11 +59,12 @@ func RemoveToken(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
-func Remove(ctx *context.Context, db *database.Database) string {
+func Remove(ctx *context.Context, db *database.Database) error {
 	err := RemoveToken(ctx, db)
 	if err != nil {
-		return ":("
+		return err
 	}
 
-	return "OK"
+	ctx.APIActionSuccess()
+	return nil
 }

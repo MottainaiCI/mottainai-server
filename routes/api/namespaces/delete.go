@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespacesapi
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -33,20 +32,23 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
-func NamespaceDelete(ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceDelete(ctx *context.Context, db *database.Database) error {
 	name := ctx.Params(":name")
 	name, _ = utils.Strip(name)
 
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	//err := db.DeleteNamespace(id)
 	err := os.RemoveAll(filepath.Join(db.Config.GetStorage().NamespacePath, name))
 	if err != nil {
-		return ":(", err
+		return err
 	}
-	return "OK", nil
+
+	ctx.APIActionSuccess()
+	return nil
 }
 
 type RemoveForm struct {
@@ -54,18 +56,21 @@ type RemoveForm struct {
 	Path string `form:"path" binding:"Required`
 }
 
-func NamespaceRemovePath(uf RemoveForm, ctx *context.Context, db *database.Database) (string, error) {
+func NamespaceRemovePath(uf RemoveForm, ctx *context.Context, db *database.Database) error {
 	name := uf.Name
 	name, _ = utils.Strip(name)
 	path := uf.Path
 
 	if !ctx.CheckNamespaceBelongs(name) {
-		return ":(", errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return nil
 	}
 
 	err := os.RemoveAll(filepath.Join(db.Config.GetStorage().NamespacePath, name, path))
 	if err != nil {
-		return ":(", err
+		return err
 	}
-	return "OK", nil
+
+	ctx.APIActionSuccess()
+	return nil
 }
