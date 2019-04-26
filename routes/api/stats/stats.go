@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"time"
 
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -130,7 +132,7 @@ func Setup(m *macaron.Macaron) {
 
 	m.Invoke(func(config *setting.Config) {
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/stats", Info)
+			v1.Schema.GetStatsRoute("info").ToMacaron(m, Info)
 		})
 	})
 }

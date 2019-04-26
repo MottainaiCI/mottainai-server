@@ -24,6 +24,7 @@ package storagesapi
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/go-macaron/binding"
@@ -38,15 +39,13 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:        config.GetWeb().AppSubURL})
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/storage/list", reqSignIn, StorageList)
-			m.Get("/api/storage/:id/list", reqSignIn, StorageListArtefacts)
-
-			m.Get("/api/storage/:name/create", reqSignIn, StorageCreate)
-			m.Get("/api/storage/:id/delete", reqSignIn, StorageDelete)
-			m.Get("/api/storage/:id/remove/:path", reqSignIn, StorageRemovePath)
-
-			m.Get("/api/storage/:id/show", reqSignIn, StorageShow)
-			m.Post("/api/storage/upload", reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
+			v1.Schema.GetStorageRoute("show_all").ToMacaron(m, reqSignIn, StorageList)
+			v1.Schema.GetStorageRoute("show_artefacts").ToMacaron(m, reqSignIn, StorageListArtefacts)
+			v1.Schema.GetStorageRoute("create").ToMacaron(m, reqSignIn, StorageCreate)
+			v1.Schema.GetStorageRoute("delete").ToMacaron(m, reqSignIn, StorageDelete)
+			v1.Schema.GetStorageRoute("remove_path").ToMacaron(m, reqSignIn, StorageRemovePath)
+			v1.Schema.GetStorageRoute("show").ToMacaron(m, reqSignIn, StorageShow)
+			v1.Schema.GetStorageRoute("upload").ToMacaron(m, reqSignIn, binding.MultipartForm(StorageForm{}), StorageUpload)
 		})
 	})
 }

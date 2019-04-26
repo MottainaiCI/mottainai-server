@@ -27,6 +27,7 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -278,15 +279,16 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:         config.GetWeb().AppSubURL})
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/user/list", reqManager, reqSignIn, ListUsers)
-			m.Get("/api/user/show/:id", reqManager, reqSignIn, ShowUser)
-			m.Get("/api/user/set/admin/:id", reqSignIn, reqAdmin, SetAdminUser)
-			m.Get("/api/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdminUser)
-			m.Get("/api/user/set/manager/:id", reqSignIn, reqAdmin, SetManagerUser)
-			m.Get("/api/user/unset/manager/:id", reqSignIn, reqAdmin, UnSetManagerUser)
-			m.Get("/api/user/delete/:id", reqSignIn, reqAdmin, DeleteUser)
-			m.Post("/api/user/create", reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
-			m.Post("/api/user/edit/:id", reqSignIn, reqAdmin, bind(user.UserForm{}), UpdateUser)
+			v1.Schema.GetUserRoute("show_all").ToMacaron(m, reqManager, reqSignIn, ListUsers)
+			v1.Schema.GetUserRoute("show").ToMacaron(m, reqManager, reqSignIn, ShowUser)
+			v1.Schema.GetUserRoute("set_admin").ToMacaron(m, reqSignIn, reqAdmin, SetAdminUser)
+			v1.Schema.GetUserRoute("unset_admin").ToMacaron(m, reqSignIn, reqAdmin, UnSetAdminUser)
+
+			v1.Schema.GetUserRoute("set_manager").ToMacaron(m, reqSignIn, reqAdmin, SetManagerUser)
+			v1.Schema.GetUserRoute("unset_manager").ToMacaron(m, reqSignIn, reqAdmin, UnSetManagerUser)
+			v1.Schema.GetUserRoute("delete").ToMacaron(m, reqSignIn, reqAdmin, DeleteUser)
+			v1.Schema.GetUserRoute("create").ToMacaron(m, reqSignIn, reqAdmin, bind(user.UserForm{}), CreateUser)
+			v1.Schema.GetUserRoute("edit").ToMacaron(m, reqSignIn, reqAdmin, bind(user.UserForm{}), UpdateUser)
 		})
 	})
 }

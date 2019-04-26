@@ -25,6 +25,7 @@ package tasksapi
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -40,39 +41,35 @@ func Setup(m *macaron.Macaron) {
 
 		bind := binding.Bind
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/tasks", ShowAll)
-			m.Post("/api/tasks", reqSignIn, bind(agenttasks.Task{}), APICreate)
-			m.Get("/api/tasks/:id", GetTaskJson)      // TEMP: For now, as js  calls aren't with auth
-			m.Get("/api/tasks/:id.yaml", GetTaskYaml) // TEMP: For now, as js  calls aren't with auth
-			m.Get("/api/tasks/stream_output/:id/:pos", StreamOutputTask)
-			m.Get("/api/tasks/tail_output/:id/:pos", TailTask)
-			m.Get("/api/tasks/start/:id", reqSignIn, SendStartTask)
-			m.Get("/api/tasks/clone/:id", reqSignIn, CloneTask)
-			m.Get("/api/tasks/status/:status", reqSignIn, APIShowTaskByStatus)
+			v1.Schema.GetTaskRoute("show_all").ToMacaron(m, ShowAll)
+			v1.Schema.GetTaskRoute("create").ToMacaron(m, reqSignIn, bind(agenttasks.Task{}), APICreate)
+			v1.Schema.GetTaskRoute("as_json").ToMacaron(m, GetTaskJson) // TEMP: For now, as js  calls aren't with auth
+			v1.Schema.GetTaskRoute("as_yaml").ToMacaron(m, GetTaskYaml) // TEMP: For now, as js  calls aren't with auth
+			v1.Schema.GetTaskRoute("stream_output").ToMacaron(m, StreamOutputTask)
+			v1.Schema.GetTaskRoute("tail_output").ToMacaron(m, TailTask)
+			v1.Schema.GetTaskRoute("start").ToMacaron(m, reqSignIn, SendStartTask)
+			v1.Schema.GetTaskRoute("clone").ToMacaron(m, reqSignIn, CloneTask)
+			v1.Schema.GetTaskRoute("status").ToMacaron(m, reqSignIn, APIShowTaskByStatus)
+			v1.Schema.GetTaskRoute("stop").ToMacaron(m, reqSignIn, Stop)
+			v1.Schema.GetTaskRoute("delete").ToMacaron(m, reqSignIn, APIDelete)
+			v1.Schema.GetTaskRoute("update").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
+			v1.Schema.GetTaskRoute("append").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
+			v1.Schema.GetTaskRoute("update_field").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
+			v1.Schema.GetTaskRoute("update_node").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), SetNode)
+			v1.Schema.GetTaskRoute("artefact_list").ToMacaron(m, reqSignIn, ArtefactList)
+			v1.Schema.GetTaskRoute("all_artefact_list").ToMacaron(m, reqSignIn, AllArtefactList)
+			v1.Schema.GetTaskRoute("artefact_upload").ToMacaron(m, reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
 
-			m.Get("/api/tasks/stop/:id", reqSignIn, Stop)
-			m.Get("/api/tasks/delete/:id", reqSignIn, APIDelete)
-			m.Get("/api/tasks/update", reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
-			m.Post("/api/tasks/append", reqSignIn, bind(UpdateTaskForm{}), AppendToTask)
-			m.Get("/api/tasks/updatefield", reqSignIn, bind(UpdateTaskForm{}), UpdateTaskField)
-			m.Get("/api/tasks/update/node", reqSignIn, bind(UpdateTaskForm{}), SetNode)
+			v1.Schema.GetTaskRoute("create_plan").ToMacaron(m, reqSignIn, bind(agenttasks.Plan{}), Plan)
+			v1.Schema.GetTaskRoute("plan_list").ToMacaron(m, reqSignIn, PlannedTasks)
+			v1.Schema.GetTaskRoute("plan_delete").ToMacaron(m, reqSignIn, PlanDelete)
+			v1.Schema.GetTaskRoute("plan_show").ToMacaron(m, reqSignIn, PlannedTask)
 
-			m.Get("/api/tasks/:id/artefacts", reqSignIn, ArtefactList)
-			m.Get("/api/artefacts", reqSignIn, AllArtefactList)
-
-			m.Post("/api/tasks/plan", reqSignIn, bind(agenttasks.Plan{}), Plan)
-
-			m.Get("/api/tasks/planned", reqSignIn, PlannedTasks)
-			m.Get("/api/tasks/plan/delete/:id", reqSignIn, PlanDelete)
-			m.Get("/api/tasks/plan/:id", reqSignIn, PlannedTask)
-
-			m.Post("/api/tasks/pipeline", reqSignIn, bind(agenttasks.PipelineForm{}), Pipeline)
-			m.Get("/api/tasks/pipelines", reqSignIn, ShowAllPipelines)
-			m.Get("/api/tasks/pipelines/delete/:id", reqSignIn, PipelineDelete)
-			m.Get("/api/tasks/pipeline/:id", reqSignIn, APIPipelineShow)
-			m.Get("/api/tasks/pipeline/:id.yaml", reqSignIn, PipelineYaml) // TEMP: For now, as js  calls aren't with auth
-
-			m.Post("/api/tasks/artefact/upload", reqSignIn, binding.MultipartForm(ArtefactForm{}), ArtefactUpload)
+			v1.Schema.GetTaskRoute("create_pipeline").ToMacaron(m, reqSignIn, bind(agenttasks.PipelineForm{}), Pipeline)
+			v1.Schema.GetTaskRoute("pipeline_list").ToMacaron(m, reqSignIn, ShowAllPipelines)
+			v1.Schema.GetTaskRoute("pipeline_delete").ToMacaron(m, reqSignIn, PipelineDelete)
+			v1.Schema.GetTaskRoute("pipeline_show").ToMacaron(m, reqSignIn, APIPipelineShow)
+			v1.Schema.GetTaskRoute("pipeline_as_yaml").ToMacaron(m, reqSignIn, PipelineYaml)
 		})
 	})
 }

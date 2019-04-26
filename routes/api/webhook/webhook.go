@@ -29,6 +29,7 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
@@ -57,17 +58,15 @@ func Setup(m *macaron.Macaron) {
 		bind := binding.Bind
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/webhook", RequiresWebHookSetting, reqSignIn, ShowAll)
-			m.Get("/api/webhook/create/:type", RequiresWebHookSetting, reqSignIn, Create)
-			m.Get("/api/webhook/show/:id", RequiresWebHookSetting, reqSignIn, ShowSingle)
-			m.Get("/api/webhook/delete/:id", RequiresWebHookSetting, reqSignIn, Remove)
-			m.Post("/api/webhook/update/task/:id", RequiresWebHookSetting, bind(agenttasks.Task{}), reqSignIn, UpdateTask)
-			m.Post("/api/webhook/update/pipeline/:id", RequiresWebHookSetting, bind(agenttasks.PipelineForm{}), reqSignIn, UpdatePipeline)
-			m.Post("/api/webhook/delete/task/:id", RequiresWebHookSetting, reqSignIn, DeleteTask)
-			m.Post("/api/webhook/delete/pipeline/:id", RequiresWebHookSetting, reqSignIn, DeletePipeline)
-
-			m.Post("/api/webhook/set", RequiresWebHookSetting, reqSignIn, bind(WebhookUpdate{}), SetWebHookField)
-
+			v1.Schema.GetWebHookRoute("show_all").ToMacaron(m, RequiresWebHookSetting, reqSignIn, ShowAll)
+			v1.Schema.GetWebHookRoute("create").ToMacaron(m, RequiresWebHookSetting, reqSignIn, Create)
+			v1.Schema.GetWebHookRoute("show").ToMacaron(m, RequiresWebHookSetting, reqSignIn, ShowSingle)
+			v1.Schema.GetWebHookRoute("delete").ToMacaron(m, RequiresWebHookSetting, reqSignIn, Remove)
+			v1.Schema.GetWebHookRoute("update_task").ToMacaron(m, RequiresWebHookSetting, reqSignIn, bind(agenttasks.Task{}), UpdateTask)
+			v1.Schema.GetWebHookRoute("update_pipeline").ToMacaron(m, RequiresWebHookSetting, reqSignIn, bind(agenttasks.PipelineForm{}), UpdatePipeline)
+			v1.Schema.GetWebHookRoute("delete_task").ToMacaron(m, RequiresWebHookSetting, reqSignIn, DeleteTask)
+			v1.Schema.GetWebHookRoute("delete_pipeline").ToMacaron(m, RequiresWebHookSetting, reqSignIn, DeletePipeline)
+			v1.Schema.GetWebHookRoute("set_field").ToMacaron(m, RequiresWebHookSetting, reqSignIn, bind(WebhookUpdate{}), SetWebHookField)
 		})
 	})
 }

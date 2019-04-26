@@ -24,6 +24,7 @@ package settingsapi
 
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -49,10 +50,10 @@ func Setup(m *macaron.Macaron) {
 		bind := binding.Bind
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/settings", reqSignIn, reqAdmin, ShowAll)
-			m.Post("/api/settings", reqSignIn, reqAdmin, bind(Setting{}), APICreate)
-			m.Get("/api/settings/remove/:key", reqSignIn, reqAdmin, APIRemove)
-			m.Post("/api/settings/update", reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
+			v1.Schema.GetSettingRoute("show_all").ToMacaron(m, reqSignIn, reqAdmin, ShowAll)
+			v1.Schema.GetSettingRoute("create").ToMacaron(m, reqSignIn, reqAdmin, bind(Setting{}), APICreate)
+			v1.Schema.GetSettingRoute("remove").ToMacaron(m, reqSignIn, reqAdmin, APIRemove)
+			v1.Schema.GetSettingRoute("update").ToMacaron(m, reqSignIn, reqAdmin, bind(Setting{}), APIUpdate)
 		})
 	})
 }

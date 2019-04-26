@@ -25,6 +25,7 @@ package nodesapi
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 	macaron "gopkg.in/macaron.v1"
 )
@@ -43,13 +44,14 @@ func Setup(m *macaron.Macaron) {
 			BaseURL:         config.GetWeb().AppSubURL})
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/nodes", reqSignIn, ShowAll)
-			m.Get("/api/nodes/add", reqSignIn, reqManager, APICreate)
-			m.Get("/api/nodes/show/:id", reqSignIn, reqManager, Show)
-			m.Get("/api/nodes/tasks/:key", reqSignIn, reqManager, ShowTasks)
+			v1.Schema.GetNodeRoute("show_all").ToMacaron(m, reqSignIn, ShowAll)
+			v1.Schema.GetNodeRoute("create").ToMacaron(m, reqSignIn, reqManager, APICreate)
 
-			m.Get("/api/nodes/delete/:id", reqSignIn, reqManager, Remove)
-			m.Post("/api/nodes/register", reqSignIn, reqManager, bind(NodeUpdate{}), Register)
+			v1.Schema.GetNodeRoute("show").ToMacaron(m, reqSignIn, reqManager, Show)
+			v1.Schema.GetNodeRoute("show_tasks").ToMacaron(m, reqSignIn, reqManager, ShowTasks)
+
+			v1.Schema.GetNodeRoute("delete").ToMacaron(m, reqSignIn, reqManager, Remove)
+			v1.Schema.GetNodeRoute("register").ToMacaron(m, reqSignIn, reqManager, bind(NodeUpdate{}), Register)
 		})
 
 	})

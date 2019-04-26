@@ -25,6 +25,7 @@ package namespacesapi
 import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	"github.com/go-macaron/binding"
 
 	macaron "gopkg.in/macaron.v1"
@@ -40,16 +41,16 @@ func Setup(m *macaron.Macaron) {
 		//reqAdmin := context.Toggle(&context.ToggleOptions{AdminRequired: true})
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
-			m.Get("/api/namespace/list", reqSignIn, NamespaceList)
-			m.Get("/api/namespace/:name/list", reqSignIn, NamespaceListArtefacts)
-			m.Get("/api/namespace/:name/create", reqSignIn, NamespaceCreate)
-			m.Get("/api/namespace/:name/delete", reqSignIn, NamespaceDelete)
-			m.Get("/api/namespace/:name/tag/:taskid", reqSignIn, NamespaceTag)
-			m.Get("/api/namespace/:name/append/:taskid", reqSignIn, NamespaceAppend)
-			m.Post("/api/namespace/remove", reqSignIn, binding.Bind(RemoveForm{}), NamespaceRemovePath)
+			v1.Schema.GetNamespaceRoute("show_all").ToMacaron(m, reqSignIn, NamespaceList)
+			v1.Schema.GetNamespaceRoute("show_artefacts").ToMacaron(m, reqSignIn, NamespaceListArtefacts)
+			v1.Schema.GetNamespaceRoute("create").ToMacaron(m, reqSignIn, NamespaceCreate)
+			v1.Schema.GetNamespaceRoute("delete").ToMacaron(m, reqSignIn, NamespaceDelete)
+			v1.Schema.GetNamespaceRoute("tag").ToMacaron(m, reqSignIn, NamespaceTag)
+			v1.Schema.GetNamespaceRoute("append").ToMacaron(m, reqSignIn, NamespaceAppend)
 
-			m.Get("/api/namespace/:name/clone/:from", reqSignIn, NamespaceClone)
-			m.Post("/api/namespace/upload", reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
+			v1.Schema.GetNamespaceRoute("remove").ToMacaron(m, reqSignIn, binding.Bind(RemoveForm{}), NamespaceRemovePath)
+			v1.Schema.GetNamespaceRoute("clone").ToMacaron(m, reqSignIn, NamespaceClone)
+			v1.Schema.GetNamespaceRoute("upload").ToMacaron(m, reqSignIn, binding.MultipartForm(NamespaceForm{}), NamespaceUpload)
 		})
 	})
 }

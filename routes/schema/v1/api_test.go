@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2019  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -19,29 +19,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
-
-package apitoken
+package v1_test
 
 import (
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
-
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-
-	macaron "gopkg.in/macaron.v1"
+	. "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func Setup(m *macaron.Macaron) {
-	m.Invoke(func(config *setting.Config) {
-		reqSignIn := context.Toggle(&context.ToggleOptions{
-			SignInRequired: true,
-			Config:         config,
-			BaseURL:        config.GetWeb().AppSubURL})
+var _ = Describe("API Routes v1", func() {
 
-		m.Group(config.GetWeb().GroupAppPath(), func() {
-			v1.Schema.GetTokenRoute("show").ToMacaron(m, reqSignIn, ShowAll)
-			v1.Schema.GetTokenRoute("create").ToMacaron(m, reqSignIn, Create)
-			v1.Schema.GetTokenRoute("delete").ToMacaron(m, reqSignIn, Remove)
+	Context("Token routes", func() {
+		It("resolves correctly", func() {
+			Expect(Schema.GetTokenRoute("show").Path).To(Equal("/api/token"))
 		})
 	})
-}
+})
