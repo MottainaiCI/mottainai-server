@@ -75,10 +75,10 @@ var ssDefaultOS = map[string]string{
 }
 
 type SimpleStreamsManifest struct {
-	Updated  string                                  `json:"updated"`
+	Updated  string                                  `json:"updated,omitempty"`
 	DataType string                                  `json:"datatype"`
 	Format   string                                  `json:"format"`
-	License  string                                  `json:"license"`
+	License  string                                  `json:"license,omitempty"`
 	Products map[string]SimpleStreamsManifestProduct `json:"products"`
 }
 
@@ -274,42 +274,43 @@ type SimpleStreamsManifestProduct struct {
 	Architecture    string                                         `json:"arch"`
 	OperatingSystem string                                         `json:"os"`
 	Release         string                                         `json:"release"`
-	ReleaseCodename string                                         `json:"release_codename"`
+	ReleaseCodename string                                         `json:"release_codename,omitempty"`
 	ReleaseTitle    string                                         `json:"release_title"`
-	Supported       bool                                           `json:"supported"`
-	SupportedEOL    string                                         `json:"support_eol"`
-	Version         string                                         `json:"version"`
+	Supported       bool                                           `json:"supported,omitempty"`
+	SupportedEOL    string                                         `json:"support_eol,omitempty"`
+	Version         string                                         `json:"version,omitempty"`
 	Versions        map[string]SimpleStreamsManifestProductVersion `json:"versions"`
 }
 
 type SimpleStreamsManifestProductVersion struct {
-	PublicName string                                             `json:"pubname"`
-	Label      string                                             `json:"label"`
+	PublicName string                                             `json:"pubname,omitempty"`
+	Label      string                                             `json:"label,omitempty"`
 	Items      map[string]SimpleStreamsManifestProductVersionItem `json:"items"`
 }
 
 type SimpleStreamsManifestProductVersionItem struct {
 	Path                  string `json:"path"`
 	FileType              string `json:"ftype"`
-	HashMd5               string `json:"md5"`
-	HashSha256            string `json:"sha256"`
-	LXDHashSha256         string `json:"combined_sha256"`
-	LXDHashSha256RootXz   string `json:"combined_rootxz_sha256"`
-	LXDHashSha256SquashFs string `json:"combined_squashfs_sha256"`
+	HashMd5               string `json:"md5,omitempty"`
+	HashSha256            string `json:"sha256,omitempty"`
+	LXDHashSha256         string `json:"combined_sha256,omitempty"`
+	LXDHashSha256RootXz   string `json:"combined_rootxz_sha256,omitempty"`
+	LXDHashSha256SquashFs string `json:"combined_squashfs_sha256,omitempty"`
 	Size                  int64  `json:"size"`
-	DeltaBase             string `json:"delta_base"`
+	DeltaBase             string `json:"delta_base,omitempty"`
 }
 
 type SimpleStreamsIndex struct {
 	Format  string                              `json:"format"`
 	Index   map[string]SimpleStreamsIndexStream `json:"index"`
-	Updated string                              `json:"updated"`
+	Updated string                              `json:"updated,omitempty"`
 }
 
 type SimpleStreamsIndexStream struct {
-	Updated  string   `json:"updated"`
+	Updated  string   `json:"updated,omitempty"`
 	DataType string   `json:"datatype"`
 	Path     string   `json:"path"`
+	Format   string   `json:"format,omitempty"`
 	Products []string `json:"products"`
 }
 

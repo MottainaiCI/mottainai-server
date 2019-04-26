@@ -114,6 +114,12 @@ func api10Get(d *Daemon, r *http.Request) Response {
 		return SyncResponseETag(true, srv, nil)
 	}
 
+	// If a target was specified, forward the request to the relevant node.
+	response := ForwardedResponseIfTargetIsRemote(d, r)
+	if response != nil {
+		return response
+	}
+
 	srv.Auth = "trusted"
 
 	uname, err := shared.Uname()
@@ -195,6 +201,13 @@ func api10Get(d *Daemon, r *http.Request) Response {
 		ServerName:             serverName,
 	}
 
+	env.KernelFeatures = map[string]string{
+		"netnsid_getifaddrs": fmt.Sprintf("%v", d.os.NetnsGetifaddrs),
+		"uevent_injection":   fmt.Sprintf("%v", d.os.UeventInjection),
+		"unpriv_fscaps":      fmt.Sprintf("%v", d.os.VFS3Fscaps),
+		"shiftfs":            fmt.Sprintf("%v", d.os.Shiftfs),
+	}
+
 	drivers := readStoragePoolDriversCache()
 	for driver, version := range drivers {
 		if env.Storage != "" {
@@ -222,6 +235,12 @@ func api10Get(d *Daemon, r *http.Request) Response {
 }
 
 func api10Put(d *Daemon, r *http.Request) Response {
+	// If a target was specified, forward the request to the relevant node.
+	response := ForwardedResponseIfTargetIsRemote(d, r)
+	if response != nil {
+		return response
+	}
+
 	req := api.ServerPut{}
 	if err := shared.ReadToJSON(r.Body, &req); err != nil {
 		return BadRequest(err)
@@ -264,6 +283,12 @@ func api10Put(d *Daemon, r *http.Request) Response {
 }
 
 func api10Patch(d *Daemon, r *http.Request) Response {
+	// If a target was specified, forward the request to the relevant node.
+	response := ForwardedResponseIfTargetIsRemote(d, r)
+	if response != nil {
+		return response
+	}
+
 	render, err := daemonConfigRender(d.State())
 	if err != nil {
 		return InternalError(err)

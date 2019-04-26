@@ -20,6 +20,7 @@ type thread struct {
 	socketID       uint64
 	frequency      uint64
 	frequencyTurbo uint64
+	numaNode       uint64
 }
 
 func parseCpuinfo() ([]thread, error) {
@@ -51,6 +52,24 @@ func parseCpuinfo() ([]thread, error) {
 
 			t = &thread{}
 			t.ID = uint64(id)
+
+			files, err := ioutil.ReadDir(fmt.Sprintf("/sys/devices/system/cpu/cpu%d", t.ID))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, file := range files {
+				if strings.HasPrefix(file.Name(), "node") {
+					nodeID := strings.TrimPrefix(file.Name(), "node")
+					nr, err := strconv.ParseUint(nodeID, 10, 64)
+					if err != nil {
+						return nil, err
+					}
+					t.numaNode = nr
+
+					break
+				}
+			}
 
 			path := fmt.Sprintf("/sys/devices/system/cpu/cpu%d/topology/core_id", t.ID)
 			coreID, err := shared.ParseNumberFromFile(path)
@@ -100,7 +119,7 @@ func parseCpuinfo() ([]thread, error) {
 			line = strings.TrimSpace(line)
 
 			if t != nil {
-				threads[len(threads)-1].name = line
+				threads[len(threads)-1].vendor = line
 			}
 		} else if strings.HasPrefix(line, "model name") {
 			i := strings.Index(line, ":")
@@ -113,7 +132,7 @@ func parseCpuinfo() ([]thread, error) {
 			line = strings.TrimSpace(line)
 
 			if t != nil {
-				threads[len(threads)-1].vendor = line
+				threads[len(threads)-1].name = line
 			}
 		} else if t != nil && t.frequency == 0 && strings.HasPrefix(line, "cpu MHz") {
 			i := strings.Index(line, ":")
@@ -164,6 +183,25 @@ func parseSysDevSystemCPU() ([]thread, error) {
 
 		t := thread{}
 		t.ID = uint64(idx)
+
+		files, err := ioutil.ReadDir(fmt.Sprintf("/sys/devices/system/cpu/cpu%d", t.ID))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, file := range files {
+			if strings.HasPrefix(file.Name(), "node") {
+				nodeID := strings.TrimPrefix(file.Name(), "node")
+				nr, err := strconv.ParseUint(nodeID, 10, 64)
+				if err != nil {
+					return nil, err
+				}
+				t.numaNode = nr
+
+				break
+			}
+		}
+
 		path := fmt.Sprintf("/sys/devices/system/cpu/cpu%d/topology/core_id", t.ID)
 		coreID, err := shared.ParseNumberFromFile(path)
 		if err != nil {
@@ -235,19 +273,29 @@ func CPUResource() (*api.ResourcesCPU, error) {
 
 	var cur *api.ResourcesCPUSocket
 	c.Total = uint64(len(threads))
-	c.Sockets = append(c.Sockets, api.ResourcesCPUSocket{})
+
 	for _, v := range threads {
 		if uint64(len(c.Sockets)) <= v.socketID {
 			c.Sockets = append(c.Sockets, api.ResourcesCPUSocket{})
 			cur = &c.Sockets[v.socketID]
+
+			// Count the number of cores on the socket
+			// Note that we can't assume sequential core IDs
+			socketCores := map[uint64]bool{}
+			for _, thread := range threads {
+				if thread.socketID != v.socketID {
+					continue
+				}
+
+				socketCores[thread.coreID] = true
+			}
+			cur.Cores = uint64(len(socketCores))
 		} else {
 			cur = &c.Sockets[v.socketID]
 		}
 
-		if v.coreID+1 > cur.Cores {
-			cur.Cores++
-		}
-
+		cur.Socket = v.socketID
+		cur.NUMANode = v.numaNode
 		cur.Threads++
 		cur.Name = v.name
 		cur.Vendor = v.vendor

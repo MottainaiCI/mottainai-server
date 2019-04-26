@@ -11,6 +11,7 @@ import (
 	"github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/lxc/config"
 	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/api"
 	cli "github.com/lxc/lxd/shared/cmd"
 	"github.com/lxc/lxd/shared/i18n"
 )
@@ -20,6 +21,7 @@ type cmdInfo struct {
 
 	flagShowLog   bool
 	flagResources bool
+	flagTarget    string
 }
 
 func (c *cmdInfo) Command() *cobra.Command {
@@ -38,6 +40,7 @@ lxc info [<remote>:] [--resources]
 	cmd.RunE = c.Run
 	cmd.Flags().BoolVar(&c.flagShowLog, "show-log", false, i18n.G("Show the container's last 100 log lines?"))
 	cmd.Flags().BoolVar(&c.flagResources, "resources", false, i18n.G("Show the resources available to the server"))
+	cmd.Flags().StringVar(&c.flagTarget, "target", "", i18n.G("Cluster member name")+"``")
 
 	return cmd
 }
@@ -78,18 +81,94 @@ func (c *cmdInfo) Run(cmd *cobra.Command, args []string) error {
 }
 
 func (c *cmdInfo) remoteInfo(d lxd.ContainerServer) error {
+	// Targeting
+	if c.flagTarget != "" {
+		if !d.IsClustered() {
+			return fmt.Errorf(i18n.G("To use --target, the destination remote must be a cluster"))
+		}
+
+		d = d.UseTarget(c.flagTarget)
+	}
+
 	if c.flagResources {
 		resources, err := d.GetServerResources()
 		if err != nil {
 			return err
 		}
 
-		resourceData, err := yaml.Marshal(&resources)
-		if err != nil {
-			return err
+		renderCPU := func(cpu api.ResourcesCPUSocket, prefix string) {
+			if cpu.Vendor != "" {
+				fmt.Printf(prefix+i18n.G("Vendor: %v")+"\n", cpu.Vendor)
+			}
+
+			if cpu.Name != "" {
+				fmt.Printf(prefix+i18n.G("Name: %v")+"\n", cpu.Name)
+			}
+
+			fmt.Printf(prefix+i18n.G("Cores: %v")+"\n", cpu.Cores)
+			fmt.Printf(prefix+i18n.G("Threads: %v")+"\n", cpu.Threads)
+
+			if cpu.Frequency > 0 {
+				if cpu.FrequencyTurbo > 0 {
+					fmt.Printf(prefix+i18n.G("Frequency: %vMhz (max: %vMhz)")+"\n", cpu.Frequency, cpu.FrequencyTurbo)
+				} else {
+					fmt.Printf(prefix+i18n.G("Frequency: %vMhz")+"\n", cpu.Frequency)
+				}
+			}
+
+			fmt.Printf(prefix+i18n.G("NUMA node: %v")+"\n", cpu.NUMANode)
 		}
 
-		fmt.Printf("%s", resourceData)
+		if len(resources.CPU.Sockets) == 1 {
+			fmt.Printf(i18n.G("CPU:") + "\n")
+			renderCPU(resources.CPU.Sockets[0], "  ")
+		} else if len(resources.CPU.Sockets) > 1 {
+			fmt.Printf(i18n.G("CPUs:") + "\n")
+			for _, cpu := range resources.CPU.Sockets {
+				fmt.Printf("  "+i18n.G("Socket %d:")+"\n", cpu.Socket)
+				renderCPU(cpu, "    ")
+			}
+		}
+
+		fmt.Printf("\n" + i18n.G("Memory:") + "\n")
+		fmt.Printf("  "+i18n.G("Free: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Total-resources.Memory.Used), 2))
+		fmt.Printf("  "+i18n.G("Used: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Used), 2))
+		fmt.Printf("  "+i18n.G("Total: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Total), 2))
+
+		renderGPU := func(gpu api.ResourcesGPUCard, prefix string) {
+			if gpu.Vendor != "" {
+				fmt.Printf(prefix+i18n.G("Vendor: %v (%v)")+"\n", gpu.Vendor, gpu.VendorID)
+			}
+
+			if gpu.Product != "" {
+				fmt.Printf(prefix+i18n.G("Product: %v (%v)")+"\n", gpu.Product, gpu.ProductID)
+			}
+
+			fmt.Printf(prefix+i18n.G("PCI address: %v")+"\n", gpu.PCIAddress)
+			fmt.Printf(prefix+i18n.G("Driver: %v (%v)")+"\n", gpu.Driver, gpu.DriverVersion)
+			fmt.Printf(prefix+i18n.G("NUMA node: %v")+"\n", gpu.NUMANode)
+
+			if gpu.Nvidia != nil {
+				fmt.Printf(prefix + i18n.G("NVIDIA information:") + "\n")
+				fmt.Printf(prefix+"  "+i18n.G("Architecture: %v")+"\n", gpu.Nvidia.Architecture)
+				fmt.Printf(prefix+"  "+i18n.G("Brand: %v")+"\n", gpu.Nvidia.Brand)
+				fmt.Printf(prefix+"  "+i18n.G("Model: %v")+"\n", gpu.Nvidia.Model)
+				fmt.Printf(prefix+"  "+i18n.G("CUDA Version: %v")+"\n", gpu.Nvidia.CUDAVersion)
+				fmt.Printf(prefix+"  "+i18n.G("NVRM Version: %v")+"\n", gpu.Nvidia.NVRMVersion)
+				fmt.Printf(prefix+"  "+i18n.G("UUID: %v")+"\n", gpu.Nvidia.UUID)
+			}
+		}
+
+		if len(resources.GPU.Cards) == 1 {
+			fmt.Printf("\n" + i18n.G("GPU:") + "\n")
+			renderGPU(resources.GPU.Cards[0], "  ")
+		} else if len(resources.GPU.Cards) > 1 {
+			fmt.Printf("\n" + i18n.G("GPUs:") + "\n")
+			for _, gpu := range resources.GPU.Cards {
+				fmt.Printf("  "+i18n.G("Card %d:")+"\n", gpu.ID)
+				renderGPU(gpu, "    ")
+			}
+		}
 
 		return nil
 	}
@@ -110,6 +189,11 @@ func (c *cmdInfo) remoteInfo(d lxd.ContainerServer) error {
 }
 
 func (c *cmdInfo) containerInfo(d lxd.ContainerServer, remote config.Remote, name string, showLog bool) error {
+	// Sanity checks
+	if c.flagTarget != "" {
+		return fmt.Errorf(i18n.G("--target cannot be used with containers"))
+	}
+
 	ct, _, err := d.GetContainer(name)
 	if err != nil {
 		return err

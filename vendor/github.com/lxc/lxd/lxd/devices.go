@@ -4,11 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/rand"
+	"encoding/csv"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/big"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -17,6 +20,8 @@ import (
 	"strings"
 	"syscall"
 	"unsafe"
+
+	"github.com/jaypipes/pcidb"
 
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/lxd/sys"
@@ -61,42 +66,76 @@ type usbDevice struct {
 }
 
 // /dev/nvidia[0-9]+
-type nvidiaGpuCards struct {
+type nvidiaGpuCard struct {
 	path  string
 	major int
 	minor int
 	id    string
+
+	nvrmVersion  string
+	cudaVersion  string
+	model        string
+	brand        string
+	uuid         string
+	architecture string
 }
 
 // {/dev/nvidiactl, /dev/nvidia-uvm, ...}
-type nvidiaGpuDevices struct {
+type nvidiaGpuDevice struct {
 	isCard bool
 	path   string
 	major  int
 	minor  int
 }
 
+// Nvidia container info
+type nvidiaContainerInfo struct {
+	Cards       map[string]*nvidiaContainerCardInfo
+	NVRMVersion string
+	CUDAVersion string
+}
+
+type nvidiaContainerCardInfo struct {
+	DeviceIndex  string
+	DeviceMinor  string
+	Model        string
+	Brand        string
+	UUID         string
+	PCIAddress   string
+	Architecture string
+}
+
 // /dev/dri/card0. If we detect that vendor == nvidia, then nvidia will contain
 // the corresponding nvidia car, e.g. {/dev/dri/card1 to /dev/nvidia1}.
 type gpuDevice struct {
-	vendorid  string
-	productid string
-	id        string // card id e.g. 0
+	// DRM node information
+	id    string
+	path  string
+	major int
+	minor int
+
+	// Device information
+	vendorID    string
+	vendorName  string
+	productID   string
+	productName string
+	numaNode    uint64
+
 	// If related devices have the same PCI address as the GPU we should
 	// mount them all. Meaning if we detect /dev/dri/card0,
 	// /dev/dri/controlD64, and /dev/dri/renderD128 with the same PCI
 	// address, then they should all be made available in the container.
-	pci      string
-	isNvidia bool
-	nvidia   nvidiaGpuCards
+	pci           string
+	driver        string
+	driverVersion string
 
-	path  string
-	major int
-	minor int
+	// NVIDIA specific handling
+	isNvidia bool
+	nvidia   nvidiaGpuCard
 }
 
 func (g *gpuDevice) isNvidiaGpu() bool {
-	return strings.EqualFold(g.vendorid, "10de")
+	return strings.EqualFold(g.vendorID, "10de")
 }
 
 type cardIds struct {
@@ -167,11 +206,59 @@ func deviceWantsAllGPUs(m map[string]string) bool {
 	return m["vendorid"] == "" && m["productid"] == "" && m["id"] == "" && m["pci"] == ""
 }
 
-func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevices, error) {
+func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevice, error) {
 	const DRM_PATH = "/sys/class/drm/"
 	var gpus []gpuDevice
-	var nvidiaDevices []nvidiaGpuDevices
+	var nvidiaDevices []nvidiaGpuDevice
 	var cards []cardIds
+
+	// Load NVIDIA information (if available)
+	var nvidiaContainer *nvidiaContainerInfo
+
+	_, err := exec.LookPath("nvidia-container-cli")
+	if err == nil {
+		out, err := shared.RunCommand("nvidia-container-cli", "info", "--csv")
+		if err == nil {
+			r := csv.NewReader(strings.NewReader(out))
+			r.FieldsPerRecord = -1
+
+			nvidiaContainer = &nvidiaContainerInfo{}
+			nvidiaContainer.Cards = map[string]*nvidiaContainerCardInfo{}
+			line := 0
+			for {
+				record, err := r.Read()
+				if err == io.EOF {
+					break
+				}
+				line += 1
+
+				if err != nil {
+					continue
+				}
+
+				if line == 2 && len(record) >= 2 {
+					nvidiaContainer.NVRMVersion = record[0]
+					nvidiaContainer.CUDAVersion = record[1]
+				} else if line >= 4 {
+					nvidiaContainer.Cards[record[5]] = &nvidiaContainerCardInfo{
+						DeviceIndex:  record[0],
+						DeviceMinor:  record[1],
+						Model:        record[2],
+						Brand:        record[3],
+						UUID:         record[4],
+						PCIAddress:   record[5],
+						Architecture: record[6],
+					}
+				}
+			}
+		}
+	}
+
+	// Load PCI database
+	pciDB, err := pcidb.New()
+	if err != nil {
+		pciDB = nil
+	}
 
 	// Get the list of DRM devices
 	ents, err := ioutil.ReadDir(DRM_PATH)
@@ -231,6 +318,44 @@ func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevices, error) {
 			}
 		}
 
+		// Retrieve node ID
+		numaPath := fmt.Sprintf(filepath.Join(device, "numa_node"))
+		numaNode := uint64(0)
+		if shared.PathExists(numaPath) {
+			numaID, err := shared.ParseNumberFromFile(numaPath)
+			if err != nil {
+				continue
+			}
+
+			if numaID > 0 {
+				numaNode = uint64(numaID)
+			}
+		}
+
+		// Retrieve driver
+		driver := ""
+		driverVersion := ""
+		driverPath := filepath.Join(device, "driver")
+		if shared.PathExists(driverPath) {
+			target, err := os.Readlink(driverPath)
+			if err != nil {
+				continue
+			}
+
+			driver = filepath.Base(target)
+
+			out, err := ioutil.ReadFile(filepath.Join(driverPath, "module", "version"))
+			if err == nil {
+				driverVersion = strings.TrimSpace(string(out))
+			} else {
+				uname, err := shared.Uname()
+				if err != nil {
+					continue
+				}
+				driverVersion = uname.Release
+			}
+		}
+
 		// Store all associated subdevices, e.g. controlD64, renderD128.
 		// The name of the directory == the last part of the
 		// /dev/dri/controlD64 path. So drmEnt.Name() will give us
@@ -241,10 +366,28 @@ func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevices, error) {
 			vendorTmp = strings.TrimPrefix(vendorTmp, "0x")
 			productTmp = strings.TrimPrefix(productTmp, "0x")
 			tmpGpu := gpuDevice{
-				pci:       pciAddr,
-				vendorid:  vendorTmp,
-				productid: productTmp,
-				path:      filepath.Join("/dev/dri", drmEnt.Name()),
+				pci:           pciAddr,
+				vendorID:      vendorTmp,
+				productID:     productTmp,
+				numaNode:      numaNode,
+				driver:        driver,
+				driverVersion: driverVersion,
+				path:          filepath.Join("/dev/dri", drmEnt.Name()),
+			}
+
+			// Fill vendor and product names
+			if pciDB != nil {
+				vendor, ok := pciDB.Vendors[tmpGpu.vendorID]
+				if ok {
+					tmpGpu.vendorName = vendor.Name
+
+					for _, product := range vendor.Products {
+						if product.ID == tmpGpu.productID {
+							tmpGpu.productName = product.Name
+							break
+						}
+					}
+				}
 			}
 
 			majMinPath := filepath.Join(drm, drmEnt.Name(), "dev")
@@ -304,6 +447,21 @@ func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevices, error) {
 						tmpGpu.nvidia.major = shared.Major(stat.Rdev)
 						tmpGpu.nvidia.minor = shared.Minor(stat.Rdev)
 						tmpGpu.nvidia.id = strconv.Itoa(tmpGpu.nvidia.minor)
+
+						if nvidiaContainer != nil {
+							tmpGpu.nvidia.nvrmVersion = nvidiaContainer.NVRMVersion
+							tmpGpu.nvidia.cudaVersion = nvidiaContainer.CUDAVersion
+							nvidiaInfo, ok := nvidiaContainer.Cards[tmpGpu.pci]
+							if !ok {
+								nvidiaInfo, ok = nvidiaContainer.Cards[fmt.Sprintf("0000%v", tmpGpu.pci)]
+							}
+							if ok {
+								tmpGpu.nvidia.brand = nvidiaInfo.Brand
+								tmpGpu.nvidia.model = nvidiaInfo.Model
+								tmpGpu.nvidia.uuid = nvidiaInfo.UUID
+								tmpGpu.nvidia.architecture = nvidiaInfo.Architecture
+							}
+						}
 					}
 				}
 			}
@@ -356,7 +514,7 @@ func deviceLoadGpu(all bool) ([]gpuDevice, []nvidiaGpuDevices, error) {
 				continue
 			}
 
-			tmpNividiaGpu := nvidiaGpuDevices{
+			tmpNividiaGpu := nvidiaGpuDevice{
 				isCard: !validNvidia.MatchString(nvidiaEnt.Name()),
 				path:   nvidiaPath,
 				major:  shared.Major(stat.Rdev),
@@ -426,10 +584,9 @@ func deviceNetlinkListener() (chan []string, chan []string, chan usbDevice, erro
 	UEVENT_BUFFER_SIZE := 2048
 
 	fd, err := syscall.Socket(
-		syscall.AF_NETLINK, syscall.SOCK_RAW,
+		syscall.AF_NETLINK, syscall.SOCK_RAW|syscall.SOCK_CLOEXEC,
 		NETLINK_KOBJECT_UEVENT,
 	)
-
 	if err != nil {
 		return nil, nil, nil, err
 	}

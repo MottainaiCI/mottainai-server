@@ -199,6 +199,11 @@ func createFromMigration(d *Daemon, project string, req *api.ContainersPost) Res
 		return BadRequest(err)
 	}
 
+	// Pre-fill default profile
+	if req.Profiles == nil {
+		req.Profiles = []string{"default"}
+	}
+
 	// Prepare the container creation request
 	args := db.ContainerArgs{
 		Project:      project,
@@ -263,9 +268,9 @@ func createFromMigration(d *Daemon, project string, req *api.ContainersPost) Res
 		}
 	}
 
-	logger.Debugf("No valid storage pool in the container's local root disk device and profiles found")
 	// If there is just a single pool in the database, use that
 	if storagePool == "" {
+		logger.Debugf("No valid storage pool in the container's local root disk device and profiles found")
 		pools, err := d.cluster.StoragePools()
 		if err != nil {
 			if err == db.ErrNoSuchObject {
@@ -315,9 +320,7 @@ func createFromMigration(d *Daemon, project string, req *api.ContainersPost) Res
 		c, err = containerLoadByProjectAndName(d.State(), project, req.Name)
 		if err != nil {
 			req.Source.Refresh = false
-		}
-
-		if c.IsRunning() {
+		} else if c.IsRunning() {
 			return BadRequest(fmt.Errorf("Cannot refresh a running container"))
 		}
 	}
@@ -612,7 +615,7 @@ func createFromBackup(d *Daemon, project string, data io.Reader, pool string) Re
 
 		// Dump tarball to storage
 		f.Seek(0, 0)
-		err = containerCreateFromBackup(d.State(), *bInfo, f, pool != "")
+		cPool, err := containerCreateFromBackup(d.State(), *bInfo, f, pool != "")
 		if err != nil {
 			return errors.Wrap(err, "Create container from backup")
 		}
@@ -622,6 +625,7 @@ func createFromBackup(d *Daemon, project string, data io.Reader, pool string) Re
 			Force: true,
 		})
 		if err != nil {
+			cPool.ContainerDelete(&containerLXC{name: bInfo.Name, project: project})
 			return errors.Wrap(err, "Marshal internal import request")
 		}
 
@@ -634,6 +638,7 @@ func createFromBackup(d *Daemon, project string, data io.Reader, pool string) Re
 		resp := internalImport(d, req)
 
 		if resp.String() != "success" {
+			cPool.ContainerDelete(&containerLXC{name: bInfo.Name, project: project})
 			return fmt.Errorf("Internal import request: %v", resp.String())
 		}
 
