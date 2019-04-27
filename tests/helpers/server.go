@@ -140,11 +140,11 @@ func SetRuntimeFixture() error {
 
 	dat["type"] = "docker" // must be a valid one!
 
-	res, err := c.GenericForm("/api/tasks", dat)
+	res, err := c.CreateTask(dat)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create task fixture")
 	}
-	tid := string(res)
+	tid := res.ID
 	if tid == "0" {
 		return errors.New("Document not created")
 	}

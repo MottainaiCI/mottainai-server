@@ -26,13 +26,14 @@ import (
 	"github.com/mxk/go-flowrate/flowrate"
 
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 
@@ -41,9 +42,14 @@ import (
 
 func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 	var fileList []string
-	url := d.Config.GetWeb().BuildURI(
-		fmt.Sprintf("/api/namespace/%s/list", namespace))
-	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
+
+	req := Request{
+		Route:          v1.Schema.GetNamespaceRoute("show_artefacts"),
+		Interpolations: map[string]string{":name": namespace},
+		Target:         &fileList,
+	}
+
+	err := d.Handle(req)
 	if err != nil {
 		return []string{}, err
 	}
@@ -53,9 +59,14 @@ func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 
 func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 	var fileList []string
-	url := d.Config.GetWeb().BuildURI(
-		fmt.Sprintf("/api/storage/%s/list", storage))
-	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
+
+	req := Request{
+		Route:          v1.Schema.GetStorageRoute("show_artefacts"),
+		Interpolations: map[string]string{":id": storage},
+		Target:         &fileList,
+	}
+
+	err := d.Handle(req)
 	if err != nil {
 		return []string{}, err
 	}
@@ -65,9 +76,14 @@ func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 
 func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	var fileList []string
-	url := d.Config.GetWeb().BuildURI(
-		fmt.Sprintf("/api/tasks/%s/artefacts", task))
-	err := d.GetJSONOptions(url, map[string]string{}, &fileList)
+
+	req := Request{
+		Route:          v1.Schema.GetStorageRoute("artefact_list"),
+		Interpolations: map[string]string{":id": task},
+		Target:         &fileList,
+	}
+
+	err := d.Handle(req)
 	if err != nil {
 		return []string{}, err
 	}
@@ -122,13 +138,19 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 			return err
 		}
 		var storage_data storageci.Storage
-		url := d.Config.GetWeb().BuildURI(
-			fmt.Sprintf("/api/%s/%s/show", artefact_type, id))
-		err = d.GetJSONOptions(url, map[string]string{}, &storage_data)
+
+		req := Request{
+			Route:          v1.Schema.GetStorageRoute("show"),
+			Interpolations: map[string]string{":id": id},
+			Target:         &storage_data,
+		}
+
+		err := d.Handle(req)
 		if err != nil {
 			d.AppendTaskOutput("Downloading failed during retrieveing storage data : " + err.Error())
 			return err
 		}
+
 		to_download = storage_data.Path
 
 	} else if artefact_type == "artefact" {
@@ -237,15 +259,16 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	opts := map[string]string{
-		"name":      file,
-		"path":      relativepath,
-		"storageid": storageid,
-		//	"namespace": dir,
+	req := Request{
+		Route: v1.Schema.GetStorageRoute("upload"),
+		Options: map[string]string{
+			"name":      file,
+			"path":      relativepath,
+			"storageid": storageid,
+		},
 	}
 
-	url := f.Config.GetWeb().BuildURI("/api/storage/upload")
-	request, err := f.Upload(url, opts, "file", fullpath)
+	request, err := f.HandleUpload(req, "file", fullpath)
 	if err != nil {
 		panic(err)
 	}
@@ -277,15 +300,16 @@ func (f *Fetcher) UploadArtefactRetry(fullpath, relativepath string, trials int)
 func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	opts := map[string]string{
-		"name":   file,
-		"path":   relativepath,
-		"taskid": f.docID,
-		//	"namespace": dir,
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("artefact_upload"),
+		Options: map[string]string{
+			"name":   file,
+			"path":   relativepath,
+			"taskid": f.docID,
+		},
 	}
 
-	url := f.Config.GetWeb().BuildURI("/api/tasks/artefact/upload")
-	if err := f.UploadLargeFile(url, opts, "file", fullpath, f.ChunkSize); err != nil {
+	if err := f.HandleUploadLargeFile(req, "file", fullpath, f.ChunkSize); err != nil {
 		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
 		return err
 	}
@@ -295,15 +319,16 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	opts := map[string]string{
-		"name":      file,
-		"path":      relativepath,
-		"namespace": namespace,
-		//	"namespace": dir,
+	req := Request{
+		Route: v1.Schema.GetNamespaceRoute("upload"),
+		Options: map[string]string{
+			"name":      file,
+			"path":      relativepath,
+			"namespace": namespace,
+		},
 	}
 
-	url := f.Config.GetWeb().BuildURI("/api/namespace/upload")
-	if err := f.UploadLargeFile(url, opts, "file", fullpath, f.ChunkSize); err != nil {
+	if err := f.HandleUploadLargeFile(req, "file", fullpath, f.ChunkSize); err != nil {
 		return err
 	}
 	return nil

@@ -26,25 +26,37 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
-func (f *Fetcher) SetTaskField(field, value string) ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI("/api/tasks/updatefield")
-	return f.GetOptions(url, map[string]string{
-		"id":    f.docID,
-		"field": field,
-		"value": value,
-	})
+func (f *Fetcher) SetTaskField(field, value string) (event.APIResponse, error) {
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("update_field"),
+		Options: map[string]string{
+			"id":    f.docID,
+			"field": field,
+			"value": value,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }
 
-func (f *Fetcher) SetTaskStatus(status string) ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
-	return f.GetOptions(url, map[string]string{
-		"id":     f.docID,
-		"status": status,
-	})
+func (f *Fetcher) SetTaskStatus(status string) (event.APIResponse, error) {
+
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("update"),
+		Options: map[string]string{
+			"id":     f.docID,
+			"status": status,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }
 
 func (f *Fetcher) AbortTask() {
@@ -58,13 +70,28 @@ func (f *Fetcher) FailTask(e string) {
 	f.FinishTask()
 }
 
-func (f *Fetcher) SetupTask() {
+func (f *Fetcher) CreateTask(taskdata map[string]interface{}) (event.APIResponse, error) {
+	req := Request{
+		Route:       v1.Schema.GetTaskRoute("create"),
+		BodyOptions: taskdata,
+	}
+
+	return f.HandleAPIResponse(req)
+}
+
+func (f *Fetcher) SetupTask() (event.APIResponse, error) {
+
 	f.SetTaskStatus(setting.TASK_STATE_SETUP)
-	url := f.Config.GetWeb().BuildURI("/api/tasks/update/node")
-	f.GetOptions(url, map[string]string{
-		"id":  f.docID,
-		"key": f.Config.GetAgent().AgentKey,
-	})
+
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("update_node"),
+		Options: map[string]string{
+			"id":  f.docID,
+			"key": f.Config.GetAgent().AgentKey,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }
 
 func (f *Fetcher) RunTask() {
@@ -85,41 +112,64 @@ func (f *Fetcher) SuccessTask() {
 }
 
 func (f *Fetcher) GetTask() ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI(fmt.Sprintf("/api/tasks/%s", f.docID))
-	doc, err := f.GetOptions(url, map[string]string{})
-	if err != nil {
-		return []byte{}, err
+
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("as_json"),
+		Interpolations: map[string]string{
+			"id": f.docID,
+		},
 	}
-	return doc, err
+
+	var res []byte
+	var err error
+
+	f.HandleRaw(req, func(b io.ReadCloser) error {
+		res, err = ioutil.ReadAll(b)
+		return err
+	})
+	return res, err
 }
 
 func (f *Fetcher) AllTasks() ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI("/api/tasks")
-	doc, err := f.GetOptions(url, map[string]string{})
-	if err != nil {
-		return []byte{}, err
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("show_all"),
 	}
-	return doc, err
+
+	var res []byte
+	var err error
+
+	f.HandleRaw(req, func(b io.ReadCloser) error {
+		res, err = ioutil.ReadAll(b)
+		return err
+	})
+	return res, err
 }
 
-func (f *Fetcher) SetTaskResult(result string) ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
-	return f.GetOptions(url, map[string]string{
-		"id":     f.docID,
-		"result": result,
-	})
+func (f *Fetcher) SetTaskResult(result string) (event.APIResponse, error) {
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("update"),
+		Options: map[string]string{
+			"id":     f.docID,
+			"result": result,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }
 
-func (f *Fetcher) SetTaskOutput(output string) ([]byte, error) {
-	url := f.Config.GetWeb().BuildURI("/api/tasks/update")
-	return f.GetOptions(url, map[string]string{
-		"id":     f.docID,
-		"output": output,
-	})
+func (f *Fetcher) SetTaskOutput(output string) (event.APIResponse, error) {
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("update"),
+		Options: map[string]string{
+			"id":     f.docID,
+			"output": output,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }
 
 func (f *Fetcher) StreamOutput(r io.Reader) {
-
 	go func(reader io.Reader) {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
@@ -129,16 +179,20 @@ func (f *Fetcher) StreamOutput(r io.Reader) {
 			f.AppendTaskOutput("There was an error with the scanner in attached container " + err.Error())
 		}
 	}(r)
-
 }
 
-func (f *Fetcher) AppendTaskOutput(output string) ([]byte, error) {
+func (f *Fetcher) AppendTaskOutput(output string) (event.APIResponse, error) {
 	if f.ActiveReports {
 		fmt.Println(output)
 	}
-	url := f.Config.GetWeb().BuildURI("/api/tasks/append")
-	return f.PostOptions(url, map[string]string{
-		"id":     f.docID,
-		"output": output,
-	})
+
+	req := Request{
+		Route: v1.Schema.GetTaskRoute("append"),
+		BodyOptions: map[string]interface{}{
+			"id":     f.docID,
+			"output": output,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }

@@ -24,17 +24,34 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
-func (f *Fetcher) RegisterNode(ID, hostname string) (event.APIResponse, error) {
-	url := f.Config.GetWeb().BuildURI("/api/nodes/register")
-	data, err := f.PostOptions(url, map[string]string{
-		"key":      f.Config.GetAgent().AgentKey,
-		"nodeid":   ID,
-		"hostname": hostname,
-	})
-	if err != nil {
-		return event.APIResponse{}, err
+func (d *Fetcher) NodesTask(key string, target interface{}) error {
+
+	req := Request{
+		Route:          v1.Schema.GetNodeRoute("show_tasks"),
+		Interpolations: map[string]string{":key": key},
+		Target:         target,
 	}
-	return event.DecodeAPIResponse(data)
+
+	err := d.Handle(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *Fetcher) RegisterNode(ID, hostname string) (event.APIResponse, error) {
+	req := Request{
+		Route: v1.Schema.GetNodeRoute("register"),
+		BodyOptions: map[string]interface{}{
+			"key":      f.Config.GetAgent().AgentKey,
+			"nodeid":   ID,
+			"hostname": hostname,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
 }

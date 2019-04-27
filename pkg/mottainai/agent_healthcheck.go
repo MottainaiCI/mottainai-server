@@ -52,8 +52,7 @@ func (m *MottainaiAgent) AgentIsBusy() bool {
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 		var tlist []agenttasks.Task
 
-		url := config.GetWeb().BuildURI("/api/nodes/tasks/" + config.GetAgent().AgentKey)
-		err := c.GetJSONOptions(url, map[string]string{}, &tlist)
+		err := c.NodesTask(config.GetAgent().AgentKey, &tlist)
 		if err != nil {
 			log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
 			busy = true
