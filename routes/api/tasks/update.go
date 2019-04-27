@@ -107,6 +107,9 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 		"node_id": node.ID,
 	})
 	SyncTaskLastUpdate(f.Id, db)
+
+	ctx.APIActionSuccess()
+
 	return nil
 }
 
