@@ -338,7 +338,7 @@ func (c *WebConfig) BuildURI(pattern string) string {
 			path = path[0 : len(path)-1]
 		}
 	}
-	if pattern[0:1] != "/" {
+	if len(pattern) != 0 && pattern[0:1] != "/" {
 		pattern = "/" + pattern
 	}
 	return path + pattern
