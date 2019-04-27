@@ -31,7 +31,7 @@ var _ = Describe("API Routes v1", func() {
 
 	Context("Token routes", func() {
 		It("resolves correctly", func() {
-			Expect(Schema.GetTokenRoute("show").Path).To(Equal("/api/token"))
+			Expect(Schema.GetTokenRoute("show").GetPath()).To(Equal("/api/token"))
 		})
 	})
 })

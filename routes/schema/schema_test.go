@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package schema_test
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 
@@ -34,18 +35,18 @@ import (
 var _ = Describe("RouteGenerator", func() {
 
 	Context("Task routes", func() {
-		var Schema RouteGenerator = APIRouteGenerator{
+		var Schema RouteGenerator = &APIRouteGenerator{
 			Task: map[string]Route{
-				"test2": Route{Path: "/foo/bar/:baz", Type: "get"},
-				"test":  Route{Path: "/foo/bar/", Type: "get"},
+				"test2": &APIRoute{Path: "/foo/bar/:baz", Type: "get"},
+				"test":  &APIRoute{Path: "/foo/bar/", Type: "get"},
 			},
 		}
 		m := macaron.Classic()
 
 		It("resolves correctly", func() {
-			Expect(Schema.GetTaskRoute("test").Path).To(Equal("/foo/bar/"))
-			Expect(Schema.GetTaskRoute("test").Type).To(Equal("get"))
-			Expect(func() { var _ string = Schema.GetTaskRoute("ff").Path }).To(Panic())
+			Expect(Schema.GetTaskRoute("test").GetPath()).To(Equal("/foo/bar/"))
+			Expect(Schema.GetTaskRoute("test").GetType()).To(Equal("get"))
+			Expect(func() { var _ string = Schema.GetTaskRoute("ff").GetPath() }).To(Panic())
 
 		})
 		It("successfully writes a GET route to macaron", func() {
@@ -63,6 +64,16 @@ var _ = Describe("RouteGenerator", func() {
 
 		It("successfully interpolates parameters", func() {
 			Expect(Schema.GetTaskRoute("test2").InterpolatePath(map[string]string{":baz": "test"})).To(Equal("/foo/bar/test"))
+		})
+
+		It("successfully generates interpolated http requests", func() {
+			body := new(bytes.Buffer)
+			var req *http.Request
+			req, err := Schema.GetTaskRoute("test2").NewRequest("http://example.com", map[string]string{":baz": "test"}, body)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(req.Method).To(Equal("GET"))
+			Expect(req.URL.Path).To(Equal("/foo/bar/test"))
+			Expect(req.Host).To(Equal("example.com"))
 		})
 	})
 
