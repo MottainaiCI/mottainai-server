@@ -124,6 +124,9 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"plan_delete": &schema.APIRoute{Path: "/api/tasks/plan/delete/:id", Type: "get"},
 		"plan_show":   &schema.APIRoute{Path: "/api/tasks/plan/:id", Type: "get"},
 
+		// FIXME: Move task_log away from here
+		"task_log": &schema.APIRoute{Path: "/artefact/:id/build_:id.log", Type: "get"},
+
 		"create_pipeline":  &schema.APIRoute{Path: "/api/tasks/pipeline", Type: "post"},
 		"pipeline_list":    &schema.APIRoute{Path: "/api/tasks/pipelines", Type: "get"},
 		"pipeline_delete":  &schema.APIRoute{Path: "/api/tasks/pipelines/delete/:id", Type: "get"},

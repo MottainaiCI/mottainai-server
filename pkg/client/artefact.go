@@ -78,7 +78,7 @@ func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	var fileList []string
 
 	req := Request{
-		Route:          v1.Schema.GetStorageRoute("artefact_list"),
+		Route:          v1.Schema.GetTaskRoute("artefact_list"),
 		Interpolations: map[string]string{":id": task},
 		Target:         &fileList,
 	}
@@ -261,7 +261,7 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 
 	req := Request{
 		Route: v1.Schema.GetStorageRoute("upload"),
-		Options: map[string]string{
+		Options: map[string]interface{}{
 			"name":      file,
 			"path":      relativepath,
 			"storageid": storageid,
@@ -302,7 +302,7 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 
 	req := Request{
 		Route: v1.Schema.GetTaskRoute("artefact_upload"),
-		Options: map[string]string{
+		Options: map[string]interface{}{
 			"name":   file,
 			"path":   relativepath,
 			"taskid": f.docID,
@@ -321,7 +321,7 @@ func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) 
 
 	req := Request{
 		Route: v1.Schema.GetNamespaceRoute("upload"),
-		Options: map[string]string{
+		Options: map[string]interface{}{
 			"name":      file,
 			"path":      relativepath,
 			"namespace": namespace,

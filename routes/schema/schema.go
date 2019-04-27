@@ -131,6 +131,7 @@ type Route interface {
 	ToMacaron(*macaron.Macaron, ...macaron.Handler)
 	GetPath() string
 	GetType() string
+	RequireFormEncode() bool
 }
 type APIRoute struct {
 	Path string
@@ -148,13 +149,32 @@ func (r *APIRoute) GetType() string {
 func (r *APIRoute) InterpolatePath(opts map[string]string) string {
 	res := r.Path
 	for k, v := range opts {
-		res = strings.Replace(res, k, v, 1)
+		res = strings.Replace(res, k, v, -1)
 	}
 	return res
 }
 
 func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, body io.Reader) (*http.Request, error) {
-	return http.NewRequest(strings.ToUpper(r.GetType()), baseURL+r.InterpolatePath(interpolate), body)
+	req, err := http.NewRequest(strings.ToUpper(r.GetType()), baseURL+r.InterpolatePath(interpolate), body)
+	if err != nil {
+		return req, err
+	}
+	t := strings.ToUpper(r.GetType())
+	switch t {
+	case "POST":
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+	return req, nil
+}
+
+func (r *APIRoute) RequireFormEncode() bool {
+	t := strings.ToUpper(r.GetType())
+	switch t {
+	case "POST":
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *APIRoute) ToMacaron(m *macaron.Macaron, v ...macaron.Handler) {

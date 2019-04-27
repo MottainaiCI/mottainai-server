@@ -178,10 +178,9 @@ func (f *Fetcher) setAuthHeader(r *http.Request) *http.Request {
 type Request struct {
 	Route          schema.Route
 	Interpolations map[string]string
-	Options        map[string]string
+	Options        map[string]interface{}
 	Target         interface{}
 	Body           io.Reader
-	BodyOptions    map[string]interface{}
 }
 
 func (f *Fetcher) HandleRaw(req Request, fn func(io.ReadCloser) error) error {
@@ -195,13 +194,15 @@ func (f *Fetcher) HandleRaw(req Request, fn func(io.ReadCloser) error) error {
 	if err != nil {
 		return err
 	}
-	if len(req.BodyOptions) != 0 {
-		form := url.Values{}
-		var InterfaceList []interface{}
-		var Strings []string
-		var String string
 
-		for k, v := range req.BodyOptions {
+	var InterfaceList []interface{}
+	var Strings []string
+	var String string
+
+	if r.RequireFormEncode() {
+		form := url.Values{}
+
+		for k, v := range option {
 			if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
 				for _, el := range v.([]interface{}) {
 					form.Add(k, el.(string))
@@ -227,17 +228,36 @@ func (f *Fetcher) HandleRaw(req Request, fn func(io.ReadCloser) error) error {
 		}
 
 		request, err = r.NewRequest(baseurl, interpolations, strings.NewReader(form.Encode()))
-	}
-
-	f.setAuthHeader(request)
-
-	if "GET" == strings.ToUpper(r.GetType()) {
+	} else {
 		q := request.URL.Query()
 		for k, v := range option {
-			q.Add(k, v)
+			if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
+				for _, el := range v.([]interface{}) {
+					q.Add(k, el.(string))
+				}
+			} else if reflect.TypeOf(v) == reflect.TypeOf(Strings) {
+				for _, el := range v.([]string) {
+					q.Add(k, el)
+				}
+
+			} else if reflect.TypeOf(v) == reflect.TypeOf(float64(0)) {
+				q.Add(k, utils.FloatToString(v.(float64)))
+
+			} else if reflect.TypeOf(v) == reflect.TypeOf(String) {
+				q.Add(k, v.(string))
+			} else {
+				var b bytes.Buffer
+				e := gob.NewEncoder(&b)
+				if err := e.Encode(v); err != nil {
+					return err
+				}
+				q.Add(k, b.String())
+			}
 		}
 		request.URL.RawQuery = q.Encode()
 	}
+
+	f.setAuthHeader(request)
 
 	response, err := hclient.Do(request)
 	if err != nil {
@@ -291,7 +311,7 @@ func (f *Fetcher) HandleUploadLargeFile(request Request, paramName string, fileP
 	mpWriter := multipart.NewWriter(byteBuf)
 
 	for key, value := range option {
-		err = mpWriter.WriteField(key, value)
+		err = mpWriter.WriteField(key, value.(string))
 		if err != nil {
 			return err
 		}
@@ -417,7 +437,7 @@ func (f *Fetcher) HandleUpload(req Request, paramName, path string) (*http.Reque
 	part.Write(fileContents)
 
 	for key, val := range option {
-		_ = writer.WriteField(key, val)
+		_ = writer.WriteField(key, val.(string))
 	}
 	err = writer.Close()
 	if err != nil {

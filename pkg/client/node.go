@@ -27,6 +27,25 @@ import (
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
+func (d *Fetcher) CreateNode() (event.APIResponse, error) {
+
+	req := Request{
+		Route: v1.Schema.GetNodeRoute("create"),
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
+func (d *Fetcher) RemoveNode(id string) (event.APIResponse, error) {
+
+	req := Request{
+		Route:          v1.Schema.GetNodeRoute("delete"),
+		Interpolations: map[string]string{":id": id},
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
 func (d *Fetcher) NodesTask(key string, target interface{}) error {
 
 	req := Request{
@@ -46,7 +65,7 @@ func (d *Fetcher) NodesTask(key string, target interface{}) error {
 func (f *Fetcher) RegisterNode(ID, hostname string) (event.APIResponse, error) {
 	req := Request{
 		Route: v1.Schema.GetNodeRoute("register"),
-		BodyOptions: map[string]interface{}{
+		Options: map[string]interface{}{
 			"key":      f.Config.GetAgent().AgentKey,
 			"nodeid":   ID,
 			"hostname": hostname,

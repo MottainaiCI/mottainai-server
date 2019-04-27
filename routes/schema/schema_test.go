@@ -38,7 +38,9 @@ var _ = Describe("RouteGenerator", func() {
 		var Schema RouteGenerator = &APIRouteGenerator{
 			Task: map[string]Route{
 				"test2": &APIRoute{Path: "/foo/bar/:baz", Type: "get"},
+				"test4": &APIRoute{Path: "/foo/bar/:baz/:baz.log", Type: "get"},
 				"test":  &APIRoute{Path: "/foo/bar/", Type: "get"},
+				"test3": &APIRoute{Path: "/foo/bar2/", Type: "post"},
 			},
 		}
 		m := macaron.Classic()
@@ -46,8 +48,9 @@ var _ = Describe("RouteGenerator", func() {
 		It("resolves correctly", func() {
 			Expect(Schema.GetTaskRoute("test").GetPath()).To(Equal("/foo/bar/"))
 			Expect(Schema.GetTaskRoute("test").GetType()).To(Equal("get"))
+			Expect(Schema.GetTaskRoute("test").RequireFormEncode()).To(Equal(false))
+			Expect(Schema.GetTaskRoute("test3").RequireFormEncode()).To(Equal(true))
 			Expect(func() { var _ string = Schema.GetTaskRoute("ff").GetPath() }).To(Panic())
-
 		})
 		It("successfully writes a GET route to macaron", func() {
 			result := ""
@@ -64,6 +67,8 @@ var _ = Describe("RouteGenerator", func() {
 
 		It("successfully interpolates parameters", func() {
 			Expect(Schema.GetTaskRoute("test2").InterpolatePath(map[string]string{":baz": "test"})).To(Equal("/foo/bar/test"))
+			Expect(Schema.GetTaskRoute("test4").InterpolatePath(map[string]string{":baz": "test"})).To(Equal("/foo/bar/test/test.log"))
+
 		})
 
 		It("successfully generates interpolated http requests", func() {
