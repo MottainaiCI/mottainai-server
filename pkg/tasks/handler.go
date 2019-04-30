@@ -400,7 +400,7 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) Task {
 func HandleSuccess(config *setting.Config) func(docID string, result int) error {
 	return func(docID string, result int) error {
 		fetcher := client.NewFetcher(docID, config)
-		fetcher.Token = config.GetAgent().ApiKey
+		fetcher.SetToken(config.GetAgent().ApiKey)
 		res := strconv.Itoa(result)
 		fetcher.SetTaskField("exit_status", res)
 		if result != 0 {
@@ -424,7 +424,7 @@ func HandleSuccess(config *setting.Config) func(docID string, result int) error 
 func HandleErr(config *setting.Config) func(errstring, docID string) error {
 	return func(errstring, docID string) error {
 		fetcher := client.NewFetcher(docID, config)
-		fetcher.Token = config.GetAgent().ApiKey
+		fetcher.SetToken(config.GetAgent().ApiKey)
 
 		fetcher.AppendTaskOutput(errstring)
 

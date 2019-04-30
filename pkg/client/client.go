@@ -73,6 +73,71 @@ type HttpClient interface {
 	SuccessTask()
 	StreamOutput(io.Reader)
 	RunTask()
+
+	StorageDelete(id string) (event.APIResponse, error)
+	StorageRemovePath(id, path string) (event.APIResponse, error)
+	StorageCreate(t string) (event.APIResponse, error)
+	SettingCreate(data map[string]interface{}) (event.APIResponse, error)
+	SettingRemove(id string) (event.APIResponse, error)
+	SettingUpdate(data map[string]interface{}) (event.APIResponse, error)
+	PlanDelete(id string) (event.APIResponse, error)
+	PlanCreate(taskdata map[string]interface{}) (event.APIResponse, error)
+	SetBaseURL(url string)
+	SetAgent(a *anagent.Anagent)
+	SetActiveReport(b bool)
+	SetToken(t string)
+	HandleRaw(req Request, fn func(io.ReadCloser) error) error
+	Handle(req Request) error
+	HandleAPIResponse(req Request) (event.APIResponse, error)
+	HandleUploadLargeFile(request Request, paramName string, filePath string, chunkSize int) error
+	HandleUpload(req Request, paramName, path string) (*http.Request, error)
+	TaskLog(id string) ([]byte, error)
+	TaskDelete(id string) (event.APIResponse, error)
+	SetTaskStatus(status string) (event.APIResponse, error)
+	StartTask(id string) (event.APIResponse, error)
+	StopTask(id string) (event.APIResponse, error)
+	CreateTask(taskdata map[string]interface{}) (event.APIResponse, error)
+	CloneTask(id string) (event.APIResponse, error)
+	TaskLogArtefact(id string) ([]byte, error)
+	TaskStream(id, pos string) ([]byte, error)
+	AllTasks() ([]byte, error)
+	SetTaskResult(result string) (event.APIResponse, error)
+	SetTaskOutput(output string) (event.APIResponse, error)
+	WebHookTaskUpdate(id string, data map[string]interface{}) (event.APIResponse, error)
+	WebHookPipelineUpdate(id string, data map[string]interface{}) (event.APIResponse, error)
+	WebHookDelete(id string) (event.APIResponse, error)
+	WebHookDeleteTask(id string) (event.APIResponse, error)
+	WebHookDeletePipeline(id string) (event.APIResponse, error)
+	WebHookEdit(data map[string]interface{}) (event.APIResponse, error)
+	WebHookCreate(t string) (event.APIResponse, error)
+	TokenDelete(id string) (event.APIResponse, error)
+	TokenCreate() (event.APIResponse, error)
+	UploadStorageFile(storageid, fullpath, relativepath string) error
+	UploadArtefactRetry(fullpath, relativepath string, trials int) error
+	UploadArtefact(fullpath, relativepath string) error
+	UploadNamespaceFile(namespace, fullpath, relativepath string) error
+	UserCreate(data map[string]interface{}) (event.APIResponse, error)
+	UserRemove(id string) (event.APIResponse, error)
+	UserUpdate(id string, data map[string]interface{}) (event.APIResponse, error)
+	UserSet(id, t string) (event.APIResponse, error)
+	UserUnset(id, t string) (event.APIResponse, error)
+	PipelineDelete(id string) (event.APIResponse, error)
+	PipelineCreate(taskdata map[string]interface{}) (event.APIResponse, error)
+	NamespaceDelete(id string) (event.APIResponse, error)
+	NamespaceRemovePath(id, path string) (event.APIResponse, error)
+	NamespaceClone(from, to string) (event.APIResponse, error)
+	NamespaceAppend(id, name string) (event.APIResponse, error)
+	NamespaceTag(id, tag string) (event.APIResponse, error)
+	NamespaceCreate(t string) (event.APIResponse, error)
+	GetBaseURL() (url string)
+	CreateNode() (event.APIResponse, error)
+	RemoveNode(id string) (event.APIResponse, error)
+	NodesTask(key string, target interface{}) error
+	NamespaceFileList(namespace string) ([]string, error)
+	StorageFileList(storage string) ([]string, error)
+	TaskFileList(task string) ([]string, error)
+	DownloadArtefactsGeneric(id, target, artefact_type string) error
+	Download(url, where string) (bool, error)
 }
 
 type Fetcher struct {
@@ -89,26 +154,26 @@ type Fetcher struct {
 	Config        *setting.Config
 }
 
-func NewTokenClient(host, token string, config *setting.Config) *Fetcher {
+func NewTokenClient(host, token string, config *setting.Config) HttpClient {
 	f := NewBasicClient(config)
-	f.BaseURL = host
-	f.Token = token
+	f.SetBaseURL(host)
+	f.SetToken(token)
 	return f
 }
 
-func NewClient(host string, config *setting.Config) *Fetcher {
+func NewClient(host string, config *setting.Config) HttpClient {
 	f := NewBasicClient(config)
-	f.BaseURL = host
+	f.SetBaseURL(host)
 	return f
 }
 
-func NewFetcher(docID string, config *setting.Config) *Fetcher {
+func NewFetcher(docID string, config *setting.Config) HttpClient {
 	f := NewClient(config.GetWeb().AppURL, config)
-	f.docID = docID
+	f.Doc(docID)
 	return f
 }
 
-func NewBasicClient(config *setting.Config) *Fetcher {
+func NewBasicClient(config *setting.Config) HttpClient {
 	// Basic constructor
 	f := &Fetcher{Config: config, ChunkSize: 512}
 	if len(config.GetGeneral().TLSCert) > 0 {
@@ -117,11 +182,28 @@ func NewBasicClient(config *setting.Config) *Fetcher {
 	return f
 }
 
-func New(docID string, a *anagent.Anagent, config *setting.Config) *Fetcher {
+func New(docID string, a *anagent.Anagent, config *setting.Config) HttpClient {
 	f := NewClient(config.GetWeb().AppURL, config)
-	f.docID = docID
-	f.Agent = a
+	f.Doc(docID)
+	f.SetAgent(a)
 	return f
+}
+
+func (f *Fetcher) GetBaseURL() (url string) {
+	url = f.BaseURL
+	return
+}
+func (f *Fetcher) SetBaseURL(url string) {
+	f.BaseURL = url
+}
+func (f *Fetcher) SetAgent(a *anagent.Anagent) {
+	f.Agent = a
+}
+func (f *Fetcher) SetActiveReport(b bool) {
+	f.ActiveReports = b
+}
+func (f *Fetcher) SetToken(t string) {
+	f.Token = t
 }
 
 func (f *Fetcher) Doc(id string) {

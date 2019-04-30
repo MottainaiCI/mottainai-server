@@ -41,7 +41,7 @@ func (m *MottainaiAgent) HealthCheckSetup(force bool) {
 		th := agenttasks.DefaultTaskHandler(config)
 		m.Map(th)
 		fetcher := client.NewClient(config.GetWeb().AppURL, config)
-		fetcher.Token = config.GetAgent().ApiKey
+		fetcher.SetToken(config.GetAgent().ApiKey)
 		m.Map(fetcher)
 		m.TimerSeconds(int64(800), true, func() { m.HealthClean(force) })
 	})
