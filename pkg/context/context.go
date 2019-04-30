@@ -34,6 +34,7 @@ import (
 	logrus "github.com/sirupsen/logrus"
 
 	auth "github.com/MottainaiCI/mottainai-server/pkg/auth"
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -92,9 +93,12 @@ func (c *Context) ServerError(title string, err error) {
 
 	// Restrict API calls with error message.
 	if auth.IsAPIPath(c.Req.URL.Path, webconfig) {
-		c.JSON(500, map[string]string{
-			"message": err.Error(),
-		})
+		c.JSON(500,
+			event.APIResponse{
+				Error:     err.Error(),
+				Status:    "error",
+				Processed: "true",
+			})
 		return
 	}
 
@@ -104,18 +108,21 @@ func (c *Context) ServerError(title string, err error) {
 
 func (c *Context) NotFound() {
 	var webconfig *setting.WebConfig
+	err := "Page not found"
+
 	c.Invoke(func(config *setting.Config) {
 		webconfig = config.GetWeb()
 	})
 	// Restrict API calls with error message.
 	if auth.IsAPIPath(c.Req.URL.Path, webconfig) {
-		c.JSON(404, map[string]string{
-			"message": "Not found",
+		c.JSON(404, event.APIResponse{
+			Error:     err,
+			Status:    "error",
+			Processed: "true",
 		})
 		return
 	}
 
-	err := "Page not found"
 	c.Data["Title"] = err
 	c.Handle(http.StatusNotFound, err, errors.New(err))
 }
