@@ -268,20 +268,9 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 		},
 	}
 
-	request, err := f.HandleUpload(req, "file", fullpath)
-	if err != nil {
-		panic(err)
-	}
-	f.setAuthHeader(request)
-
-	client := f.newHttpClient()
-	resp, err := client.Do(request)
-	if err != nil {
-		panic(err)
-	} else {
-		var bodyContent []byte
-		resp.Body.Read(bodyContent)
-		resp.Body.Close()
+	if err := f.HandleUploadLargeFile(req, "file", fullpath, f.ChunkSize); err != nil {
+		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
+		return err
 	}
 	return nil
 }
