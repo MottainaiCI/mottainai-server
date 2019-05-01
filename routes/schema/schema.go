@@ -159,11 +159,18 @@ func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, bod
 	if err != nil {
 		return req, err
 	}
-	t := strings.ToUpper(r.GetType())
-	switch t {
-	case "POST":
+	if r.RequireFormEncode() {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
+	// t := strings.ToUpper(r.GetType())
+	// switch t {
+	// case "POST":
+	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// case "PUT":
+	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// case "PATCH":
+	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// }
 	return req, nil
 }
 
@@ -171,6 +178,10 @@ func (r *APIRoute) RequireFormEncode() bool {
 	t := strings.ToUpper(r.GetType())
 	switch t {
 	case "POST":
+		return true
+	case "PUT":
+		return true
+	case "PATCH":
 		return true
 	default:
 		return false
