@@ -259,8 +259,8 @@ var _ = Describe("Client", func() {
 
 				list, err := fetcher.StorageFileList(id)
 				Expect(len(list)).To(Equal(2))
-				Expect(list[0]).To(Equal("/test"))
-				Expect(list[1]).To(Equal("/foo/test"))
+				Expect(list[0]).To(Equal("/foo/test"))
+				Expect(list[1]).To(Equal("/test"))
 
 				dir2, err := ioutil.TempDir("", "client_test2")
 				defer os.RemoveAll(dir2) // clean up

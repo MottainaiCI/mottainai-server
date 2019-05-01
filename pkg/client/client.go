@@ -90,7 +90,6 @@ type HttpClient interface {
 	Handle(req Request) error
 	HandleAPIResponse(req Request) (event.APIResponse, error)
 	HandleUploadLargeFile(request Request, paramName string, filePath string, chunkSize int) error
-	HandleUpload(req Request, paramName, path string) (*http.Request, error)
 	TaskLog(id string) ([]byte, error)
 	TaskDelete(id string) (event.APIResponse, error)
 	SetTaskStatus(status string) (event.APIResponse, error)
@@ -472,66 +471,19 @@ func (f *Fetcher) HandleUploadLargeFile(request Request, paramName string, fileP
 	client.Timeout = 0
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
-	} else {
-		log.Println(resp.StatusCode)
-		log.Println(resp.Header)
-
-		body := &bytes.Buffer{}
-		_, _ = body.ReadFrom(resp.Body)
-		resp.Body.Close()
-		log.Println(body)
-		if resp.StatusCode != 200 {
-			return errors.New("[Upload] Error while uploading " + filePath + ": " + strconv.Itoa(resp.StatusCode))
-		}
+		return err
 	}
-	return err
-}
+	defer resp.Body.Close()
 
-// Creates a new file upload http request with optional extra params
-func (f *Fetcher) HandleUpload(req Request, paramName, path string) (*http.Request, error) {
-	r := req.Route
-	interpolations := req.Interpolations
-	option := req.Options
-
-	baseurl := f.BaseURL + f.Config.GetWeb().BuildURI("")
-
-	file, err := os.Open(path)
+	body := &bytes.Buffer{}
+	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		return nil, err
-	}
-	fileContents, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	file.Close()
-
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(paramName, fi.Name())
-	if err != nil {
-		return nil, err
-	}
-	part.Write(fileContents)
-
-	for key, val := range option {
-		_ = writer.WriteField(key, val.(string))
-	}
-	err = writer.Close()
-	if err != nil {
-		return nil, err
+		return err
 	}
 
-	request, err := r.NewRequest(baseurl, interpolations, body)
-	f.setAuthHeader(request)
-
-	if err != nil {
-		return request, nil
+	if resp.StatusCode != 200 {
+		return errors.New("[Upload] Error while uploading " + filePath + ": " + strconv.Itoa(resp.StatusCode))
 	}
-	request.Header.Add("Content-Type", writer.FormDataContentType())
-	return request, nil
+
+	return nil
 }
