@@ -30,13 +30,12 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
-func APIStop(ctx *context.Context, db *database.Database) error {
+func APIStop(ctx *context.Context, db *database.Database) {
 	err := Stop(ctx, db)
 	if err != nil {
-		return err
+		ctx.ServerError("Failed stopping task", err)
 	}
 	ctx.APIActionSuccess()
-	return nil
 }
 
 func Stop(ctx *context.Context, db *database.Database) error {
@@ -58,8 +57,12 @@ func Stop(ctx *context.Context, db *database.Database) error {
 	err = db.Driver.UpdateTask(id, map[string]interface{}{
 		"status": "stop",
 	})
+	if err != nil {
+		return errors.New("Failed updating database")
+	}
 	//ctx.Redirect("/tasks")
 	//ctx.Redirect("/tasks/display/" + strconv.Itoa(id))
-	return err
+
+	return nil
 	//ShowAll(ctx, db)
 }

@@ -180,6 +180,7 @@ func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.D
 	pips, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
+		return nil
 	}
 
 	if !ctx.CheckPipelinePermissions(&pips) {
@@ -191,6 +192,8 @@ func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.D
 	if err != nil {
 		return err
 	}
+
+	ctx.APIActionSuccess()
 
 	return nil
 }

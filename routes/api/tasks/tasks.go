@@ -50,7 +50,7 @@ func Setup(m *macaron.Macaron) {
 			v1.Schema.GetTaskRoute("start").ToMacaron(m, reqSignIn, SendStartTask)
 			v1.Schema.GetTaskRoute("clone").ToMacaron(m, reqSignIn, CloneTask)
 			v1.Schema.GetTaskRoute("status").ToMacaron(m, reqSignIn, APIShowTaskByStatus)
-			v1.Schema.GetTaskRoute("stop").ToMacaron(m, reqSignIn, Stop)
+			v1.Schema.GetTaskRoute("stop").ToMacaron(m, reqSignIn, APIStop)
 			v1.Schema.GetTaskRoute("delete").ToMacaron(m, reqSignIn, APIDelete)
 			v1.Schema.GetTaskRoute("update").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), UpdateTask)
 			v1.Schema.GetTaskRoute("append").ToMacaron(m, reqSignIn, bind(UpdateTaskForm{}), AppendToTask)

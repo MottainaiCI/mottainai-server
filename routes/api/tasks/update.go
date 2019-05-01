@@ -50,13 +50,15 @@ func SyncTaskLastUpdate(id string, db *database.Database) {
 	})
 }
 
-func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
+func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Database) {
 	mytask, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
-		return err
+		ctx.ServerError("Failed getting task", err)
+		return
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
-		return errors.New("Moar permissions are required for this user")
+		ctx.NoPermission()
+		return
 	}
 	if len(f.Field) > 0 && len(f.Value) > 0 {
 		db.Driver.UpdateTask(f.Id, map[string]interface{}{
@@ -79,7 +81,8 @@ func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Databa
 
 				t, err := db.Driver.GetTask(db.Config, f.Id)
 				if err != nil {
-					return err
+					ctx.ServerError("Failed getting task", err)
+					return
 				}
 				t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 			}
@@ -88,7 +91,7 @@ func UpdateTaskField(f UpdateTaskForm, ctx *context.Context, db *database.Databa
 		SyncTaskLastUpdate(f.Id, db)
 	}
 
-	return nil
+	ctx.APIActionSuccess()
 }
 
 func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {

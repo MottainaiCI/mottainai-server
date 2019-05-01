@@ -33,13 +33,12 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 )
 
-func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
+func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
 	err := SendStartTask(m, th, ctx, db)
 	if err != nil {
-		return err
+		ctx.ServerError("Failed starting task", err)
 	}
 	ctx.APIActionSuccess()
-	return nil
 }
 
 func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
