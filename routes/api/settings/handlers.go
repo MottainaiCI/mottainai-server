@@ -65,7 +65,14 @@ func APIUpdate(ctx *context.Context, db *database.Database, s Setting) error {
 	if err != nil {
 		return err
 	}
+
 	uuu.Key = s.Key
 	uuu.Value = s.Value
-	return db.Driver.UpdateSetting(uuu.ID, uuu.ToMap())
+	err = db.Driver.UpdateSetting(uuu.ID, uuu.ToMap())
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
 }

@@ -221,6 +221,10 @@ func (c *Context) APICreationSuccess(id, objType string) {
 	c.APIEventReport(event.APIResponse{ID: id, ObjType: objType, Processed: "true", Status: "ok"})
 }
 
+func (c *Context) APIPayload(id, objType, data string) {
+	c.APIEventReport(event.APIResponse{Data: data, ID: id, ObjType: objType, Processed: "true", Status: "ok"})
+}
+
 func (c *Context) APIEventData(data string) {
 	c.APIEventReport(event.APIResponse{Data: data, Processed: "true", Status: "ok"})
 }

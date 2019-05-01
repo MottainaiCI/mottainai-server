@@ -47,5 +47,6 @@ func Remove(ctx *context.Context, db *database.Database) error {
 		_, err = rmqc.DeleteUser(node.User)
 	})
 
+	ctx.APIActionSuccess()
 	return nil
 }

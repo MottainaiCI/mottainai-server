@@ -76,12 +76,16 @@ type StorageForm struct {
 func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) error {
 
 	file, err := uf.FileUpload.Open()
-
-	storage, err := db.Driver.GetStorage(uf.ID)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
+
+	storage, err := db.Driver.GetStorage(uf.ID)
+	if err != nil {
+		return err
+	}
+
 	if !ctx.CheckStorageBelongs(storage.Path) {
 		ctx.NoPermission()
 		return nil
@@ -89,7 +93,9 @@ func StorageUpload(uf StorageForm, ctx *context.Context, db *database.Database) 
 
 	os.MkdirAll(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, uf.Path), os.ModePerm)
 	f, err := os.OpenFile(filepath.Join(db.Config.GetStorage().StoragePath, storage.Path, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
-
+	if err != nil {
+		return err
+	}
 	defer f.Close()
 	io.Copy(f, file)
 

@@ -37,27 +37,26 @@ func CreateToken(ctx *context.Context, db *database.Database) (*token.Token, err
 	if ctx.IsLogged {
 		t, err = token.GenerateUserToken(ctx.User.ID)
 		if err != nil {
-			ctx.ServerError("Failed creating token", err)
-			return t, err
+			return nil, err
 		}
 	} else {
-		ctx.ServerError("Failed creating token", errors.New("Insufficient permission for creating a token"))
-		return t, err
+		return nil, errors.New("Not logged in")
 	}
 	return t, nil
 }
 
-func Create(ctx *context.Context, db *database.Database) error {
+func Create(ctx *context.Context, db *database.Database) {
 	t, err := CreateToken(ctx, db)
 	if err != nil {
-		return err
+		ctx.ServerError("Failed creating token", err)
+		return
 	}
-	_, err = db.Driver.InsertToken(t)
+	id, err := db.Driver.InsertToken(t)
 	if err != nil {
 		ctx.ServerError("Failed creating token", err)
-		return err
+		return
 	}
 
-	ctx.APICreationSuccess(t.Key, "token")
-	return nil
+	ctx.APIPayload(id, "token", t.Key)
+	return
 }

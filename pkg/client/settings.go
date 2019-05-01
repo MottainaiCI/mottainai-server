@@ -39,7 +39,7 @@ func (f *Fetcher) SettingRemove(id string) (event.APIResponse, error) {
 	req := Request{
 		Route: v1.Schema.GetSettingRoute("remove"),
 		Interpolations: map[string]string{
-			":id": id,
+			":key": id,
 		},
 	}
 

@@ -231,13 +231,13 @@ func (m *Mottainai) Start() error {
 
 	m.Invoke(func(config *setting.Config, l *logging.Logger) {
 		server.Add(config.GetBroker().BrokerDefaultQueue, config)
-		if config.GetBroker().Type == "amqp" {
-			rmqc, r_error := rabbithole.NewClient(
+		if config.GetBroker().Type == "amqp" && config.GetBroker().BrokerURI != "" {
+			rmqc, err := rabbithole.NewClient(
 				config.GetBroker().BrokerURI,
 				config.GetBroker().BrokerUser,
 				config.GetBroker().BrokerPass)
-			if r_error != nil {
-				panic(r_error)
+			if err != nil {
+				panic(err)
 			}
 			m.Map(rmqc)
 		}

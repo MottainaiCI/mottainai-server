@@ -54,12 +54,12 @@ func Create(ctx *context.Context, db *database.Database) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.Driver.InsertWebHook(t)
+	id, err := db.Driver.InsertWebHook(t)
 	if err != nil {
 		ctx.ServerError("Failed creating webhook", err)
 		return err
 	}
 
-	ctx.APICreationSuccess(t.Key, "webhook")
+	ctx.APIPayload(id, "webhook", t.Key)
 	return nil
 }

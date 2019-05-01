@@ -77,7 +77,6 @@ func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx 
 func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ctx *context.Context) error {
 	plan, err := db.Driver.GetPlan(db.Config, id)
 	if err != nil {
-		ctx.NotFound()
 		return err
 	}
 
@@ -91,9 +90,15 @@ func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ct
 	}
 
 	m.ReloadCron()
+
 	return nil
 }
 
 func PlanDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
-	return PlanDeleteById(ctx.Params(":id"), db, m, ctx)
+	err := PlanDeleteById(ctx.Params(":id"), db, m, ctx)
+	if err != nil {
+		return err
+	}
+	ctx.APIActionSuccess()
+	return nil
 }

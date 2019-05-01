@@ -75,6 +75,9 @@ func ArtefactList(ctx *context.Context, db *database.Database) error {
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) error {
 
 	file, err := uf.FileUpload.Open()
+	if err != nil {
+		return err
+	}
 	defer file.Close()
 
 	task, err := db.Driver.GetTask(db.Config, uf.TaskID)
@@ -87,12 +90,15 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 		return nil
 	}
 
-	var f *os.File = nil
+	var f *os.File
 	ctx.Invoke(func(config *setting.Config) {
-
 		os.MkdirAll(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path), os.ModePerm)
 		f, err = os.OpenFile(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	})
+
+	if err != nil {
+		return err
+	}
 
 	defer f.Close()
 	io.Copy(f, file)

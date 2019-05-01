@@ -33,6 +33,7 @@ import (
 func Create(ctx *context.Context, db *database.Database) {
 	t, err := apitoken.CreateToken(ctx, db)
 	if err != nil {
+		ctx.ServerError("Failed creating token", err)
 		return
 	}
 	_, err = db.Driver.InsertToken(t)
