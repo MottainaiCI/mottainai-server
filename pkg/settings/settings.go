@@ -249,6 +249,12 @@ func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("db.engine", "tiedot")
 	viper.SetDefault("db.db_path", "./.DB")
+	viper.SetDefault("db.db_endpoints", []string{})
+	viper.SetDefault("db.db_user", "")
+	viper.SetDefault("db.db_name", "")
+	viper.SetDefault("db.db_password", "")
+	viper.SetDefault("db.db_certpath", "")
+	viper.SetDefault("db.db_keypath", "")
 
 	viper.SetDefault("broker.handle_signal", true)
 	viper.SetDefault("broker.type", "amqp")
@@ -429,9 +435,9 @@ web:
 
   lock_path: %s
 
-	task_deadline: %d
-	node_deadline: %d
-	healthcheck_interval: %d
+  task_deadline: %d
+  node_deadline: %d
+  healthcheck_interval: %d
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
@@ -466,12 +472,12 @@ func (c *DatabaseConfig) String() string {
 db:
   engine: %s
   db_path: %s
-	endpoints: %s
-	db_name: %s
-	db_password: ****
-	db_certpath: %s
-	db_keypath: %s
-	db_user: %s
+  db_endpoints: %s
+  db_name: %s
+  db_password: ****
+  db_certpath: %s
+  db_keypath: %s
+  db_user: %s
 `,
 		c.DBEngine, c.DBPath, c.Endpoints, c.DatabaseName, c.CertPath, c.KeyPath, c.User)
 	return ans
@@ -553,7 +559,6 @@ agent:
   health_check_clean_path: %s
 
   pre_task_hook_exec: %s
-
 `, c.SecretKey, c.BuildPath,
 		c.AgentConcurrency, c.AgentKey, c.ApiKey,
 		c.PrivateQueue, c.StandAlone, c.DownloadRateLimit,
@@ -577,7 +582,7 @@ general:
   loglevel: %s
   tls_cert: %s
   tls_key: ***********************
-	client_timeout: %d
+  client_timeout: %d
 `,
 		c.Debug, c.LogFile, c.LogLevel,
 		c.TLSCert, c.ClientTimeout)
@@ -600,12 +605,15 @@ configfile: %s
 %s
 
 %s
+
+%s
 `,
 		c.Viper.Get("config"),
 		c.Web.String(),
 		c.Broker.String(),
 		c.Storage.String(),
 		c.Agent.String(),
+		c.Database.String(),
 		c.General.String())
 
 	return ans
