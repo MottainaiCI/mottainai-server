@@ -505,7 +505,7 @@ func (m *Mottainai) processableTask(docID string) error {
 		}
 		parallelAppend, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND)
 
-		task, err := d.Driver.GetTask(config, docID)
+		task, err := d.Driver.GetTask(d.Config, docID)
 		if err != nil {
 			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
@@ -537,7 +537,7 @@ func (m *Mottainai) processablePipeline(docID string) error {
 		}
 		parallelAppend, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND)
 
-		pip, err := d.Driver.GetPipeline(config, docID)
+		pip, err := d.Driver.GetPipeline(d.Config, docID)
 		if err != nil {
 			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
