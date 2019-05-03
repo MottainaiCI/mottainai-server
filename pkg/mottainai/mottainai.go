@@ -468,13 +468,13 @@ func overlappingTasks(taskList []*agenttasks.Task, currentTask agenttasks.Task, 
 
 func (m *Mottainai) getPendingTasks() ([]*agenttasks.Task, error) {
 	var t []*agenttasks.Task
-	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
+	var resultError error
+	m.Invoke(func(d *database.Database) {
 
 		// Check for waiting/running tasks and do not send in such case
 		wtasks, err := d.Driver.GetTaskByStatus(d.Config, "waiting")
 		if err != nil {
-			err = errors.New("Failed to get task by status")
+			resultError = errors.New("Failed to get task by status")
 			return
 		}
 		for _, k := range wtasks {
@@ -483,7 +483,7 @@ func (m *Mottainai) getPendingTasks() ([]*agenttasks.Task, error) {
 
 		rtasks, err := d.Driver.GetTaskByStatus(d.Config, "running")
 		if err != nil {
-			err = errors.New("Failed to get task by status")
+			resultError = errors.New("Failed to get task by status")
 			return
 		}
 		for _, k := range rtasks {
@@ -491,74 +491,72 @@ func (m *Mottainai) getPendingTasks() ([]*agenttasks.Task, error) {
 		}
 
 	})
-	return t, err
+	return t, resultError
 }
 
 func (m *Mottainai) processableTask(docID string) error {
 	// TODO: Add proper locks to db schema, this is racy
-	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
+	var resultError error
+	m.Invoke(func(d *database.Database) {
 
 		// Check setting if we have to process this.
 		if protectOverwrite, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_OVERWRITE); protectOverwrite.IsDisabled() {
-			err = nil
 			return
 		}
 		parallelAppend, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND)
 
 		task, err := d.Driver.GetTask(config, docID)
 		if err != nil {
-			err = errors.New("Failed to get task information while checking if it is processable or not")
+			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
 		}
 
 		// Check for waiting/running tasks and do not send in such case
 		p, err := m.getPendingTasks()
 		if err != nil {
-			err = errors.New("Failed to get task information while checking if it is processable or not")
+			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
 		}
 		if overlappingTasks(p, task, parallelAppend) {
-			err = errors.New("Task targeting same namespace is waiting to start")
+			resultError = errors.New("Task targeting same namespace is waiting to start")
 			return
 		}
 
 	})
-	return err
+	return resultError
 }
 
 func (m *Mottainai) processablePipeline(docID string) error {
 	// TODO: Add proper locks to db schema, this is racy
-	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
+	var resultError error
+	m.Invoke(func(d *database.Database) {
 
 		// Check setting if we have to process this.
 		if protectOverwrite, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_OVERWRITE); protectOverwrite.IsDisabled() {
-			err = nil
 			return
 		}
 		parallelAppend, _ := d.Driver.GetSettingByKey(setting.SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND)
 
 		pip, err := d.Driver.GetPipeline(config, docID)
 		if err != nil {
-			err = errors.New("Failed to get task information while checking if it is processable or not")
+			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
 		}
 
 		p, err := m.getPendingTasks()
 		if err != nil {
-			err = errors.New("Failed to get task information while checking if it is processable or not")
+			resultError = errors.New("Failed to get task information while checking if it is processable or not")
 			return
 		}
 		for _, t := range pip.Tasks {
 			if overlappingTasks(p, t, parallelAppend) {
-				err = errors.New("Task targeting same namespace is waiting to start")
+				resultError = errors.New("Task targeting same namespace is waiting to start")
 				return
 			}
 		}
 
 	})
-	return err
+	return resultError
 }
 
 func (m *Mottainai) SendTask(docID string) (bool, error) {
