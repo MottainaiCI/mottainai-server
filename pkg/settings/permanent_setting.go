@@ -30,6 +30,7 @@ const SYSTEM_WEBHOOK_INTERNAL_ONLY = "system.webhook.internal_only"
 const SYSTEM_WEBHOOK_DEFAULT_QUEUE = "system.webhook.default_queue"
 
 const SYSTEM_PROTECT_NAMESPACE_OVERWRITE = "system.namespace.protect_overwrite"
+const SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND = "system.namespace.protect_overwrite.parallel_append"
 
 // This option could be used when user/password verification is
 // done from external compoenent or reverse proxy and permit
