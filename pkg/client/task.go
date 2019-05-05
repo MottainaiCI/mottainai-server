@@ -198,7 +198,7 @@ func (f *Fetcher) TaskLogArtefact(id string) ([]byte, error) {
 	req := Request{
 		Route: v1.Schema.GetTaskRoute("task_log"),
 		Interpolations: map[string]string{
-			":id": f.docID,
+			":id": id,
 		},
 	}
 
@@ -216,7 +216,7 @@ func (f *Fetcher) TaskStream(id, pos string) ([]byte, error) {
 	req := Request{
 		Route: v1.Schema.GetTaskRoute("stream_output"),
 		Interpolations: map[string]string{
-			":id":  f.docID,
+			":id":  id,
 			":pos": pos,
 		},
 	}
