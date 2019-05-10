@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package database
 
 import (
+	"errors"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	arango "github.com/MottainaiCI/mottainai-server/pkg/db/arangodb"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
@@ -238,7 +240,14 @@ func NewDatabase(config *setting.Config) *Database {
 			config.GetDatabase().User, config.GetDatabase().Password,
 			config.GetDatabase().CertPath, config.GetDatabase().KeyPath,
 			config.GetDatabase().Endpoints)
+	default:
+		panic(errors.New("Invalid engine defined: '" + config.GetDatabase().DBEngine + "'"))
 	}
+
+	if DBInstance.Driver == nil {
+		panic(errors.New("Error on initialize Database Driver"))
+	}
+
 	DBInstance.Driver.GetAgent().Map(config)
 	DBInstance.Driver.Init()
 	DBInstance.Config = config
