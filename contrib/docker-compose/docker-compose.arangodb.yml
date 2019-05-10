@@ -13,6 +13,11 @@ services:
       - MOTTAINAI_STORAGE__STORAGE_PATH=/srv/mottainai/web/storage
       - MOTTAINAI_STORAGE__ARTEFACT_PATH=/srv/mottainai/web/artefact
       - MOTTAINAI_STORAGE__NAMESPACE_PATH=/srv/mottainai/web/namespaces
+      - MOTTAINAI_DB__DB_ENDPOINTS=http://arangodb:8529
+      - MOTTAINAI_DB__DB_NAME=mottainai
+      - MOTTAINAI_DB__ENGINE=arangodb
+     #- MOTTAINAI_DB__DB_USER=
+     #- MOTTAINAI_DB__DB_PASSWORD=
     ports:
       - 0.0.0.0:4545:9090
     networks:
@@ -30,8 +35,6 @@ services:
     - mottainai-artifacts:/srv/mottainai/web/artefact
     - mottainai-namespaces:/srv/mottainai/web/namespaces
     - mottainai-storages:/srv/mottainai/web/storage
-    # de-comment for arangodb support
-    - ./arangodb.yml:/etc/mottainai/mottainai-server.yaml
   arangodb:
     image: arangodb/arangodb
     restart: unless-stopped

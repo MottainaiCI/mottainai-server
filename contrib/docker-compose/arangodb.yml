@@ -1,6 +1,0 @@
-db:
-  engine: "arangodb"
-  db_name: "mottainai"
-  db_endpoints:
-      - "http://arangodb:8529"
-
