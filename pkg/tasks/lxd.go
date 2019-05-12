@@ -145,7 +145,6 @@ func (l *LxdExecutor) Setup(docID string) error {
 func (l *LxdExecutor) Play(docId string) (int, error) {
 
 	var cachedImage bool = false
-	var foundCachedImage bool = false
 	var imageFingerprint, containerName string
 	var err error
 
@@ -173,7 +172,6 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 
 				if imageFingerprint, _, _, _ = l.FindImage(sharedName); imageFingerprint != "" {
 					l.Report("Cached image found: " + imageFingerprint + " " + sharedName)
-					foundCachedImage = true
 					if imageFingerprint, err = l.PullImage(imageFingerprint); err != nil {
 						return 1, err
 					}
@@ -241,22 +239,6 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		localWorkDir = strings.TrimRight(l.Context.BuildDir, "/") + "/"
 	}
 
-	if foundCachedImage {
-		l.Report("Try to clean artefacts and storage directories from container created by cached image...")
-		// Delete old directories of storage and artefacts
-		err = l.DeleteContainerDirRecursive(containerName, targetArtefactDir)
-		if err != nil {
-			l.Report("WARNING: Error on clean artefacts dir on cached container: " + err.Error())
-			// Ignore error. I'm not sure that is the right thing.
-		}
-
-		err = l.DeleteContainerDirRecursive(containerName, targetStorageDir)
-		if err != nil {
-			l.Report("WARNING: Error on clean storage dir on cached container: " + err.Error())
-			// Ignore error. I'm not sure that is the right thing.
-		}
-	}
-
 	// Create workdir on container
 	err = l.RecursivePushFile(containerName, localWorkDir, targetWorkDir)
 	if err != nil {
@@ -306,6 +288,21 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	}
 
 	if len(task_info.CacheImage) > 0 {
+
+		l.Report("Try to clean artefacts and storage directories from container before create cached image...")
+
+		// Delete old directories of storage and artefacts
+		err = l.DeleteContainerDirRecursive(containerName, targetArtefactDir)
+		if err != nil {
+			l.Report("WARNING: Error on clean artefacts dir on container: " + err.Error())
+			// Ignore error. I'm not sure that is the right thing.
+		}
+
+		err = l.DeleteContainerDirRecursive(containerName, targetStorageDir)
+		if err != nil {
+			l.Report("WARNING: Error on clean storage dir on container: " + err.Error())
+			// Ignore error. I'm not sure that is the right thing.
+		}
 
 		// Stop container for create image.
 		err = l.DoAction2Container(containerName, "stop")
