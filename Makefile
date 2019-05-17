@@ -90,6 +90,9 @@ compose-test-run: build
 		sed -i "s|# For static config:|- "$(ROOT_DIR)":/var/lib/mottainai|g" docker-compose.yml; \
 		docker-compose up
 
+kubernetes:
+	make/kubernetes
+
 install:
 	install -d $(DESTDIR)$(LOCKDIR)
 	install -d $(DESTDIR)$(BINDIR)

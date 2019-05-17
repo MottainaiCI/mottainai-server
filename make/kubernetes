@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+COMPOSE="${COMPOSE:-contrib/docker-compose}"
+KUBERNETES_DEPLOYMENT="${KUBERNETES_DEPLOYMENT:-contrib/kubernetes}"
+STORAGE_SIZE="${STORAGE_SIZE:-100Gi}"
+KOMPOSE_VERSION="${KOMPOSE_VERSION:-1.16.0}"
+
+cp -rf $COMPOSE/docker-compose.arangodb.yml $KUBERNETES_DEPLOYMENT/docker-compose.yml
+
+pushd $KUBERNETES_DEPLOYMENT >/dev/null
+
+  if hash kompose 2>/dev/null; then
+    kompose convert
+  else
+    curl -L https://github.com/kubernetes/kompose/releases/download/v${KOMPOSE_VERSION}/kompose-linux-amd64 -o kompose
+    chmod +x kompose
+    ./kompose convert
+    rm -rf kompose
+  fi
+
+  rm -rf docker-compose.yml
+
+  sed -i 's/storage: 100Mi/storage: '$STORAGE_SIZE'/g' mottainai-namespaces-persistentvolumeclaim.yaml
+  sed -i 's/storage: 100Mi/storage: '$STORAGE_SIZE'/g' mottainai-artifacts-persistentvolumeclaim.yaml
+  sed -i 's/storage: 100Mi/storage: '$STORAGE_SIZE'/g' mottainai-storages-persistentvolumeclaim.yaml
+popd >/dev/null
+
+echo
+echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo
+echo "Kubernetes deployment files available in $KUBERNETES_DEPLOYMENT"
+echo
+echo "To install in your kuberentes cluster run:"
+echo
+echo " kubectl apply -f $KUBERNETES_DEPLOYMENT "
