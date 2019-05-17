@@ -93,6 +93,9 @@ compose-test-run: build
 kubernetes:
 	make/kubernetes
 
+helm-gen:
+	make/helm-gen
+
 install:
 	install -d $(DESTDIR)$(LOCKDIR)
 	install -d $(DESTDIR)$(BINDIR)

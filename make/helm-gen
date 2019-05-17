@@ -1,0 +1,51 @@
+#!/bin/bash
+# Generate helm chart from mott kube files
+set -ex
+
+KUBERNETES_DEPLOYMENT="${KUBERNETES_DEPLOYMENT:-contrib/kubernetes}"
+HELM_CHART="${HELM_CHART:-contrib/helm}"
+CHART_VERSION="${CHART_VERSION:-0.0.1}"
+
+rm -rf $HELM_CHART || true
+
+make/kubernetes
+
+mkdir -p $HELM_CHART
+
+pushd $HELM_CHART >/dev/null
+
+  helm create mottainai
+
+  # Remove defaults
+  rm -rf mottainai/templates/deployment.yaml
+  rm -rf mottainai/templates/service.yaml
+  #rm -rf mottainai/templates/_helpers.tpl
+  rm -rf mottainai/templates/tests
+popd >/dev/null
+
+cp -rf $KUBERNETES_DEPLOYMENT/* $HELM_CHART/mottainai/templates
+
+pushd $HELM_CHART >/dev/null
+  
+  sed -i 's~replicaCount: 1~replicaCount: 1\'$'\nvolumeSize: "100Mi"~g' mottainai/values.yaml
+  sed -i 's~replicaCount: 1~replicaCount: 1\'$'\nartefactsVolumeSize: "100Gi"~g' mottainai/values.yaml
+  sed -i "s~version: 0.1.0~version: $CHART_VERSION~g" mottainai/Chart.yaml
+  sed -i 's~appVersion: "1.0"~appVersion: "'$APP_VERSION'"~g' mottainai/Chart.yaml
+  sed -i 's~description:.*~description: Mottainai Helm chart~g' mottainai/Chart.yaml
+
+  find mottainai/templates -name '*.yaml' -exec sed -i -e 's~mottainaici/server~{{ .Values.image.repository }}:{{ .Values.image.tag }}~g' {} \;
+  find mottainai/templates -name '*.yaml' -exec sed -i -e 's/mottainai/{{ .Chart.Name }}/g' {} \;
+  find mottainai/templates -name '*.yaml' -exec sed -i -e 's/100Mi/{{ .Values.volumeSize }}/g' {} \;
+  find mottainai/templates -name '*.yaml' -exec sed -i -e 's/100Gi/{{ .Values.artefactsVolumeSize }}/g' {} \;
+  find mottainai/templates -name '*.yaml' -exec sed -i -e 's/resources: {}/resources: {}\'$'\n      imagePullPolicy: {{ .Values.image.pullPolicy }}/g' {} \;
+
+  sed -i 's/replicas: 1/replicas: {{ .Values.replicaCount }}/g' mottainai/templates/mottainai-deployment.yaml
+  sed -i 's/spec:/spec:\'$'\n  type: {{ .Values.service.type }}/g' mottainai/templates/mottainai-service.yaml
+  sed -i 's/4545/{{ .Values.service.port }}/g' mottainai/templates/mottainai-service.yaml
+  sed -i 's/6379/{{ .Values.service.redisPort }}/g' mottainai/templates/redis-service.yaml
+
+  sed -i 's~nginx~mottainaici/server~g' mottainai/values.yaml
+  sed -i 's~stable~latest~g' mottainai/values.yaml
+  sed -i 's/port: 80/port: 80\'$'\n  redisPort: 6379/g' mottainai/values.yaml
+
+popd >/dev/null
