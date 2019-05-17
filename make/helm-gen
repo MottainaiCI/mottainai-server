@@ -5,6 +5,7 @@ set -ex
 KUBERNETES_DEPLOYMENT="${KUBERNETES_DEPLOYMENT:-contrib/kubernetes}"
 HELM_CHART="${HELM_CHART:-contrib/helm}"
 CHART_VERSION="${CHART_VERSION:-0.0.1}"
+APP_VERSION="${APP_VERSION:-0.0.1}"
 
 rm -rf $HELM_CHART || true
 

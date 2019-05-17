@@ -6,6 +6,8 @@ KUBERNETES_DEPLOYMENT="${KUBERNETES_DEPLOYMENT:-contrib/kubernetes}"
 STORAGE_SIZE="${STORAGE_SIZE:-100Gi}"
 KOMPOSE_VERSION="${KOMPOSE_VERSION:-1.16.0}"
 
+mkdir -p $KUBERNETES_DEPLOYMENT || true
+
 cp -rf $COMPOSE/docker-compose.arangodb.yml $KUBERNETES_DEPLOYMENT/docker-compose.yml
 
 pushd $KUBERNETES_DEPLOYMENT >/dev/null
