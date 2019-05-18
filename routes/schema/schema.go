@@ -126,12 +126,15 @@ func (g *APIRouteGenerator) GetSettingRoute(s string) Route {
 }
 
 type Route interface {
-	InterpolatePath(map[string]string) string
+	InterpolatePath(map[string]interface{}) string
 	NewRequest(string, map[string]string, io.Reader) (*http.Request, error)
+	NewAPIRequest(string, map[string]interface{}, io.Reader) (*http.Request, error)
+
 	ToMacaron(*macaron.Macaron, ...macaron.Handler)
 	GetPath() string
 	GetType() string
 	RequireFormEncode() bool
+	RemoveInterpolations(map[string]interface{}) map[string]interface{}
 }
 type APIRoute struct {
 	Path string
@@ -146,15 +149,30 @@ func (r *APIRoute) GetType() string {
 	return r.Type
 }
 
-func (r *APIRoute) InterpolatePath(opts map[string]string) string {
+func (r *APIRoute) InterpolatePath(opts map[string]interface{}) string {
 	res := r.Path
 	for k, v := range opts {
-		res = strings.Replace(res, k, v, -1)
+		relaxedK := strings.TrimPrefix(k, ":")
+		res = strings.Replace(res, ":"+relaxedK, v.(string), -1)
 	}
 	return res
 }
 
-func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, body io.Reader) (*http.Request, error) {
+func (r *APIRoute) RemoveInterpolations(opts map[string]interface{}) map[string]interface{} {
+
+	res := make(map[string]interface{})
+	for k, v := range opts {
+		relaxedK := strings.TrimPrefix(k, ":")
+
+		if !strings.Contains(r.Path, ":"+relaxedK) {
+			res[k] = v
+		}
+
+	}
+	return res
+}
+
+func (r *APIRoute) NewAPIRequest(baseURL string, interpolate map[string]interface{}, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(strings.ToUpper(r.GetType()), baseURL+r.InterpolatePath(interpolate), body)
 	if err != nil {
 		return req, err
@@ -172,6 +190,15 @@ func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, bod
 	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	// }
 	return req, nil
+}
+
+// DUP for now, it will be removed once we remove all the calls with Interpolations
+func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, body io.Reader) (*http.Request, error) {
+	m := make(map[string]interface{})
+	for k, v := range interpolate {
+		m[k] = interface{}(v)
+	}
+	return r.NewAPIRequest(baseURL, m, body)
 }
 
 func (r *APIRoute) RequireFormEncode() bool {

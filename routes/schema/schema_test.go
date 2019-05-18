@@ -66,9 +66,18 @@ var _ = Describe("RouteGenerator", func() {
 		})
 
 		It("successfully interpolates parameters", func() {
-			Expect(Schema.GetTaskRoute("test2").InterpolatePath(map[string]string{":baz": "test"})).To(Equal("/foo/bar/test"))
-			Expect(Schema.GetTaskRoute("test4").InterpolatePath(map[string]string{":baz": "test"})).To(Equal("/foo/bar/test/test.log"))
+			Expect(Schema.GetTaskRoute("test2").InterpolatePath(map[string]interface{}{":baz": "test"})).To(Equal("/foo/bar/test"))
+			Expect(Schema.GetTaskRoute("test4").InterpolatePath(map[string]interface{}{":baz": "test"})).To(Equal("/foo/bar/test/test.log"))
 
+		})
+		It("successfully interpolates parameters", func() {
+			Expect(Schema.GetTaskRoute("test2").InterpolatePath(map[string]interface{}{"baz": "test"})).To(Equal("/foo/bar/test"))
+			Expect(Schema.GetTaskRoute("test4").InterpolatePath(map[string]interface{}{"baz": "test"})).To(Equal("/foo/bar/test/test.log"))
+
+		})
+		It("successfully removes interpolation", func() {
+			Expect(Schema.GetTaskRoute("test2").RemoveInterpolations(map[string]interface{}{"baz": "test", "foo": "bar"})).To(Equal(map[string]interface{}{"foo": "bar"}))
+			Expect(Schema.GetTaskRoute("test4").RemoveInterpolations(map[string]interface{}{"baz": "test", "foo": "bar"})).To(Equal(map[string]interface{}{"foo": "bar"}))
 		})
 
 		It("successfully generates interpolated http requests", func() {
