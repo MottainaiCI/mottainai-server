@@ -48,6 +48,7 @@ var _ = Describe("Request", func() {
 			Expect(req.URL.Path).To(Equal("/foo/bar2/test"))
 			Expect(req.Host).To(Equal("example.com"))
 			Expect(r.Options).To(Equal(map[string]interface{}{"barbarbar": "ok"}))
+			Expect(req.PostFormValue("barbarbar")).To(Equal("ok"))
 		})
 	})
 

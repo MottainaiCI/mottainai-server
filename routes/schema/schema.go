@@ -189,6 +189,7 @@ func (r *APIRoute) NewAPIRequest(baseURL string, interpolate map[string]interfac
 	// case "PATCH":
 	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	// }
+
 	return req, nil
 }
 
