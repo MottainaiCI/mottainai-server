@@ -21,12 +21,13 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) UserCreate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetUserRoute("create"),
 		Options: data,
 	}
@@ -36,9 +37,9 @@ func (f *Fetcher) UserCreate(data map[string]interface{}) (event.APIResponse, er
 
 func (f *Fetcher) UserRemove(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetUserRoute("delete"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -47,13 +48,11 @@ func (f *Fetcher) UserRemove(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) UserUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
+	data[":id"] = id
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetUserRoute("edit"),
 		Options: data,
-		Interpolations: map[string]string{
-			":id": id,
-		},
 	}
 
 	return f.HandleAPIResponse(req)
@@ -61,9 +60,9 @@ func (f *Fetcher) UserUpdate(id string, data map[string]interface{}) (event.APIR
 
 func (f *Fetcher) UserSet(id, t string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetUserRoute("set_" + t),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -73,9 +72,9 @@ func (f *Fetcher) UserSet(id, t string) (event.APIResponse, error) {
 
 func (f *Fetcher) UserUnset(id, t string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetUserRoute("unset_" + t),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}

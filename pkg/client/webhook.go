@@ -21,30 +21,26 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) WebHookTaskUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
-
-	req := Request{
+	data[":id"] = id
+	req := schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("update_task"),
 		Options: data,
-		Interpolations: map[string]string{
-			":id": id,
-		},
 	}
 
 	return f.HandleAPIResponse(req)
 }
 
 func (f *Fetcher) WebHookPipelineUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
+	data[":id"] = id
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("update_pipeline"),
 		Options: data,
-		Interpolations: map[string]string{
-			":id": id,
-		},
 	}
 
 	return f.HandleAPIResponse(req)
@@ -52,9 +48,9 @@ func (f *Fetcher) WebHookPipelineUpdate(id string, data map[string]interface{}) 
 
 func (f *Fetcher) WebHookDelete(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -64,9 +60,9 @@ func (f *Fetcher) WebHookDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookDeleteTask(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete_task"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -76,9 +72,9 @@ func (f *Fetcher) WebHookDeleteTask(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookDeletePipeline(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete_pipeline"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -88,7 +84,7 @@ func (f *Fetcher) WebHookDeletePipeline(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookEdit(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("set_field"),
 		Options: data,
 	}
@@ -98,9 +94,9 @@ func (f *Fetcher) WebHookEdit(data map[string]interface{}) (event.APIResponse, e
 
 func (f *Fetcher) WebHookCreate(t string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetWebHookRoute("create"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":type": t,
 		},
 	}

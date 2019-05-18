@@ -21,14 +21,15 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) TokenDelete(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetTokenRoute("delete"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -37,7 +38,7 @@ func (f *Fetcher) TokenDelete(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) TokenCreate() (event.APIResponse, error) {
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetTokenRoute("create"),
 	}
 

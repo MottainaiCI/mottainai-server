@@ -33,6 +33,7 @@ import (
 	"strconv"
 	"strings"
 
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -43,10 +44,10 @@ import (
 func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 	var fileList []string
 
-	req := Request{
-		Route:          v1.Schema.GetNamespaceRoute("show_artefacts"),
-		Interpolations: map[string]string{":name": namespace},
-		Target:         &fileList,
+	req := schema.Request{
+		Route:   v1.Schema.GetNamespaceRoute("show_artefacts"),
+		Options: map[string]interface{}{":name": namespace},
+		Target:  &fileList,
 	}
 
 	err := d.Handle(req)
@@ -60,10 +61,10 @@ func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 	var fileList []string
 
-	req := Request{
-		Route:          v1.Schema.GetStorageRoute("show_artefacts"),
-		Interpolations: map[string]string{":id": storage},
-		Target:         &fileList,
+	req := schema.Request{
+		Route:   v1.Schema.GetStorageRoute("show_artefacts"),
+		Options: map[string]interface{}{":id": storage},
+		Target:  &fileList,
 	}
 
 	err := d.Handle(req)
@@ -77,10 +78,10 @@ func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	var fileList []string
 
-	req := Request{
-		Route:          v1.Schema.GetTaskRoute("artefact_list"),
-		Interpolations: map[string]string{":id": task},
-		Target:         &fileList,
+	req := schema.Request{
+		Route:   v1.Schema.GetTaskRoute("artefact_list"),
+		Options: map[string]interface{}{":id": task},
+		Target:  &fileList,
 	}
 
 	err := d.Handle(req)
@@ -139,10 +140,10 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 		}
 		var storage_data storageci.Storage
 
-		req := Request{
-			Route:          v1.Schema.GetStorageRoute("show"),
-			Interpolations: map[string]string{":id": id},
-			Target:         &storage_data,
+		req := schema.Request{
+			Route:   v1.Schema.GetStorageRoute("show"),
+			Options: map[string]interface{}{":id": id},
+			Target:  &storage_data,
 		}
 
 		err := d.Handle(req)
@@ -259,7 +260,7 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetStorageRoute("upload"),
 		Options: map[string]interface{}{
 			"name":      file,
@@ -289,7 +290,7 @@ func (f *Fetcher) UploadArtefactRetry(fullpath, relativepath string, trials int)
 func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetTaskRoute("artefact_upload"),
 		Options: map[string]interface{}{
 			"name":   file,
@@ -308,7 +309,7 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("upload"),
 		Options: map[string]interface{}{
 			"name":      file,

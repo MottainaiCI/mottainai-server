@@ -21,14 +21,15 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) StorageDelete(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetStorageRoute("delete"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id": id,
 		},
 	}
@@ -38,9 +39,9 @@ func (f *Fetcher) StorageDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) StorageRemovePath(id, path string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetStorageRoute("remove_path"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id":   id,
 			":path": path,
 		},
@@ -51,9 +52,9 @@ func (f *Fetcher) StorageRemovePath(id, path string) (event.APIResponse, error) 
 
 func (f *Fetcher) StorageCreate(t string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetStorageRoute("create"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":name": t,
 		},
 	}

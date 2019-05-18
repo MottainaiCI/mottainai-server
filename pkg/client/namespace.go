@@ -21,14 +21,15 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) NamespaceDelete(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("delete"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":name": id,
 		},
 	}
@@ -38,9 +39,9 @@ func (f *Fetcher) NamespaceDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("remove"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":id":   id,
 			":path": path,
 		},
@@ -50,9 +51,9 @@ func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error
 }
 func (f *Fetcher) NamespaceClone(from, to string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("append"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":from": from,
 			":name": to,
 		},
@@ -62,9 +63,9 @@ func (f *Fetcher) NamespaceClone(from, to string) (event.APIResponse, error) {
 }
 func (f *Fetcher) NamespaceAppend(id, name string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("append"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":taskid": id,
 			":name":   name,
 		},
@@ -75,9 +76,9 @@ func (f *Fetcher) NamespaceAppend(id, name string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceTag(id, tag string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("tag"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":taskid": id,
 			":name":   tag,
 		},
@@ -88,9 +89,9 @@ func (f *Fetcher) NamespaceTag(id, tag string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceCreate(t string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("create"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":name": t,
 		},
 	}

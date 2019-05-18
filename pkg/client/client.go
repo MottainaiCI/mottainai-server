@@ -26,7 +26,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"io"
@@ -34,18 +33,14 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"os"
-	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mxk/go-flowrate/flowrate"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
 	"github.com/mudler/anagent"
@@ -86,10 +81,10 @@ type HttpClient interface {
 	SetAgent(a *anagent.Anagent)
 	SetActiveReport(b bool)
 	SetToken(t string)
-	HandleRaw(req Request, fn func(io.ReadCloser) error) error
-	Handle(req Request) error
-	HandleAPIResponse(req Request) (event.APIResponse, error)
-	HandleUploadLargeFile(request Request, paramName string, filePath string, chunkSize int) error
+	HandleRaw(req schema.Request, fn func(io.ReadCloser) error) error
+	Handle(req schema.Request) error
+	HandleAPIResponse(req schema.Request) (event.APIResponse, error)
+	HandleUploadLargeFile(request schema.Request, paramName string, filePath string, chunkSize int) error
 	TaskLog(id string) ([]byte, error)
 	TaskDelete(id string) (event.APIResponse, error)
 	SetTaskStatus(status string) (event.APIResponse, error)
@@ -256,86 +251,13 @@ func (f *Fetcher) setAuthHeader(r *http.Request) *http.Request {
 	return r
 }
 
-type Request struct {
-	Route          schema.Route
-	Interpolations map[string]string
-	Options        map[string]interface{}
-	Target         interface{}
-	Body           io.Reader
-}
-
-func (f *Fetcher) HandleRaw(req Request, fn func(io.ReadCloser) error) error {
-	r := req.Route
-	interpolations := req.Interpolations
-	option := req.Options
+func (f *Fetcher) HandleRaw(req schema.Request, fn func(io.ReadCloser) error) error {
 
 	hclient := f.newHttpClient()
 	baseurl := f.BaseURL + f.Config.GetWeb().BuildURI("")
-	request, err := r.NewRequest(baseurl, interpolations, req.Body)
+	request, err := req.NewAPIHTTPRequest(baseurl)
 	if err != nil {
 		return err
-	}
-
-	var InterfaceList []interface{}
-	var Strings []string
-	var String string
-
-	if r.RequireFormEncode() {
-		form := url.Values{}
-
-		for k, v := range option {
-			if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
-				for _, el := range v.([]interface{}) {
-					form.Add(k, el.(string))
-				}
-			} else if reflect.TypeOf(v) == reflect.TypeOf(Strings) {
-				for _, el := range v.([]string) {
-					form.Add(k, el)
-				}
-
-			} else if reflect.TypeOf(v) == reflect.TypeOf(float64(0)) {
-				form.Add(k, utils.FloatToString(v.(float64)))
-
-			} else if reflect.TypeOf(v) == reflect.TypeOf(String) {
-				form.Add(k, v.(string))
-			} else {
-				var b bytes.Buffer
-				e := gob.NewEncoder(&b)
-				if err := e.Encode(v); err != nil {
-					return err
-				}
-				form.Add(k, b.String())
-			}
-		}
-
-		request, err = r.NewRequest(baseurl, interpolations, strings.NewReader(form.Encode()))
-	} else {
-		q := request.URL.Query()
-		for k, v := range option {
-			if reflect.TypeOf(v) == reflect.TypeOf(InterfaceList) {
-				for _, el := range v.([]interface{}) {
-					q.Add(k, el.(string))
-				}
-			} else if reflect.TypeOf(v) == reflect.TypeOf(Strings) {
-				for _, el := range v.([]string) {
-					q.Add(k, el)
-				}
-
-			} else if reflect.TypeOf(v) == reflect.TypeOf(float64(0)) {
-				q.Add(k, utils.FloatToString(v.(float64)))
-
-			} else if reflect.TypeOf(v) == reflect.TypeOf(String) {
-				q.Add(k, v.(string))
-			} else {
-				var b bytes.Buffer
-				e := gob.NewEncoder(&b)
-				if err := e.Encode(v); err != nil {
-					return err
-				}
-				q.Add(k, b.String())
-			}
-		}
-		request.URL.RawQuery = q.Encode()
 	}
 
 	f.setAuthHeader(request)
@@ -349,13 +271,13 @@ func (f *Fetcher) HandleRaw(req Request, fn func(io.ReadCloser) error) error {
 	return fn(response.Body)
 }
 
-func (f *Fetcher) Handle(req Request) error {
+func (f *Fetcher) Handle(req schema.Request) error {
 	return f.HandleRaw(req, func(b io.ReadCloser) error {
 		return json.NewDecoder(b).Decode(req.Target)
 	})
 }
 
-func (f *Fetcher) HandleAPIResponse(req Request) (event.APIResponse, error) {
+func (f *Fetcher) HandleAPIResponse(req schema.Request) (event.APIResponse, error) {
 	resp := &event.APIResponse{}
 	req.Target = resp
 	err := f.Handle(req)
@@ -366,12 +288,9 @@ func (f *Fetcher) HandleAPIResponse(req Request) (event.APIResponse, error) {
 	return *resp, nil
 }
 
-func (f *Fetcher) HandleUploadLargeFile(request Request, paramName string, filePath string, chunkSize int) error {
+func (f *Fetcher) HandleUploadLargeFile(request schema.Request, paramName string, filePath string, chunkSize int) error {
 
-	r := request.Route
-	interpolations := request.Interpolations
 	option := request.Options
-
 	baseurl := f.BaseURL + f.Config.GetWeb().BuildURI("")
 
 	//open file and retrieve info
@@ -440,8 +359,9 @@ func (f *Fetcher) HandleUploadLargeFile(request Request, paramName string, fileP
 		//write boundary
 		_, _ = wr.Write(lastBoundary)
 	}()
+	request.Body = rd
 
-	req, err := r.NewRequest(baseurl, interpolations, rd)
+	req, err := request.NewAPIHTTPRequest(baseurl)
 	if err != nil {
 		return err
 	}
@@ -450,7 +370,8 @@ func (f *Fetcher) HandleUploadLargeFile(request Request, paramName string, fileP
 	if f.Config.GetAgent().UploadRateLimit != 0 {
 		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.GetAgent().UploadRateLimit, 10))
 		reader := flowrate.NewReader(io.Reader(rd), 1024*f.Config.GetAgent().UploadRateLimit)
-		req, err = r.NewRequest(baseurl, interpolations, reader)
+		request.Body = reader
+		req, err = request.NewAPIHTTPRequest(baseurl)
 		if err != nil {
 			return err
 		}

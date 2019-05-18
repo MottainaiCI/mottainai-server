@@ -21,12 +21,13 @@ package client
 
 import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 func (f *Fetcher) SettingCreate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetSettingRoute("create"),
 		Options: data,
 	}
@@ -36,9 +37,9 @@ func (f *Fetcher) SettingCreate(data map[string]interface{}) (event.APIResponse,
 
 func (f *Fetcher) SettingRemove(id string) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route: v1.Schema.GetSettingRoute("remove"),
-		Interpolations: map[string]string{
+		Options: map[string]interface{}{
 			":key": id,
 		},
 	}
@@ -48,7 +49,7 @@ func (f *Fetcher) SettingRemove(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) SettingUpdate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := Request{
+	req := schema.Request{
 		Route:   v1.Schema.GetSettingRoute("update"),
 		Options: data,
 	}
