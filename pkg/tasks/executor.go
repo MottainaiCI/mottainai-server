@@ -34,12 +34,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/client"
-	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 const ABORT_EXECUTION_ERROR = "Aborting execution"
@@ -255,11 +256,30 @@ func (d *TaskExecutor) Setup(docID string) error {
 		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
 			return err
 		}
-		// TODO: This should go in a go routine and wait for ending
-		r, err := git.PlainClone(d.Context.SourceDir, false, &git.CloneOptions{
+		opts := &git.CloneOptions{
 			URL:      task_info.Source,
 			Progress: d,
-		})
+		}
+
+		if task_info.PrivKey != "" {
+			if strings.HasPrefix(task_info.PrivKey, "auth:") {
+				a := strings.TrimPrefix(task_info.PrivKey, "auth:")
+				data := strings.Split(a, ":")
+				if len(data) != 2 {
+					return errors.New("Invalid credentials")
+				}
+				opts.Auth = &http.BasicAuth{Username: data[0], Password: data[1]}
+
+			} else {
+				sshAuth, err := ssh.DefaultAuthBuilder(task_info.PrivKey)
+				if err != nil {
+					return err
+				}
+				opts.Auth = sshAuth
+			}
+		}
+		// TODO: This should go in a go routine and wait for ending
+		r, err := git.PlainClone(d.Context.SourceDir, false, opts)
 		if err != nil {
 			return err
 		}

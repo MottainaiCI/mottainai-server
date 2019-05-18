@@ -31,6 +31,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	mhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
@@ -46,8 +47,10 @@ import (
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	ggithub "github.com/google/go-github/github"
 	webhooks "gopkg.in/go-playground/webhooks.v3"
-
 	"gopkg.in/go-playground/webhooks.v3/github"
+	git "gopkg.in/src-d/go-git.v4"
+	gith "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 // HandlePullRequest handles GitHub pull_request events
@@ -198,7 +201,30 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 
 	ctx.Dir = gitdir
 
-	r, err := utils.GitClone(clone_url, gitdir)
+	opts := &git.CloneOptions{
+		URL: clone_url,
+	}
+
+	if w.Auth != "" {
+		if strings.HasPrefix(w.Auth, "auth:") {
+			a := strings.TrimPrefix(w.Auth, "auth:")
+			data := strings.Split(a, ":")
+			if len(data) != 2 {
+				return ctx, errors.New("Invalid credentials")
+			}
+			opts.Auth = &gith.BasicAuth{Username: data[0], Password: data[1]}
+
+		} else {
+			sshAuth, err := ssh.DefaultAuthBuilder(w.Auth)
+			if err != nil {
+				return nil, err
+			}
+			opts.Auth = sshAuth
+		}
+	}
+
+	//os.RemoveAll(dir)
+	r, err := git.PlainClone(gitdir, false, opts)
 	if err != nil {
 		os.RemoveAll(gitdir)
 		return ctx, errors.New("Failed cloning repo: " + clone_url + " " + gitdir + " " + err.Error())

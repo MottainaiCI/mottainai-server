@@ -52,6 +52,8 @@ type WebHook struct {
 	Task     string `json:"default_task" form:"default_task"`
 	Pipeline string `json:"default_pipeline" form:"default_pipeline"`
 	Filter   string `json:"filter" form:"filter"`
+
+	Auth string `json:"auth" form:"auth"`
 }
 
 func (t *WebHook) HasTask() bool {
