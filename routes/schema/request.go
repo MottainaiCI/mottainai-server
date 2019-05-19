@@ -50,7 +50,7 @@ func (req *Request) NewAPIHTTPRequest(endpoint string) (*http.Request, error) {
 	var Strings []string
 	var String string
 
-	if req.Route.RequireFormEncode() {
+	if req.Route.RequireFormEncode() && req.Body == nil {
 		form := url.Values{}
 
 		for k, v := range req.Options {
