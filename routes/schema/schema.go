@@ -163,8 +163,12 @@ func (r *APIRoute) GetType() string {
 func (r *APIRoute) InterpolatePath(opts map[string]interface{}) string {
 	res := r.Path
 	for k, v := range opts {
+		rv, ok := v.(string)
+		if !ok {
+			continue
+		}
 		relaxedK := strings.TrimPrefix(k, ":")
-		res = strings.Replace(res, ":"+relaxedK, v.(string), -1)
+		res = strings.Replace(res, ":"+relaxedK, rv, -1)
 	}
 	return res
 }
