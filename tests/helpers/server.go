@@ -43,6 +43,7 @@ var Tokens []*token.Token
 var Nodes []*node.Node
 var Tasks []string
 var FixtureTaskData map[string]interface{}
+var UserID string
 
 func InitConfig(path string) {
 	//os.RemoveAll(path)
@@ -88,6 +89,7 @@ func SetFixture(db *database.Database) error {
 	if err != nil {
 		return errors.Wrap(err, "Error inserting the fixture user")
 	}
+	UserID = id
 
 	tok, err := token.GenerateUserToken(id)
 	if err != nil {

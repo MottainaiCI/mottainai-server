@@ -27,7 +27,10 @@ import (
 	"strings"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	. "github.com/MottainaiCI/mottainai-server/pkg/client"
 	helpers "github.com/MottainaiCI/mottainai-server/tests/helpers"
@@ -396,6 +399,35 @@ var _ = Describe("Client", func() {
 				ExpectSuccessfulResponse(ev, err)
 
 				ev, err = fetcher.TaskDelete(newtask)
+				ExpectSuccessfulResponse(ev, err)
+			})
+		})
+
+		Context("Secrets", func() {
+			It("Can create and update them", func() {
+				fetcher, err := NewFakeClient()
+				Expect(err).ToNot(HaveOccurred())
+				fetcher.Doc(helpers.Tasks[0])
+
+				ev, err := fetcher.SecretCreate("test")
+				ExpectSuccessfulResponse(ev, err)
+				id := ev.ID
+
+				ev, err = fetcher.SecretEdit(map[string]interface{}{"id": id, "secret": "ok"})
+				ExpectSuccessfulResponse(ev, err)
+
+				var s secret.Secret
+				req := schema.Request{
+					Route:   v1.Schema.GetSecretRoute("show"),
+					Target:  &s,
+					Options: map[string]interface{}{"id": id},
+				}
+				err = fetcher.Handle(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(s.Secret).To(Equal("ok"))
+				Expect(s.OwnerId).To(Equal(helpers.UserID))
+
+				ev, err = fetcher.WebHookDelete(id)
 				ExpectSuccessfulResponse(ev, err)
 			})
 		})
