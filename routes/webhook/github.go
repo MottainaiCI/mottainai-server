@@ -37,12 +37,14 @@ import (
 	mhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
 
 	logrus "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	mottainai "github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
+	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	ggithub "github.com/google/go-github/github"
@@ -50,7 +52,6 @@ import (
 	"gopkg.in/go-playground/webhooks.v3/github"
 	git "gopkg.in/src-d/go-git.v4"
 	gith "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 // HandlePullRequest handles GitHub pull_request events
@@ -227,10 +228,12 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 			opts.Auth = &gith.BasicAuth{Username: data[0], Password: data[1]}
 
 		} else {
-			sshAuth, err := ssh.DefaultAuthBuilder(auth)
+			signer, err := ssh.ParsePrivateKey([]byte(auth))
 			if err != nil {
 				return nil, err
 			}
+			sshAuth := &ssh2.PublicKeys{User: "git", Signer: signer}
+
 			opts.Auth = sshAuth
 		}
 	}

@@ -300,7 +300,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 				opts.Auth = &http.BasicAuth{Username: data[0], Password: data[1]}
 
 			} else {
-				signer, err := ssh.ParsePrivateKey([]byte(task_info.PrivKey))
+				signer, err := ssh.ParsePrivateKey([]byte(auth))
 				if err != nil {
 					return err
 				}
