@@ -52,7 +52,7 @@ func (f *Fetcher) SecretCreate(t string) (event.APIResponse, error) {
 	req := schema.Request{
 		Route: v1.Schema.GetSecretRoute("create"),
 		Options: map[string]interface{}{
-			":type": t,
+			":name": t,
 		},
 	}
 
