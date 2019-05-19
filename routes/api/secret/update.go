@@ -33,7 +33,7 @@ import (
 type SecretUpdate struct {
 	Id    string `form:"id" binding:"Required"`
 	Value string `form:"value"`
-	Key   string ` form:"key"`
+	Key   string `form:"key"`
 }
 
 func UpdateSecret(upd SecretUpdate, ctx *context.Context, db *database.Database) error {

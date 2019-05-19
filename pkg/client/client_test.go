@@ -413,7 +413,7 @@ var _ = Describe("Client", func() {
 				ExpectSuccessfulResponse(ev, err)
 				id := ev.ID
 
-				ev, err = fetcher.SecretEdit(map[string]interface{}{"id": id, "secret": "ok"})
+				ev, err = fetcher.SecretEdit(map[string]interface{}{"id": id, "key": "secret", "value": "ok"})
 				ExpectSuccessfulResponse(ev, err)
 
 				var s secret.Secret
@@ -424,8 +424,9 @@ var _ = Describe("Client", func() {
 				}
 				err = fetcher.Handle(req)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(s.Secret).To(Equal("ok"))
 				Expect(s.OwnerId).To(Equal(helpers.UserID))
+				Expect(s.ID).To(Equal(id))
+				Expect(s.Secret).To(Equal("ok"))
 
 				req = schema.Request{
 					Route:   v1.Schema.GetSecretRoute("show_by_name"),

@@ -22,8 +22,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package schema_test
 
 import (
-	"bytes"
-
 	. "github.com/MottainaiCI/mottainai-server/routes/schema"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,8 +38,7 @@ var _ = Describe("Request", func() {
 		}
 
 		It("successfully generates interpolated http requests", func() {
-			body := new(bytes.Buffer)
-			r := &Request{Route: Schema.GetTaskRoute("test"), Options: map[string]interface{}{"baz": "test", "barbarbar": "ok"}, Body: body}
+			r := &Request{Route: Schema.GetTaskRoute("test"), Options: map[string]interface{}{"baz": "test", "barbarbar": "ok"}}
 			req, err := r.NewAPIHTTPRequest("http://example.com")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(req.Method).To(Equal("POST"))
