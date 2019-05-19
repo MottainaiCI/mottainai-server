@@ -132,6 +132,10 @@ type HttpClient interface {
 	TaskFileList(task string) ([]string, error)
 	DownloadArtefactsGeneric(id, target, artefact_type string) error
 	Download(url, where string) (bool, error)
+
+	SecretDelete(id string) (event.APIResponse, error)
+	SecretEdit(data map[string]interface{}) (event.APIResponse, error)
+	SecretCreate(t string) (event.APIResponse, error)
 }
 
 type Fetcher struct {
