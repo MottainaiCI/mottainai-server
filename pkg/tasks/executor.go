@@ -35,8 +35,12 @@ import (
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
+	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+	"github.com/MottainaiCI/mottainai-server/routes/schema"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+
 	"golang.org/x/crypto/ssh"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -263,8 +267,32 @@ func (d *TaskExecutor) Setup(docID string) error {
 		}
 
 		if task_info.PrivKey != "" {
-			if strings.HasPrefix(task_info.PrivKey, "auth:") {
-				a := strings.TrimPrefix(task_info.PrivKey, "auth:")
+
+			auth := task_info.PrivKey
+			var s secret.Secret
+			req := schema.Request{
+				Route:   v1.Schema.GetSecretRoute("show"),
+				Target:  &s,
+				Options: map[string]interface{}{"id": task_info.PrivKey},
+			}
+			err := fetcher.Handle(req)
+
+			if err == nil && s.Secret != "" {
+				auth = s.Secret
+			} else {
+				req := schema.Request{
+					Route:   v1.Schema.GetSecretRoute("show_by_name"),
+					Target:  &s,
+					Options: map[string]interface{}{"name": task_info.PrivKey},
+				}
+				err := fetcher.Handle(req)
+				if err == nil && s.Secret != "" {
+					auth = s.Secret
+				}
+			}
+
+			if strings.HasPrefix(auth, "auth:") {
+				a := strings.TrimPrefix(auth, "auth:")
 				data := strings.Split(a, ":")
 				if len(data) != 2 {
 					return errors.New("Invalid credentials")
@@ -274,7 +302,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 			} else {
 				signer, err := ssh.ParsePrivateKey([]byte(task_info.PrivKey))
 				if err != nil {
-					panic(err)
+					return err
 				}
 				sshAuth := &ssh2.PublicKeys{User: "git", Signer: signer}
 				opts.Auth = sshAuth

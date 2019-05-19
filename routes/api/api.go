@@ -25,6 +25,7 @@ package api
 import (
 	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
+	apisecret "github.com/MottainaiCI/mottainai-server/routes/api/secret"
 	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
 	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
 	storagesapi "github.com/MottainaiCI/mottainai-server/routes/api/storages"
@@ -46,4 +47,5 @@ func Setup(m *macaron.Macaron) {
 	stats.Setup(m)
 	settingsroute.Setup(m)
 	apiwebhook.Setup(m)
+	apisecret.Setup(m)
 }

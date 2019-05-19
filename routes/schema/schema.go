@@ -30,6 +30,7 @@ type RouteGenerator interface {
 	GetTaskRoute(s string) Route
 	GetNodeRoute(s string) Route
 	GetWebHookRoute(s string) Route
+	GetSecretRoute(s string) Route
 	GetNamespaceRoute(s string) Route
 	GetUserRoute(s string) Route
 	GetTokenRoute(s string) Route
@@ -42,12 +43,22 @@ type APIRouteGenerator struct {
 	Task      map[string]Route
 	Node      map[string]Route
 	WebHook   map[string]Route
+	Secret    map[string]Route
 	Namespace map[string]Route
 	User      map[string]Route
 	Token     map[string]Route
 	Storage   map[string]Route
 	Stats     map[string]Route
 	Setting   map[string]Route
+}
+
+func (g *APIRouteGenerator) GetSecretRoute(s string) Route {
+	r, ok := g.Secret[s]
+	if ok {
+		return r
+	}
+
+	return nil
 }
 
 func (g *APIRouteGenerator) GetTaskRoute(s string) Route {

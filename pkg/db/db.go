@@ -30,6 +30,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
+	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/storage"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -209,6 +210,23 @@ type DatabaseDriver interface {
 	// TODO: Change it, expensive for now
 	CountWebHooks() int
 	AllWebHooks() []webhook.WebHook
+
+	// Secret
+	InsertSecret(t *secret.Secret) (string, error)
+	CreateSecret(t map[string]interface{}) (string, error)
+	DeleteSecret(docID string) error
+	UpdateSecret(docID string, t map[string]interface{}) error
+	GetSecretByUserID(id string) (secret.Secret, error)
+	GetSecretByName(id string) (secret.Secret, error)
+
+	GetSecretsByUserID(id string) ([]secret.Secret, error)
+	GetSecretsByName(id string) ([]secret.Secret, error)
+
+	GetSecret(docID string) (secret.Secret, error)
+	ListSecrets() []dbcommon.DocItem
+	// TODO: Change it, expensive for now
+	CountSecrets() int
+	AllSecrets() []secret.Secret
 
 	// TODO: See if it's correct expone this as method
 	GetAgent() *anagent.Anagent

@@ -20,28 +20,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package apiwebhook
+package apisecret
 
 import (
-	webhook "github.com/MottainaiCI/mottainai-server/pkg/webhook"
+	secret "github.com/MottainaiCI/mottainai-server/pkg/secret"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
-func GetWebHooks(ctx *context.Context, db *database.Database) ([]webhook.WebHook, []webhook.WebHook, error) {
-	var all []webhook.WebHook
-	var mine []webhook.WebHook
+func GetSecrets(ctx *context.Context, db *database.Database) ([]secret.Secret, []secret.Secret, error) {
+	var all []secret.Secret
+	var mine []secret.Secret
 
 	var err error
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			all = db.Driver.AllWebHooks()
+			all = db.Driver.AllSecrets()
 			return all, mine, nil
 		}
-		mine, err = db.Driver.GetWebHooksByUserID(ctx.User.ID)
+		mine, err = db.Driver.GetSecretsByUserID(ctx.User.ID)
 		if err != nil {
-			ctx.ServerError("Failed finding webhook", err)
+			ctx.ServerError("Failed finding secret", err)
 			return all, mine, err
 		}
 	}
@@ -51,44 +51,39 @@ func GetWebHooks(ctx *context.Context, db *database.Database) ([]webhook.WebHook
 func ShowSingle(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
-	w, err := db.Driver.GetWebHook(id)
+	w, err := db.Driver.GetSecret(id)
 	if err != nil {
 		ctx.NotFound()
 		return err
 	}
-
 	if w.OwnerId != ctx.User.ID && !ctx.User.IsAdmin() {
 		ctx.NoPermission()
 		return nil
 	}
-	s := &webhook.WebHookSingle{}
-	if w.HasTask() {
-		t, err := w.ReadTask()
-		if err != nil {
-			ctx.ServerError("Failed rendering webhook", err)
-			return err
-		}
-		s.Task = t
-	}
-	if w.HasPipeline() {
-		p, err := w.ReadPipeline()
-		if err != nil {
-			ctx.ServerError("Failed rendering webhook", err)
-			return err
-		}
-		s.Pipeline = p
-	}
+	ctx.JSON(200, w)
+	return nil
+}
 
-	s.WebHook = &w
+func ShowByName(ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":name")
 
-	ctx.JSON(200, s)
+	w, err := db.Driver.GetSecretByName(id)
+	if err != nil {
+		ctx.NotFound()
+		return err
+	}
+	if w.OwnerId != ctx.User.ID && !ctx.User.IsAdmin() {
+		ctx.NoPermission()
+		return nil
+	}
+	ctx.JSON(200, w)
 	return nil
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	all, mine, err := GetWebHooks(ctx, db)
+	all, mine, err := GetSecrets(ctx, db)
 	if err != nil {
-		ctx.ServerError("Failed finding webhook", err)
+		ctx.ServerError("Failed finding secret", err)
 		return
 	}
 

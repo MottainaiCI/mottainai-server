@@ -86,6 +86,14 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"delete_pipeline": &schema.APIRoute{Path: "/api/webhook/delete/pipeline/:id", Type: "post"},
 		"set_field":       &schema.APIRoute{Path: "/api/webhook/set", Type: "post"},
 	},
+	Secret: map[string]schema.Route{
+		"show_all":     &schema.APIRoute{Path: "/api/secret", Type: "get"},
+		"create":       &schema.APIRoute{Path: "/api/secret/create/:name", Type: "get"},
+		"show":         &schema.APIRoute{Path: "/api/secret/show/:id", Type: "get"},
+		"show_by_name": &schema.APIRoute{Path: "/api/secret/search/name/:name", Type: "get"},
+		"delete":       &schema.APIRoute{Path: "/api/secret/delete/:id", Type: "get"},
+		"set_field":    &schema.APIRoute{Path: "/api/secret/set", Type: "post"},
+	},
 	Node: map[string]schema.Route{
 		"show_all":   &schema.APIRoute{Path: "/api/nodes", Type: "get"},
 		"create":     &schema.APIRoute{Path: "/api/nodes/add", Type: "get"},

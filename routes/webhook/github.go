@@ -206,8 +206,20 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 	}
 
 	if w.Auth != "" {
-		if strings.HasPrefix(w.Auth, "auth:") {
-			a := strings.TrimPrefix(w.Auth, "auth:")
+		auth := w.Auth
+
+		secret, err := db.Driver.GetSecret(w.Auth)
+		if err == nil {
+			auth = secret.Secret
+		} else {
+			secret, err := db.Driver.GetSecretByName(w.Auth)
+			if err == nil {
+				auth = secret.Secret
+			}
+		}
+
+		if strings.HasPrefix(auth, "auth:") {
+			a := strings.TrimPrefix(auth, "auth:")
 			data := strings.Split(a, ":")
 			if len(data) != 2 {
 				return ctx, errors.New("Invalid credentials")
@@ -215,7 +227,7 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 			opts.Auth = &gith.BasicAuth{Username: data[0], Password: data[1]}
 
 		} else {
-			sshAuth, err := ssh.DefaultAuthBuilder(w.Auth)
+			sshAuth, err := ssh.DefaultAuthBuilder(auth)
 			if err != nil {
 				return nil, err
 			}
