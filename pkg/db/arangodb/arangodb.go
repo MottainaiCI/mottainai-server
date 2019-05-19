@@ -41,7 +41,7 @@ type Database struct {
 	CertPath, KeyPath        string
 }
 
-var Collections = []string{WebHookColl, TaskColl,
+var Collections = []string{WebHookColl, TaskColl, SecretColl,
 	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
 
 func New(db, u, p, cp, kp string, e []string) *Database {
@@ -88,6 +88,7 @@ func (d *Database) Init() {
 	d.IndexOrganization()
 	d.IndexSetting()
 	d.IndexPipeline()
+	d.IndexSecret()
 	d.IndexWebHook()
 }
 
