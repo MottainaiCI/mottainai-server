@@ -3,16 +3,16 @@
 <body class="bg-dark">
     <div class="sufee-login d-flex align-content-center flex-wrap">
         <div class="container">
-					<div class="login-content">
-							<div class="login-logo">
+          <div class="login-content">
+            <div class="login-logo">
                 <a href="{{BuildURI "/"}}">
-                  <img class="align-content" src="{{BuildURI "/images/logo.png"}}" alt="404">
-									</a>
-							</div>
-							<div class="login-form">
+                  <img class="align-content" src="{{BuildURI "/images/logo"}}" alt="404">
+                </a>
+            </div>
+            <div class="login-form">
                 <h1>Woa! something went wrong :/</h1>
-	{{if .ErrorMsg}}<h>An error has occurred : {{.ErrorMsg}}</p>{{end}}
-	{{if .ShowFooterVersion}}<p>Application Version: {{AppVer}}</p>{{end}}
+                {{if .ErrorMsg}}<h>An error has occurred : {{.ErrorMsg}}</p>{{end}}
+                  {{if .ShowFooterVersion}}<p>Application Version: {{AppVer}}</p>{{end}}
             </div>
             </div>
             </div>
