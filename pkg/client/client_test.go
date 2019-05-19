@@ -427,7 +427,17 @@ var _ = Describe("Client", func() {
 				Expect(s.Secret).To(Equal("ok"))
 				Expect(s.OwnerId).To(Equal(helpers.UserID))
 
-				ev, err = fetcher.WebHookDelete(id)
+				req = schema.Request{
+					Route:   v1.Schema.GetSecretRoute("show_by_name"),
+					Target:  &s,
+					Options: map[string]interface{}{"name": "test"},
+				}
+				err = fetcher.Handle(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(s.Secret).To(Equal("ok"))
+				Expect(s.OwnerId).To(Equal(helpers.UserID))
+
+				ev, err = fetcher.SecretDelete(id)
 				ExpectSuccessfulResponse(ev, err)
 			})
 		})
