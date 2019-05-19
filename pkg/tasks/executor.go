@@ -37,10 +37,11 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+	"golang.org/x/crypto/ssh"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
+	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 const ABORT_EXECUTION_ERROR = "Aborting execution"
@@ -271,10 +272,11 @@ func (d *TaskExecutor) Setup(docID string) error {
 				opts.Auth = &http.BasicAuth{Username: data[0], Password: data[1]}
 
 			} else {
-				sshAuth, err := ssh.DefaultAuthBuilder(task_info.PrivKey)
+				signer, err := ssh.ParsePrivateKey([]byte(task_info.PrivKey))
 				if err != nil {
-					return err
+					panic(err)
 				}
+				sshAuth := &ssh2.PublicKeys{User: "git", Signer: signer}
 				opts.Auth = sshAuth
 			}
 		}
