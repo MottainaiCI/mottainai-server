@@ -196,6 +196,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		cache_clean      string
 		queue            string
 		owner, node      string
+		privkey          string
 		environment      []string
 		binds            []string
 	)
@@ -242,7 +243,9 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["source"].(string); ok {
 		source = str
 	}
-
+	if str, ok := t["privkey"].(string); ok {
+		privkey = str
+	}
 	if str, ok := t["directory"].(string); ok {
 		directory = str
 	}
@@ -345,6 +348,7 @@ func (h *TaskHandler) NewTaskFromMap(t map[string]interface{}) Task {
 		ID:           id,
 		Queue:        queue,
 		Source:       source,
+		PrivKey:      privkey,
 		Script:       script,
 		Delayed:      delayed,
 		Directory:    directory,
