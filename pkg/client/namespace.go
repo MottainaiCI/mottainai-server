@@ -42,8 +42,8 @@ func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error
 	req := schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("remove"),
 		Options: map[string]interface{}{
-			":id":   id,
-			":path": path,
+			"name": id,
+			"path": path,
 		},
 	}
 

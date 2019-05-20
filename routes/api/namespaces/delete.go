@@ -66,6 +66,11 @@ func NamespaceRemovePath(uf RemoveForm, ctx *context.Context, db *database.Datab
 		return nil
 	}
 
+	if name == "" || path == "" {
+		ctx.NotFound()
+		return nil
+	}
+
 	err := os.RemoveAll(filepath.Join(db.Config.GetStorage().NamespacePath, name, path))
 	if err != nil {
 		return err
