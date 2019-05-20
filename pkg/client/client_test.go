@@ -184,6 +184,10 @@ var _ = Describe("Client", func() {
 				Expect(err).ToNot(HaveOccurred())
 				defer os.RemoveAll(download) // clean up
 
+				download2, err := ioutil.TempDir("", "client_download2")
+				Expect(err).ToNot(HaveOccurred())
+				defer os.RemoveAll(download2) // clean up
+
 				ev, err := fetcher.NamespaceCreate("test")
 				ExpectSuccessfulResponse(ev, err)
 
@@ -195,6 +199,20 @@ var _ = Describe("Client", func() {
 					_, err = os.Stat(filepath.Join(download, "simple", f))
 					Expect(err).ToNot(HaveOccurred())
 					_, err = os.Stat(filepath.Join(download, "#test:", f))
+					Expect(err).ToNot(HaveOccurred())
+				}
+
+				ev, err = fetcher.NamespaceRemovePath("test2", "simple/fixture1")
+				ExpectSuccessfulResponse(ev, err)
+
+				fetcher.DownloadArtefactsFromNamespace("test2", download2)
+				_, err = os.Stat(filepath.Join(download2, "simple", "fixture1"))
+				Expect(err).To(HaveOccurred())
+
+				for _, f := range []string{"fixture1#test.vvvsz", "fixture2", "fixture3.sh", "b000gy.@bogyy"} {
+					_, err = os.Stat(filepath.Join(download2, "simple", f))
+					Expect(err).ToNot(HaveOccurred())
+					_, err = os.Stat(filepath.Join(download2, "#test:", f))
 					Expect(err).ToNot(HaveOccurred())
 				}
 
