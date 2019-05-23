@@ -1,0 +1,15 @@
+name: "Mottainai Server Test Suite"
+image: "https://dispatcher.sabayon.org/sbi/namespace/vagrant/Sabayon_Linux_DAILY_amd64_Server.box"
+type: virtualbox_vagrant
+queue: 'virtualbox'
+script:
+- sudo ACCEPT_LICENSE=* equo i git
+- git clone https://github.com/MottainaiCI/mottainai-server $HOME/bootstrap
+- pushd $HOME/bootstrap
+- export WORKDIR=$HOME/work
+- bash tests/scripts/setup_mott.sh
+- bash tests/scripts/run_tests.sh
+
+environment:
+- CHECKOUT=master
+- CHECKOUT_AGENT=master
