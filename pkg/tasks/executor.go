@@ -278,6 +278,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 			err := fetcher.Handle(req)
 
 			if err == nil && s.Secret != "" {
+				d.Report("Found secret by id.")
 				auth = s.Secret
 			} else {
 				req := schema.Request{
@@ -287,11 +288,13 @@ func (d *TaskExecutor) Setup(docID string) error {
 				}
 				err := fetcher.Handle(req)
 				if err == nil && s.Secret != "" {
+					d.Report("Found secret by name.")
 					auth = s.Secret
 				}
 			}
 
 			if strings.HasPrefix(auth, "auth:") {
+				d.Report("Found secret with auth prefix.")
 				a := strings.TrimPrefix(auth, "auth:")
 				data := strings.Split(a, ":")
 				if len(data) != 2 {
@@ -300,11 +303,22 @@ func (d *TaskExecutor) Setup(docID string) error {
 				opts.Auth = &http.BasicAuth{Username: data[0], Password: data[1]}
 
 			} else {
+				d.Report("Found private key for repository.")
 				signer, err := ssh.ParsePrivateKey([]byte(auth))
 				if err != nil {
 					return err
 				}
-				sshAuth := &ssh2.PublicKeys{User: "git", Signer: signer}
+				sshAuth := &ssh2.PublicKeys{
+					User:   "git",
+					Signer: signer,
+					// TODO: This could be avoid if we use a directory that
+					// contains valid certificates. See if there is a way to
+					// accept only valid certificate and/or configure this through
+					// agent configuration option.
+					HostKeyCallbackHelper: ssh2.HostKeyCallbackHelper{
+						HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+					},
+				}
 				opts.Auth = sshAuth
 			}
 		}
