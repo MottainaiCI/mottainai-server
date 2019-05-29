@@ -232,8 +232,17 @@ func prepareTemp(u *user.User, kind string, client *ggithub.Client, db *database
 			if err != nil {
 				return nil, err
 			}
-			sshAuth := &ssh2.PublicKeys{User: "git", Signer: signer}
-
+			sshAuth := &ssh2.PublicKeys{
+				User:   "git",
+				Signer: signer,
+				// TODO: This could be avoid if we use a directory that
+				// contains valid certificates. See if there is a way to
+				// accept only valid certificate and/or configure this through
+				// agent configuration option.
+				HostKeyCallbackHelper: ssh2.HostKeyCallbackHelper{
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+				},
+			}
 			opts.Auth = sshAuth
 		}
 	}
