@@ -56,7 +56,7 @@ func SignedInID(c *macaron.Context, sess session.Store) string {
 		if len(auHead) > 0 {
 
 			auths := strings.Fields(auHead)
-			if len(auths) == 2 && auths[0] == "token" {
+ 			if len(auths) == 2 && strings.EqualFold(auths[0], "token") {
 				tokenSHA = auths[1]
 			}
 		}
