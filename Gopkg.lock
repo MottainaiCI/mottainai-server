@@ -19,14 +19,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:207d1c991e823eaa28f97c9f49f5b687e6ee45dccb012a74c6c934981ccf64a6"
-  name = "code.cloudfoundry.org/systemcerts"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "ca00b2f806f2fa1ded784ade357bad1ea3f1fbbe"
-
-[[projects]]
-  branch = "master"
   digest = "1:6da51e5ec493ad2b44cb04129e2d0a068c8fb9bd6cb5739d199573558696bb94"
   name = "github.com/Azure/go-ansiterm"
   packages = [
@@ -662,7 +654,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:0e87a00a160a7a827450f1d6a1593004f5d812b58ba936f11e43a9a198534207"
+  digest = "1:b611ae57110723f67b2a9c8cd5299c303c4981ff2a4a5365f5795a3ce4edfbc5"
   name = "github.com/lxc/lxd"
   packages = [
     "client",
@@ -679,8 +671,8 @@
     "shared/termios",
   ]
   pruneopts = "T"
-  revision = "f51c28a3744372324480a92076dcaebf2d71ccac"
-  version = "lxd-3.12"
+  revision = "566ee206e3bdb88bfdb7cd83e1325558a1fea8ad"
+  version = "lxd-3.13"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
@@ -1550,6 +1542,7 @@
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "github.com/theckman/go-flock",
+    "golang.org/x/crypto/ssh",
     "golang.org/x/oauth2",
     "gopkg.in/clog.v1",
     "gopkg.in/go-playground/webhooks.v3",
@@ -1558,6 +1551,8 @@
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/config",
     "gopkg.in/src-d/go-git.v4/plumbing",
+    "gopkg.in/src-d/go-git.v4/plumbing/transport/http",
+    "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

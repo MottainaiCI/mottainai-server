@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/netutils"
 )
 
 /*
@@ -44,7 +45,7 @@ int whoami = -ESRCH;
 #define FORKPROXY_PARENT 0
 #define FORKPROXY_UDS_SOCK_FD_NUM 200
 
-int switch_uid_gid(uint32_t uid, uint32_t gid)
+static int switch_uid_gid(uint32_t uid, uint32_t gid)
 {
 	if (setgid((gid_t)gid) < 0)
 		return -1;
@@ -55,7 +56,7 @@ int switch_uid_gid(uint32_t uid, uint32_t gid)
 	return 0;
 }
 
-int wait_for_pid(pid_t pid)
+static int wait_for_pid(pid_t pid)
 {
 	int status, ret;
 
@@ -73,19 +74,25 @@ again:
 	return 0;
 }
 
-ssize_t lxc_read_nointr(int fd, void* buf, size_t count)
+static int lxc_epoll_wait_nointr(int epfd, struct epoll_event* events,
+				 int maxevents, int timeout)
 {
-	ssize_t ret;
+	int ret;
 again:
-	ret = read(fd, buf, count);
+	ret = epoll_wait(epfd, events, maxevents, timeout);
 	if (ret < 0 && errno == EINTR)
 		goto again;
 	return ret;
 }
 
+#define LISTEN_NEEDS_MNTNS 1U
+#define CONNECT_NEEDS_MNTNS 2U
+
 void forkproxy()
 {
+	unsigned int needs_mntns = 0;
 	int connect_pid, listen_pid, log_fd;
+	size_t unix_prefix_len = sizeof("unix:") - 1;
 	ssize_t ret;
 	pid_t pid;
 	char *connect_addr, *cur, *listen_addr, *log_path, *pid_path;
@@ -119,7 +126,7 @@ void forkproxy()
 	if (ret < 0)
 		_exit(EXIT_FAILURE);
 
-	pid_file = fopen(pid_path, "w+");
+	pid_file = fopen(pid_path, "we+");
 	if (!pid_file) {
 		fprintf(stderr,
 			"%s - Failed to create pid file for proxy daemon\n",
@@ -129,10 +136,19 @@ void forkproxy()
 
 	if (strncmp(listen_addr, "udp:", sizeof("udp:") - 1) == 0 &&
 	    strncmp(connect_addr, "udp:", sizeof("udp:") - 1) != 0) {
-		    fprintf(stderr, "Error: Proxying from udp to non-udp "
-			    "protocol is not supported\n");
+		    fprintf(stderr, "Error: Proxying from udp to non-udp protocol is not supported\n");
 		    _exit(EXIT_FAILURE);
 	}
+
+	// We only need to attach to the mount namespace for
+	// non-abstract unix sockets.
+	if ((strncmp(listen_addr, "unix:", unix_prefix_len) == 0) &&
+	    (listen_addr[unix_prefix_len] != '@'))
+		    needs_mntns |= LISTEN_NEEDS_MNTNS;
+
+	if ((strncmp(connect_addr, "unix:", unix_prefix_len) == 0) &&
+	    (connect_addr[unix_prefix_len] != '@'))
+		    needs_mntns |= CONNECT_NEEDS_MNTNS;
 
 	ret = socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sk_fds);
 	if (ret < 0) {
@@ -169,9 +185,7 @@ void forkproxy()
 			_exit(EXIT_FAILURE);
 		}
 
-		// Attach to the mount namespace of the listener
-		ret = dosetns(listen_pid, "mnt");
-		if (ret < 0) {
+		if ((needs_mntns & LISTEN_NEEDS_MNTNS) && dosetns(listen_pid, "mnt")) {
 			fprintf(stderr, "Failed setns to listener mount namespace: %s\n",
 				strerror(errno));
 			_exit(EXIT_FAILURE);
@@ -182,7 +196,7 @@ void forkproxy()
 			fprintf(stderr,
 				"%s - Failed to duplicate fd %d to fd 200\n",
 				strerror(errno), sk_fds[1]);
-			_exit(1);
+			_exit(EXIT_FAILURE);
 		}
 
 		ret = close(sk_fds[1]);
@@ -209,8 +223,7 @@ void forkproxy()
 		}
 
 		// Attach to the mount namespace of the listener
-		ret = dosetns(connect_pid, "mnt");
-		if (ret < 0) {
+		if ((needs_mntns & CONNECT_NEEDS_MNTNS) && dosetns(connect_pid, "mnt")) {
 			fprintf(stderr, "Failed setns to listener mount namespace: %s\n",
 				strerror(errno));
 			_exit(EXIT_FAILURE);
@@ -221,7 +234,7 @@ void forkproxy()
 			fprintf(stderr,
 				"%s - Failed to duplicate fd %d to fd 200\n",
 				strerror(errno), sk_fds[1]);
-			_exit(1);
+			_exit(EXIT_FAILURE);
 		}
 
 		ret = close(sk_fds[0]);
@@ -457,13 +470,13 @@ func (c *cmdForkproxy) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	listenAddr := args[1]
-	lAddr, err := parseAddr(listenAddr)
+	lAddr, err := proxyParseAddr(listenAddr)
 	if err != nil {
 		return err
 	}
 
 	connectAddr := args[3]
-	cAddr, err := parseAddr(connectAddr)
+	cAddr, err := proxyParseAddr(connectAddr)
 	if err != nil {
 		return err
 	}
@@ -496,7 +509,7 @@ func (c *cmdForkproxy) Run(cmd *cobra.Command, args []string) error {
 			}
 
 		sAgain:
-			err = shared.AbstractUnixSendFd(forkproxyUDSSockFDNum, int(file.Fd()))
+			err = netutils.AbstractUnixSendFd(forkproxyUDSSockFDNum, int(file.Fd()))
 			if err != nil {
 				errno, ok := shared.GetErrno(err)
 				if ok && (errno == syscall.EAGAIN) {
@@ -554,7 +567,7 @@ func (c *cmdForkproxy) Run(cmd *cobra.Command, args []string) error {
 	files := []*os.File{}
 	for range lAddr.addr {
 	rAgain:
-		f, err := shared.AbstractUnixReceiveFd(forkproxyUDSSockFDNum)
+		f, err := netutils.AbstractUnixReceiveFd(forkproxyUDSSockFDNum)
 		if err != nil {
 			errno, ok := shared.GetErrno(err)
 			if ok && (errno == syscall.EAGAIN) {
@@ -670,9 +683,9 @@ func (c *cmdForkproxy) Run(cmd *cobra.Command, args []string) error {
 	for {
 		var events [10]C.struct_epoll_event
 
-		nfds := C.epoll_wait(epFd, &events[0], 10, -1)
+		nfds := C.lxc_epoll_wait_nointr(epFd, &events[0], 10, -1)
 		if nfds < 0 {
-			fmt.Printf("Failed to wait on epoll instance")
+			fmt.Printf("Failed to wait on epoll instance\n")
 			break
 		}
 
@@ -818,6 +831,7 @@ func proxyCopy(dst net.Conn, src net.Conn) error {
 func genericRelay(dst net.Conn, src net.Conn, timeout bool) {
 	relayer := func(src net.Conn, dst net.Conn, ch chan error) {
 		ch <- proxyCopy(src, dst)
+		close(ch)
 	}
 
 	chSend := make(chan error)
@@ -825,8 +839,8 @@ func genericRelay(dst net.Conn, src net.Conn, timeout bool) {
 
 	go relayer(src, dst, chRecv)
 
-	_, ok := dst.(*net.UDPConn)
-	if !ok {
+	_, isUDP := dst.(*net.UDPConn)
+	if !isUDP {
 		go relayer(dst, src, chSend)
 	}
 
@@ -844,6 +858,12 @@ func genericRelay(dst net.Conn, src net.Conn, timeout bool) {
 
 	src.Close()
 	dst.Close()
+
+	// Empty the channels
+	if !isUDP {
+		<-chSend
+	}
+	<-chRecv
 }
 
 func unixRelayer(src *net.UnixConn, dst *net.UnixConn, ch chan bool) {
@@ -1033,7 +1053,7 @@ func parsePortRange(r string) (int64, int64, error) {
 	return base, size, nil
 }
 
-func parseAddr(addr string) (*proxyAddress, error) {
+func proxyParseAddr(addr string) (*proxyAddress, error) {
 	// Split into <protocol> and <address>
 	fields := strings.SplitN(addr, ":", 2)
 
@@ -1056,6 +1076,14 @@ func parseAddr(addr string) (*proxyAddress, error) {
 	address, port, err := net.SplitHostPort(fields[1])
 	if err != nil {
 		return nil, err
+	}
+
+	// Validate that it's a valid address
+	if shared.StringInSlice(newProxyAddr.connType, []string{"udp", "tcp"}) {
+		err := networkValidAddress(address)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Split <ports> into individual ports and port ranges

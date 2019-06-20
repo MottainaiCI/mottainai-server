@@ -1905,7 +1905,7 @@ func (s *storageBtrfs) doContainerBackupLoadOptimized(info backupInfo, data io.R
 	tmpContainerMntPoint := fmt.Sprintf("%s/.backup", unpackDir)
 	defer btrfsSubVolumesDelete(tmpContainerMntPoint)
 
-	containerMntPoint = getContainerMountPoint("default", s.pool.Name, info.Name)
+	containerMntPoint = getContainerMountPoint(info.Project, s.pool.Name, info.Name)
 	err = s.btrfsPoolVolumesSnapshot(tmpContainerMntPoint, containerMntPoint, false, true)
 	if err != nil {
 		logger.Errorf("Failed to create btrfs snapshot \"%s\" of \"%s\": %s", tmpContainerMntPoint, containerMntPoint, err)
@@ -2267,10 +2267,10 @@ func btrfsSubVolumesDelete(subvol string) error {
  * btrfsSnapshot creates a snapshot of "source" to "dest"
  * the result will be readonly if "readonly" is True.
  */
-func btrfsSnapshot(source string, dest string, readonly bool) error {
+func btrfsSnapshot(s *state.State, source string, dest string, readonly bool) error {
 	var output string
 	var err error
-	if readonly {
+	if readonly && !s.OS.RunningInUserNS {
 		output, err = shared.RunCommand(
 			"btrfs",
 			"subvolume",
@@ -2299,7 +2299,7 @@ func btrfsSnapshot(source string, dest string, readonly bool) error {
 }
 
 func (s *storageBtrfs) btrfsPoolVolumeSnapshot(source string, dest string, readonly bool) error {
-	return btrfsSnapshot(source, dest, readonly)
+	return btrfsSnapshot(s.s, source, dest, readonly)
 }
 
 func (s *storageBtrfs) btrfsPoolVolumesSnapshot(source string, dest string, readonly bool, recursive bool) error {
@@ -2861,7 +2861,7 @@ func (s *storageBtrfs) StorageEntitySetQuota(volumeType int, size int64, data in
 	switch volumeType {
 	case storagePoolVolumeTypeContainer:
 		c = data.(container)
-		subvol = getContainerMountPoint("default", s.pool.Name, c.Name())
+		subvol = getContainerMountPoint(c.Project(), s.pool.Name, c.Name())
 	case storagePoolVolumeTypeCustom:
 		subvol = getStoragePoolVolumeMountPoint(s.pool.Name, s.volume.Name)
 	}
@@ -3084,7 +3084,7 @@ func (s *storageBtrfs) doCrossPoolVolumeCopy(sourcePool string, sourceName strin
 	return nil
 }
 
-func (s *btrfsMigrationSourceDriver) SendStorageVolume(conn *websocket.Conn, op *operation, bwlimit string, storage storage) error {
+func (s *btrfsMigrationSourceDriver) SendStorageVolume(conn *websocket.Conn, op *operation, bwlimit string, storage storage, volumeOnly bool) error {
 	msg := fmt.Sprintf("Function not implemented")
 	logger.Errorf(msg)
 	return fmt.Errorf(msg)
