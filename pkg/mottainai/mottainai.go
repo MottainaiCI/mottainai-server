@@ -146,9 +146,12 @@ func Classic(config *setting.Config) *Mottainai {
 	m.Use(session.Sessioner(sesopts))
 	m.Use(csrf.Csrfer())
 
-	// Set TMPDIR to /var/tmp by default
+	// Honoring first Posix TMPDIR and if
+	// TMPDIR is not set I use web.upload_tmpdir
 	// to prevent large files to be stored in ram instead of disk
-	os.Setenv("TMPDIR", config.GetWeb().UploadTmpDir)
+	if os.Getenv("TMPDIR") == "" {
+		os.Setenv("TMPDIR", config.GetWeb().UploadTmpDir)
+	}
 	template.Setup(m.Macaron)
 
 	m.Use(captcha.Captchaer(captcha.Options{
