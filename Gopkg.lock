@@ -654,7 +654,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:b611ae57110723f67b2a9c8cd5299c303c4981ff2a4a5365f5795a3ce4edfbc5"
+  digest = "1:165f0dcb43f9de8a538c789669a0b5f66da4622a57a8eb5320aa6e66e2618ada"
   name = "github.com/lxc/lxd"
   packages = [
     "client",
@@ -671,8 +671,8 @@
     "shared/termios",
   ]
   pruneopts = "T"
-  revision = "566ee206e3bdb88bfdb7cd83e1325558a1fea8ad"
-  version = "lxd-3.13"
+  revision = "d3ac182f55faae8f9540b6577ea78581f73a83a4"
+  version = "lxd-3.14"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"

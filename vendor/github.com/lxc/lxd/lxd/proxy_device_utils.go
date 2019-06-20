@@ -7,7 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
+
+	"golang.org/x/sys/unix"
 
 	"github.com/lxc/lxd/shared"
 )
@@ -55,8 +56,8 @@ func setupProxyProcInfo(c container, device map[string]string) (*proxyProcInfo, 
 		return nil, fmt.Errorf("Proxy device doesn't support the listener type: %s", proto)
 	}
 
-	listenPid := "-1"
-	connectPid := "-1"
+	var listenPid string
+	var connectPid string
 
 	bindVal, exists := device["bind"]
 	if !exists {
@@ -126,7 +127,7 @@ func killProxyProc(pidPath string) error {
 	}
 
 	// Actually kill the process
-	err = syscall.Kill(pidInt, syscall.SIGKILL)
+	err = unix.Kill(pidInt, unix.SIGKILL)
 	if err != nil {
 		return err
 	}

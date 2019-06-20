@@ -637,7 +637,7 @@ type container interface {
 	// Live configuration
 	CGroupGet(key string) (string, error)
 	CGroupSet(key string, value string) error
-	ConfigKeySet(key string, value string) error
+	VolatileSet(changes map[string]string) error
 
 	// File handling
 	FileExists(path string) error
@@ -681,6 +681,7 @@ type container interface {
 
 	// Hooks
 	OnStart() error
+	OnStopNS(target string, netns string) error
 	OnStop(target string) error
 	OnNetworkUp(deviceName string, hostVeth string) error
 
@@ -1349,7 +1350,7 @@ func containerConfigureInternal(c container) error {
 	if rootDiskDevice["size"] != "" {
 		storageTypeName := storage.GetStorageTypeName()
 		if (storageTypeName == "lvm" || storageTypeName == "ceph") && c.IsRunning() {
-			err = c.ConfigKeySet("volatile.apply_quota", rootDiskDevice["size"])
+			err = c.VolatileSet(map[string]string{"volatile.apply_quota": rootDiskDevice["size"]})
 			if err != nil {
 				return err
 			}
@@ -1635,10 +1636,18 @@ func autoCreateContainerSnapshotsTask(d *Daemon) (task.Func, task.Schedule) {
 
 			// Check if it's time to snapshot
 			now := time.Now()
+
+			// Truncate the time now back to the start of the minute, before passing to
+			// the cron scheduler, as it will add 1s to the scheduled time and we don't
+			// want the next scheduled time to roll over to the next minute and break
+			// the time comparison below.
+			now = now.Truncate(time.Minute)
+
+			// Calculate the next scheduled time based on the snapshots.schedule
+			// pattern and the time now.
 			next := sched.Next(now)
 
 			// Ignore everything that is more precise than minutes.
-			now = now.Truncate(time.Minute)
 			next = next.Truncate(time.Minute)
 
 			if !now.Equal(next) {

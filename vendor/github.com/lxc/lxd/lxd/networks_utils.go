@@ -18,11 +18,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
+
+	"golang.org/x/net/context"
+	"golang.org/x/sys/unix"
 
 	"github.com/lxc/lxd/lxd/db"
 	"github.com/lxc/lxd/lxd/state"
+	"github.com/lxc/lxd/lxd/task"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/logger"
@@ -30,6 +33,7 @@ import (
 )
 
 var networkStaticLock sync.Mutex
+var forkdnsServersLock sync.Mutex
 
 func networkAutoAttach(cluster *db.Cluster, devName string) error {
 	_, dbInfo, err := cluster.NetworkGetInterface(devName)
@@ -769,7 +773,7 @@ func networkKillForkDNS(name string) error {
 	}
 
 	// Actually kill the process
-	err = syscall.Kill(pidInt, syscall.SIGKILL)
+	err = unix.Kill(pidInt, unix.SIGKILL)
 	if err != nil {
 		return err
 	}
@@ -844,7 +848,7 @@ func networkKillDnsmasq(name string, reload bool) error {
 
 	// Actually kill the process
 	if reload {
-		err = syscall.Kill(pidInt, syscall.SIGHUP)
+		err = unix.Kill(pidInt, unix.SIGHUP)
 		if err != nil {
 			return err
 		}
@@ -852,7 +856,7 @@ func networkKillDnsmasq(name string, reload bool) error {
 		return nil
 	}
 
-	err = syscall.Kill(pidInt, syscall.SIGKILL)
+	err = unix.Kill(pidInt, unix.SIGKILL)
 	if err != nil {
 		return err
 	}
@@ -1025,6 +1029,104 @@ func networkUpdateStatic(s *state.State, networkName string) error {
 	return nil
 }
 
+// networkUpdateForkdnsServersFile takes a list of node addresses and writes them atomically to
+// the forkdns.servers file ready for forkdns to notice and re-apply its config.
+func networkUpdateForkdnsServersFile(networkName string, addresses []string) error {
+	// We don't want to race with ourselves here
+	forkdnsServersLock.Lock()
+	defer forkdnsServersLock.Unlock()
+
+	permName := shared.VarPath("networks", networkName, forkdnsServersListPath+"/"+forkdnsServersListFile)
+	tmpName := permName + ".tmp"
+
+	// Open tmp file and truncate
+	tmpFile, err := os.Create(tmpName)
+	if err != nil {
+		return err
+	}
+	defer tmpFile.Close()
+
+	for _, address := range addresses {
+		_, err := tmpFile.WriteString(address + "\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	tmpFile.Close()
+
+	// Atomically rename finished file into permanent location so forkdns can pick it up.
+	err = os.Rename(tmpName, permName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// networkUpdateForkdnsServersTask runs every 30s and refreshes the forkdns servers list.
+func networkUpdateForkdnsServersTask(d *Daemon) (task.Func, task.Schedule) {
+	f := func(ctx context.Context) {
+		s := d.State()
+
+		// Get a list of managed networks
+		networks, err := s.Cluster.NetworksNotPending()
+		if err != nil {
+			logger.Errorf("Failed to get networks: %v", err)
+			return
+		}
+
+		for _, name := range networks {
+			n, err := networkLoadByName(s, name)
+			if err != nil {
+				logger.Errorf("Failed to load network: %v", err)
+				return
+			}
+
+			if n.config["bridge.mode"] == "fan" {
+				n.refreshForkdnsServerAddresses()
+			}
+		}
+	}
+
+	first := true
+	schedule := func() (time.Duration, error) {
+		interval := time.Second * 30
+
+		if first {
+			first = false
+			return interval, task.ErrSkip
+		}
+
+		return interval, nil
+	}
+
+	return f, schedule
+}
+
+// networksGetForkdnsServersList reads the server list file and returns the list as a slice.
+func networksGetForkdnsServersList(networkName string) ([]string, error) {
+	servers := []string{}
+	file, err := os.Open(shared.VarPath("networks", networkName, forkdnsServersListPath, "/", forkdnsServersListFile))
+	if err != nil {
+		return servers, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) > 0 {
+			servers = append(servers, fields[0])
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return servers, err
+	}
+
+	return servers, nil
+}
+
 func networkSysctlGet(path string) (string, error) {
 	// Read the current content
 	content, err := ioutil.ReadFile(fmt.Sprintf("/proc/sys/net/%s", path))
@@ -1081,7 +1183,12 @@ func networkClearLease(s *state.State, name string, network string, hwaddr strin
 	if err != nil {
 		return err
 	}
-	defer n.Start()
+	defer func() {
+		err := n.Start()
+		if err != nil {
+			logger.Errorf("Failed to reload network '%s': %v", network, err)
+		}
+	}()
 
 	// Stop dnsmasq
 	err = networkKillDnsmasq(network, false)
@@ -1209,4 +1316,130 @@ func networkGetState(netIf net.Interface) api.NetworkState {
 	// Get counters
 	network.Counters = shared.NetworkGetCounters(netIf.Name)
 	return network
+}
+
+// networkGetDevMTU retrieves the current MTU setting for a named network device.
+func networkGetDevMTU(devName string) (uint64, error) {
+	content, err := ioutil.ReadFile(fmt.Sprintf("/sys/class/net/%s/mtu", devName))
+	if err != nil {
+		return 0, err
+	}
+
+	// Parse value
+	mtu, err := strconv.ParseUint(strings.TrimSpace(string(content)), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return mtu, nil
+}
+
+// networkSetDevMTU sets the MTU setting for a named network device if different from current.
+func networkSetDevMTU(devName string, mtu uint64) error {
+	curMTU, err := networkGetDevMTU(devName)
+	if err != nil {
+		return err
+	}
+
+	// Only try and change the MTU if the requested mac is different to current one.
+	if curMTU != mtu {
+		_, err := shared.RunCommand("ip", "link", "set", "dev", devName, "mtu", fmt.Sprintf("%d", mtu))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// networkGetDevMAC retrieves the current MAC setting for a named network device.
+func networkGetDevMAC(devName string) (string, error) {
+	content, err := ioutil.ReadFile(fmt.Sprintf("/sys/class/net/%s/address", devName))
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(fmt.Sprintf("%s", content)), nil
+}
+
+// networkSetDevMAC sets the MAC setting for a named network device if different from current.
+func networkSetDevMAC(devName string, mac string) error {
+	curMac, err := networkGetDevMAC(devName)
+	if err != nil {
+		return err
+	}
+
+	// Only try and change the MAC if the requested mac is different to current one.
+	if curMac != mac {
+		_, err := shared.RunCommand("ip", "link", "set", "dev", devName, "address", mac)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// networkListBootRoutesV4 returns a list of IPv4 boot routes on a named network device.
+func networkListBootRoutesV4(devName string) ([]string, error) {
+	routes := []string{}
+	cmd := exec.Command("ip", "-4", "route", "show", "dev", devName, "proto", "boot")
+	ipOut, err := cmd.StdoutPipe()
+	if err != nil {
+		return routes, err
+	}
+	cmd.Start()
+	scanner := bufio.NewScanner(ipOut)
+	for scanner.Scan() {
+		route := scanner.Text()
+		routes = append(routes, route)
+	}
+	cmd.Wait()
+	return routes, nil
+}
+
+// networkListBootRoutesV6 returns a list of IPv6 boot routes on a named network device.
+func networkListBootRoutesV6(devName string) ([]string, error) {
+	routes := []string{}
+	cmd := exec.Command("ip", "-6", "route", "show", "dev", devName, "proto", "boot")
+	ipOut, err := cmd.StdoutPipe()
+	if err != nil {
+		return routes, err
+	}
+	cmd.Start()
+	scanner := bufio.NewScanner(ipOut)
+	for scanner.Scan() {
+		route := scanner.Text()
+		routes = append(routes, route)
+	}
+	cmd.Wait()
+	return routes, nil
+}
+
+// networkApplyBootRoutesV4 applies a list of IPv4 boot routes to a named network device.
+func networkApplyBootRoutesV4(devName string, routes []string) error {
+	for _, route := range routes {
+		cmd := []string{"-4", "route", "replace", "dev", devName, "proto", "boot"}
+		cmd = append(cmd, strings.Fields(route)...)
+		_, err := shared.RunCommand("ip", cmd...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// networkApplyBootRoutesV6 applies a list of IPv6 boot routes to a named network device.
+func networkApplyBootRoutesV6(devName string, routes []string) error {
+	for _, route := range routes {
+		cmd := []string{"-6", "route", "replace", "dev", devName, "proto", "boot"}
+		cmd = append(cmd, strings.Fields(route)...)
+		_, err := shared.RunCommand("ip", cmd...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
