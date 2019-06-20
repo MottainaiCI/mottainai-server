@@ -67,7 +67,8 @@ type WebConfig struct {
 	WebHookGitHubSecret    string `mapstructure:"github_secret"`
 	WebHookToken           string `mapstructure:"webhook_token"`
 
-	LockPath string `mapstructure:"lock_path"`
+	LockPath     string `mapstructure:"lock_path"`
+	UploadTmpDir string `mapstructure:"upload_tmpdir"`
 
 	HealthCheckInterval int `mapstructure:"healthcheck_interval"`
 	TaskDeadline        int `mapstructure:"task_deadline"`
@@ -238,6 +239,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.github_token_user", "")
 	viper.SetDefault("web.webhook_token", "")
 	viper.SetDefault("web.lock_path", "/srv/mottainai/lock")
+	viper.SetDefault("web.upload_tmpdir", "/var/tmp")
 	viper.SetDefault("web.task_deadline", 21600) // 6h
 	viper.SetDefault("web.node_deadline", 21600)
 	viper.SetDefault("web.healthcheck_interval", 800)
