@@ -1199,7 +1199,7 @@ func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *
 	// Wait for the operation to complete
 	err = l.waitOperation(nil, nil)
 	if err != nil {
-		l.Report("Erro on waiting execution of commands: " + err.Error())
+		l.Report("Error on waiting execution of commands: " + err.Error())
 		return 1, err
 	}
 	opAPI := l.CurrentLocalOperation.Get()

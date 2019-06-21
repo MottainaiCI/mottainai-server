@@ -55,6 +55,10 @@ web:
   # Enable/Disable Embedded WebHook Server
   embed_webhookserver: True
 
+  # Upload temporary directory where store uploading files
+  # before move to right position.
+  # upload_tmpdir: "/var/tmp"
+
   # Access Token
   # access_token: ''
 
