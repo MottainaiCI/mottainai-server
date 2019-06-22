@@ -30,12 +30,12 @@ import (
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	logrus "github.com/sirupsen/logrus"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
 
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	machinery "github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/log"
@@ -106,7 +106,7 @@ func (m *MottainaiAgent) Run() error {
 		m.Map(logger)
 
 		broker := server.Add(config.GetBroker().BrokerDefaultQueue, config)
-		th := agenttasks.DefaultTaskHandler(config)
+		th := taskmanager.DefaultTaskHandler(config)
 		fetcher := client.NewTokenClient(
 			config.GetWeb().AppURL,
 			config.GetAgent().ApiKey, config)

@@ -101,9 +101,8 @@ func (d *Database) GetPipeline(config *setting.Config, docID string) (agenttasks
 	if err != nil {
 		return agenttasks.Pipeline{}, err
 	}
-	th := agenttasks.DefaultTaskHandler(config)
 
-	t := th.NewPipelineFromMap(doc)
+	t := agenttasks.NewPipelineFromMap(doc)
 	t.ID = docID
 	//err = d.UpdateLivePipelineData(config, &t)
 	return t, err

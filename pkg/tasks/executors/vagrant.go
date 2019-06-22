@@ -27,6 +27,8 @@ import (
 	"strings"
 	"time"
 
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	vagrantutil "github.com/MottainaiCI/vagrantutil"
@@ -141,7 +143,7 @@ func (e *VagrantExecutor) reportOutput(out <-chan *vagrantutil.CommandOutput) {
 	}
 }
 
-func (e *VagrantExecutor) Config(image, rootdir string, t *Task) string {
+func (e *VagrantExecutor) Config(image, rootdir string, t *tasks.Task) string {
 	var box, box_url string
 	// TODO: Add CPU and RAM from task
 	if utils.IsValidUrl(image) {
@@ -250,8 +252,10 @@ func (d *VagrantExecutor) Setup(docID string) error {
 
 func (d *VagrantExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
-	th := DefaultTaskHandler(d.TaskExecutor.Config)
-	task_info := th.FetchTask(fetcher)
+	task_info, err := tasks.FetchTask(fetcher)
+	if err != nil {
+		return 1, err
+	}
 	image := task_info.Image
 	starttime := time.Now()
 
@@ -282,7 +286,10 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 	}
 	for line := range output {
 		now := time.Now()
-		task_info = th.FetchTask(fetcher)
+		task_info, err = tasks.FetchTask(fetcher)
+		if err != nil {
+			return 1, err
+		}
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
 			return d.HandleTaskStop(timedout)
@@ -304,7 +311,10 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		d.Report(res.Line)
 
 		now := time.Now()
-		task_info = th.FetchTask(fetcher)
+		task_info, err = tasks.FetchTask(fetcher)
+		if err != nil {
+			return 1, err
+		}
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
 			return d.HandleTaskStop(timedout)

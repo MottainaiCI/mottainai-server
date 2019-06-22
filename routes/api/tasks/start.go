@@ -25,23 +25,21 @@ package tasksapi
 import (
 	"errors"
 
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 )
 
-func APISendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
-	err := SendStartTask(m, th, ctx, db)
+func APISendStartTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) {
+	err := SendStartTask(m, ctx, db)
 	if err != nil {
 		ctx.ServerError("Failed starting task", err)
 	}
 	ctx.APIActionSuccess()
 }
 
-func SendStartTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
+func SendStartTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	mytask, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {

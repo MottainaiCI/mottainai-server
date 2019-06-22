@@ -32,8 +32,8 @@ import (
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
-func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) error {
-	docID, err := Create(m, th, ctx, db, opts)
+func APICreate(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, opts agenttasks.Task) error {
+	docID, err := Create(m, ctx, db, opts)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func APICreate(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.
 	return nil
 }
 
-func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
+func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
 	opts.Reset()
 
 	opts.Output = ""
@@ -69,7 +69,7 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	return docID, nil
 }
 
-func CloneAndSend(id string, m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) (string, error) {
+func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *database.Database) (string, error) {
 
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
@@ -98,10 +98,10 @@ func CloneAndSend(id string, m *mottainai.Mottainai, th *agenttasks.TaskHandler,
 	return docID, nil
 }
 
-func CloneTask(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) error {
+func CloneTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
-	docID, err := CloneAndSend(id, m, th, ctx, db)
+	docID, err := CloneAndSend(id, m, ctx, db)
 	if err != nil {
 		return err
 	}

@@ -22,7 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package agenttasks
 
-import "strings"
+import (
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
+	"strings"
+)
 
 // Instruction represent a set of script + env that has to be executed in a given context
 type Instruction interface {
@@ -116,7 +120,7 @@ func NewDefaultInstruction(entrypoint, script []string) Instruction {
 	return &DefaultInstruction{Script: script, Entrypoint: entrypoint}
 }
 
-func NewInstructionFromTask(task Task) Instruction {
+func NewInstructionFromTask(task tasks.Task) Instruction {
 	instruction := NewDebugInstruction(task.Script)
 	if len(task.Entrypoint) > 0 {
 		instruction = NewDefaultInstruction(task.Entrypoint, task.Script)

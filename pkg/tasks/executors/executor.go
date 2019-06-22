@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -34,9 +33,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	"github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -72,8 +74,11 @@ func (d *TaskExecutor) HandleTaskStop(timedout bool) (int, error) {
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	var err error
 	fetcher := d.MottainaiClient
-	task_info := DefaultTaskHandler(d.Config).FetchTask(fetcher)
-
+	task_info, err := tasks.FetchTask(fetcher)
+	if err != nil {
+		d.Report("Couldn't get task info ", err.Error())
+		return err
+	}
 	if len(task_info.RootTask) > 0 {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
 			err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
@@ -154,18 +159,17 @@ func (d *TaskExecutor) Clean() error {
 
 func (d *TaskExecutor) Fail(errstring string) {
 
-	task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
+	task_info, _ := tasks.FetchTask(d.MottainaiClient)
 	if task_info.Status != setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.FinishTask()
 	} else {
 		d.MottainaiClient.AbortTask()
 	}
 	d.MottainaiClient.ErrorTask()
-
 }
 
 func (d *TaskExecutor) Success(status int) {
-	task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
+	task_info, _ := tasks.FetchTask(d.MottainaiClient)
 	if task_info.Status == setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.AbortTask()
 		return
@@ -215,8 +219,11 @@ func (d *TaskExecutor) Setup(docID string) error {
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 
-	th := DefaultTaskHandler(d.Config)
-	task_info := th.FetchTask(fetcher)
+	task_info, err := tasks.FetchTask(d.MottainaiClient)
+	if err != nil {
+		return errors.Wrap(err, "Failed to fetch task")
+	}
+
 	if task_info.Working() {
 		d.Report(">>> WARNING! <<<", ABORT_DUPLICATE_ERROR, ">> NODE <<", ID+" ( "+hostname+" ) ")
 		return errors.New(ABORT_DUPLICATE_ERROR)
@@ -385,7 +392,7 @@ func (t *TaskExecutor) Close() error {
 	return nil
 }
 
-func (t *TaskExecutor) CreateSharedImageName(task *Task) (string, error) {
+func (t *TaskExecutor) CreateSharedImageName(task *tasks.Task) (string, error) {
 	var OriginalSharedName string
 	image := task.Image
 

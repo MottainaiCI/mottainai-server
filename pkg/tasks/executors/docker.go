@@ -27,6 +27,8 @@ import (
 	"strings"
 	"time"
 
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	docker "github.com/fsouza/go-dockerclient"
@@ -66,7 +68,7 @@ func purgeImageName(image string) string {
 	return strings.Replace(image, "/", "-", -1)
 }
 
-func (d *DockerExecutor) HandleCacheImagePush(req StateRequest, task_info Task) {
+func (d *DockerExecutor) HandleCacheImagePush(req StateRequest, task_info tasks.Task) {
 	if len(task_info.CacheImage) > 0 {
 		d.Report("Saving container to " + req.CacheImage)
 		d.CommitImage(req.ContainerID, req.CacheImage, "latest")
@@ -97,7 +99,7 @@ func (d *DockerExecutor) ImageToCacheName(image string) string {
 	return image
 }
 
-func (d *DockerExecutor) ResolveCachedImage(task_info Task) (string, string, error) {
+func (d *DockerExecutor) ResolveCachedImage(task_info tasks.Task) (string, string, error) {
 	image := task_info.Image
 	// That's the image we will update in case caching is enabled
 	sharedName, err := d.TaskExecutor.CreateSharedImageName(&task_info)
@@ -149,7 +151,11 @@ func (d *DockerExecutor) AttachContainerReport(container *docker.Container) {
 }
 
 func (d *DockerExecutor) Play(docID string) (int, error) {
-	task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
+	task_info, err := tasks.FetchTask(d.MottainaiClient)
+	if err != nil {
+		return 1, err
+	}
+
 	instruction := NewInstructionFromTask(task_info)
 
 	d.Context.ResolveMounts(instruction)
@@ -231,7 +237,13 @@ func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int,
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
-		task_info := DefaultTaskHandler(d.Config).FetchTask(d.MottainaiClient)
+		task_info, err := tasks.FetchTask(d.MottainaiClient)
+		if err != nil {
+			//fetcher.SetTaskResult("error")
+			//fetcher.SetTaskStatus("done")
+			d.Report(err.Error())
+			return 0, nil
+		}
 		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
 		if task_info.IsStopped() || timedout {
 			return d.HandleTaskStop(timedout)

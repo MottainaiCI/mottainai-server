@@ -131,7 +131,7 @@ func (t *Pipeline) ToMap(serialize bool) map[string]interface{} {
 }
 
 // TODO: Port NewUserFromMap Task to same or make it common func
-func (h *TaskHandler) NewPipelineFromMap(t map[string]interface{}) Pipeline {
+func NewPipelineFromMap(t map[string]interface{}) Pipeline {
 	u := &Pipeline{}
 	val := reflect.ValueOf(u).Elem()
 	for i := 0; i < val.NumField(); i++ {
@@ -167,7 +167,7 @@ func (h *TaskHandler) NewPipelineFromMap(t map[string]interface{}) Pipeline {
 
 				m := make(map[string]Task)
 				for k, v := range b {
-					m[k] = h.NewTaskFromMap(v.(map[string]interface{}))
+					m[k] = NewTaskFromMap(v.(map[string]interface{}))
 				}
 
 				valueField.Set(reflect.ValueOf(m))
@@ -184,7 +184,7 @@ func (h *TaskHandler) NewPipelineFromMap(t map[string]interface{}) Pipeline {
 	return *u
 }
 
-func (h *TaskHandler) NewPipelineFromJson(data []byte) Pipeline {
+func NewPipelineFromJson(data []byte) Pipeline {
 	var t Pipeline
 	json.Unmarshal(data, &t)
 	return t

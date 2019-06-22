@@ -20,23 +20,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-package tasks
+package agenttasks
 
-import (
-	"strconv"
-
-	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
-
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-)
-
-func SendStartTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) {
-	id := ctx.ParamsInt(":id")
-	tasksapi.SendStartTask(m, ctx, db)
-	ctx.Invoke(func(config *setting.Config) {
-		ctx.Redirect(config.GetWeb().BuildURI("/tasks/display/" + strconv.Itoa(id)))
-	})
+type Executor interface {
+	Play(string) (int, error)
+	Setup(string) error
+	Clean() error
+	Fail(string)
+	Success(int)
+	ExitStatus(int)
+	Report(...interface{})
 }

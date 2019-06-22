@@ -25,17 +25,9 @@ package agenttasks
 import (
 	"errors"
 	"strconv"
-)
 
-type Executor interface {
-	Play(string) (int, error)
-	Setup(string) error
-	Clean() error
-	Fail(string)
-	Success(int)
-	ExitStatus(int)
-	Report(...interface{})
-}
+	executors "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
+)
 
 const SETUP_ERROR_MESSAGE = "Setup phase error: "
 
@@ -45,7 +37,7 @@ func NewPlayer(taskid string) *Player {
 	return &Player{TaskID: taskid}
 }
 
-func (p *Player) EarlyFail(e Executor, TaskID, reason string) {
+func (p *Player) EarlyFail(e executors.Executor, TaskID, reason string) {
 	err := e.Setup(p.TaskID)
 	if err != nil {
 		e.Fail(SETUP_ERROR_MESSAGE + err.Error())
@@ -53,13 +45,13 @@ func (p *Player) EarlyFail(e Executor, TaskID, reason string) {
 	e.Fail(reason)
 }
 
-func (p *Player) Start(e Executor) (int, error) {
+func (p *Player) Start(e executors.Executor) (int, error) {
 	defer e.Clean()
 	err := e.Setup(p.TaskID)
 	if err != nil {
 		// FIXME: This is incorrect if task is sent again to same node cause of error
 		// and agent is not working on it anymore
-		if err.Error() == ABORT_DUPLICATE_ERROR {
+		if err.Error() == executors.ABORT_DUPLICATE_ERROR {
 			e.Fail(SETUP_ERROR_MESSAGE + err.Error())
 			return 1, errors.New(SETUP_ERROR_MESSAGE + err.Error())
 			//return 0, nil // Ignore task return and do nothing
