@@ -25,9 +25,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
+	"github.com/MottainaiCI/mottainai-server/pkg/client"
+	executors "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
+
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
+func LxdPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := executors.NewLxdExecutor(config)
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
+
+		return player.Start(executor)
+	}
+}
 func SupportedExecutors(config *setting.Config) *TaskHandler {
 
 	se := map[string]interface{}{}

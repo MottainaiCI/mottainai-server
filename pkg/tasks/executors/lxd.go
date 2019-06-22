@@ -32,8 +32,9 @@ import (
 	"strconv"
 	"time"
 
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	"container/list"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"io"
 	"io/ioutil"
 	"os"
@@ -41,7 +42,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	lxd "github.com/lxc/lxd/client"
 	lxd_config "github.com/lxc/lxd/lxc/config"
@@ -50,23 +51,6 @@ import (
 	lxd_api "github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/ioprogress"
 )
-
-func LxdPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
-	return func(args ...interface{}) (int, error) {
-		docID, e, err := HandleArgs(args...)
-		player := NewPlayer(docID)
-		executor := NewLxdExecutor(config)
-		executor.MottainaiClient = client.NewTokenClient(
-			config.GetWeb().AppURL,
-			config.GetAgent().ApiKey, config)
-		if err != nil {
-			player.EarlyFail(executor, docID, err.Error())
-			return e, err
-		}
-
-		return player.Start(executor)
-	}
-}
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
 	return &LxdExecutor{
@@ -149,9 +133,10 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	var err error
 
 	fetcher := l.MottainaiClient
-	th := DefaultTaskHandler(l.Config)
-	task_info := th.FetchTask(fetcher)
-
+	task_info, err := tasks.FetchTask(fetcher)
+	if err != nil {
+		return 1, err
+	}
 	sharedName, err := l.TaskExecutor.CreateSharedImageName(&task_info)
 	if err != nil {
 		return 1, err
@@ -389,7 +374,7 @@ func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 }
 
 // Create image on local LXD instance from an active container.
-func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *Task) (string, error) {
+func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *tasks.Task) (string, error) {
 
 	var description string
 	var err error
@@ -489,7 +474,7 @@ func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *Task) (
 	return fingerprint, nil
 }
 
-func (l *LxdExecutor) CleanUpContainer(containerName string, task *Task) error {
+func (l *LxdExecutor) CleanUpContainer(containerName string, task *tasks.Task) error {
 	var err error
 
 	err = l.DoAction2Container(containerName, "stop")
@@ -1128,7 +1113,7 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 	return nil
 }
 
-func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *Task) (int, error) {
+func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *tasks.Task) (int, error) {
 	var apiCommand []string
 
 	env := map[string]string{}
@@ -1266,7 +1251,7 @@ func (l *LxdExecutor) DeleteContainerDirRecursive(containerName, dir string) err
 	return nil
 }
 
-func (l *LxdExecutor) GetContainerName(task *Task) string {
+func (l *LxdExecutor) GetContainerName(task *tasks.Task) string {
 	var ans string
 
 	if task.Image != "" {
