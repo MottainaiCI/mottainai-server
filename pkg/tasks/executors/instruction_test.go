@@ -22,10 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks_test
 
 import (
+	. "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	. "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
 )
 
 var _ = Describe("Instruction", func() {

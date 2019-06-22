@@ -25,40 +25,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"io"
 	"os"
 	"testing"
 
+	fakes "github.com/MottainaiCI/mottainai-server/tests/fakes"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
-
-type FakeClient struct {
-	Taskfield1 string
-	Taskfield2 string
-}
-
-func (f *FakeClient) RunTask()                                            {}
-func (f *FakeClient) SetupTask()                                          {}
-func (f *FakeClient) Doc(string)                                          {}
-func (f *FakeClient) AppendTaskOutput(string) ([]byte, error)             { return []byte{}, nil }
-func (f *FakeClient) GetTask() ([]byte, error)                            { return []byte{}, nil }
-func (f *FakeClient) AbortTask()                                          {}
-func (f *FakeClient) DownloadArtefactsFromTask(string, string) error      { return nil }
-func (f *FakeClient) DownloadArtefactsFromNamespace(string, string) error { return nil }
-func (f *FakeClient) DownloadArtefactsFromStorage(string, string) error   { return nil }
-func (f *FakeClient) UploadFile(string, string) error                     { return nil }
-func (f *FakeClient) FailTask(string)                                     {}
-func (f *FakeClient) ErrorTask()                                          {}
-func (f *FakeClient) RegisterNode(string, string) ([]byte, error)         { return []byte{}, nil }
-func (f *FakeClient) FinishTask()                                         {}
-func (f *FakeClient) SuccessTask()                                        {}
-func (f *FakeClient) StreamOutput(io.Reader)                              {}
-func (f *FakeClient) SetUploadChunkSize(i int)                            {}
-func (f *FakeClient) SetTaskField(a string, b string) ([]byte, error) {
-	f.Taskfield1 = a
-	f.Taskfield2 = b
-	return []byte{}, nil
-}
 
 func TestTaskExecutor(t *testing.T) {
 	t.Parallel()
@@ -85,16 +59,23 @@ func TestTaskExecutor(t *testing.T) {
 	ctx.RootTaskDir = dir
 	ctx.RealRootDir = dir
 	ctx.DocID = "foo"
-	f := &FakeClient{}
+	f := &fakes.FakeHttpClient{}
+
+	var Taskfield1, Taskfield2 string
+	f.SetTaskFieldCalls(func(a string, b string) (event.APIResponse, error) {
+		Taskfield1 = a
+		Taskfield2 = b
+		return event.APIResponse{}, nil
+	})
 	e := &TaskExecutor{Context: ctx, Config: config}
 	e.MottainaiClient = f
 	e.ExitStatus(20)
 	// TODO : Replace hardcoded exit_status with reflect lookup on map tag
-	if f.Taskfield1 != "exit_status" {
+	if Taskfield1 != "exit_status" {
 		t.Error("Failed first field encode")
 	}
 
-	if f.Taskfield2 != "20" {
+	if Taskfield2 != "20" {
 		t.Error("Failed second field encode")
 	}
 

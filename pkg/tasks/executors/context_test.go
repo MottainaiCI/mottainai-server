@@ -27,7 +27,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	. "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
 )
 
 var _ = Describe("Context", func() {
