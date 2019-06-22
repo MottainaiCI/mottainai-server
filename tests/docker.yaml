@@ -3,6 +3,7 @@ image: "https://dispatcher.sabayon.org/sbi/namespace/vagrant/Sabayon_Linux_DAILY
 type: virtualbox_vagrant
 queue: 'virtualbox'
 script:
+- sudo equo up
 - sudo ACCEPT_LICENSE=* equo i git
 - git clone https://github.com/MottainaiCI/mottainai-server $HOME/bootstrap
 - pushd $HOME/bootstrap
