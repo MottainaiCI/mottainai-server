@@ -129,17 +129,18 @@ type BrokerConfig struct {
 }
 
 type AgentConfig struct {
-	SecretKey         string         `mapstructure:"secret_key"`
-	BuildPath         string         `mapstructure:"build_path"`
-	AgentConcurrency  int            `mapstructure:"concurrency"`
-	AgentKey          string         `mapstructure:"agent_key"`
-	ApiKey            string         `mapstructure:"api_key"`
-	PrivateQueue      int            `mapstructure:"private_queue"`
-	StandAlone        bool           `mapstructure:"standalone"`
-	DownloadRateLimit int64          `mapstructure:"download_speed_limit"`
-	UploadRateLimit   int64          `mapstructure:"upload_speed_limit"`
-	Queues            map[string]int `mapstructure:"queues"`
-	UploadChunkSize   int            `mapstructure:"upload_chunk_size"`
+	SecretKey          string         `mapstructure:"secret_key"`
+	BuildPath          string         `mapstructure:"build_path"`
+	AgentConcurrency   int            `mapstructure:"concurrency"`
+	AgentKey           string         `mapstructure:"agent_key"`
+	ApiKey             string         `mapstructure:"api_key"`
+	PrivateQueue       int            `mapstructure:"private_queue"`
+	StandAlone         bool           `mapstructure:"standalone"`
+	DownloadRateLimit  int64          `mapstructure:"download_speed_limit"`
+	UploadRateLimit    int64          `mapstructure:"upload_speed_limit"`
+	Queues             map[string]int `mapstructure:"queues"`
+	UploadChunkSize    int            `mapstructure:"upload_chunk_size"`
+	SupportedExecutors []string       `mapstructure:"executor"`
 
 	// List of command to execute before execute a task
 	PreTaskHookExec []string `mapstructure:"pre_task_hook_exec"`
@@ -303,6 +304,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.health_check_exec", []string{})
 
 	viper.SetDefault("agent.pre_task_hook_exec", []string{})
+	viper.SetDefault("agent.executor", []string{})
 
 	viper.SetDefault("general.tls_cert", "")
 	viper.SetDefault("general.tls_key", "")

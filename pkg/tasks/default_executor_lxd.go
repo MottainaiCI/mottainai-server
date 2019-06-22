@@ -28,7 +28,32 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
+func SupportedExecutors(config *setting.Config) *TaskHandler {
+
+	se := map[string]interface{}{}
+
+	for _, ex := range config.GetAgent().SupportedExecutors {
+		switch ex {
+		case "docker":
+			se["docker"] = DockerPlayer(config)
+		case "libvirt":
+			se["libvirt_vagrant"] = LibvirtPlayer(config)
+		case "virtualbox":
+			se["virtualbox_vagrant"] = VirtualBoxPlayer(config)
+		case "lxd":
+			se["lxd"] = LxdPlayer(config)
+		}
+	}
+	se["error"] = HandleErr(config)
+
+	return &TaskHandler{Tasks: se, Config: config}
+}
+
 func GenDefaultTaskHandler(config *setting.Config) *TaskHandler {
+	if len(config.GetAgent().SupportedExecutors) > 0 {
+		return SupportedExecutors(config)
+	}
+
 	return &TaskHandler{Tasks: map[string]interface{}{
 
 		"docker_execute": DockerPlayer(config),
