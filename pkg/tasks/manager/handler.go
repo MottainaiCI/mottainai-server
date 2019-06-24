@@ -109,6 +109,23 @@ func DockerPlayer(config *setting.Config) func(args ...interface{}) (int, error)
 	}
 }
 
+func KubernetesPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
+	return func(args ...interface{}) (int, error) {
+		docID, e, err := HandleArgs(args...)
+		player := NewPlayer(docID)
+		executor := executors.NewKubernetesExecutor(config)
+		executor.MottainaiClient = client.NewTokenClient(
+			config.GetWeb().AppURL,
+			config.GetAgent().ApiKey, config)
+		if err != nil {
+			player.EarlyFail(executor, docID, err.Error())
+			return e, err
+		}
+
+		return player.Start(executor)
+	}
+}
+
 func LibvirtPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
 	return func(args ...interface{}) (int, error) {
 		docID, e, err := HandleArgs(args...)

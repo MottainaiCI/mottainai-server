@@ -153,6 +153,9 @@ type AgentConfig struct {
 	DockerCaps        []string `mapstructure:"docker_caps"`
 	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
 
+	KubeConfigPath string `mapstructure:"kubeconfig"`
+	KubeNamespace  string `mapstructure:"kube_namespace"`
+
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
 	LxdProfiles            []string          `mapstructure:"lxd_profiles"`
@@ -293,6 +296,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_in_docker_endpoint", "/var/run/docker.sock")
 	viper.SetDefault("agent.docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("agent.docker_caps_drop", []string{})
+	viper.SetDefault("agent.kubeconfig", "")
+	viper.SetDefault("agent.kube_namespace", "default")
 
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
