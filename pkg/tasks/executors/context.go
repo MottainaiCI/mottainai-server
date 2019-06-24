@@ -101,15 +101,40 @@ func (ctx *ExecutorContext) ResolveArtefactsMounts(m ArtefactMapping, i Instruct
 	if hostmapping {
 		artefactdir = ctx.HostPath(ctx.TaskRelativeDir, artefact_path)
 		storagedir = ctx.HostPath(ctx.TaskRelativeDir, storage_path)
-
-		i.AddMount(artefactdir + ":" + ctx.ContainerPath(artefact_path))
-		i.AddMount(storagedir + ":" + ctx.ContainerPath(storage_path))
 	} else {
 		artefactdir = artdir
 		storagedir = storagetmp
+	}
 
-		i.AddMount(artdir + ":" + ctx.ContainerPath(artefact_path))
-		i.AddMount(storagetmp + ":" + ctx.ContainerPath(storage_path))
+	i.AddMount(artefactdir + ":" + ctx.ContainerPath(artefact_path))
+	i.AddMount(storagedir + ":" + ctx.ContainerPath(storage_path))
+
+	return ArtefactMapping{ArtefactPath: artefactdir, StoragePath: storagedir}
+}
+
+func (ctx *ExecutorContext) ResolveArtefacts(m ArtefactMapping, hostmapping bool) ArtefactMapping {
+	artdir := ctx.ArtefactDir
+	storagetmp := ctx.StorageDir
+
+	var storage_path = "storage"
+	var artefact_path = "artefacts"
+	var artefactdir string
+	var storagedir string
+
+	if len(m.ArtefactPath) > 0 {
+		artefact_path = m.ArtefactPath
+	}
+
+	if len(m.StoragePath) > 0 {
+		storage_path = m.StoragePath
+	}
+
+	if hostmapping {
+		artefactdir = ctx.HostPath(ctx.TaskRelativeDir, artefact_path)
+		storagedir = ctx.HostPath(ctx.TaskRelativeDir, storage_path)
+	} else {
+		artefactdir = artdir
+		storagedir = storagetmp
 	}
 
 	return ArtefactMapping{ArtefactPath: artefactdir, StoragePath: storagedir}

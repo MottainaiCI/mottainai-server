@@ -127,4 +127,34 @@ var _ = Describe("Instruction", func() {
 		})
 	})
 
+	Describe("NewInstructionForLxd", func() {
+		instruction := NewInstructionFromTaskWithDebug(
+			Task{
+				Script: []string{"echo 'bar'", "echo 'foo'"},
+			},
+			"pwd && ls -liah &&")
+
+		Context("EnvsMap()", func() {
+			expectedMap = make(map[string]string{})
+			expectedMap["LC_ALL"] = "en_US.UTF-8"
+
+			It("return a map with LC_ALL", func() {
+				Expect(instruction.EnvironmentMap()).Should(Equal(expectedMap))
+			})
+		})
+
+		Context("CommandList()", func() {
+			It("return all the commands", func() {
+				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd && ls -liah && echo 'bar' && echo 'foo'"}))
+			})
+		})
+
+		Context("ExecutionCommandList()", func() {
+			It("return all entropoint and commands", func() {
+				Expect(instruction.ExecutionCommandList()).Should(
+					Equal([]string{"/bin/bash", "-c", "pwd && ls -liah && echo 'bar' && echo 'foo'"}))
+			})
+		})
+	})
+
 })

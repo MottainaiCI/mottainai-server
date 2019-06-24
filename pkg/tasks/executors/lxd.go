@@ -79,11 +79,11 @@ func (l *LxdExecutor) Setup(docID string) error {
 
 	var err error
 	var client lxd.ContainerServer
-	var configPath string = l.Config.GetAgent().BuildPath + "/lxc/config.yml"
+	var configPath string = path.Join(l.Config.GetAgent().BuildPath, "/lxc/config.yml")
 
 	if len(l.Config.GetAgent().LxdConfigDir) > 0 {
 		// TODO: handle path
-		configPath = l.Config.GetAgent().LxdConfigDir + "/config.yml"
+		configPath = path.Join(l.Config.GetAgent().LxdConfigDir, "/config.yml")
 	}
 
 	l.LxdConfig, err = lxd_config.LoadConfig(configPath)
@@ -120,26 +120,16 @@ func (l *LxdExecutor) Setup(docID string) error {
 
 	l.LxdClient = client
 
-	// Default disable stdout
-	//l.Context.StandardOutput = false
-
 	return nil
 }
 
-func (l *LxdExecutor) Play(docId string) (int, error) {
-
+func (l *LxdExecutor) ResolveCachedImage(task_info tasks.Task) (string, bool, string, error) {
 	var cachedImage bool = false
-	var imageFingerprint, containerName string
-	var err error
+	var imageFingerprint string
 
-	fetcher := l.MottainaiClient
-	task_info, err := tasks.FetchTask(fetcher)
-	if err != nil {
-		return 1, err
-	}
 	sharedName, err := l.TaskExecutor.CreateSharedImageName(&task_info)
 	if err != nil {
-		return 1, err
+		return "", cachedImage, sharedName, err
 	}
 
 	if len(task_info.Image) > 0 {
@@ -158,9 +148,9 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 				if imageFingerprint, _, _, _ = l.FindImage(sharedName); imageFingerprint != "" {
 					l.Report("Cached image found: " + imageFingerprint + " " + sharedName)
 					if imageFingerprint, err = l.PullImage(imageFingerprint); err != nil {
-						return 1, err
+						return "", cachedImage, sharedName, err
 					}
-					l.Report("Pulling image: DONE!")
+					l.Report(fmt.Sprintf("Pulling image %s: DONE!", imageFingerprint))
 				}
 			}
 		}
@@ -168,30 +158,79 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		if imageFingerprint == "" {
 			// POST: Cache image is disable or not caching image found.
 			if imageFingerprint, err = l.PullImage(task_info.Image); err != nil {
-				return 1, err
+				return "", cachedImage, sharedName, err
 			}
-			l.Report("Pulling image: DONE!")
+			l.Report(fmt.Sprintf("Pulling image %s: DONE!", imageFingerprint))
 		}
 	}
 
-	var execute_script = "mottainai-run"
+	return imageFingerprint, cachedImage, sharedName, nil
+}
 
-	if len(task_info.Script) > 0 {
-		execute_script = strings.Join(task_info.Script, " && ")
+func (l *LxdExecutor) InitContainer(containerName string, mapping ArtefactMapping) (string, error) {
+	// Push workdir to container
+	var err error
+	var localWorkDir, targetWorkDir, targetHomeDir string
+
+	// Inside container I use the same path configured on agent with task id
+	targetWorkDir = l.Context.RootTaskDir
+	targetHomeDir = strings.TrimRight(l.Context.ContainerPath(""), "/") + "/"
+
+	if len(l.Context.SourceDir) > 0 {
+		// NOTE: Last / it's needed to avoid to drop last directory on push directory
+		localWorkDir = strings.TrimRight(l.Context.SourceDir, "/") + "/"
+	} else {
+		// NOTE: I use BuildDir to avoid execution of low level mkdir command
+		//       on container. We can replace this with a mkdir to target
+		localWorkDir = strings.TrimRight(l.Context.BuildDir, "/") + "/"
 	}
 
-	var storage_path = "storage"
-	var artefact_path = "artefacts"
-
-	if len(task_info.ArtefactPath) > 0 {
-		artefact_path = task_info.ArtefactPath
+	// Create workdir on container
+	err = l.RecursivePushFile(containerName, localWorkDir, targetWorkDir)
+	if err != nil {
+		return "", err
+	}
+	// Create artefactdir on container
+	err = l.RecursivePushFile(containerName,
+		strings.TrimRight(l.Context.ArtefactDir, "/")+"/",
+		l.Context.ContainerPath(mapping.ArtefactPath))
+	if err != nil {
+		return "", err
+	}
+	// Create storagedir on container
+	err = l.RecursivePushFile(containerName,
+		strings.TrimRight(l.Context.StorageDir, "/")+"/",
+		l.Context.ContainerPath(mapping.StoragePath))
+	if err != nil {
+		return "", err
 	}
 
-	if len(task_info.StoragePath) > 0 {
-		storage_path = task_info.StoragePath
+	return targetHomeDir, nil
+}
+
+func (l *LxdExecutor) Play(docId string) (int, error) {
+	var imageFingerprint, containerName, sharedName string
+	var cachedImage bool = false
+	var err error
+
+	task_info, err := tasks.FetchTask(l.MottainaiClient)
+	if err != nil {
+		return 1, err
 	}
 
-	if err := l.DownloadArtefacts(l.Context.ArtefactDir, l.Context.StorageDir); err != nil {
+	imageFingerprint, cachedImage, sharedName, err = l.ResolveCachedImage(task_info)
+	if err != nil {
+		return 1, err
+	}
+
+	mapping := l.Context.ResolveArtefacts(ArtefactMapping{
+		ArtefactPath: task_info.ArtefactPath,
+		StoragePath:  task_info.StoragePath,
+	}, false)
+
+	l.Context.Report(l)
+
+	if err := l.DownloadArtefacts(mapping.ArtefactPath, mapping.ArtefactPath); err != nil {
 		return 1, err
 	}
 
@@ -199,52 +238,32 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 
 	containerName = l.GetContainerName(&task_info)
 
-	l.Report("Starting container " + containerName)
+	l.Report(">> Creating container " + containerName + "...")
 	err = l.LaunchContainer(containerName, imageFingerprint, cachedImage)
 	if err != nil {
+		l.Report("Creating container error: " + err.Error())
 		return 1, err
 	}
 	defer l.CleanUpContainer(containerName, &task_info)
 
 	// Push workdir to container
-	var localWorkDir, targetWorkDir, targetArtefactDir, targetStorageDir, targetHomeDir string
+	var targetHomeDir string
 
-	// Inside container I use the same path configured on agent with task id
-	targetWorkDir = l.Context.RootTaskDir
-	targetHomeDir = strings.TrimRight(l.Context.ContainerPath(""), "/") + "/"
-	targetArtefactDir = l.Context.ContainerPath(artefact_path)
-	targetStorageDir = l.Context.ContainerPath(storage_path)
-
-	if len(l.Context.SourceDir) > 0 {
-		// NOTE: Last / it's needed to avoid to drop last directory on push directory
-		localWorkDir = strings.TrimRight(l.Context.SourceDir, "/") + "/"
-	} else {
-		// NOTE: I use BuildDir to avoid execution of low level mkdir command
-		//       on container. We can replase this with a mkdir to target
-		localWorkDir = strings.TrimRight(l.Context.BuildDir, "/") + "/"
-	}
-
-	// Create workdir on container
-	err = l.RecursivePushFile(containerName, localWorkDir, targetWorkDir)
+	targetHomeDir, err = l.InitContainer(containerName, mapping)
 	if err != nil {
+		l.Report("Error on initialize container: " + err.Error())
 		return 1, err
 	}
-	// Create artefactdir on container
-	err = l.RecursivePushFile(containerName,
-		strings.TrimRight(l.Context.ArtefactDir, "/")+"/", targetArtefactDir)
-	if err != nil {
-		return 1, err
-	}
-	// Create storagedir on container
-	err = l.RecursivePushFile(containerName,
-		strings.TrimRight(l.Context.StorageDir, "/")+"/", targetStorageDir)
-	if err != nil {
-		return 1, err
+
+	request := StateRequest{
+		ContainerID: containerName,
+		CacheImage:  sharedName,
+		Prune:       false,
 	}
 
 	// Execute command
 	var res int
-	res, err = l.ExecCommand(containerName, execute_script, targetHomeDir, &task_info)
+	res, err = l.ExecCommand(&request, targetHomeDir, &task_info)
 	if err != nil || res != 0 {
 		if err != nil {
 			l.Report("Error on exec command: " + err.Error())
@@ -260,7 +279,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	}
 
 	// Pull ArtefactDir from container
-	err = l.RecursivePullFile(containerName, targetArtefactDir,
+	err = l.RecursivePullFile(containerName, l.Context.ContainerPath(mapping.ArtefactPath),
 		l.Context.ArtefactDir, true)
 	if err != nil {
 		return 1, err
@@ -277,13 +296,13 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		l.Report("Try to clean artefacts and storage directories from container before create cached image...")
 
 		// Delete old directories of storage and artefacts
-		err = l.DeleteContainerDirRecursive(containerName, targetArtefactDir)
+		err = l.DeleteContainerDirRecursive(containerName, l.Context.ContainerPath(mapping.ArtefactPath))
 		if err != nil {
 			l.Report("WARNING: Error on clean artefacts dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
 		}
 
-		err = l.DeleteContainerDirRecursive(containerName, targetStorageDir)
+		err = l.DeleteContainerDirRecursive(containerName, l.Context.ContainerPath(mapping.StoragePath))
 		if err != nil {
 			l.Report("WARNING: Error on clean storage dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
@@ -1113,59 +1132,26 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 	return nil
 }
 
-func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *tasks.Task) (int, error) {
-	var apiCommand []string
+func (l *LxdExecutor) ExecCommand(request *StateRequest, workdir string, task *tasks.Task) (int, error) {
+	instruction := NewInstructionFromTaskWithDebug(*task, "pwd && ls -liah && ")
+	env := instruction.EnvironmentMap()
 
-	env := map[string]string{}
-
-	if len(task.Environment) > 0 {
-		// Convert string list to map
-		for _, e := range task.Environment {
-			if strings.Index(e, "=") < 0 {
-				return 1, fmt.Errorf("Invalid variable %s", e)
-			}
-
-			key := e[:strings.Index(e, "=")]
-			value := e[strings.Index(e, "=")+1:]
-			env[key] = value
-		}
-	} else {
-		env["LC_ALL"] = "en_US.UTF-8"
-	}
+	instruction.Report(l)
 
 	// Set workdir as HOME
 	env["HOME"] = workdir
 
-	// Disable stdin
-	var stdin io.ReadCloser = ioutil.NopCloser(bytes.NewReader(nil))
-
-	// If defined entrypoint i use it for execute list of script.
-	// else I use /bin/bash -c 'LIST_SCRIPTS'
-	if len(task.Entrypoint) > 0 {
-		apiCommand = append([]string{}, task.Entrypoint...)
-	} else {
-		apiCommand = []string{"/bin/bash", "-c"}
-	}
-
-	l.Report(fmt.Sprintf(
-		"======================================================\n"+
-			"Executing:\n%s [%s]\n"+
-			"======================================================\n",
-		apiCommand, command))
-
-	// Align logic done on docker task
-	apiCommand = append(apiCommand, "pwd && ls -liah && "+command)
-
 	// Prepare the command
 	req := lxd_api.ContainerExecPost{
-		Command:     apiCommand,
+		Command:     instruction.ExecutionCommandList(),
 		WaitForWS:   true,
 		Interactive: false,
 		Environment: env,
 	}
 
 	execArgs := lxd.ContainerExecArgs{
-		Stdin:   stdin,
+		// Disable stdin
+		Stdin:   ioutil.NopCloser(bytes.NewReader(nil)),
 		Stdout:  l.TaskExecutor,
 		Stderr:  l.TaskExecutor,
 		Control: nil,
@@ -1175,7 +1161,7 @@ func (l *LxdExecutor) ExecCommand(nameContainer, command, workdir string, task *
 
 	var err error
 	// Run the command in the container
-	l.CurrentLocalOperation, err = l.LxdClient.ExecContainer(nameContainer, req, &execArgs)
+	l.CurrentLocalOperation, err = l.LxdClient.ExecContainer(request.ContainerID, req, &execArgs)
 	if err != nil {
 		l.Report("Error on exec command: " + err.Error())
 		return 1, err

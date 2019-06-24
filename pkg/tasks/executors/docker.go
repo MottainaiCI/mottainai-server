@@ -225,12 +225,6 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 	return d.Handle(request, mapping)
 }
 
-type StateRequest struct {
-	ContainerID, CacheImage string
-	ImagesToClean           []string
-	Prune                   bool
-}
-
 func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int, error) {
 	starttime := time.Now()
 

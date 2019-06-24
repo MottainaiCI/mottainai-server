@@ -59,6 +59,14 @@ type TaskExecutor struct {
 	Config          *setting.Config
 }
 
+type StateRequest struct {
+	ContainerID     string
+	ExecOperationId string
+	CacheImage      string
+	ImagesToClean   []string
+	Prune           bool
+}
+
 func (d *TaskExecutor) HandleTaskStop(timedout bool) (int, error) {
 	if timedout {
 		d.Report("!! Task timeout!")

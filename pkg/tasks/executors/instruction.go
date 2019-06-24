@@ -33,9 +33,11 @@ type Instruction interface {
 	ToScript() string
 	CommandList() []string
 	EntrypointList() []string
+	ExecutionCommandList() []string
 
 	SetEnvironment(env []string)
 	EnvironmentList() []string
+	EnvironmentMap() map[string]string
 
 	SetMounts(mounts []string)
 	AddMount(mount string)
@@ -63,6 +65,12 @@ func (d *DefaultInstruction) EntrypointList() []string {
 	return d.Entrypoint
 }
 
+func (d *DefaultInstruction) ExecutionCommandList() []string {
+	var ans []string = d.Entrypoint
+	ans = append(ans, d.ToScript())
+	return ans
+}
+
 func (d *DefaultInstruction) AddMount(mount string) {
 	d.Mounts = append(d.Mounts, mount)
 }
@@ -81,6 +89,22 @@ func (d *DefaultInstruction) SetEnvironment(env []string) {
 
 func (d *DefaultInstruction) EnvironmentList() []string {
 	return d.Environment
+}
+
+func (d *DefaultInstruction) EnvironmentMap() map[string]string {
+	var kv []string
+	ans := make(map[string]string)
+
+	for _, v := range d.EnvironmentList() {
+		kv = strings.Split(v, "=")
+		ans[kv[0]] = kv[1]
+	}
+
+	if len(ans) == 0 {
+		ans["LC_ALL"] = "en_US.UTF-8"
+	}
+
+	return ans
 }
 
 func (instruction *DefaultInstruction) Report(d Executor) {
@@ -106,8 +130,10 @@ func (instruction *DefaultInstruction) Report(d Executor) {
 	}
 }
 
-func NewDebugInstruction(script []string) Instruction {
-	return NewBashInstruction([]string{"pwd;ls -liah;" + NewDefaultInstruction([]string{}, script).ToScript()})
+func NewDebugInstruction(script []string, debugInstructions string) Instruction {
+	return NewBashInstruction([]string{
+		debugInstructions + NewDefaultInstruction([]string{}, script).ToScript(),
+	})
 }
 
 func NewBashInstruction(script []string) Instruction {
@@ -120,8 +146,8 @@ func NewDefaultInstruction(entrypoint, script []string) Instruction {
 	return &DefaultInstruction{Script: script, Entrypoint: entrypoint}
 }
 
-func NewInstructionFromTask(task tasks.Task) Instruction {
-	instruction := NewDebugInstruction(task.Script)
+func NewInstructionFromTaskWithDebug(task tasks.Task, debugInstructions string) Instruction {
+	instruction := NewDebugInstruction(task.Script, debugInstructions)
 	if len(task.Entrypoint) > 0 {
 		instruction = NewDefaultInstruction(task.Entrypoint, task.Script)
 	}
@@ -129,4 +155,8 @@ func NewInstructionFromTask(task tasks.Task) Instruction {
 	instruction.SetMounts(task.Binds)
 
 	return instruction
+}
+
+func NewInstructionFromTask(task tasks.Task) Instruction {
+	return NewInstructionFromTaskWithDebug(task, "pwd;ls -liah;")
 }
