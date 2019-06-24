@@ -149,7 +149,7 @@ var _ = Describe("Instruction", func() {
 			"pwd && ls -liah &&")
 
 		Context("EnvsMap()", func() {
-			expectedMap = make(map[string]string{})
+			expectedMap := make(map[string]string)
 			expectedMap["LC_ALL"] = "en_US.UTF-8"
 
 			It("return a map with LC_ALL", func() {

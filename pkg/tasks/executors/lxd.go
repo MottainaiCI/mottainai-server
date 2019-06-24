@@ -378,8 +378,9 @@ func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 		if image != nil {
 			err = image_server.DeleteImageAlias(alias)
 			if err != nil {
-				l.Report("WARNING: Error on delete alias to remote image %s. I try to proceed.",
-					aliasEntry.Target)
+				l.Report(fmt.Sprintf(
+					"WARNING: Error on delete alias to remote image %s. I try to proceed.",
+					aliasEntry.Target))
 			}
 		}
 	}
