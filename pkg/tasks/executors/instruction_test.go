@@ -54,16 +54,16 @@ var _ = Describe("Instruction", func() {
 	})
 
 	Describe("NewDebugInstruction", func() {
-		instruction := NewDebugInstruction([]string{"echo 'bar'", "echo 'foo'"})
+		instruction := NewDebugInstruction([]string{"echo 'bar'", "echo 'foo'"}, "pwd;ls -liah;")
 
 		Context("ToScript() Converts them to one string", func() {
 			It("simply joins them", func() {
-				Expect(instruction.ToScript()).Should(Equal("-c && pwd;ls -liah;echo 'bar' && echo 'foo'"))
+				Expect(instruction.ToScript()).Should(Equal("pwd;ls -liah;echo 'bar' && echo 'foo'"))
 			})
 		})
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
-				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd;ls -liah;echo 'bar' && echo 'foo'"}))
+				Expect(instruction.CommandList()).Should(Equal([]string{"pwd;ls -liah;echo 'bar' && echo 'foo'"}))
 			})
 		})
 
@@ -99,19 +99,27 @@ var _ = Describe("Instruction", func() {
 				Expect(instruction.MountsList()[1]).Should(Equal("test"))
 			})
 		})
+
+		Context("EntrypointList()", func() {
+			It("return entropoints", func() {
+				Expect(instruction.EntrypointList()).Should(Equal([]string{"/bin/bash", "-c"}))
+			})
+		})
 	})
 
 	Describe("NewInstructionFromTask", func() {
-		instruction := NewInstructionFromTask(Task{Script: []string{"echo 'bar'", "echo 'foo'"}, Binds: []string{"test:foo"}})
+		instruction := NewInstructionFromTask(Task{
+			Script: []string{"echo 'bar'", "echo 'foo'"}, Binds: []string{"test:foo"},
+		})
 
 		Context("ToScript() Converts them to one string", func() {
 			It("simply joins them", func() {
-				Expect(instruction.ToScript()).Should(Equal("-c && pwd;ls -liah;echo 'bar' && echo 'foo'"))
+				Expect(instruction.ToScript()).Should(Equal("pwd;ls -liah;echo 'bar' && echo 'foo'"))
 			})
 		})
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
-				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd;ls -liah;echo 'bar' && echo 'foo'"}))
+				Expect(instruction.CommandList()).Should(Equal([]string{"pwd;ls -liah;echo 'bar' && echo 'foo'"}))
 			})
 		})
 
@@ -123,6 +131,12 @@ var _ = Describe("Instruction", func() {
 				instruction.AddMount("test")
 				Expect(instruction.MountsList()[0]).Should(Equal("foo"))
 				Expect(instruction.MountsList()[1]).Should(Equal("test"))
+			})
+		})
+
+		Context("EntrypointList()", func() {
+			It("return entropoints", func() {
+				Expect(instruction.EntrypointList()).Should(Equal([]string{"/bin/bash", "-c"}))
 			})
 		})
 	})
@@ -145,7 +159,7 @@ var _ = Describe("Instruction", func() {
 
 		Context("CommandList()", func() {
 			It("return all the commands", func() {
-				Expect(instruction.CommandList()).Should(Equal([]string{"-c", "pwd && ls -liah && echo 'bar' && echo 'foo'"}))
+				Expect(instruction.CommandList()).Should(Equal([]string{"pwd && ls -liah && echo 'bar' && echo 'foo'"}))
 			})
 		})
 
@@ -153,6 +167,12 @@ var _ = Describe("Instruction", func() {
 			It("return all entropoint and commands", func() {
 				Expect(instruction.ExecutionCommandList()).Should(
 					Equal([]string{"/bin/bash", "-c", "pwd && ls -liah && echo 'bar' && echo 'foo'"}))
+			})
+		})
+
+		Context("EntrypointList()", func() {
+			It("return entropoints", func() {
+				Expect(instruction.EntrypointList()).Should(Equal([]string{"/bin/bash", "-c"}))
 			})
 		})
 	})

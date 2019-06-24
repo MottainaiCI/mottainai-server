@@ -137,9 +137,7 @@ func NewDebugInstruction(script []string, debugInstructions string) Instruction 
 }
 
 func NewBashInstruction(script []string) Instruction {
-	cmd := []string{"-c"}
-	cmd = append(cmd, script...)
-	return NewDefaultInstruction([]string{"/bin/bash"}, cmd)
+	return NewDefaultInstruction([]string{"/bin/bash", "-c"}, script)
 }
 
 func NewDefaultInstruction(entrypoint, script []string) Instruction {

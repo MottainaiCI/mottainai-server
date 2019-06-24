@@ -226,7 +226,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	mapping := l.Context.ResolveArtefacts(ArtefactMapping{
 		ArtefactPath: task_info.ArtefactPath,
 		StoragePath:  task_info.StoragePath,
-	}, false)
+	}, true)
 
 	l.Context.Report(l)
 
