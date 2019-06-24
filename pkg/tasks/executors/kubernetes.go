@@ -25,10 +25,12 @@ package agenttasks
 import (
 	"bufio"
 	"io"
+	"strconv"
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -87,9 +89,10 @@ func (d *KubernetesExecutor) AttachContainerReport() error {
 		Name(d.PodID).
 		Resource("pods").
 		SubResource("log").
-		Param("follow", "true").
-		Param("container", d.PodID)
-
+		Param("follow", strconv.FormatBool(true)).
+		Param("container", d.PodID).
+		Param("previous", strconv.FormatBool(false)).
+		Param("timestamps", strconv.FormatBool(true))
 	readCloser, err := req.Stream()
 	if err != nil {
 		return err
@@ -120,44 +123,59 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 	d.Context.ResolveMounts(instruction)
 
 	p, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Create(&apiv1.Pod{
+
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.PodID,
 			Namespace: d.Namespace,
-			Labels:    map[string]string{"mottainai-job": d.PodID},
+			Labels:    map[string]string{"mottainai-job" + d.PodID: "true"},
 		},
-		Spec: apiv1.PodSpec{Containers: []apiv1.Container{{
-			Name:       d.PodID,
-			Command:    instruction.EntrypointList(),
-			Args:       instruction.CommandList(),
-			Image:      task_info.Image,
-			WorkingDir: d.Context.HostPath(task_info.Directory),
-		}}}})
+		Spec: apiv1.PodSpec{
+			RestartPolicy: apiv1.RestartPolicyNever,
+
+			Containers: []apiv1.Container{{
+				Name:       d.PodID,
+				Command:    instruction.EntrypointList(),
+				Args:       instruction.CommandList(),
+				Image:      task_info.Image,
+				WorkingDir: d.Context.HostPath(task_info.Directory),
+				TTY:        true,
+			}}}})
 	if err != nil {
 		return 1, err
 	}
-	err = d.AttachContainerReport()
-	if err != nil {
-		return 1, err
-	}
+	//time.Sleep(10 * time.Second)
+	//err = d.AttachContainerReport()
+	// if err != nil {
+	// 	return 1, errors.Wrap(err, "Error attaching stdout to pod "+d.PodID)
+	// }
 	defer d.CleanUpContainer()
 
 	return d.Handle(p)
 }
+func (d *KubernetesExecutor) Clean() error {
+
+	if err := d.TaskExecutor.Clean(); err != nil {
+		return err
+	}
+	return d.CleanUpContainer()
+}
 
 func (d *KubernetesExecutor) Handle(p *apiv1.Pod) (int, error) {
+	defer d.CleanUpContainer()
+
 	starttime := time.Now()
 	var (
 		resp *apiv1.Pod = &apiv1.Pod{}
 	)
 
 	w, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Watch(metav1.ListOptions{
-		Watch:           true,
-		ResourceVersion: p.ResourceVersion,
-		FieldSelector:   fields.Set{"metadata.name": d.PodID}.AsSelector().String(),
-		LabelSelector:   labels.Everything().String(),
+		Watch:         true,
+		FieldSelector: fields.Set{"metadata.name": d.PodID}.AsSelector().String(),
+		LabelSelector: labels.Everything().String(),
+		//	LabelSelector: "mottainai-job" + d.PodID,
 	})
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "Error setting up kube watcher for pod: "+d.PodID+" label: "+"mottainai-job"+d.PodID)
 	}
 
 	status := resp.Status
@@ -167,9 +185,11 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod) (int, error) {
 		c2 := make(chan bool)
 		go func() {
 			for {
+				time.Sleep(5 * time.Second)
 				now := time.Now()
 				task_info, err := tasks.FetchTask(d.MottainaiClient)
 				if err != nil {
+					c2 <- true
 					//fetcher.SetTaskResult("error")
 					//fetcher.SetTaskStatus("done")
 					d.Report(err.Error())
