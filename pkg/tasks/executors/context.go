@@ -66,6 +66,14 @@ type ArtefactMapping struct {
 	StoragePath  string
 }
 
+func (m ArtefactMapping) GetArtefactPath() string {
+	if len(m.ArtefactPath) > 0 {
+		return m.ArtefactPath
+	}
+
+	return "artefacts"
+}
+
 func (ctx *ExecutorContext) Report(d Executor) {
 	d.Report("Container working dir: " + ctx.HostPath(ctx.TaskRelativeDir))
 	d.Report("Context TaskRelativeDir: " + ctx.TaskRelativeDir)
@@ -86,13 +94,9 @@ func (ctx *ExecutorContext) ResolveArtefactsMounts(m ArtefactMapping, i Instruct
 	storagetmp := ctx.StorageDir
 
 	var storage_path = "storage"
-	var artefact_path = "artefacts"
+	var artefact_path = m.GetArtefactPath()
 	var artefactdir string
 	var storagedir string
-
-	if len(m.ArtefactPath) > 0 {
-		artefact_path = m.ArtefactPath
-	}
 
 	if len(m.StoragePath) > 0 {
 		storage_path = m.StoragePath

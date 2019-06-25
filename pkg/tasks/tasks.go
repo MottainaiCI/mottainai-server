@@ -85,6 +85,8 @@ type Task struct {
 	TimeOut     float64  `json:"timeout" form:"timeout"`
 	Binds       []string `json:"binds" form:"binds"`
 	Environment []string `json:"environment" form:"environment"`
+
+	Quota string `json:"quota" form:"quota"`
 }
 
 type Plan struct {
@@ -192,6 +194,7 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		storage          string
 		storage_path     string
 		artefact_path    string
+		quota            string
 		root_task        string
 		prune            string
 		tag_namespace    string
@@ -255,6 +258,9 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	}
 	if str, ok := t["type"].(string); ok {
 		tasktype = str
+	}
+	if str, ok := t["quota"].(string); ok {
+		quota = str
 	}
 	if str, ok := t["task"].(string); ok {
 		tasktype = str
@@ -350,6 +356,7 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		Source:       source,
 		PrivKey:      privkey,
 		Script:       script,
+		Quota:        quota,
 		Delayed:      delayed,
 		Directory:    directory,
 		Type:         tasktype,

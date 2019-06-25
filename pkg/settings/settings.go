@@ -152,9 +152,11 @@ type AgentConfig struct {
 	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint"`
 	DockerCaps        []string `mapstructure:"docker_caps"`
 	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
+	DefaultTaskQuota  string   `mapstructure:"default_task_quota"`
 
-	KubeConfigPath string `mapstructure:"kubeconfig"`
-	KubeNamespace  string `mapstructure:"kube_namespace"`
+	KubeConfigPath   string `mapstructure:"kubeconfig"`
+	KubeNamespace    string `mapstructure:"kube_namespace"`
+	KubeStorageClass string `mapstructure:"kube_storageclass"`
 
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
@@ -298,6 +300,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_caps_drop", []string{})
 	viper.SetDefault("agent.kubeconfig", "")
 	viper.SetDefault("agent.kube_namespace", "default")
+	viper.SetDefault("agent.kube_storageclass", "standard")
+	viper.SetDefault("agent.default_task_quota", "100Gi")
 
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
