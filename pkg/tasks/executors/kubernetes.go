@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"bufio"
 	"io"
 	"strconv"
 	"time"
@@ -33,8 +32,6 @@ import (
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -84,7 +81,30 @@ func (d *KubernetesExecutor) Setup(docID string) error {
 }
 
 func (d *KubernetesExecutor) AttachContainerReport() error {
-	req := d.KubernetesClient.RESTClient().Get().
+	p, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Get(d.PodID, metav1.GetOptions{})
+	if err != nil {
+		return err
+
+	}
+	for {
+		p, err = d.KubernetesClient.CoreV1().Pods(d.Namespace).Get(d.PodID, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		d.Report("Waiting for POD " + d.PodID + " to come up. State: " + string(p.Status.Phase))
+		if p.Status.Phase != apiv1.PodPending {
+			break
+		}
+	}
+
+	if p.Status.Phase != apiv1.PodRunning { //something went wrong, but we want to catch the error from the handle, which grabs exit code already
+		d.Report("No available output")
+		return nil
+	}
+
+	d.Report("Attaching to POD output..")
+
+	req := d.KubernetesClient.CoreV1().RESTClient().Get().
 		Namespace(d.Namespace).
 		Name(d.PodID).
 		Resource("pods").
@@ -98,18 +118,14 @@ func (d *KubernetesExecutor) AttachContainerReport() error {
 		return err
 	}
 
-	defer readCloser.Close()
-
-	go func(reader io.Reader) {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			d.Report(scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			d.Report("There was an error with the scanner in attached container:" + err.Error())
+	go func() {
+		defer readCloser.Close()
+		_, err = io.Copy(d, readCloser)
+		if err != nil {
+			d.Report("Error: " + err.Error())
 			return
 		}
-	}(readCloser)
+	}()
 
 	return nil
 }
@@ -144,10 +160,10 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 		return 1, err
 	}
 	//time.Sleep(10 * time.Second)
-	//err = d.AttachContainerReport()
-	// if err != nil {
-	// 	return 1, errors.Wrap(err, "Error attaching stdout to pod "+d.PodID)
-	// }
+	err = d.AttachContainerReport()
+	if err != nil {
+		return 1, errors.Wrap(err, "Error attaching stdout to pod "+d.PodID)
+	}
 	defer d.CleanUpContainer()
 
 	return d.Handle(p)
@@ -164,60 +180,41 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod) (int, error) {
 	defer d.CleanUpContainer()
 
 	starttime := time.Now()
-	var (
-		resp *apiv1.Pod = &apiv1.Pod{}
-	)
-
-	w, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Watch(metav1.ListOptions{
-		Watch:         true,
-		FieldSelector: fields.Set{"metadata.name": d.PodID}.AsSelector().String(),
-		LabelSelector: labels.Everything().String(),
-		//	LabelSelector: "mottainai-job" + d.PodID,
-	})
+	p, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Get(d.PodID, metav1.GetOptions{})
 	if err != nil {
-		return 1, errors.Wrap(err, "Error setting up kube watcher for pod: "+d.PodID+" label: "+"mottainai-job"+d.PodID)
+		return 1, err
 	}
 
-	status := resp.Status
-
 	for {
+		p, err = d.KubernetesClient.CoreV1().Pods(d.Namespace).Get(d.PodID, metav1.GetOptions{})
+		if err != nil {
 
-		c2 := make(chan bool)
-		go func() {
-			for {
-				time.Sleep(5 * time.Second)
-				now := time.Now()
-				task_info, err := tasks.FetchTask(d.MottainaiClient)
-				if err != nil {
-					c2 <- true
-					//fetcher.SetTaskResult("error")
-					//fetcher.SetTaskStatus("done")
-					d.Report(err.Error())
-					return
-				}
-				timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
-				if task_info.IsStopped() || timedout {
-					c2 <- true
-					return
-				}
-			}
+			//fetcher.SetTaskResult("error")
+			//fetcher.SetTaskStatus("done")
+			d.Report(err.Error())
+			return 1, err
 
-		}()
+		}
+		time.Sleep(2 * time.Second)
+		now := time.Now()
+		task_info, err := tasks.FetchTask(d.MottainaiClient)
+		if err != nil {
 
-		select {
-		case events, ok := <-w.ResultChan():
-			if !ok {
-				break
-			}
-			resp = events.Object.(*apiv1.Pod)
-			status = resp.Status
-			if resp.Status.Phase != apiv1.PodPending && status.Phase != apiv1.PodRunning {
-				w.Stop()
-			}
-		case <-c2:
-			w.Stop()
+			//fetcher.SetTaskResult("error")
+			//fetcher.SetTaskStatus("done")
+			d.Report(err.Error())
+			return 1, err
+
+		}
+		timedout := (task_info.TimeOut != 0 && (now.Sub(starttime).Seconds() > task_info.TimeOut))
+		if task_info.IsStopped() || timedout {
 			return d.HandleTaskStop(true)
 		}
+
+		if p.Status.Phase != apiv1.PodPending && p.Status.Phase != apiv1.PodRunning {
+			break
+		}
+
 	}
 
 	d.Report("Container execution terminated")
@@ -229,7 +226,7 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod) (int, error) {
 	// }
 	// d.Report("Upload of artifacts terminated")
 
-	return int(status.ContainerStatuses[0].State.Terminated.ExitCode), nil
+	return int(p.Status.ContainerStatuses[0].State.Terminated.ExitCode), nil
 
 }
 
