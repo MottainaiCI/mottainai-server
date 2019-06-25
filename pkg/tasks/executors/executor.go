@@ -60,11 +60,29 @@ type TaskExecutor struct {
 }
 
 type StateRequest struct {
-	ContainerID     string
-	ExecOperationId string
-	CacheImage      string
-	ImagesToClean   []string
-	Prune           bool
+	ContainerID   string
+	CacheImage    string
+	ImagesToClean []string
+	Prune         bool
+}
+
+// StateExecution it's used for trace execution of
+// a task. Possible states:
+// [prepare] --> [running] --> [done]
+//                  |--------> [error]
+type StateExecution struct {
+	Request *StateRequest
+	Status  string
+	Error   error
+	Result  int
+}
+
+func (e *StateExecution) UpdateState(status string, err error, res int) {
+	e.Status = status
+	if err != nil {
+		e.Error = err
+	}
+	e.Result = res
 }
 
 func (d *TaskExecutor) HandleTaskStop(timedout bool) (int, error) {
