@@ -232,38 +232,44 @@ func (d *KubernetesExecutor) PopulateArtefacts(volumes []apiv1.Volume, volumeMou
 	if err := d.WaitUntilRunning(stagerPod, d.Namespace); err != nil {
 		return err
 	}
-
-	files, err := ioutil.ReadDir(outMapping.ArtefactPath)
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := d.KubeCP(path.Join(outMapping.ArtefactPath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath())); err != nil {
-			return err
-		}
-	}
-
-	files, err = ioutil.ReadDir(outMapping.StoragePath)
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := d.KubeCP(path.Join(outMapping.StoragePath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetStoragePath())); err != nil {
-			return err
-		}
-	}
-
-	if len(d.Context.SourceDir) > 0 {
-		files, err = ioutil.ReadDir(d.Context.SourceDir)
+	if _, err := os.Stat(outMapping.ArtefactPath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(outMapping.ArtefactPath)
 		if err != nil {
 			return err
 		}
 		for _, f := range files {
-			if err := d.KubeCP(path.Join(d.Context.SourceDir, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.RootTaskDir); err != nil {
+			if err := d.KubeCP(path.Join(outMapping.ArtefactPath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath())); err != nil {
+				return err
+			}
+		}
+	}
+
+	if _, err := os.Stat(outMapping.StoragePath); !os.IsNotExist(err) {
+
+		files, err := ioutil.ReadDir(outMapping.StoragePath)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			if err := d.KubeCP(path.Join(outMapping.StoragePath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetStoragePath())); err != nil {
 				return err
 			}
 		}
 
+	}
+	if len(d.Context.SourceDir) > 0 {
+		if _, err := os.Stat(outMapping.StoragePath); !os.IsNotExist(err) {
+
+			files, err := ioutil.ReadDir(d.Context.SourceDir)
+			if err != nil {
+				return err
+			}
+			for _, f := range files {
+				if err := d.KubeCP(path.Join(d.Context.SourceDir, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.RootTaskDir); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	d.Report("Droplet populated from artefacts")
