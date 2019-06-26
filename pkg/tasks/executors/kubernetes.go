@@ -24,9 +24,10 @@ package agenttasks
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"path"
 	"strconv"
 	"time"
 
@@ -232,42 +233,37 @@ func (d *KubernetesExecutor) PopulateArtefacts(volumes []apiv1.Volume, volumeMou
 		return err
 	}
 
-	if err := filepath.Walk(outMapping.ArtefactPath, func(path string, info os.FileInfo, err error) error {
-		if outMapping.ArtefactPath == path {
-			return nil
-		}
-		if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath())); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	files, err := ioutil.ReadDir(outMapping.ArtefactPath)
+	if err != nil {
 		return err
 	}
-
-	if err := filepath.Walk(outMapping.StoragePath, func(path string, info os.FileInfo, err error) error {
-		if outMapping.StoragePath == path {
-			return nil
-		}
-		if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetStoragePath())); err != nil {
+	for _, f := range files {
+		if err := d.KubeCP(path.Join(outMapping.ArtefactPath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath())); err != nil {
 			return err
 		}
-		return nil
-	}); err != nil {
+	}
+
+	files, err = ioutil.ReadDir(outMapping.StoragePath)
+	if err != nil {
 		return err
+	}
+	for _, f := range files {
+		if err := d.KubeCP(path.Join(outMapping.StoragePath, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetStoragePath())); err != nil {
+			return err
+		}
 	}
 
 	if len(d.Context.SourceDir) > 0 {
-		if err := filepath.Walk(d.Context.SourceDir, func(path string, info os.FileInfo, err error) error {
-			if d.Context.SourceDir == path {
-				return nil
-			}
-			if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.RootTaskDir); err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
+		files, err = ioutil.ReadDir(d.Context.SourceDir)
+		if err != nil {
 			return err
 		}
+		for _, f := range files {
+			if err := d.KubeCP(path.Join(d.Context.SourceDir, f.Name()), d.Namespace+"/"+stagerPod+":"+d.Context.RootTaskDir); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	d.Report("Droplet populated from artefacts")
