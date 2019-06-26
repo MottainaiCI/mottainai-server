@@ -191,15 +191,13 @@ func (l *LxdExecutor) InitContainer(containerName string, mapping ArtefactMappin
 	}
 	// Create artefactdir on container
 	err = l.RecursivePushFile(containerName,
-		strings.TrimRight(l.Context.ArtefactDir, "/")+"/",
-		l.Context.ContainerPath(mapping.ArtefactPath))
+		strings.TrimRight(l.Context.ArtefactDir, "/")+"/", mapping.ArtefactPath)
 	if err != nil {
 		return "", err
 	}
 	// Create storagedir on container
 	err = l.RecursivePushFile(containerName,
-		strings.TrimRight(l.Context.StorageDir, "/")+"/",
-		l.Context.ContainerPath(mapping.StoragePath))
+		strings.TrimRight(l.Context.StorageDir, "/")+"/", mapping.StoragePath)
 	if err != nil {
 		return "", err
 	}
@@ -229,7 +227,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 
 	l.Context.Report(l)
 
-	if err := l.DownloadArtefacts(mapping.ArtefactPath, mapping.ArtefactPath); err != nil {
+	if err := l.DownloadArtefacts(l.Context.ArtefactDir, l.Context.StorageDir); err != nil {
 		return 1, err
 	}
 
@@ -315,8 +313,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 	l.Report("Container execution terminated")
 
 	// Pull ArtefactDir from container
-	err = l.RecursivePullFile(exec.Request.ContainerID,
-		l.Context.ContainerPath(mapping.ArtefactPath),
+	err = l.RecursivePullFile(exec.Request.ContainerID, mapping.ArtefactPath,
 		l.Context.ArtefactDir, true)
 	if err != nil {
 		return 1, err
@@ -519,13 +516,13 @@ func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping Artefac
 		l.Report("Try to clean artefacts and storage directories from container before create cached image...")
 
 		// Delete old directories of storage and artefacts
-		err = l.DeleteContainerDirRecursive(containerName, l.Context.ContainerPath(mapping.ArtefactPath))
+		err = l.DeleteContainerDirRecursive(containerName, mapping.ArtefactPath)
 		if err != nil {
 			l.Report("WARNING: Error on clean artefacts dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
 		}
 
-		err = l.DeleteContainerDirRecursive(containerName, l.Context.ContainerPath(mapping.StoragePath))
+		err = l.DeleteContainerDirRecursive(containerName, mapping.StoragePath)
 		if err != nil {
 			l.Report("WARNING: Error on clean storage dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
