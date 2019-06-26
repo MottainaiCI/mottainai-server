@@ -314,10 +314,6 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 
 	l.Report("Container execution terminated")
 
-	if exec.Status == "error" {
-		return exec.Result, exec.Error
-	}
-
 	// Pull ArtefactDir from container
 	err = l.RecursivePullFile(exec.Request.ContainerID,
 		l.Context.ContainerPath(mapping.ArtefactPath),
@@ -332,6 +328,10 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 		return 1, err
 	}
 	l.Report("Upload of artifacts terminated")
+
+	if exec.Status == "error" {
+		return exec.Result, exec.Error
+	}
 
 	err = l.HandleCacheImagePush(exec, mapping, &task_info)
 	if err != nil {
