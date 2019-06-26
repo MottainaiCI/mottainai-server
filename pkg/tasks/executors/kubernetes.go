@@ -258,7 +258,7 @@ func (d *KubernetesExecutor) PopulateArtefacts(volumes []apiv1.Volume, volumeMou
 
 	}
 	if len(d.Context.SourceDir) > 0 {
-		if _, err := os.Stat(outMapping.StoragePath); !os.IsNotExist(err) {
+		if _, err := os.Stat(d.Context.SourceDir); !os.IsNotExist(err) {
 
 			files, err := ioutil.ReadDir(d.Context.SourceDir)
 			if err != nil {
