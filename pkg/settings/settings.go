@@ -157,6 +157,7 @@ type AgentConfig struct {
 	KubeConfigPath   string `mapstructure:"kubeconfig"`
 	KubeNamespace    string `mapstructure:"kube_namespace"`
 	KubeStorageClass string `mapstructure:"kube_storageclass"`
+	KubeDropletImage string `mapstructure:"kube_droplet_image"`
 
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
@@ -302,6 +303,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.kube_namespace", "default")
 	viper.SetDefault("agent.kube_storageclass", "standard")
 	viper.SetDefault("agent.default_task_quota", "100Gi")
+	viper.SetDefault("agent.kube_droplet_image", "busybox:latest")
 
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")

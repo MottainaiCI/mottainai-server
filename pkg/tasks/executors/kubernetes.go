@@ -26,6 +26,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -44,11 +45,11 @@ import (
 
 type KubernetesExecutor struct {
 	*TaskExecutor
-	Namespace, StorageClass string
-	PodID, ArtefactPVCID    string
-	KubernetesClient        *kubernetes.Clientset
-	KubernetesConfig        *rest.Config
-	UsedPODs, UsedPVCs      []string
+	Namespace, StorageClass                       string
+	PodID, ArtefactPVCID, StoragePVCID, RepoPVCID string
+	KubernetesClient                              *kubernetes.Clientset
+	KubernetesConfig                              *rest.Config
+	UsedPODs, UsedPVCs                            []string
 }
 
 func NewKubernetesExecutor(config *setting.Config) *KubernetesExecutor {
@@ -65,6 +66,9 @@ func NewKubernetesExecutor(config *setting.Config) *KubernetesExecutor {
 func (d *KubernetesExecutor) Setup(docID string) error {
 	d.PodID = docID + "-job"
 	d.ArtefactPVCID = d.PodID + "-pvc-artefacts"
+	d.StoragePVCID = d.PodID + "-pvc-storage"
+	d.RepoPVCID = d.PodID + "-pvc-repodata"
+
 	var err error
 	if d.Config.GetAgent().KubeConfigPath == "" {
 		d.KubernetesConfig, err = rest.InClusterConfig()
@@ -196,6 +200,86 @@ func (d *KubernetesExecutor) DeletePVC(id string) error {
 	return nil
 }
 
+func (d *KubernetesExecutor) PopulateArtefacts(volumes []apiv1.Volume, volumeMounts []apiv1.VolumeMount, srcMapping, outMapping ArtefactMapping) error {
+
+	//  Artefact Uploader
+	d.Report("Populating volume mounts")
+
+	stagerPod := d.PodID + "-stager"
+	d.UsedPODs = append(d.UsedPODs, stagerPod)
+
+	if _, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Create(&apiv1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      stagerPod,
+			Namespace: d.Namespace,
+		},
+		Spec: apiv1.PodSpec{
+			RestartPolicy: apiv1.RestartPolicyNever,
+			Volumes:       volumes,
+			Containers: []apiv1.Container{{
+				Name:         d.PodID,
+				Command:      []string{"/bin/sh", "-c"},
+				Args:         []string{"/bin/tail", "-f", "/dev/null"},
+				Image:        d.Config.GetAgent().KubeDropletImage,
+				VolumeMounts: volumeMounts,
+				TTY:          true,
+			},
+			}}}); err != nil {
+		return err
+	}
+
+	if err := d.WaitUntilRunning(stagerPod, d.Namespace); err != nil {
+		return err
+	}
+
+	if err := filepath.Walk(outMapping.ArtefactPath, func(path string, info os.FileInfo, err error) error {
+		if outMapping.ArtefactPath == path {
+			return nil
+		}
+		if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath())); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if err := filepath.Walk(outMapping.StoragePath, func(path string, info os.FileInfo, err error) error {
+		if outMapping.StoragePath == path {
+			return nil
+		}
+		if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.ContainerPath(srcMapping.GetStoragePath())); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if len(d.Context.SourceDir) > 0 {
+		if err := filepath.Walk(d.Context.SourceDir, func(path string, info os.FileInfo, err error) error {
+			if d.Context.SourceDir == path {
+				return nil
+			}
+			if err := d.KubeCP(path, d.Namespace+"/"+stagerPod+":"+d.Context.RootTaskDir); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	d.Report("Droplet populated from artefacts")
+
+	if err := d.DeletePOD(stagerPod, d.Namespace); err != nil {
+		return err
+	}
+
+	// END Uploader Artefacts
+	return nil
+}
+
 func (d *KubernetesExecutor) Play(docID string) (int, error) {
 	task_info, err := tasks.FetchTask(d.MottainaiClient)
 	if err != nil {
@@ -208,21 +292,42 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 		ArtefactPath: task_info.ArtefactPath,
 		StoragePath:  task_info.StoragePath,
 	}
+	outMapping := d.Context.ResolveArtefactsMounts(srcMapping, instruction, d.Config.GetAgent().DockerInDocker)
 
-	if task_info.Quota != "" {
-		err := d.CreatePVC(d.ArtefactPVCID, task_info.Quota)
-		if err != nil {
-			return 1, err
+	instruction.Report(d)
+	d.Context.Report(d)
+
+	if err := d.DownloadArtefacts(outMapping.ArtefactPath, outMapping.StoragePath); err != nil {
+		return 1, err
+	}
+
+	for _, s := range []string{d.ArtefactPVCID, d.StoragePVCID, d.RepoPVCID} {
+		if task_info.Quota != "" {
+			err := d.CreatePVC(s, task_info.Quota)
+			if err != nil {
+				return 1, err
+			}
+		} else {
+			err := d.CreatePVC(s, d.Config.GetAgent().DefaultTaskQuota)
+			if err != nil {
+				return 1, err
+			}
 		}
-	} else {
-		err := d.CreatePVC(d.ArtefactPVCID, d.Config.GetAgent().DefaultTaskQuota)
-		if err != nil {
-			return 1, err
-		}
+		d.UsedPVCs = append(d.UsedPVCs, s)
 	}
 
 	artefactsVolume, artefactsVolumeMount := getVolume(d.ArtefactPVCID, d.Context.ContainerPath(srcMapping.GetArtefactPath()))
+	storageVolume, storageVolumeMount := getVolume(d.StoragePVCID, d.Context.ContainerPath(srcMapping.GetStoragePath()))
+	repoVolume, repoVolumeMount := getVolume(d.RepoPVCID, d.Context.RootTaskDir)
 
+	volumes := []apiv1.Volume{artefactsVolume, storageVolume, repoVolume}
+	volumesMounts := []apiv1.VolumeMount{artefactsVolumeMount, storageVolumeMount, repoVolumeMount}
+
+	if err := d.PopulateArtefacts(volumes, volumesMounts, srcMapping, outMapping); err != nil {
+		return 1, err
+	}
+
+	//ctx.SourceDir + ":" + ctx.RootTaskDir
 	p, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Create(&apiv1.Pod{
 
 		ObjectMeta: metav1.ObjectMeta{
@@ -232,19 +337,15 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 		},
 		Spec: apiv1.PodSpec{
 			RestartPolicy: apiv1.RestartPolicyNever,
-			Volumes: []apiv1.Volume{
-				artefactsVolume,
-			},
+			Volumes:       volumes,
 			Containers: []apiv1.Container{{
-				Name:       d.PodID,
-				Command:    instruction.EntrypointList(),
-				Args:       instruction.CommandList(),
-				Image:      task_info.Image,
-				WorkingDir: d.Context.HostPath(task_info.Directory),
-				TTY:        true,
-				VolumeMounts: []apiv1.VolumeMount{
-					artefactsVolumeMount,
-				},
+				Name:         d.PodID,
+				Command:      instruction.EntrypointList(),
+				Args:         instruction.CommandList(),
+				Image:        task_info.Image,
+				WorkingDir:   d.Context.HostPath(task_info.Directory),
+				TTY:          true,
+				VolumeMounts: volumesMounts,
 			},
 			}}})
 	if err != nil {
@@ -257,7 +358,7 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 		return 1, errors.Wrap(err, "Error attaching stdout to pod "+d.PodID)
 	}
 
-	return d.Handle(p, instruction, srcMapping)
+	return d.Handle(p, instruction, srcMapping, outMapping)
 }
 func (d *KubernetesExecutor) Clean() error {
 	if err := d.TaskExecutor.Clean(); err != nil {
@@ -266,7 +367,7 @@ func (d *KubernetesExecutor) Clean() error {
 	return d.CleanUpContainer()
 }
 
-func (d *KubernetesExecutor) Handle(p *apiv1.Pod, i Instruction, srcMapping ArtefactMapping) (int, error) {
+func (d *KubernetesExecutor) Handle(p *apiv1.Pod, i Instruction, srcMapping, outMapping ArtefactMapping) (int, error) {
 
 	starttime := time.Now()
 	p, err := d.KubernetesClient.CoreV1().Pods(d.Namespace).Get(d.PodID, metav1.GetOptions{})
@@ -314,7 +415,6 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod, i Instruction, srcMapping Arte
 	uploaderPodName := d.PodID + "-uploader"
 	artefactsVolume, artefactsVolumeMount := getVolume(d.ArtefactPVCID, d.Context.ContainerPath(srcMapping.GetArtefactPath()))
 	d.UsedPODs = append(d.UsedPODs, uploaderPodName)
-	d.UsedPVCs = append(d.UsedPVCs, d.ArtefactPVCID)
 
 	_, err = d.KubernetesClient.CoreV1().Pods(d.Namespace).Create(&apiv1.Pod{
 
@@ -331,7 +431,7 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod, i Instruction, srcMapping Arte
 				Name:    d.PodID,
 				Command: []string{"/bin/sh", "-c"},
 				Args:    []string{"/bin/tail", "-f", "/dev/null"},
-				Image:   "busybox",
+				Image:   d.Config.GetAgent().KubeDropletImage,
 				VolumeMounts: []apiv1.VolumeMount{
 					artefactsVolumeMount,
 				},
@@ -346,8 +446,6 @@ func (d *KubernetesExecutor) Handle(p *apiv1.Pod, i Instruction, srcMapping Arte
 	if err != nil {
 		return 1, err
 	}
-
-	outMapping := d.Context.ResolveArtefactsMounts(srcMapping, i, d.Config.GetAgent().DockerInDocker)
 
 	if err := d.KubeCP(d.Namespace+"/"+uploaderPodName+":"+d.Context.ContainerPath(srcMapping.GetArtefactPath()), outMapping.ArtefactPath); err != nil {
 		return 1, err
@@ -382,6 +480,7 @@ func (d *KubernetesExecutor) KubeCP(src, dst string) error {
 	// if err != nil {
 	// 	return 1, err
 	// }
+	d.Report("Copying " + src + " to " + dst)
 	cmd := exec.Command("kubectl", "cp", src, dst)
 	cmd.Env = append(os.Environ(),
 		"KUBECONFIG="+d.Config.GetAgent().KubeConfigPath,
@@ -409,7 +508,6 @@ func (d *KubernetesExecutor) DeletePOD(pod, Namespace string) error {
 
 func (d *KubernetesExecutor) CleanUpContainer() error {
 	d.Report("Cleanup container")
-
 	// err := d.DeletePOD(d.PodID, d.Namespace)
 	// if err != nil {
 	// 	d.Report("Container cleanup error: ", err.Error())
@@ -417,14 +515,15 @@ func (d *KubernetesExecutor) CleanUpContainer() error {
 	// }
 
 	for _, gcPOD := range d.UsedPODs {
-		if err := d.DeletePOD(gcPOD, d.Namespace); err != nil {
-			return errors.Wrap(err, "Error cleaning up")
+		err := d.DeletePOD(gcPOD, d.Namespace)
+		if err != nil {
+			d.Report("Error deleting POD " + gcPOD + ": " + err.Error())
 		}
-
 	}
 	for _, gcPVC := range d.UsedPVCs {
-		if err := d.DeletePVC(gcPVC); err != nil {
-			return errors.Wrap(err, "Error cleaning up")
+		err := d.DeletePVC(gcPVC)
+		if err != nil {
+			d.Report("Error deleting PVC " + gcPVC + ": " + err.Error())
 		}
 	}
 

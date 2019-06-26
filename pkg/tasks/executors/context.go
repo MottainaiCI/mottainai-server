@@ -73,7 +73,13 @@ func (m ArtefactMapping) GetArtefactPath() string {
 
 	return "artefacts"
 }
+func (m ArtefactMapping) GetStoragePath() string {
+	if len(m.StoragePath) > 0 {
+		return m.StoragePath
+	}
 
+	return "storage"
+}
 func (ctx *ExecutorContext) Report(d Executor) {
 	d.Report("Container working dir: " + ctx.HostPath(ctx.TaskRelativeDir))
 	d.Report("Context TaskRelativeDir: " + ctx.TaskRelativeDir)
@@ -93,7 +99,7 @@ func (ctx *ExecutorContext) ResolveArtefactsMounts(m ArtefactMapping, i Instruct
 	artdir := ctx.ArtefactDir
 	storagetmp := ctx.StorageDir
 
-	var storage_path = "storage"
+	var storage_path = m.GetStoragePath()
 	var artefact_path = m.GetArtefactPath()
 	var artefactdir string
 	var storagedir string
