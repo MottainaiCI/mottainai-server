@@ -24,8 +24,9 @@ package agenttasks
 
 import (
 	"fmt"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"testing"
+
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 func TestPipeline(t *testing.T) {
@@ -51,7 +52,7 @@ func TestPipeline(t *testing.T) {
 	test_res := pipe.ToMap(true)
 	fmt.Println(test_res)
 
-	pipe2 := DefaultTaskHandler(config).NewPipelineFromMap(test_res)
+	pipe2 := NewPipelineFromMap(test_res)
 
 	if pipe2.Tasks["test"].Namespace != "boh" {
 		t.Error("Invalid namespace for ", pipe2.Tasks["test"])

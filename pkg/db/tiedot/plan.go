@@ -69,8 +69,7 @@ func (d *Database) GetPlan(config *setting.Config, docID string) (agenttasks.Pla
 	if err != nil {
 		return agenttasks.Plan{}, err
 	}
-	th := agenttasks.DefaultTaskHandler(config)
-	t := th.NewPlanFromMap(doc)
+	t := agenttasks.NewPlanFromMap(doc)
 	t.ID = docID
 	return t, err
 }
@@ -82,10 +81,9 @@ func (d *Database) ListPlans() []dbcommon.DocItem {
 func (d *Database) AllPlans(config *setting.Config) []agenttasks.Plan {
 	tasks := d.DB().Use(PlansColl)
 	tasks_id := make([]agenttasks.Plan, 0)
-	th := agenttasks.DefaultTaskHandler(config)
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		t := th.NewPlanFromJson(docContent)
+		t := agenttasks.NewPlanFromJson(docContent)
 		if t.Task == nil {
 			t.Task = &agenttasks.Task{}
 		}

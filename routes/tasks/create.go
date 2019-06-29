@@ -30,13 +30,15 @@ import (
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	tasksmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
 
 // TODO: Add dup.
 
-func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Task) {
-	docID, err := tasksapi.Create(m, th, ctx, db, opts)
+func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, opts agenttasks.Task) {
+	docID, err := tasksapi.Create(m, ctx, db, opts)
 	if err != nil {
 		ctx.NotFound()
 	} else {
@@ -44,11 +46,11 @@ func Create(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Con
 	}
 }
 
-func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database) {
+func Clone(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) {
 
 	id := ctx.Params(":id")
 
-	docID, err := tasksapi.CloneAndSend(id, m, th, ctx, db)
+	docID, err := tasksapi.CloneAndSend(id, m, ctx, db)
 	if err != nil {
 		ctx.NotFound()
 	} else {
@@ -59,7 +61,7 @@ func Clone(m *mottainai.Mottainai, th *agenttasks.TaskHandler, ctx *context.Cont
 func Add(ctx *context.Context, config *setting.Config) {
 
 	available_tasks := make([]string, 0)
-	th := agenttasks.DefaultTaskHandler(config)
+	th := tasksmanager.DefaultTaskHandler(config)
 	for i, _ := range th.Tasks {
 		if i != "error" && i != "success" {
 			available_tasks = append(available_tasks, i)

@@ -128,7 +128,7 @@ func PipelineYaml(ctx *context.Context, db *database.Database) string {
 	return string(y)
 }
 
-func Pipeline(m *mottainai.Mottainai, c *cron.Cron, th *task.TaskHandler, ctx *context.Context, db *database.Database, o task.PipelineForm) error {
+func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *database.Database, o task.PipelineForm) error {
 	var tasks map[string]task.Task
 
 	d := gob.NewDecoder(bytes.NewBuffer([]byte(o.Tasks)))

@@ -36,6 +36,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/MottainaiCI/mottainai-server/pkg/client"
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -84,11 +85,24 @@ type Task struct {
 	TimeOut     float64  `json:"timeout" form:"timeout"`
 	Binds       []string `json:"binds" form:"binds"`
 	Environment []string `json:"environment" form:"environment"`
+
+	Quota string `json:"quota" form:"quota"`
 }
 
 type Plan struct {
 	*Task
 	Planned string `json:"planned" form:"planned"`
+}
+
+func NewPlanFromMap(t map[string]interface{}) Plan {
+	tk := NewTaskFromMap(t)
+	var planned string
+	if str, ok := t["planned"].(string); ok {
+		planned = str
+	}
+	pl := Plan{Task: &tk}
+	pl.Planned = planned
+	return pl
 }
 
 func (t *Plan) ToMap() map[string]interface{} {
@@ -136,6 +150,245 @@ func (t *Task) Trials() int {
 	}
 
 	return ret
+}
+
+func NewPlanFromJson(data []byte) Plan {
+	var t Plan
+	json.Unmarshal(data, &t)
+	return t
+}
+
+func NewTaskFromJson(data []byte) Task {
+	var t Task
+	json.Unmarshal(data, &t)
+	return t
+}
+
+func FetchTask(fetcher client.HttpClient) (Task, error) {
+	task_data, err := fetcher.GetTask()
+
+	if err != nil {
+		return Task{}, err
+	}
+	return NewTaskFromJson(task_data), nil
+}
+
+func NewTaskFromMap(t map[string]interface{}) Task {
+
+	var (
+		source           string
+		script           []string
+		directory        string
+		namespace        string
+		commit           string
+		tasktype         string
+		output           string
+		image            string
+		status           string
+		result           string
+		exit_status      string
+		created_time     string
+		start_time       string
+		end_time         string
+		last_update_time string
+		storage          string
+		storage_path     string
+		artefact_path    string
+		quota            string
+		root_task        string
+		prune            string
+		tag_namespace    string
+		name             string
+		cache_image      string
+		cache_clean      string
+		queue            string
+		owner, node      string
+		privkey          string
+		environment      []string
+		binds            []string
+	)
+
+	binds = make([]string, 0)
+	environment = make([]string, 0)
+	script = make([]string, 0)
+
+	if arr, ok := t["binds"].([]interface{}); ok {
+		for _, v := range arr {
+			binds = append(binds, v.(string))
+		}
+	}
+
+	if arr, ok := t["environment"].([]interface{}); ok {
+		for _, v := range arr {
+			environment = append(environment, v.(string))
+		}
+	}
+
+	if arr, ok := t["script"].([]interface{}); ok {
+		for _, v := range arr {
+			script = append(script, v.(string))
+		}
+	}
+	if i, ok := t["name"].(string); ok {
+		name = i
+	}
+	if i, ok := t["owner_id"].(string); ok {
+		owner = i
+	}
+	if i, ok := t["node_id"].(string); ok {
+		node = i
+	}
+	if str, ok := t["queue"].(string); ok {
+		queue = str
+	}
+	if str, ok := t["root_task"].(string); ok {
+		root_task = str
+	}
+	if str, ok := t["exit_status"].(string); ok {
+		exit_status = str
+	}
+	if str, ok := t["source"].(string); ok {
+		source = str
+	}
+	if str, ok := t["privkey"].(string); ok {
+		privkey = str
+	}
+	if str, ok := t["directory"].(string); ok {
+		directory = str
+	}
+	if str, ok := t["type"].(string); ok {
+		tasktype = str
+	}
+	if str, ok := t["quota"].(string); ok {
+		quota = str
+	}
+	if str, ok := t["task"].(string); ok {
+		tasktype = str
+	}
+	if str, ok := t["namespace"].(string); ok {
+		namespace = str
+	}
+	if str, ok := t["commit"].(string); ok {
+		commit = str
+	}
+	if str, ok := t["output"].(string); ok {
+		output = str
+	}
+	if str, ok := t["result"].(string); ok {
+		result = str
+	}
+	if str, ok := t["cache_clean"].(string); ok {
+		cache_clean = str
+	}
+
+	if str, ok := t["tag_namespace"].(string); ok {
+		tag_namespace = str
+	}
+	if str, ok := t["status"].(string); ok {
+		status = str
+	}
+	if str, ok := t["image"].(string); ok {
+		image = str
+	}
+	if str, ok := t["storage"].(string); ok {
+		storage = str
+	}
+	if str, ok := t["created_time"].(string); ok {
+		created_time = str
+	}
+	if str, ok := t["start_time"].(string); ok {
+		start_time = str
+	}
+	if str, ok := t["last_update_time"].(string); ok {
+		last_update_time = str
+	}
+	if str, ok := t["end_time"].(string); ok {
+		end_time = str
+	}
+	if str, ok := t["storage_path"].(string); ok {
+		storage_path = str
+	}
+	if str, ok := t["artefact_path"].(string); ok {
+		artefact_path = str
+	}
+	if str, ok := t["prune"].(string); ok {
+		prune = str
+	}
+
+	if str, ok := t["cache_image"].(string); ok {
+		cache_image = str
+	}
+
+	var timeout float64
+	if str, ok := t["timeout"].(float64); ok {
+		timeout = str
+	}
+	var delayed string
+	if str, ok := t["string"].(string); ok {
+		delayed = str
+	}
+	var publish string
+	if str, ok := t["publish_mode"].(string); ok {
+		publish = str
+	}
+	var entrypoint []string
+	entrypoint = make([]string, 0)
+
+	if arr, ok := t["entrypoint"].([]interface{}); ok {
+		for _, v := range arr {
+			entrypoint = append(entrypoint, v.(string))
+		}
+	}
+	var id string
+
+	if str, ok := t["ID"].(string); ok {
+		id = str
+	}
+	var retry string
+
+	if str, ok := t["retry"].(string); ok {
+		retry = str
+	}
+	task := Task{
+		Retry:        retry,
+		ID:           id,
+		Queue:        queue,
+		Source:       source,
+		PrivKey:      privkey,
+		Script:       script,
+		Quota:        quota,
+		Delayed:      delayed,
+		Directory:    directory,
+		Type:         tasktype,
+		Namespace:    namespace,
+		Commit:       commit,
+		Name:         name,
+		Entrypoint:   entrypoint,
+		Output:       output,
+		PublishMode:  publish,
+		Result:       result,
+		Status:       status,
+		Storage:      storage,
+		StoragePath:  storage_path,
+		ArtefactPath: artefact_path,
+		Image:        image,
+		ExitStatus:   exit_status,
+		CreatedTime:  created_time,
+		StartTime:    start_time,
+		EndTime:      end_time,
+		UpdatedTime:  last_update_time,
+		RootTask:     root_task,
+		TagNamespace: tag_namespace,
+		Node:         node,
+		Prune:        prune,
+		CacheImage:   cache_image,
+		Environment:  environment,
+		Binds:        binds,
+		CacheClean:   cache_clean,
+		Owner:        owner,
+		TimeOut:      timeout,
+	}
+	return task
 }
 
 func FromFile(file string) (*Task, error) {
