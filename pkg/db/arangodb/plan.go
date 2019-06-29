@@ -67,8 +67,7 @@ func (d *Database) GetPlan(config *setting.Config, docID string) (agenttasks.Pla
 	if err != nil {
 		return agenttasks.Plan{}, err
 	}
-	th := agenttasks.DefaultTaskHandler(config)
-	t := th.NewPlanFromMap(doc)
+	t := agenttasks.NewPlanFromMap(doc)
 	t.ID = docID
 	return t, err
 }

@@ -91,8 +91,7 @@ func (d *Database) GetTask(config *setting.Config, docID string) (agenttasks.Tas
 	if err != nil {
 		return agenttasks.Task{}, err
 	}
-	th := agenttasks.DefaultTaskHandler(config)
-	t := th.NewTaskFromMap(doc)
+	t := agenttasks.NewTaskFromMap(doc)
 	t.ID = docID
 	return t, err
 }

@@ -29,7 +29,7 @@ import (
 	config "github.com/RichardKnop/machinery/v1/config"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	machinery "github.com/RichardKnop/machinery/v1"
 	results "github.com/RichardKnop/machinery/v1/backends/result"
 	machinerytask "github.com/RichardKnop/machinery/v1/tasks"
@@ -100,7 +100,7 @@ func (s *MottainaiServer) Add(queue string, config *setting.Config) *Broker {
 	} else {
 		broker.Server = conn
 	}
-	th := agenttasks.DefaultTaskHandler(config)
+	th := taskmanager.DefaultTaskHandler(config)
 	th.RegisterTasks(broker.Server)
 	s.Servers[queue] = broker
 	return broker

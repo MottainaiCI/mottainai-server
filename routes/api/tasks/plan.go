@@ -54,7 +54,7 @@ func PlannedTask(ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
-func Plan(m *mottainai.Mottainai, c *cron.Cron, th *agenttasks.TaskHandler, ctx *context.Context, db *database.Database, opts agenttasks.Plan) error {
+func Plan(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *database.Database, opts agenttasks.Plan) error {
 	opts.Reset()
 	fields := opts.ToMap()
 

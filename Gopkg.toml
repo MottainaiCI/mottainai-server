@@ -25,6 +25,22 @@
 #   unused-packages = true
 
 [[override]]
+  name = "k8s.io/cli-runtime"
+  branch = "release-1.14"
+
+[[override]]
+  name = "github.com/russross/blackfriday"
+  version = "v1.4-2-g300106c228d52c"
+
+[[constraint]]
+  name = "k8s.io/apimachinery"
+  branch = "release-1.14"
+
+[[constraint]]
+  name = "k8s.io/kubernetes"
+  branch = "release-1.14"
+
+[[override]]
   source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
   name = "gopkg.in/fsnotify.v1"
 
