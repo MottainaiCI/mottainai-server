@@ -30,6 +30,7 @@ import (
 	"path"
 
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	template "github.com/MottainaiCI/mottainai-server/pkg/template"
 	logrus "github.com/sirupsen/logrus"
 
@@ -242,7 +243,7 @@ func (m *Mottainai) Start() error {
 			m.Map(rmqc)
 		}
 
-		th := agenttasks.DefaultTaskHandler(config)
+		th := taskmanager.DefaultTaskHandler(config)
 		l.WithFields(logrus.Fields{
 			"component": "core",
 			"path":      config.GetDatabase().DBPath,
@@ -304,7 +305,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	result := true
 	var rerr error
 	m.Invoke(func(d *database.Database, server *MottainaiServer,
-		th *agenttasks.TaskHandler, config *setting.Config, l *logging.Logger) {
+		th *taskmanager.TaskHandler, config *setting.Config, l *logging.Logger) {
 		pip, err := d.Driver.GetPipeline(config, docID)
 		if err != nil {
 			rerr = err
@@ -562,7 +563,7 @@ func (m *Mottainai) processablePipeline(docID string) error {
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := false
 	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *agenttasks.TaskHandler, config *setting.Config) {
+	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *taskmanager.TaskHandler, config *setting.Config) {
 
 		if err := m.processableTask(docID); err != nil {
 			m.FailTask(docID, err.Error())

@@ -129,17 +129,18 @@ type BrokerConfig struct {
 }
 
 type AgentConfig struct {
-	SecretKey         string         `mapstructure:"secret_key"`
-	BuildPath         string         `mapstructure:"build_path"`
-	AgentConcurrency  int            `mapstructure:"concurrency"`
-	AgentKey          string         `mapstructure:"agent_key"`
-	ApiKey            string         `mapstructure:"api_key"`
-	PrivateQueue      int            `mapstructure:"private_queue"`
-	StandAlone        bool           `mapstructure:"standalone"`
-	DownloadRateLimit int64          `mapstructure:"download_speed_limit"`
-	UploadRateLimit   int64          `mapstructure:"upload_speed_limit"`
-	Queues            map[string]int `mapstructure:"queues"`
-	UploadChunkSize   int            `mapstructure:"upload_chunk_size"`
+	SecretKey          string         `mapstructure:"secret_key"`
+	BuildPath          string         `mapstructure:"build_path"`
+	AgentConcurrency   int            `mapstructure:"concurrency"`
+	AgentKey           string         `mapstructure:"agent_key"`
+	ApiKey             string         `mapstructure:"api_key"`
+	PrivateQueue       int            `mapstructure:"private_queue"`
+	StandAlone         bool           `mapstructure:"standalone"`
+	DownloadRateLimit  int64          `mapstructure:"download_speed_limit"`
+	UploadRateLimit    int64          `mapstructure:"upload_speed_limit"`
+	Queues             map[string]int `mapstructure:"queues"`
+	UploadChunkSize    int            `mapstructure:"upload_chunk_size"`
+	SupportedExecutors []string       `mapstructure:"executor"`
 
 	// List of command to execute before execute a task
 	PreTaskHookExec []string `mapstructure:"pre_task_hook_exec"`
@@ -151,6 +152,12 @@ type AgentConfig struct {
 	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint"`
 	DockerCaps        []string `mapstructure:"docker_caps"`
 	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
+	DefaultTaskQuota  string   `mapstructure:"default_task_quota"`
+
+	KubeConfigPath   string `mapstructure:"kubeconfig"`
+	KubeNamespace    string `mapstructure:"kube_namespace"`
+	KubeStorageClass string `mapstructure:"kube_storageclass"`
+	KubeDropletImage string `mapstructure:"kube_droplet_image"`
 
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
@@ -292,6 +299,11 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.docker_in_docker_endpoint", "/var/run/docker.sock")
 	viper.SetDefault("agent.docker_caps", []string{"SYS_PTRACE"})
 	viper.SetDefault("agent.docker_caps_drop", []string{})
+	viper.SetDefault("agent.kubeconfig", "")
+	viper.SetDefault("agent.kube_namespace", "default")
+	viper.SetDefault("agent.kube_storageclass", "standard")
+	viper.SetDefault("agent.default_task_quota", "100Gi")
+	viper.SetDefault("agent.kube_droplet_image", "busybox:latest")
 
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
@@ -303,6 +315,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.health_check_exec", []string{})
 
 	viper.SetDefault("agent.pre_task_hook_exec", []string{})
+	viper.SetDefault("agent.executor", []string{})
 
 	viper.SetDefault("general.tls_cert", "")
 	viper.SetDefault("general.tls_key", "")

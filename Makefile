@@ -43,6 +43,7 @@ deps:
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/mattn/goveralls
 	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/gomega/...
 
 build:
@@ -112,3 +113,6 @@ install:
 	cp -rf public/ $(DESTDIR)$(LIBDIR)/mottainai
 
 	install -m 0755 contrib/config/mottainai-server.yaml.example $(DESTDIR)$(SYSCONFDIR)/mottainai/
+
+gen-fakes:
+	counterfeiter -o tests/fakes/http_client.go pkg/client/client.go HttpClient

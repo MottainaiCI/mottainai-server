@@ -30,6 +30,7 @@ import (
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	"github.com/RichardKnop/machinery/v1/log"
 
@@ -38,7 +39,7 @@ import (
 
 func (m *MottainaiAgent) HealthCheckSetup(force bool) {
 	m.Invoke(func(config *setting.Config) {
-		th := agenttasks.DefaultTaskHandler(config)
+		th := taskmanager.DefaultTaskHandler(config)
 		m.Map(th)
 		fetcher := client.NewClient(config.GetWeb().AppURL, config)
 		fetcher.SetToken(config.GetAgent().ApiKey)
@@ -129,7 +130,7 @@ func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
 	var busy bool = true
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 		c.Doc(id)
-		th := agenttasks.DefaultTaskHandler(config)
+		th := taskmanager.DefaultTaskHandler(config)
 		task_info := th.FetchTask(c)
 		if th.Err != nil {
 			log.INFO.Println("Error fetching task: " + th.Err.Error())

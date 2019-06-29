@@ -100,9 +100,7 @@ func (d *Database) GetPipeline(config *setting.Config, docID string) (agenttasks
 	if err != nil {
 		return agenttasks.Pipeline{}, err
 	}
-	th := agenttasks.DefaultTaskHandler(config)
-
-	t := th.NewPipelineFromMap(doc)
+	t := agenttasks.NewPipelineFromMap(doc)
 	t.ID = docID
 	//err = d.UpdateLivePipelineData(config, &t)
 	return t, err
@@ -115,10 +113,9 @@ func (d *Database) ListPipelines() []dbcommon.DocItem {
 func (d *Database) AllPipelines(config *setting.Config) []agenttasks.Pipeline {
 	tasks := d.DB().Use(PipelinesColl)
 	tasks_id := make([]agenttasks.Pipeline, 0)
-	th := agenttasks.DefaultTaskHandler(config)
 
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-		t := th.NewPipelineFromJson(docContent)
+		t := agenttasks.NewPipelineFromJson(docContent)
 		t.ID = strconv.Itoa(id)
 		tasks_id = append(tasks_id, t)
 		return true

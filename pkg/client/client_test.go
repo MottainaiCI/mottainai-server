@@ -29,6 +29,8 @@ import (
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	executors "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
+
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
@@ -156,7 +158,7 @@ var _ = Describe("Client", func() {
 				Expect(err).ToNot(HaveOccurred())
 				fetcher.Doc(helpers.Tasks[0])
 
-				e := tasks.TaskExecutor{MottainaiClient: fetcher, Context: tasks.NewExecutorContext(), Config: helpers.Config}
+				e := executors.TaskExecutor{MottainaiClient: fetcher, Context: executors.NewExecutorContext(), Config: helpers.Config}
 				e.Report("hunk1", "mottainai")
 
 				logfile := filepath.Join(helpers.Config.GetStorage().ArtefactPath, helpers.Tasks[0], "build_"+helpers.Tasks[0]+".log")
