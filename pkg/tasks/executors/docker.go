@@ -175,6 +175,7 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 		instruction.AddMount(d.Config.GetAgent().DockerEndpointDiD + ":/var/run/docker.sock")
 	}
 
+	instruction.SetTaskEnvVariables(&task_info, d.Context)
 	instruction.Report(d)
 	d.Context.Report(d)
 
