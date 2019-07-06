@@ -2,6 +2,7 @@ package redis
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -23,18 +24,17 @@ var redisDelayedTasksKey = "delayed_tasks"
 type Broker struct {
 	common.Broker
 	common.RedisConnector
-	host              string
-	password          string
-	db                int
-	pool              *redis.Pool
-	stopReceivingChan chan int
-	stopDelayedChan   chan int
-	processingWG      sync.WaitGroup // use wait group to make sure task processing completes on interrupt signal
-	receivingWG       sync.WaitGroup
-	delayedWG         sync.WaitGroup
+	host         string
+	password     string
+	db           int
+	pool         *redis.Pool
+	consumingWG  sync.WaitGroup // wait group to make sure whole consumption completes
+	processingWG sync.WaitGroup // use wait group to make sure task processing completes
+	delayedWG    sync.WaitGroup
 	// If set, path to a socket file overrides hostname
 	socketPath string
 	redsync    *redsync.Redsync
+	redisOnce  sync.Once
 }
 
 // New creates new Broker instance
@@ -50,12 +50,17 @@ func New(cnf *config.Config, host, password, socketPath string, db int) iface.Br
 
 // StartConsuming enters a loop and waits for incoming messages
 func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcessor iface.TaskProcessor) (bool, error) {
+	b.consumingWG.Add(1)
+	defer b.consumingWG.Done()
+
+	if concurrency < 1 {
+		concurrency = 1
+	}
+
 	b.Broker.StartConsuming(consumerTag, concurrency, taskProcessor)
 
-	b.pool = nil
 	conn := b.open()
 	defer conn.Close()
-	defer b.pool.Close()
 
 	// Ping the server to make sure connection is live
 	_, err := conn.Do("PING")
@@ -64,80 +69,50 @@ func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcess
 		return b.GetRetry(), err
 	}
 
-	// Channels and wait groups used to properly close down goroutines
-	b.stopReceivingChan = make(chan int)
-	b.stopDelayedChan = make(chan int)
-	b.receivingWG.Add(1)
-	b.delayedWG.Add(1)
-
 	// Channel to which we will push tasks ready for processing by worker
-	deliveries := make(chan []byte)
+	deliveries := make(chan []byte, concurrency)
 	pool := make(chan struct{}, concurrency)
 
 	// initialize worker pool with maxWorkers workers
-	go func() {
-		for i := 0; i < concurrency; i++ {
-			pool <- struct{}{}
-		}
-	}()
-
-	// Helper function to return true if parallel task processing slots still available,
-	// false when we are already executing maximum allowed concurrent tasks
-	var concurrencyAvailable = func() bool {
-		return concurrency == 0 || (len(pool)-len(deliveries) > 0)
+	for i := 0; i < concurrency; i++ {
+		pool <- struct{}{}
 	}
 
-	// Timer is added otherwise when the pools were all active it will spin the for loop
-	var (
-		timerDuration = time.Duration(100000000 * time.Nanosecond) // 100 miliseconds
-		timer         = time.NewTimer(0)
-	)
-	// A receivig goroutine keeps popping messages from the queue by BLPOP
+	// A receiving goroutine keeps popping messages from the queue by BLPOP
 	// If the message is valid and can be unmarshaled into a proper structure
 	// we send it to the deliveries channel
 	go func() {
-		defer b.receivingWG.Done()
 
 		log.INFO.Print("[*] Waiting for messages. To exit press CTRL+C")
 
 		for {
 			select {
 			// A way to stop this goroutine from b.StopConsuming
-			case <-b.stopReceivingChan:
+			case <-b.GetStopChan():
+				close(deliveries)
 				return
-			case <-timer.C:
-				// If concurrency is limited, limit the tasks being pulled off the queue
-				// until a pool is available
-				if concurrencyAvailable() {
-					task, err := b.nextTask(getQueue(b.GetConfig(), taskProcessor))
-					if err != nil {
-						// something went wrong, wait a bit before continuing the loop
-						timer.Reset(timerDuration)
-						continue
-					}
-
+			case <-pool:
+				task, _ := b.nextTask(getQueue(b.GetConfig(), taskProcessor))
+				//TODO: should this error be ignored?
+				if len(task) > 0 {
 					deliveries <- task
 				}
-				if concurrencyAvailable() {
-					// parallel task processing slots still available, continue loop immediately
-					timer.Reset(0)
-				} else {
-					// using all parallel task processing slots, wait a bit before continuing the loop
-					timer.Reset(timerDuration)
-				}
+
+				pool <- struct{}{}
 			}
 		}
 	}()
 
 	// A goroutine to watch for delayed tasks and push them to deliveries
 	// channel for consumption by the worker
+	b.delayedWG.Add(1)
 	go func() {
 		defer b.delayedWG.Done()
 
 		for {
 			select {
 			// A way to stop this goroutine from b.StopConsuming
-			case <-b.stopDelayedChan:
+			case <-b.GetStopChan():
 				return
 			default:
 				task, err := b.nextDelayedTask(redisDelayedTasksKey)
@@ -152,14 +127,14 @@ func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcess
 					log.ERROR.Print(errs.NewErrCouldNotUnmarshaTaskSignature(task, err))
 				}
 
-				if err := b.Publish(signature); err != nil {
+				if err := b.Publish(context.Background(), signature); err != nil {
 					log.ERROR.Print(err)
 				}
 			}
 		}
 	}()
 
-	if err := b.consume(deliveries, pool, concurrency, taskProcessor); err != nil {
+	if err := b.consume(deliveries, concurrency, taskProcessor); err != nil {
 		return b.GetRetry(), err
 	}
 
@@ -171,24 +146,19 @@ func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcess
 
 // StopConsuming quits the loop
 func (b *Broker) StopConsuming() {
-	// Stop the receiving goroutine
-	b.stopReceivingChan <- 1
-	// Waiting for the receiving goroutine to have stopped
-	b.receivingWG.Wait()
-
-	// Stop the delayed tasks goroutine
-	b.stopDelayedChan <- 1
+	b.Broker.StopConsuming()
 	// Waiting for the delayed tasks goroutine to have stopped
 	b.delayedWG.Wait()
+	// Waiting for consumption to finish
+	b.consumingWG.Wait()
 
-	b.Broker.StopConsuming()
-
-	// Waiting for any tasks being processed to finish
-	b.processingWG.Wait()
+	if b.pool != nil {
+		b.pool.Close()
+	}
 }
 
 // Publish places a new message on the default queue
-func (b *Broker) Publish(signature *tasks.Signature) error {
+func (b *Broker) Publish(ctx context.Context, signature *tasks.Signature) error {
 	// Adjust routing key (this decides which queue the message will be published to)
 	b.Broker.AdjustRoutingKey(signature)
 
@@ -248,22 +218,33 @@ func (b *Broker) GetPendingTasks(queue string) ([]*tasks.Signature, error) {
 
 // consume takes delivered messages from the channel and manages a worker pool
 // to process tasks concurrently
-func (b *Broker) consume(deliveries <-chan []byte, pool chan struct{}, concurrency int, taskProcessor iface.TaskProcessor) error {
+func (b *Broker) consume(deliveries <-chan []byte, concurrency int, taskProcessor iface.TaskProcessor) error {
 	errorsChan := make(chan error, concurrency*2)
+	pool := make(chan struct{}, concurrency)
+
+	// init pool for Worker tasks execution, as many slots as Worker concurrency param
+	go func() {
+		for i := 0; i < concurrency; i++ {
+			pool <- struct{}{}
+		}
+	}()
 
 	for {
 		select {
 		case err := <-errorsChan:
 			return err
-		case d := <-deliveries:
+		case d, open := <-deliveries:
+			if !open {
+				return nil
+			}
 			if concurrency > 0 {
-				// get worker from pool (blocks until one is available)
+				// get execution slot from pool (blocks until one is available)
 				<-pool
 			}
 
 			b.processingWG.Add(1)
 
-			// Consume the task inside a gotourine so multiple tasks
+			// Consume the task inside a goroutine so multiple tasks
 			// can be processed concurrently
 			go func() {
 				if err := b.consumeOne(d, taskProcessor); err != nil {
@@ -273,12 +254,10 @@ func (b *Broker) consume(deliveries <-chan []byte, pool chan struct{}, concurren
 				b.processingWG.Done()
 
 				if concurrency > 0 {
-					// give worker back to pool
+					// give slot back to pool
 					pool <- struct{}{}
 				}
 			}()
-		case <-b.Broker.GetStopChan():
-			return nil
 		}
 	}
 }
@@ -312,7 +291,7 @@ func (b *Broker) nextTask(queue string) (result []byte, err error) {
 	conn := b.open()
 	defer conn.Close()
 
-	items, err := redis.ByteSlices(conn.Do("BLPOP", queue, 1))
+	items, err := redis.ByteSlices(conn.Do("BLPOP", queue, 1000))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -347,9 +326,14 @@ func (b *Broker) nextDelayedTask(key string) (result []byte, err error) {
 		reply interface{}
 	)
 
-	var pollPeriod = 20 // default poll period for delayed tasks
+	var pollPeriod = 500 // default poll period for delayed tasks
 	if b.GetConfig().Redis != nil {
-		pollPeriod = b.GetConfig().Redis.DelayedTasksPollPeriod
+		configuredPollPeriod := b.GetConfig().Redis.DelayedTasksPollPeriod
+		// the default period is 0, which bombards redis with requests, despite
+		// our intention of doing the opposite
+		if configuredPollPeriod > 0 {
+			pollPeriod = configuredPollPeriod
+		}
 	}
 
 	for {
@@ -380,8 +364,8 @@ func (b *Broker) nextDelayedTask(key string) (result []byte, err error) {
 			return
 		}
 
-		conn.Send("MULTI")
-		conn.Send("ZREM", key, items[0])
+		_ = conn.Send("MULTI")
+		_ = conn.Send("ZREM", key, items[0])
 		reply, err = conn.Do("EXEC")
 		if err != nil {
 			return
@@ -398,13 +382,11 @@ func (b *Broker) nextDelayedTask(key string) (result []byte, err error) {
 
 // open returns or creates instance of Redis connection
 func (b *Broker) open() redis.Conn {
-	if b.pool == nil {
-		b.pool = b.NewPool(b.socketPath, b.host, b.password, b.db, b.GetConfig().Redis)
-	}
-	if b.redsync == nil {
-		var pools = []redsync.Pool{b.pool}
-		b.redsync = redsync.New(pools)
-	}
+	b.redisOnce.Do(func() {
+		b.pool = b.NewPool(b.socketPath, b.host, b.password, b.db, b.GetConfig().Redis, b.GetConfig().TLSConfig)
+		b.redsync = redsync.New([]redsync.Pool{b.pool})
+	})
+
 	return b.pool.Get()
 }
 

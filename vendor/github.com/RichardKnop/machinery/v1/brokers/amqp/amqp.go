@@ -2,6 +2,7 @@ package amqp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -177,7 +178,7 @@ func (b *Broker) CloseConnections() error {
 }
 
 // Publish places a new message on the default queue
-func (b *Broker) Publish(signature *tasks.Signature) error {
+func (b *Broker) Publish(ctx context.Context, signature *tasks.Signature) error {
 	// Adjust routing key (this decides which queue the message will be published to)
 	b.AdjustRoutingKey(signature)
 
@@ -198,10 +199,18 @@ func (b *Broker) Publish(signature *tasks.Signature) error {
 		}
 	}
 
-	connection, err := b.GetOrOpenConnection(signature.RoutingKey,
-		b.GetConfig().AMQP.BindingKey, // queue binding key
-		nil,                           // exchange declare args
-		nil,                           // queue declare args
+	queue := b.GetConfig().DefaultQueue
+	bindingKey := b.GetConfig().AMQP.BindingKey // queue binding key
+	if b.isDirectExchange() {
+		queue = signature.RoutingKey
+		bindingKey = signature.RoutingKey
+	}
+
+	connection, err := b.GetOrOpenConnection(
+		queue,
+		bindingKey, // queue binding key
+		nil,        // exchange declare args
+		nil,        // queue declare args
 		amqp.Table(b.GetConfig().AMQP.QueueBindingArgs), // queue binding args
 	)
 	if err != nil {
@@ -388,6 +397,10 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 	return nil
 }
 
+func (b *Broker) isDirectExchange() bool {
+	return b.GetConfig().AMQP != nil && b.GetConfig().AMQP.ExchangeType == "direct"
+}
+
 // AdjustRoutingKey makes sure the routing key is correct.
 // If the routing key is an empty string:
 // a) set it to binding key for direct exchange type
@@ -397,7 +410,7 @@ func (b *Broker) AdjustRoutingKey(s *tasks.Signature) {
 		return
 	}
 
-	if b.GetConfig().AMQP != nil && b.GetConfig().AMQP.ExchangeType == "direct" {
+	if b.isDirectExchange() {
 		// The routing algorithm behind a direct exchange is simple - a message goes
 		// to the queues whose binding key exactly matches the routing key of the message.
 		s.RoutingKey = b.GetConfig().AMQP.BindingKey

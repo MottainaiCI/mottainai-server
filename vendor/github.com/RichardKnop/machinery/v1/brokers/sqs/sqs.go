@@ -1,6 +1,7 @@
 package sqs
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,6 +34,7 @@ type Broker struct {
 	stopReceivingChan chan int
 	sess              *session.Session
 	service           sqsiface.SQSAPI
+	queueUrl          *string
 }
 
 // New creates new Broker instance
@@ -63,6 +65,8 @@ func (b *Broker) GetPendingTasks(queue string) ([]*tasks.Signature, error) {
 func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcessor iface.TaskProcessor) (bool, error) {
 	b.Broker.StartConsuming(consumerTag, concurrency, taskProcessor)
 	qURL := b.getQueueURL(taskProcessor)
+	//save it so that it can be used later when attempting to delete task
+	b.queueUrl = qURL
 
 	deliveries := make(chan *awssqs.ReceiveMessageOutput)
 
@@ -123,7 +127,7 @@ func (b *Broker) StopConsuming() {
 }
 
 // Publish places a new message on the default queue
-func (b *Broker) Publish(signature *tasks.Signature) error {
+func (b *Broker) Publish(ctx context.Context, signature *tasks.Signature) error {
 	msg, err := json.Marshal(signature)
 	if err != nil {
 		return fmt.Errorf("JSON marshal error: %s", err)
@@ -164,7 +168,7 @@ func (b *Broker) Publish(signature *tasks.Signature) error {
 		}
 	}
 
-	result, err := b.service.SendMessage(MsgInput)
+	result, err := b.service.SendMessageWithContext(ctx, MsgInput)
 
 	if err != nil {
 		log.ERROR.Printf("Error when sending a message: %v", err)
@@ -225,7 +229,7 @@ func (b *Broker) consumeOne(delivery *awssqs.ReceiveMessageOutput, taskProcessor
 	}
 	// Delete message after successfully consuming and processing the message
 	if err = b.deleteOne(delivery); err != nil {
-		log.ERROR.Printf("error when deleting the delivery. the delivery is %v", delivery)
+		log.ERROR.Printf("error when deleting the delivery. delivery is %v, Error=%s", delivery, err)
 	}
 	return err
 }
@@ -246,7 +250,12 @@ func (b *Broker) deleteOne(delivery *awssqs.ReceiveMessageOutput) error {
 
 // defaultQueueURL is a method returns the default queue url
 func (b *Broker) defaultQueueURL() *string {
-	return aws.String(b.GetConfig().Broker + "/" + b.GetConfig().DefaultQueue)
+	if b.queueUrl != nil {
+		return b.queueUrl
+	} else {
+		return aws.String(b.GetConfig().Broker + "/" + b.GetConfig().DefaultQueue)
+	}
+
 }
 
 // receiveMessage is a method receives a message from specified queue url
