@@ -71,6 +71,7 @@ type Task struct {
 	CacheImage   string   `json:"cache_image" form:"cache_image"`
 	CacheClean   string   `json:"cache_clean" form:"cache_clean"`
 	PublishMode  string   `json:"publish_mode" form:"publish_mode"`
+	PipelineID   string   `json:"pipeline_id" form:"pipeline_id"`
 
 	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
 
@@ -339,19 +340,24 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 			entrypoint = append(entrypoint, v.(string))
 		}
 	}
-	var id string
 
+	var id string
 	if str, ok := t["ID"].(string); ok {
 		id = str
 	}
-	var retry string
+	var pipelineId string
+	if str, ok := t["pipeline_id"].(string); ok {
+		pipelineId = str
+	}
 
+	var retry string
 	if str, ok := t["retry"].(string); ok {
 		retry = str
 	}
 	task := Task{
 		Retry:        retry,
 		ID:           id,
+		PipelineID:   pipelineId,
 		Queue:        queue,
 		Source:       source,
 		PrivKey:      privkey,

@@ -1190,6 +1190,7 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 
 func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir string, task *tasks.Task) (int, error) {
 	instruction := NewInstructionFromTaskWithDebug(*task, "pwd && ls -liah && ")
+	instruction.SetTaskEnvVariables(task, l.Context)
 	env := instruction.EnvironmentMap()
 
 	instruction.Report(l)
