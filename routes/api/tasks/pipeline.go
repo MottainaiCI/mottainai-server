@@ -169,6 +169,17 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 	if err != nil {
 		return err
 	}
+
+	// Update pipeline ID in every tasks
+	for _, t := range opts.Tasks {
+		err := db.Driver.UpdateTask(t.ID, map[string]interface{}{
+			"pipeline_id": docID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	m.ProcessPipeline(docID)
 
 	ctx.APICreationSuccess(docID, "pipeline")

@@ -116,6 +116,11 @@ func (d *DefaultInstruction) SetTaskEnvVariables(task_info *tasks.Task, ctx *Exe
 		d.Environment["MOTTAINAI_TASK_ID"] = task_info.ID
 	}
 
+	if _, ok := d.Environment["MOTTAINAI_PIPELINE_ID"]; !ok {
+		if task_info.PipelineID != "" {
+			d.Environment["MOTTAINAI_PIPELINE_ID"] = task_info.PipelineID
+		}
+	}
 	if _, ok := d.Environment["MOTTAINAI_TASK_NAME"]; !ok {
 		if task_info.Name != "" {
 			d.Environment["MOTTAINAI_TASK_NAME"] = task_info.Name
