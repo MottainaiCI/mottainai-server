@@ -23,9 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
+	"fmt"
 	"strings"
+
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 // Instruction represent a set of script + env that has to be executed in a given context
@@ -38,6 +39,7 @@ type Instruction interface {
 	SetEnvironment(env []string)
 	EnvironmentList() []string
 	EnvironmentMap() map[string]string
+	SetTaskEnvVariables(task_info *tasks.Task, ctx *ExecutorContext)
 
 	SetMounts(mounts []string)
 	AddMount(mount string)
@@ -48,7 +50,7 @@ type Instruction interface {
 
 type DefaultInstruction struct {
 	Script      []string
-	Environment []string
+	Environment map[string]string
 	Entrypoint  []string
 	Mounts      []string
 }
@@ -84,27 +86,80 @@ func (d *DefaultInstruction) MountsList() []string {
 }
 
 func (d *DefaultInstruction) SetEnvironment(env []string) {
-	d.Environment = env
+	var kv []string
+	d.Environment = make(map[string]string)
+
+	for _, v := range env {
+		kv = strings.Split(v, "=")
+		d.Environment[kv[0]] = kv[1]
+	}
 }
 
 func (d *DefaultInstruction) EnvironmentList() []string {
-	return d.Environment
+	var ans []string
+	for k, v := range d.Environment {
+		ans = append(ans, fmt.Sprintf("%s=%s", k, v))
+	}
+	return ans
 }
 
 func (d *DefaultInstruction) EnvironmentMap() map[string]string {
-	var kv []string
-	ans := make(map[string]string)
-
-	for _, v := range d.EnvironmentList() {
-		kv = strings.Split(v, "=")
-		ans[kv[0]] = kv[1]
+	if len(d.Environment) == 0 {
+		d.Environment["LC_ALL"] = "en_US.UTF-8"
 	}
 
-	if len(ans) == 0 {
-		ans["LC_ALL"] = "en_US.UTF-8"
+	return d.Environment
+}
+
+func (d *DefaultInstruction) SetTaskEnvVariables(task_info *tasks.Task, ctx *ExecutorContext) {
+	if _, ok := d.Environment["MOTTAINAI_TASK_ID"]; !ok {
+		d.Environment["MOTTAINAI_TASK_ID"] = task_info.ID
 	}
 
-	return ans
+	if _, ok := d.Environment["MOTTAINAI_PIPELINE_ID"]; !ok {
+		if task_info.PipelineID != "" {
+			d.Environment["MOTTAINAI_PIPELINE_ID"] = task_info.PipelineID
+		}
+	}
+	if _, ok := d.Environment["MOTTAINAI_TASK_NAME"]; !ok {
+		if task_info.Name != "" {
+			d.Environment["MOTTAINAI_TASK_NAME"] = task_info.Name
+		}
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_TASK_OWNER_ID"]; !ok {
+		d.Environment["MOTTAINAI_TASK_OWNER_ID"] = task_info.Owner
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_ARTEFACT_PATH"]; !ok {
+		d.Environment["MOTTAINAI_ARTEFACT_PATH"] = ctx.TargetArtefactDir
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_STORAGE_PATH"]; !ok {
+		d.Environment["MOTTAINAI_STORAGE_PATH"] = ctx.TargetStorageDir
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_ROOT_TASK"]; !ok {
+		if task_info.RootTask != "" {
+			d.Environment["MOTTAINAI_ROOT_TASK"] = task_info.RootTask
+		}
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_TASK_TYPE"]; !ok {
+		d.Environment["MOTTAINAI_TASK_TYPE"] = task_info.Type
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_TASK_IMAGE"]; !ok {
+		if task_info.Image != "" {
+			d.Environment["MOTTAINAI_TASK_IMAGE"] = task_info.Image
+		}
+	}
+
+	if _, ok := d.Environment["MOTTAINAI_TASK_QUEUE"]; !ok {
+		if task_info.Queue != "" {
+			d.Environment["MOTTAINAI_TASK_QUEUE"] = task_info.Queue
+		}
+	}
 }
 
 func (instruction *DefaultInstruction) Report(d Executor) {

@@ -296,6 +296,7 @@ func (d *KubernetesExecutor) Play(docID string) (int, error) {
 	}
 	outMapping := d.Context.ResolveArtefactsMounts(srcMapping, instruction, d.Config.GetAgent().DockerInDocker)
 
+	instruction.SetTaskEnvVariables(&task_info, d.Context)
 	instruction.Report(d)
 	d.Context.Report(d)
 
