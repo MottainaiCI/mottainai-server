@@ -99,7 +99,7 @@
   revision = "b1d5d44c82d6c9fb6c8e8dad28412163586fd8ac"
 
 [[projects]]
-  digest = "1:d138e1e7057d3d4ddb8e53dbfa02caf221bbc55d2ca0db22e11096a6463fe74e"
+  digest = "1:62c29b4fe8353eb6f1e6eee0b49af5ba190239e6a7ede1723b31714c9c26c956"
   name = "github.com/RichardKnop/machinery"
   packages = [
     "v1",
@@ -109,6 +109,7 @@
     "v1/backends/iface",
     "v1/backends/memcache",
     "v1/backends/mongo",
+    "v1/backends/null",
     "v1/backends/redis",
     "v1/backends/result",
     "v1/brokers/amqp",
@@ -126,8 +127,8 @@
     "v1/tracing",
   ]
   pruneopts = "UT"
-  revision = "b05d37239d85793ff5828e3b35b9e68407f81fd4"
-  version = "v1.6.5"
+  revision = "45c722bb48504fcc9cf9090ea137d96402d2c96a"
+  version = "v1.6.9"
 
 [[projects]]
   digest = "1:3ec1b34a4c161eee98ba2530ed7bee201ad57705d4c8e1d8c4bf27b58ce1e728"
