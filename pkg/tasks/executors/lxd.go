@@ -836,10 +836,13 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 		return err
 	}
 
+	// NOTE: we can't use copy aliases here because
+	//       LXD doesn't handle correctly concurrency copy
+	//       of the same image.
+	//       I use i.Aliases after that image is been copied.
 	copyArgs := &lxd.ImageCopyArgs{
-		CopyAliases: true,
-		Public:      true,
-		AutoUpdate:  false,
+		Public:     true,
+		AutoUpdate: false,
 	}
 
 	// Ask LXD to copy the image from the remote server
@@ -872,7 +875,14 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 		return err
 	}
 
+	// Add aliases to images
+	for _, alias := range i.Aliases {
+		// Ignore error for handle parallel fetching.
+		l.AddAlias2Image(i.Fingerprint, alias, l.LxdClient)
+	}
+
 	l.Report(fmt.Sprintf("Image %s copy locally.", imageFingerprint))
+
 	return nil
 }
 
@@ -1335,6 +1345,15 @@ func (l *LxdExecutor) GetContainerName(task *tasks.Task) string {
 	}
 
 	return ans
+}
+
+func (l *LxdExecutor) AddAlias2Image(fingerprint string, alias lxd_api.ImageAlias,
+	server lxd.ContainerServer) error {
+	aliasPost := lxd_api.ImageAliasesPost{}
+	aliasPost.Name = alias.Name
+	aliasPost.Description = alias.Description
+	aliasPost.Target = fingerprint
+	return server.CreateImageAlias(aliasPost)
 }
 
 func (l *LxdExecutor) waitOperation(rawOp interface{}, p *lxd_utils.ProgressRenderer) error {
