@@ -296,7 +296,9 @@ func SetupGitHub(m *mottainai.Mottainai) {
 
 	// TODO: Generate tokens for  each user.
 	// Let user add repo in specific collection, and check against that
-	m.Post("/webhook/:uid/github", RequiresWebHookSetting, func(l *logging.Logger, ctx *context.Context, db *database.Database, resp http.ResponseWriter, req *http.Request) {
+
+	webHookHandler := func(l *logging.Logger, ctx *context.Context,
+		db *database.Database, resp http.ResponseWriter, req *http.Request) {
 		uid := ctx.Params(":uid")
 		l.WithFields(logrus.Fields{
 			"component": "webhook",
@@ -324,6 +326,12 @@ func SetupGitHub(m *mottainai.Mottainai) {
 		}
 		hook := GenGitHubHook(db, m, &w, &u)
 		hook.ParsePayload(resp, req)
+	}
+
+	m.Invoke(func(config *setting.Config) {
+		m.Group(config.GetWeb().GroupAppPath(), func() {
+			m.Post("/webhook/:uid/github", RequiresWebHookSetting, webHookHandler)
+		})
 	})
 
 }
