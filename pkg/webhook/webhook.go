@@ -189,7 +189,6 @@ func NewWebHookFromMap(t map[string]interface{}) WebHook {
 				valueField.SetBool(b)
 			}
 		}
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return *u
 }
@@ -214,7 +213,6 @@ func (t *WebHook) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
