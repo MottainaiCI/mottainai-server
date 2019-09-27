@@ -1592,11 +1592,12 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:39f43a9ea4af920abf322d1770c5fbf337286cb174a25827b22e1da72dcfdb5c"
+  digest = "1:6b951d8bf22f4ff5ebbf9d78fe3eb1f7c7d7acf998167692418c75c2b5105507"
   name = "gopkg.in/go-playground/webhooks.v3"
   packages = [
     ".",
     "github",
+    "gitlab",
   ]
   pruneopts = "UT"
   revision = "8ffb2ffc32b7af2c7e940944eccba4dcd66c692a"
@@ -2164,6 +2165,7 @@
     "gopkg.in/clog.v1",
     "gopkg.in/go-playground/webhooks.v3",
     "gopkg.in/go-playground/webhooks.v3/github",
+    "gopkg.in/go-playground/webhooks.v3/gitlab",
     "gopkg.in/macaron.v1",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/config",
