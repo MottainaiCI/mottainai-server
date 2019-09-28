@@ -116,6 +116,16 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 			"GITLAB_EVENT_TOT_COMMIT_COUNT=" + strconv.FormatInt(push.TotalCommitsCount, 10),
 		}
 
+		// Addend info to task
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("%s %s %d",
+				push.Project.Name, h.Context.KindEvent, push.CheckoutSHA)
+		} else {
+			task.Name = fmt.Sprintf("%s - %s %s %d",
+				task.Name, push.Project.Name, h.Context.KindEvent, push.CheckoutSHA,
+			)
+		}
+
 	} else if h.Context.KindEvent == "tag" {
 		tag := h.Payload.(gitlab.TagEventPayload)
 
@@ -130,6 +140,16 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 			"GITLAB_EVENT_USERID=" + strconv.FormatInt(tag.UserID, 10),
 			"GITLAB_EVENT_REF=" + tag.Ref,
 			"GITLAB_EVENT_CHECKOUT_SHA=" + tag.CheckoutSHA,
+		}
+
+		// Addend info to task
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("%s %s %d",
+				tag.Project.Name, h.Context.KindEvent, tag.Ref)
+		} else {
+			task.Name = fmt.Sprintf("%s - %s %s %d",
+				task.Name, tag.Project.Name, h.Context.KindEvent, tag.Ref,
+			)
 		}
 
 	} else if h.Context.KindEvent == "issue" {
@@ -152,6 +172,16 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 			"GITLAB_EVENT_ISSUE_DESCR=" + issue.ObjectAttributes.Description,
 			"GITLAB_EVENT_ISSUE_STATE=" + issue.ObjectAttributes.State,
 			"GITLAB_EVENT_ISSUE_ACTION=" + issue.ObjectAttributes.Action,
+		}
+
+		// Addend info to task
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("%s %s #%s",
+				issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.ID)
+		} else {
+			task.Name = fmt.Sprintf("%s - %s %s %d",
+				task.Name, issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.ID,
+			)
 		}
 	}
 
