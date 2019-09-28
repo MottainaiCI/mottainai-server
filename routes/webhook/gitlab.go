@@ -287,7 +287,7 @@ func NewGitContextGitLab(kindEvent string, payload interface{}) *GitContext {
 			CloneSSHUrl:  issue.Project.GitSSSHURL,
 			CloneHTTPUrl: issue.Project.GitHTTPURL,
 			// TODO: Show what url to use
-			UserRepo:  issue.Project.GitSSSHURL,
+			UserRepo:  issue.Project.GitHTTPURL,
 			User:      strconv.FormatInt(issue.ObjectAttributes.AuthorID, 10),
 			Uid:       strconv.FormatInt(issue.ObjectAttributes.IID, 10) + "-issue-" + repo,
 			Commit:    issue.Project.DefaultBranch,
