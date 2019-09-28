@@ -388,7 +388,7 @@ func (h *GitWebHook) GetHookPipeline(db *database.Database) (*tasks.Pipeline, er
 	return t, nil
 }
 
-func (h *GitWebHook) CreateHookTask(m *mottainai.Mottainai, db *database.Database) (string, error) {
+func (h *GitWebHook) CreateHookTask(m *mottainai.Mottainai, db *database.Database, l *logging.Logger) (string, error) {
 	t, err := h.GetHookTask(db)
 	if err != nil {
 		h.CBHandler.SetFailureStatus(err.Error())
@@ -417,14 +417,12 @@ func (h *GitWebHook) CreateHookTask(m *mottainai.Mottainai, db *database.Databas
 	h.CBHandler.SetStatus(&pending, &pendingDesc, &url)
 
 	m.Invoke(func(a *anagent.Anagent) {
-		data := strings.Join([]string{
-			h.Context.KindEvent,
-			h.Context.Owner,
-			h.Context.Repo,
-			h.Context.Ref,
-			"tasks", docID,
-		}, ",")
-		a.Invoke(func(w map[string]string) {
+		data := NewWatcherEvent("task", docID, h.CBHandler)
+		a.Invoke(func(w map[string]*WatcherEvent) {
+			l.WithFields(logrus.Fields{
+				"component": "webhook_global_watcher",
+				"event":     "add",
+			}).Debug("Add event to global watcher")
 			a.Lock()
 			defer a.Unlock()
 			w[h.Context.Uid] = data
@@ -492,14 +490,8 @@ func (h *GitWebHook) CreateHookPipeline(m *mottainai.Mottainai, db *database.Dat
 	h.CBHandler.SetStatus(&pending, &pendingDesc, &url)
 
 	m.Invoke(func(a *anagent.Anagent) {
-		data := strings.Join([]string{
-			h.Context.KindEvent,
-			h.Context.Owner,
-			h.Context.Repo,
-			h.Context.Ref,
-			"pipeline", docID,
-		}, ",")
-		a.Invoke(func(w map[string]string) {
+		data := NewWatcherEvent("pipeline", docID, h.CBHandler)
+		a.Invoke(func(w map[string]*WatcherEvent) {
 			l.WithFields(logrus.Fields{
 				"component": "webhook_global_watcher",
 				"event":     "add",
@@ -544,7 +536,7 @@ func (h *GitWebHook) SendTask(db *database.Database, m *mottainai.Mottainai, log
 	// Create the 'pending' status and send it
 	h.CBHandler.SetPendingStatus()
 
-	idTask, err = h.CreateHookTask(m, db)
+	idTask, err = h.CreateHookTask(m, db, logger)
 	if err != nil {
 		return "", err
 	}
