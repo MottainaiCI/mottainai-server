@@ -118,10 +118,10 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 
 		// Addend info to task
 		if task.Name == "" {
-			task.Name = fmt.Sprintf("%s %s %d",
+			task.Name = fmt.Sprintf("%s %s %s",
 				push.Project.Name, h.Context.KindEvent, push.CheckoutSHA)
 		} else {
-			task.Name = fmt.Sprintf("%s - %s %s %d",
+			task.Name = fmt.Sprintf("%s - %s %s %s",
 				task.Name, push.Project.Name, h.Context.KindEvent, push.CheckoutSHA,
 			)
 		}
@@ -144,10 +144,10 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 
 		// Addend info to task
 		if task.Name == "" {
-			task.Name = fmt.Sprintf("%s %s %d",
+			task.Name = fmt.Sprintf("%s %s %s",
 				tag.Project.Name, h.Context.KindEvent, tag.Ref)
 		} else {
-			task.Name = fmt.Sprintf("%s - %s %s %d",
+			task.Name = fmt.Sprintf("%s - %s %s %s",
 				task.Name, tag.Project.Name, h.Context.KindEvent, tag.Ref,
 			)
 		}
@@ -164,7 +164,7 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 			"GITLAB_EVENT_PROJECT_GITHTTP_URL=" + issue.Project.GitHTTPURL,
 			"GITLAB_EVENT_REPO_HOMEPAGE=" + issue.Repository.Homepage,
 			"GITLAB_EVENT_REPO_URL=" + issue.Repository.URL,
-			"GITLAB_EVENT_ISSUE_ID=" + strconv.FormatInt(issue.ObjectAttributes.ID, 10),
+			"GITLAB_EVENT_ISSUE_ID=" + strconv.FormatInt(issue.ObjectAttributes.IID, 10),
 			"GITLAB_EVENT_ISSUE_TITLE=" + issue.ObjectAttributes.Title,
 			"GITLAB_EVENT_ISSUE_CREATION_DATE=" + fmt.Sprintf("%s", issue.ObjectAttributes.CreatedAt),
 			"GITLAB_EVENT_ISSUE_UPDATE_DATE=" + fmt.Sprintf("%s", issue.ObjectAttributes.UpdatedAt),
@@ -176,11 +176,11 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 
 		// Addend info to task
 		if task.Name == "" {
-			task.Name = fmt.Sprintf("%s %s #%s",
-				issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.ID)
+			task.Name = fmt.Sprintf("%s %s #%d",
+				issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.IID)
 		} else {
-			task.Name = fmt.Sprintf("%s - %s %s %d",
-				task.Name, issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.ID,
+			task.Name = fmt.Sprintf("%s - %s %s #%d",
+				task.Name, issue.Project.Name, h.Context.KindEvent, issue.ObjectAttributes.IID,
 			)
 		}
 	}
@@ -289,7 +289,7 @@ func NewGitContextGitLab(kindEvent string, payload interface{}) *GitContext {
 			// TODO: Show what url to use
 			UserRepo:  issue.Project.GitSSSHURL,
 			User:      strconv.FormatInt(issue.ObjectAttributes.AuthorID, 10),
-			Uid:       strconv.FormatInt(issue.ObjectAttributes.ID, 10) + "-issue-" + repo,
+			Uid:       strconv.FormatInt(issue.ObjectAttributes.IID, 10) + "-issue-" + repo,
 			Commit:    issue.Project.DefaultBranch,
 			Checkout:  issue.Project.DefaultBranch,
 			Repo:      repo,
@@ -358,6 +358,8 @@ func HandleGitLabIssue(m *mottainai.Mottainai, sessionHook *GitLabWebHook) {
 		l.WithFields(fields).Debug(fmt.Sprintf(
 			"Issue event for user %s received.", sessionHook.Hook.ID,
 		))
+
+		sessionHook.HandleEvent(m, l, db)
 	})
 }
 
