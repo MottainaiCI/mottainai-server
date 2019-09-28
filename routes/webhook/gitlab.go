@@ -69,6 +69,7 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 	if h.Context.KindEvent == "merge_request" {
 		mr := h.Payload.(gitlab.MergeRequestEventPayload)
 		envs = []string{
+			"GITLAB_EVENT_MRID=" + strconv.FormatInt(mr.ObjectAttributes.IID, 10),
 			"GITLAB_EVENT_TYPE=" + h.Context.KindEvent,
 			"GITLAB_EVENT_USERNAME=" + mr.User.UserName,
 			"GITLAB_EVENT_PROJECT_NAME=" + mr.Project.Name,
@@ -85,6 +86,16 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 			"GITLAB_EVENT_MR_ACTION=" + mr.ObjectAttributes.Action,
 			"GITLAB_EVENT_LAST_COMMIT=" + mr.ObjectAttributes.LastCommit.ID,
 			"GITLAB_EVENT_AUTHORID=" + strconv.FormatInt(mr.ObjectAttributes.AuthorID, 10),
+		}
+
+		// Addend info to task
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("%s %s #%d",
+				mr.Project.Name, h.Context.KindEvent, mr.ObjectAttributes.IID)
+		} else {
+			task.Name = fmt.Sprintf("%s - %s %s #%d",
+				task.Name, mr.Project.Name, h.Context.KindEvent, mr.ObjectAttributes.IID,
+			)
 		}
 
 	} else if h.Context.KindEvent == "push" {
@@ -144,7 +155,7 @@ func (h *GitLabWebHook) LoadEventEnvs2Task(task *tasks.Task) {
 		}
 	}
 
-	(*task).Environment = append(task.Environment, envs...)
+	task.Environment = append(task.Environment, envs...)
 }
 
 func (h *GitLabWebHook) SetPendingStatus() {
@@ -187,7 +198,7 @@ func NewGitContextGitLab(kindEvent string, payload interface{}) *GitContext {
 			User:      strconv.FormatInt(mr.ObjectAttributes.AuthorID, 10),
 			Uid:       mr.ObjectAttributes.LastCommit.ID + repo,
 			Commit:    mr.ObjectAttributes.LastCommit.ID,
-			Checkout:  mr.ObjectAttributes.LastCommit.ID,
+			Checkout:  strconv.FormatInt(mr.ObjectAttributes.IID, 10),
 			Repo:      repo,
 			Ref:       mr.ObjectAttributes.SourceBranch,
 			FilterRef: fmt.Sprintf("%s-%s", kindEvent, mr.ObjectAttributes.SourceBranch),

@@ -274,8 +274,16 @@ func (h *GitWebHook) PrepareGitDir(db *database.Database) error {
 		return err
 	}
 
-	if h.Context.KindEvent == "pull_request" || h.Context.KindEvent == "merge_request" {
+	if h.Context.KindEvent == "pull_request" {
 		err = utils.GitCheckoutPullRequest(r, "origin", h.Context.Checkout)
+		if err != nil {
+			os.RemoveAll(h.Context.Dir)
+			err = errors.New("Failed checkout repo: " + err.Error())
+			h.CBHandler.SetFailureStatus(err.Error())
+			return err
+		}
+	} else if h.Context.KindEvent == "merge_request" {
+		err = utils.GitCheckoutMergeRequest(r, "origin", h.Context.Checkout)
 		if err != nil {
 			os.RemoveAll(h.Context.Dir)
 			err = errors.New("Failed checkout repo: " + err.Error())
