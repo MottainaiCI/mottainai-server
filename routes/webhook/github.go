@@ -123,10 +123,10 @@ func (h *GitHubWebHook) SetFailureStatus(errdescr string) {
 	h.SetStatus(&failure, &errdescr, nil)
 }
 
-func (h *GitHubWebHook) SetStatus(state, errdescr, targetUrl *string) {
+func (h *GitHubWebHook) SetStatus(state, descr, targetUrl *string) {
 	status := ggithub.RepoStatus{
 		State:       state,
-		Description: errdescr,
+		Description: descr,
 		Context:     &h.AppName,
 	}
 	if targetUrl != nil {
