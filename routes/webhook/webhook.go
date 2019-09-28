@@ -28,6 +28,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -162,6 +163,7 @@ func (h *GitWebHook) HandleEvent(m *mottainai.Mottainai, l *logging.Logger, db *
 }
 
 func (h *GitWebHook) CheckIfHookIsAdmit(db *database.Database) error {
+
 	filtered, err := h.Context.IsEventFiltered(h.Hook.Filter)
 	if err != nil {
 		return err
@@ -184,7 +186,8 @@ func (h *GitWebHook) CheckIfHookIsAdmit(db *database.Database) error {
 	}
 
 	uuu, err = db.Driver.GetSettingByKey(setting.SYSTEM_WEBHOOK_INTERNAL_ONLY)
-	if err == nil && uuu.IsEnabled() {
+	if err == nil && uuu.IsEnabled() &&
+		reflect.TypeOf(h.CBHandler) == reflect.TypeOf((*GitHubWebHook)(nil)) {
 		u, err := db.Driver.GetUserByIdentity("github", h.Context.User)
 		if err != nil {
 			h.CBHandler.SetFailureStatus(noPermDesc)
