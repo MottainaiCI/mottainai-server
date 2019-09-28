@@ -23,8 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
-	stdctx "context"
-	"strings"
 	"time"
 
 	logrus "github.com/sirupsen/logrus"
@@ -37,18 +35,45 @@ import (
 	ggithub "github.com/google/go-github/github"
 )
 
+type WatcherEvent struct {
+	EventType string
+	EventId   string
+	Handler   WebHookCallbacks
+}
+
+func NewWatcherEvent(eType, eId string, handler WebHookCallbacks) *WatcherEvent {
+	return &WatcherEvent{
+		EventType: eType,
+		EventId:   eId,
+		Handler:   handler,
+	}
+}
+
+func GetDefaultLogFields(pipelineId, taskId, status, err string, handler WebHookCallbacks) logrus.Fields {
+	ans := handler.GetLogFields(err)
+	ans["component"] = "webhook_global_watcher"
+	if pipelineId != "" {
+		ans["pipeline"] = pipelineId
+	}
+	if taskId != "" {
+		ans["task"] = taskId
+	}
+	if status != "" {
+		ans["status"] = status
+	}
+	return ans
+}
+
 func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Database, config *setting.Config, logger *logging.Logger) {
-	url := config.GetWeb().AppURL
-	appName := config.GetWeb().AppName
 	logger.WithFields(logrus.Fields{
 		"component": "webhook_global_watcher",
 	}).Info("Starting")
 	var tid anagent.TimerID = anagent.TimerID("global_watcher")
-	watch := make(map[string]string)
+	watch := make(map[string]*WatcherEvent)
 
 	a.Map(watch)
 
-	a.Timer(tid, time.Now(), time.Duration(30*time.Second), true, func(w map[string]string) {
+	a.Timer(tid, time.Now(), time.Duration(30*time.Second), true, func(w map[string]*WatcherEvent) {
 		logger.WithFields(logrus.Fields{
 			"component": "webhook_global_watcher",
 		}).Debug("Check for pending tasks")
@@ -56,13 +81,11 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 		//	defer a.Unlock()
 		// Checking for PR that needs update
 		for k, v := range w {
-			data := strings.Split(v, ",")
 
-			turl := url + "/" + data[4] + "/display/" + data[5]
+			if v.EventType == "pipeline" {
 
-			if data[4] == "pipeline" {
-
-				pip, err := db.Driver.GetPipeline(db.Config, data[5])
+				url := config.GetWeb().BuildAbsURL("/pipeline/" + v.EventId)
+				pip, err := db.Driver.GetPipeline(db.Config, v.EventId)
 				if err != nil { // XXX:
 					delete(w, k)
 					return
@@ -90,46 +113,34 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				if done == len(pip.Tasks) {
 					delete(w, k)
 					if fail == false {
-						logger.WithFields(logrus.Fields{
-							"component":   "webhook_global_watcher",
-							"pipeline_id": data[5],
-							"status":      "success",
-						}).Info("Pipeline successfully executed")
+						fields := GetDefaultLogFields(v.EventId, "", "success", "", v.Handler)
+						logger.WithFields(fields).Info("Pipeline successfully executed")
 
-						status2 := &ggithub.RepoStatus{State: &success, TargetURL: &url, Description: &successDesc, Context: &appName}
-						client.Repositories.CreateStatus(stdctx.Background(), data[1], data[2], data[3], status2)
+						v.Handler.SetStatus(&success, &successDesc, &url)
 
 					} else {
-						logger.WithFields(logrus.Fields{
-							"component":   "webhook_global_watcher",
-							"pipeline_id": data[5],
-							"status":      "failure",
-						}).Info("Pipeline failed ")
-						status2 := &ggithub.RepoStatus{State: &failure, TargetURL: &url, Description: &failureDesc, Context: &appName}
-						client.Repositories.CreateStatus(stdctx.Background(), data[1], data[2], data[3], status2)
+						fields := GetDefaultLogFields(v.EventId, "", "failure", "", v.Handler)
+						logger.WithFields(fields).Info("Pipeline failed ")
+
+						v.Handler.SetStatus(&failure, &failureDesc, &url)
 					}
 				}
-			} else {
 
-				task, err := db.Driver.GetTask(db.Config, data[5])
+				// Handle task events
+			} else if v.EventType == "task" {
+
+				url := config.GetWeb().BuildAbsURL("/tasks/display/" + v.EventId)
+				task, err := db.Driver.GetTask(db.Config, v.EventId)
 				if err == nil {
 					if task.IsDone() || task.IsStopped() {
 						if task.IsSuccess() {
-							logger.WithFields(logrus.Fields{
-								"component": "webhook_global_watcher",
-								"task_id":   data[5],
-								"status":    "success",
-							}).Info("Task succeeded")
-							status2 := &ggithub.RepoStatus{State: &success, TargetURL: &turl, Description: &successDesc, Context: &appName}
-							client.Repositories.CreateStatus(stdctx.Background(), data[1], data[2], data[3], status2)
+							fields := GetDefaultLogFields("", v.EventId, "success", "", v.Handler)
+							logger.WithFields(fields).Info("Task succeeded")
+							v.Handler.SetStatus(&success, &successDesc, &url)
 						} else {
-							logger.WithFields(logrus.Fields{
-								"component": "webhook_global_watcher",
-								"task_id":   data[5],
-								"status":    "failure",
-							}).Info("Task failed ")
-							status2 := &ggithub.RepoStatus{State: &failure, TargetURL: &turl, Description: &failureDesc, Context: &appName}
-							client.Repositories.CreateStatus(stdctx.Background(), data[1], data[2], data[3], status2)
+							fields := GetDefaultLogFields("", v.EventId, "failure", "", v.Handler)
+							logger.WithFields(fields).Info("Task failed ")
+							v.Handler.SetStatus(&failure, &failureDesc, &url)
 						}
 						delete(w, k)
 					}
@@ -139,6 +150,9 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 					delete(w, k)
 				}
 
+			} else {
+				logger.Error("Unknown event %s", v)
+				delete(w, k)
 			}
 		}
 
