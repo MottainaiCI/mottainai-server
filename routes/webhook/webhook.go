@@ -343,6 +343,7 @@ func (h *GitWebHook) GetHookTask(db *database.Database) (*tasks.Task, error) {
 	t.Source = h.Context.UserRepo
 	t.Commit = h.Context.Commit
 	t.Queue = QueueSetting(db)
+	t.CreatedTime = time.Now().Format("20060102150405")
 
 	return t, nil
 }
@@ -384,6 +385,7 @@ func (h *GitWebHook) GetHookPipeline(db *database.Database) (*tasks.Pipeline, er
 	t.Owner = h.Context.StoredUser.ID
 	// XXX:
 	t.Queue = QueueSetting(db)
+	t.CreatedTime = time.Now().Format("20060102150405")
 
 	return t, nil
 }
