@@ -45,6 +45,7 @@ type WebHookSingle struct {
 
 type WebHook struct {
 	ID       string `json:"id" form:"id"`
+	Name     string `json:"name" form:"name"`
 	Key      string `json:"key" form:"key"`
 	Type     string `json:"type" form:"type"`
 	URL      string `json:"url" form:"url"`
