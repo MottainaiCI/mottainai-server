@@ -70,10 +70,7 @@ func (g *GetAvataaarsCom) GenAvatarStyle(hash string) {
 		1: "Transparent",
 	}
 
-	fmt.Println("H  = ", hash)
-	s, err := hex.DecodeString(hash)
-	fmt.Println("E = ", err)
-	fmt.Println("S  = ", s)
+	s, _ := hex.DecodeString(hash)
 	g.AvatarStyle = m[int(s[0])%2]
 }
 
@@ -335,6 +332,5 @@ func (g *GetAvataaarsCom) GenUrl() (ans string) {
 	ans += "&mouthType=" + g.Mouth
 	ans += "&skinColor=" + g.Skin
 
-	fmt.Println("URL " + ans)
 	return ans
 }
