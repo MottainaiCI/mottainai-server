@@ -13,6 +13,8 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/unix"
+
+	"github.com/lxc/lxd/shared/units"
 )
 
 // --- pure Go functions ---
@@ -46,15 +48,9 @@ func GetFileStat(p string) (uid int, gid int, major int, minor int,
 	return
 }
 
-// FileCopy copies a file, overwriting the target if it exists.
+// GetPathMode returns a os.FileMode for the provided path
 func GetPathMode(path string) (os.FileMode, error) {
-	s, err := os.Open(path)
-	if err != nil {
-		return os.FileMode(0000), err
-	}
-	defer s.Close()
-
-	fi, err := s.Stat()
+	fi, err := os.Stat(path)
 	if err != nil {
 		return os.FileMode(0000), err
 	}
@@ -380,8 +376,8 @@ func DeviceTotalMemory() (int64, error) {
 		fields := strings.Split(line, " ")
 		value := fields[len(fields)-2] + fields[len(fields)-1]
 
-		// Feed the result to shared.ParseByteSizeString to get an int value
-		valueBytes, err := ParseByteSizeString(value)
+		// Feed the result to units.ParseByteSizeString to get an int value
+		valueBytes, err := units.ParseByteSizeString(value)
 		if err != nil {
 			return -1, err
 		}

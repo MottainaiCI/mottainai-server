@@ -13,12 +13,14 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/lxc/lxd/lxd/migration"
+	"github.com/lxc/lxd/lxd/project"
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/lxd/storage/quota"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/ioprogress"
 	"github.com/lxc/lxd/shared/logger"
+	"github.com/lxc/lxd/shared/units"
 )
 
 type storageDir struct {
@@ -268,7 +270,7 @@ func (s *storageDir) StoragePoolUmount() (bool, error) {
 		return false, nil
 	}
 
-	err := unix.Unmount(poolMntPoint, 0)
+	err := unix.Unmount(poolMntPoint, unix.MNT_DETACH)
 	if err != nil {
 		return false, err
 	}
@@ -426,7 +428,7 @@ func (s *storageDir) StoragePoolVolumeUpdate(writable *api.StorageVolumePut, cha
 
 		// Restore using rsync
 		bwlimit := s.pool.Config["rsync.bwlimit"]
-		output, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit)
+		output, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit, true)
 		if err != nil {
 			return fmt.Errorf("failed to rsync container: %s: %s", string(output), err)
 		}
@@ -446,6 +448,24 @@ func (s *storageDir) StoragePoolVolumeUpdate(writable *api.StorageVolumePut, cha
 
 	if len(unchangeable) > 0 {
 		return updateStoragePoolVolumeError(unchangeable, "dir")
+	}
+
+	if shared.StringInSlice("size", changedConfig) {
+		if s.volume.Type != storagePoolVolumeTypeNameCustom {
+			return updateStoragePoolVolumeError([]string{"size"}, "dir")
+		}
+
+		if s.volume.Config["size"] != writable.Config["size"] {
+			size, err := units.ParseByteSizeString(writable.Config["size"])
+			if err != nil {
+				return err
+			}
+
+			err = s.StorageEntitySetQuota(storagePoolVolumeTypeCustom, size, nil)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	logger.Infof(`Updated DIR storage volume "%s"`, s.volume.Name)
@@ -636,7 +656,7 @@ func (s *storageDir) ContainerDelete(container container) error {
 
 	// Delete potential leftover snapshot symlinks:
 	// ${LXD_DIR}/snapshots/<container_name> to ${POOL}/snapshots/<container_name>
-	snapshotSymlink := shared.VarPath("snapshots", projectPrefix(container.Project(), container.Name()))
+	snapshotSymlink := shared.VarPath("snapshots", project.Prefix(container.Project(), container.Name()))
 	if shared.PathExists(snapshotSymlink) {
 		err := os.Remove(snapshotSymlink)
 		if err != nil {
@@ -668,7 +688,7 @@ func (s *storageDir) copyContainer(target container, source container) error {
 	}
 
 	bwlimit := s.pool.Config["rsync.bwlimit"]
-	output, err := rsyncLocalCopy(sourceContainerMntPoint, targetContainerMntPoint, bwlimit)
+	output, err := rsyncLocalCopy(sourceContainerMntPoint, targetContainerMntPoint, bwlimit, true)
 	if err != nil {
 		return fmt.Errorf("failed to rsync container: %s: %s", string(output), err)
 	}
@@ -689,15 +709,15 @@ func (s *storageDir) copySnapshot(target container, targetPool string, source co
 
 	targetParentName, _, _ := containerGetParentAndSnapshotName(target.Name())
 	containersPath := getSnapshotMountPoint(target.Project(), targetPool, targetParentName)
-	snapshotMntPointSymlinkTarget := shared.VarPath("storage-pools", targetPool, "containers-snapshots", projectPrefix(target.Project(), targetParentName))
-	snapshotMntPointSymlink := shared.VarPath("snapshots", projectPrefix(target.Project(), targetParentName))
+	snapshotMntPointSymlinkTarget := shared.VarPath("storage-pools", targetPool, "containers-snapshots", project.Prefix(target.Project(), targetParentName))
+	snapshotMntPointSymlink := shared.VarPath("snapshots", project.Prefix(target.Project(), targetParentName))
 	err := createSnapshotMountpoint(containersPath, snapshotMntPointSymlinkTarget, snapshotMntPointSymlink)
 	if err != nil {
 		return err
 	}
 
 	bwlimit := s.pool.Config["rsync.bwlimit"]
-	output, err := rsyncLocalCopy(sourceContainerMntPoint, targetContainerMntPoint, bwlimit)
+	output, err := rsyncLocalCopy(sourceContainerMntPoint, targetContainerMntPoint, bwlimit, true)
 	if err != nil {
 		return fmt.Errorf("failed to rsync container: %s: %s", string(output), err)
 	}
@@ -838,9 +858,9 @@ func (s *storageDir) ContainerRename(container container, newName string) error 
 	}
 
 	oldContainerMntPoint := getContainerMountPoint(container.Project(), s.pool.Name, container.Name())
-	oldContainerSymlink := shared.VarPath("containers", projectPrefix(container.Project(), container.Name()))
+	oldContainerSymlink := shared.VarPath("containers", project.Prefix(container.Project(), container.Name()))
 	newContainerMntPoint := getContainerMountPoint(container.Project(), s.pool.Name, newName)
-	newContainerSymlink := shared.VarPath("containers", projectPrefix(container.Project(), newName))
+	newContainerSymlink := shared.VarPath("containers", project.Prefix(container.Project(), newName))
 	err = renameContainerMountpoint(oldContainerMntPoint, oldContainerSymlink, newContainerMntPoint, newContainerSymlink)
 	if err != nil {
 		return err
@@ -859,8 +879,8 @@ func (s *storageDir) ContainerRename(container container, newName string) error 
 
 	// Remove the old snapshot symlink:
 	// ${LXD_DIR}/snapshots/<old_container_name>
-	oldSnapshotSymlink := shared.VarPath("snapshots", projectPrefix(container.Project(), container.Name()))
-	newSnapshotSymlink := shared.VarPath("snapshots", projectPrefix(container.Project(), newName))
+	oldSnapshotSymlink := shared.VarPath("snapshots", project.Prefix(container.Project(), container.Name()))
+	newSnapshotSymlink := shared.VarPath("snapshots", project.Prefix(container.Project(), newName))
 	if shared.PathExists(oldSnapshotSymlink) {
 		err := os.Remove(oldSnapshotSymlink)
 		if err != nil {
@@ -892,7 +912,7 @@ func (s *storageDir) ContainerRestore(container container, sourceContainer conta
 
 	// Restore using rsync
 	bwlimit := s.pool.Config["rsync.bwlimit"]
-	output, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit)
+	output, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit, true)
 	if err != nil {
 		return fmt.Errorf("failed to rsync container: %s: %s", string(output), err)
 	}
@@ -935,7 +955,7 @@ func (s *storageDir) ContainerSnapshotCreate(snapshotContainer container, source
 	}
 
 	rsync := func(snapshotContainer container, oldPath string, newPath string, bwlimit string) error {
-		output, err := rsyncLocalCopy(oldPath, newPath, bwlimit)
+		output, err := rsyncLocalCopy(oldPath, newPath, bwlimit, true)
 		if err != nil {
 			s.ContainerDelete(snapshotContainer)
 			return fmt.Errorf("failed to rsync: %s: %s", string(output), err)
@@ -982,7 +1002,7 @@ onSuccess:
 	// Check if the symlink
 	// ${LXD_DIR}/snapshots/<source_container_name> to ${POOL_PATH}/snapshots/<source_container_name>
 	// exists and if not create it.
-	sourceContainerSymlink := shared.VarPath("snapshots", projectPrefix(sourceContainer.Project(), sourceContainerName))
+	sourceContainerSymlink := shared.VarPath("snapshots", project.Prefix(sourceContainer.Project(), sourceContainerName))
 	sourceContainerSymlinkTarget := getSnapshotMountPoint(sourceContainer.Project(), sourcePool, sourceContainerName)
 	if !shared.PathExists(sourceContainerSymlink) {
 		err = os.Symlink(sourceContainerSymlinkTarget, sourceContainerSymlink)
@@ -1025,8 +1045,8 @@ func (s *storageDir) ContainerSnapshotCreateEmpty(snapshotContainer container) e
 		targetContainerName)
 	sourceName, _, _ := containerGetParentAndSnapshotName(targetContainerName)
 	snapshotMntPointSymlinkTarget := shared.VarPath("storage-pools",
-		s.pool.Name, "containers-snapshots", projectPrefix(snapshotContainer.Project(), sourceName))
-	snapshotMntPointSymlink := shared.VarPath("snapshots", projectPrefix(snapshotContainer.Project(), sourceName))
+		s.pool.Name, "containers-snapshots", project.Prefix(snapshotContainer.Project(), sourceName))
+	snapshotMntPointSymlink := shared.VarPath("snapshots", project.Prefix(snapshotContainer.Project(), sourceName))
 	err = createSnapshotMountpoint(targetContainerMntPoint,
 		snapshotMntPointSymlinkTarget, snapshotMntPointSymlink)
 	if err != nil {
@@ -1039,8 +1059,8 @@ func (s *storageDir) ContainerSnapshotCreateEmpty(snapshotContainer container) e
 	return nil
 }
 
-func dirSnapshotDeleteInternal(project, poolName string, snapshotName string) error {
-	snapshotContainerMntPoint := getSnapshotMountPoint(project, poolName, snapshotName)
+func dirSnapshotDeleteInternal(projectName, poolName string, snapshotName string) error {
+	snapshotContainerMntPoint := getSnapshotMountPoint(projectName, poolName, snapshotName)
 	if shared.PathExists(snapshotContainerMntPoint) {
 		err := os.RemoveAll(snapshotContainerMntPoint)
 		if err != nil {
@@ -1049,7 +1069,7 @@ func dirSnapshotDeleteInternal(project, poolName string, snapshotName string) er
 	}
 
 	sourceContainerName, _, _ := containerGetParentAndSnapshotName(snapshotName)
-	snapshotContainerPath := getSnapshotMountPoint(project, poolName, sourceContainerName)
+	snapshotContainerPath := getSnapshotMountPoint(projectName, poolName, sourceContainerName)
 	empty, _ := shared.PathIsEmpty(snapshotContainerPath)
 	if empty == true {
 		err := os.Remove(snapshotContainerPath)
@@ -1057,7 +1077,7 @@ func dirSnapshotDeleteInternal(project, poolName string, snapshotName string) er
 			return err
 		}
 
-		snapshotSymlink := shared.VarPath("snapshots", projectPrefix(project, sourceContainerName))
+		snapshotSymlink := shared.VarPath("snapshots", project.Prefix(projectName, sourceContainerName))
 		if shared.PathExists(snapshotSymlink) {
 			err := os.Remove(snapshotSymlink)
 			if err != nil {
@@ -1140,7 +1160,7 @@ func (s *storageDir) ContainerBackupCreate(backup backup, source container) erro
 
 	// Prepare for rsync
 	rsync := func(oldPath string, newPath string, bwlimit string) error {
-		output, err := rsyncLocalCopy(oldPath, newPath, bwlimit)
+		output, err := rsyncLocalCopy(oldPath, newPath, bwlimit, true)
 		if err != nil {
 			return fmt.Errorf("Failed to rsync: %s: %s", string(output), err)
 		}
@@ -1222,7 +1242,7 @@ func (s *storageDir) ContainerBackupLoad(info backupInfo, data io.ReadSeeker, ta
 
 	// Create mountpoints
 	containerMntPoint := getContainerMountPoint(info.Project, s.pool.Name, info.Name)
-	err = createContainerMountpoint(containerMntPoint, containerPath(projectPrefix(info.Project, info.Name), false), info.Privileged)
+	err = createContainerMountpoint(containerMntPoint, containerPath(project.Prefix(info.Project, info.Name), false), info.Privileged)
 	if err != nil {
 		return errors.Wrap(err, "Create container mount point")
 	}
@@ -1246,8 +1266,8 @@ func (s *storageDir) ContainerBackupLoad(info backupInfo, data io.ReadSeeker, ta
 		// Create mountpoints
 		snapshotMntPoint := getSnapshotMountPoint(info.Project, s.pool.Name, info.Name)
 		snapshotMntPointSymlinkTarget := shared.VarPath("storage-pools", s.pool.Name,
-			"containers-snapshots", projectPrefix(info.Project, info.Name))
-		snapshotMntPointSymlink := shared.VarPath("snapshots", projectPrefix(info.Project, info.Name))
+			"containers-snapshots", project.Prefix(info.Project, info.Name))
+		snapshotMntPointSymlink := shared.VarPath("snapshots", project.Prefix(info.Project, info.Name))
 		err := createSnapshotMountpoint(snapshotMntPoint, snapshotMntPointSymlinkTarget,
 			snapshotMntPointSymlink)
 		if err != nil {
@@ -1484,7 +1504,7 @@ func (s *storageDir) StoragePoolVolumeSnapshotCreate(target *api.StorageVolumeSn
 
 	sourcePath := getStoragePoolVolumeMountPoint(s.pool.Name, sourceName)
 	bwlimit := s.pool.Config["rsync.bwlimit"]
-	msg, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit)
+	msg, err := rsyncLocalCopy(sourcePath, targetPath, bwlimit, true)
 	if err != nil {
 		return fmt.Errorf("Failed to rsync: %s: %s", string(msg), err)
 	}
@@ -1529,37 +1549,24 @@ func (s *storageDir) StoragePoolVolumeSnapshotDelete() error {
 }
 
 func (s *storageDir) StoragePoolVolumeSnapshotRename(newName string) error {
-	logger.Infof("Renaming DIR storage volume on storage pool \"%s\" from \"%s\" to \"%s\"", s.pool.Name, s.volume.Name, newName)
-	var fullSnapshotName string
+	sourceName, _, ok := containerGetParentAndSnapshotName(s.volume.Name)
+	fullSnapshotName := fmt.Sprintf("%s%s%s", sourceName, shared.SnapshotDelimiter, newName)
 
-	if shared.IsSnapshot(newName) {
-		// When renaming volume snapshots, newName will contain the full snapshot name
-		fullSnapshotName = newName
-	} else {
-		sourceName, _, ok := containerGetParentAndSnapshotName(s.volume.Name)
-		if !ok {
-			return fmt.Errorf("Not a snapshot name")
-		}
+	logger.Infof("Renaming DIR storage volume on storage pool \"%s\" from \"%s\" to \"%s\"", s.pool.Name, s.volume.Name, fullSnapshotName)
 
-		fullSnapshotName = fmt.Sprintf("%s%s%s", sourceName, shared.SnapshotDelimiter, newName)
+	if !ok {
+		return fmt.Errorf("Not a snapshot name")
 	}
 
 	oldPath := getStoragePoolVolumeSnapshotMountPoint(s.pool.Name, s.volume.Name)
 	newPath := getStoragePoolVolumeSnapshotMountPoint(s.pool.Name, fullSnapshotName)
-
-	if !shared.PathExists(newPath) {
-		err := os.MkdirAll(newPath, customDirMode)
-		if err != nil {
-			return err
-		}
-	}
 
 	err := os.Rename(oldPath, newPath)
 	if err != nil {
 		return err
 	}
 
-	logger.Infof("Renamed DIR storage volume on storage pool \"%s\" from \"%s\" to \"%s\"", s.pool.Name, s.volume.Name, newName)
+	logger.Infof("Renamed DIR storage volume on storage pool \"%s\" from \"%s\" to \"%s\"", s.pool.Name, s.volume.Name, fullSnapshotName)
 
 	return s.s.Cluster.StoragePoolVolumeRename("default", s.volume.Name, fullSnapshotName, storagePoolVolumeTypeCustom, s.poolID)
 }
@@ -1587,7 +1594,7 @@ func (s *storageDir) copyVolume(sourcePool string, source string, target string)
 
 	bwlimit := s.pool.Config["rsync.bwlimit"]
 
-	_, err = rsyncLocalCopy(srcMountPoint, dstMountPoint, bwlimit)
+	_, err = rsyncLocalCopy(srcMountPoint, dstMountPoint, bwlimit, true)
 	if err != nil {
 		os.RemoveAll(dstMountPoint)
 		logger.Errorf("Failed to rsync into DIR storage volume \"%s\" on storage pool \"%s\": %s", s.volume.Name, s.pool.Name, err)
@@ -1608,7 +1615,7 @@ func (s *storageDir) copyVolumeSnapshot(sourcePool string, source string, target
 
 	bwlimit := s.pool.Config["rsync.bwlimit"]
 
-	_, err = rsyncLocalCopy(srcMountPoint, dstMountPoint, bwlimit)
+	_, err = rsyncLocalCopy(srcMountPoint, dstMountPoint, bwlimit, true)
 	if err != nil {
 		os.RemoveAll(dstMountPoint)
 		logger.Errorf("Failed to rsync into DIR storage volume \"%s\" on storage pool \"%s\": %s", target, s.pool.Name, err)

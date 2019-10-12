@@ -75,7 +75,6 @@ void is_netnsid_aware(int *hostnetns_fd, int *newnetns_fd)
 {
 	__do_close_prot_errno int sock_fd = -EBADF;
 	int netnsid, ret;
-	struct netns_ifaddrs *ifaddrs;
 
 	*hostnetns_fd = open("/proc/self/ns/net", O_RDONLY | O_CLOEXEC);
 	if (*hostnetns_fd < 0) {
@@ -133,6 +132,10 @@ void is_uevent_aware()
 
 #ifndef SECCOMP_RET_USER_NOTIF
 #define SECCOMP_RET_USER_NOTIF 0x7fc00000U
+#endif
+
+#ifdef SECCOMP_GET_ACTION_AVAIL
+#define SECCOMP_GET_ACTION_AVAIL 2
 #endif
 
 void is_seccomp_notify_aware(void)

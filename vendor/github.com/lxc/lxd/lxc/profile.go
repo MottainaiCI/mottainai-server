@@ -1,15 +1,12 @@
 package main
 
 import (
-	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
@@ -616,52 +613,13 @@ func (c *cmdProfileList) Run(cmd *cobra.Command, args []string) error {
 		strUsedBy := fmt.Sprintf("%d", len(profile.UsedBy))
 		data = append(data, []string{profile.Name, strUsedBy})
 	}
+	sort.Sort(byName(data))
 
 	header := []string{
 		i18n.G("NAME"),
 		i18n.G("USED BY")}
 
-	switch c.flagFormat {
-	case listFormatTable:
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetAutoWrapText(false)
-		table.SetAlignment(tablewriter.ALIGN_LEFT)
-		table.SetRowLine(true)
-		table.SetHeader(header)
-		sort.Sort(byName(data))
-		table.AppendBulk(data)
-		table.Render()
-
-	case listFormatCSV:
-		sort.Sort(byName(data))
-		data = append(data, []string{})
-		copy(data[1:], data[0:])
-		data[0] = header
-		w := csv.NewWriter(os.Stdout)
-		w.WriteAll(data)
-		if err := w.Error(); err != nil {
-			return err
-		}
-
-	case listFormatJSON:
-		enc := json.NewEncoder(os.Stdout)
-		err := enc.Encode(profiles)
-		if err != nil {
-			return err
-		}
-
-	case listFormatYAML:
-		out, err := yaml.Marshal(profiles)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s", out)
-
-	default:
-		return fmt.Errorf(i18n.G("Invalid format %q"), c.flagFormat)
-	}
-
-	return nil
+	return renderTable(c.flagFormat, header, data, profiles)
 }
 
 // Remove
@@ -798,10 +756,13 @@ type cmdProfileSet struct {
 
 func (c *cmdProfileSet) Command() *cobra.Command {
 	cmd := &cobra.Command{}
-	cmd.Use = i18n.G("set [<remote>:]<profile> <key> <value>")
+	cmd.Use = i18n.G("set [<remote>:]<profile> <key><value>...")
 	cmd.Short = i18n.G("Set profile configuration keys")
 	cmd.Long = cli.FormatSection(i18n.G("Description"), i18n.G(
-		`Set profile configuration keys`))
+		`Set profile configuration keys
+
+For backward compatibility, a single configuration key may still be set with:
+    lxc profile set [<remote>:]<profile> <key> <value>`))
 
 	cmd.RunE = c.Run
 
@@ -810,7 +771,7 @@ func (c *cmdProfileSet) Command() *cobra.Command {
 
 func (c *cmdProfileSet) Run(cmd *cobra.Command, args []string) error {
 	// Sanity checks
-	exit, err := c.global.CheckArgs(cmd, args, 3, 3)
+	exit, err := c.global.CheckArgs(cmd, args, 2, -1)
 	if exit {
 		return err
 	}
@@ -827,24 +788,21 @@ func (c *cmdProfileSet) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(i18n.G("Missing profile name"))
 	}
 
-	// Set the configuration key
-	key := args[1]
-	value := args[2]
-
-	if !termios.IsTerminal(getStdinFd()) && value == "-" {
-		buf, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			return fmt.Errorf(i18n.G("Can't read from stdin: %s"), err)
-		}
-		value = string(buf[:])
-	}
-
+	// Get the profile
 	profile, etag, err := resource.server.GetProfile(resource.name)
 	if err != nil {
 		return err
 	}
 
-	profile.Config[key] = value
+	// Set the configuration key
+	keys, err := getConfig(args[1:]...)
+	if err != nil {
+		return err
+	}
+
+	for k, v := range keys {
+		profile.Config[k] = v
+	}
 
 	return resource.server.UpdateProfile(resource.name, profile.Writable(), etag)
 }

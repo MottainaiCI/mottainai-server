@@ -15,7 +15,6 @@ import (
 	"github.com/lxc/lxd/shared/api"
 	cli "github.com/lxc/lxd/shared/cmd"
 	"github.com/lxc/lxd/shared/i18n"
-	"github.com/olekukonko/tablewriter"
 )
 
 type cmdCluster struct {
@@ -56,6 +55,8 @@ func (c *cmdCluster) Command() *cobra.Command {
 type cmdClusterList struct {
 	global  *cmdGlobal
 	cluster *cmdCluster
+
+	flagFormat string
 }
 
 func (c *cmdClusterList) Command() *cobra.Command {
@@ -65,6 +66,7 @@ func (c *cmdClusterList) Command() *cobra.Command {
 	cmd.Short = i18n.G("List all the cluster members")
 	cmd.Long = cli.FormatSection(i18n.G("Description"), i18n.G(
 		`List all the cluster members`))
+	cmd.Flags().StringVar(&c.flagFormat, "format", "table", i18n.G("Format (csv|json|table|yaml)")+"``")
 
 	cmd.RunE = c.Run
 
@@ -117,23 +119,17 @@ func (c *cmdClusterList) Run(cmd *cobra.Command, args []string) error {
 		line := []string{member.ServerName, member.URL, database, strings.ToUpper(member.Status), member.Message}
 		data = append(data, line)
 	}
+	sort.Sort(byName(data))
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoWrapText(false)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.SetHeader([]string{
+	header := []string{
 		i18n.G("NAME"),
 		i18n.G("URL"),
 		i18n.G("DATABASE"),
 		i18n.G("STATE"),
 		i18n.G("MESSAGE"),
-	})
-	sort.Sort(byName(data))
-	table.AppendBulk(data)
-	table.Render()
+	}
 
-	return nil
+	return renderTable(c.flagFormat, header, data, members)
 }
 
 // Show

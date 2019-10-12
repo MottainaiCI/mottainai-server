@@ -9,6 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/robfig/cron.v2"
+
+	"github.com/lxc/lxd/shared/units"
 )
 
 type ContainerAction string
@@ -102,6 +104,40 @@ func IsOneOf(value string, valid []string) error {
 }
 
 func IsAny(value string) error {
+	return nil
+}
+
+func IsNotEmpty(value string) error {
+	if value == "" {
+		return fmt.Errorf("Required value")
+	}
+
+	return nil
+}
+
+func IsUnixUserID(value string) error {
+	if value == "" {
+		return nil
+	}
+
+	_, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return fmt.Errorf("Invalid value for a UNIX ID")
+	}
+
+	return nil
+}
+
+func IsOctalFileMode(value string) error {
+	if value == "" {
+		return nil
+	}
+
+	_, err := strconv.ParseUint(value, 8, 32)
+	if err != nil {
+		return fmt.Errorf("Invalid value for an octal file mode")
+	}
+
 	return nil
 }
 
@@ -223,7 +259,7 @@ var KnownContainerConfigKeys = map[string]func(value string) error{
 			return nil
 		}
 
-		_, err := ParseByteSizeString(value)
+		_, err := units.ParseByteSizeString(value)
 		if err != nil {
 			return err
 		}
@@ -263,10 +299,12 @@ var KnownContainerConfigKeys = map[string]func(value string) error{
 	"security.idmap.isolated": IsBool,
 	"security.idmap.size":     IsUint32,
 
-	"security.syscalls.blacklist_default": IsBool,
-	"security.syscalls.blacklist_compat":  IsBool,
-	"security.syscalls.blacklist":         IsAny,
-	"security.syscalls.whitelist":         IsAny,
+	"security.syscalls.blacklist_default":  IsBool,
+	"security.syscalls.blacklist_compat":   IsBool,
+	"security.syscalls.blacklist":          IsAny,
+	"security.syscalls.intercept.mknod":    IsBool,
+	"security.syscalls.intercept.setxattr": IsBool,
+	"security.syscalls.whitelist":          IsAny,
 
 	"snapshots.schedule": func(value string) error {
 		if value == "" {
@@ -337,6 +375,18 @@ func ConfigKeyChecker(key string) (func(value string) error, error) {
 		}
 
 		if strings.HasSuffix(key, ".created") {
+			return IsAny, nil
+		}
+
+		if strings.HasSuffix(key, ".id") {
+			return IsAny, nil
+		}
+
+		if strings.HasSuffix(key, ".vlan") {
+			return IsAny, nil
+		}
+
+		if strings.HasSuffix(key, ".spoofcheck") {
 			return IsAny, nil
 		}
 	}

@@ -7,8 +7,9 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/lxc/lxd/lxd/db"
+	deviceConfig "github.com/lxc/lxd/lxd/device/config"
 	"github.com/lxc/lxd/lxd/migration"
-	"github.com/lxc/lxd/lxd/types"
+	"github.com/lxc/lxd/lxd/project"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/logger"
@@ -110,7 +111,7 @@ func (s rsyncStorageSourceDriver) SendWhileRunning(conn *websocket.Conn, op *ope
 			path := send.Path()
 			wrapper := StorageProgressReader(op, "fs_progress", send.Name())
 			state := s.container.DaemonState()
-			err = RsyncSend(projectPrefix(s.container.Project(), ctName), shared.AddSlash(path), conn, wrapper, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
+			err = RsyncSend(project.Prefix(s.container.Project(), ctName), shared.AddSlash(path), conn, wrapper, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
 			if err != nil {
 				return err
 			}
@@ -130,14 +131,14 @@ func (s rsyncStorageSourceDriver) SendWhileRunning(conn *websocket.Conn, op *ope
 		}
 	}
 
-	return RsyncSend(projectPrefix(s.container.Project(), ctName), shared.AddSlash(s.container.Path()), conn, wrapper, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
+	return RsyncSend(project.Prefix(s.container.Project(), ctName), shared.AddSlash(s.container.Path()), conn, wrapper, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
 }
 
 func (s rsyncStorageSourceDriver) SendAfterCheckpoint(conn *websocket.Conn, bwlimit string) error {
 	ctName, _, _ := containerGetParentAndSnapshotName(s.container.Name())
 	// resync anything that changed between our first send and the checkpoint
 	state := s.container.DaemonState()
-	return RsyncSend(projectPrefix(s.container.Project(), ctName), shared.AddSlash(s.container.Path()), conn, nil, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
+	return RsyncSend(project.Prefix(s.container.Project(), ctName), shared.AddSlash(s.container.Path()), conn, nil, s.rsyncFeatures, bwlimit, state.OS.ExecPath)
 }
 
 func (s rsyncStorageSourceDriver) Cleanup() {
@@ -189,7 +190,7 @@ func snapshotProtobufToContainerArgs(project string, containerName string, snap 
 		config[ent.GetKey()] = ent.GetValue()
 	}
 
-	devices := types.Devices{}
+	devices := deviceConfig.Devices{}
 	for _, ent := range snap.LocalDevices {
 		props := map[string]string{}
 		for _, prop := range ent.Config {

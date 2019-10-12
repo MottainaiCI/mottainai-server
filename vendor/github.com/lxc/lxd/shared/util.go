@@ -29,6 +29,7 @@ import (
 
 	"github.com/lxc/lxd/shared/cancel"
 	"github.com/lxc/lxd/shared/ioprogress"
+	"github.com/lxc/lxd/shared/units"
 )
 
 const SnapshotDelimiter = "/"
@@ -586,15 +587,6 @@ func IsBlockdevPath(pathName string) bool {
 	return ((fm&os.ModeDevice != 0) && (fm&os.ModeCharDevice == 0))
 }
 
-func BlockFsDetect(dev string) (string, error) {
-	out, err := RunCommand("blkid", "-s", "TYPE", "-o", "value", dev)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(out), nil
-}
-
 // DeepCopy copies src to dest by using encoding/gob so its not that fast.
 func DeepCopy(src, dest interface{}) error {
 	buff := new(bytes.Buffer)
@@ -751,160 +743,6 @@ func ParseMetadata(metadata interface{}) (map[string]interface{}, error) {
 	return newMetadata, nil
 }
 
-// Parse a size string in bytes (e.g. 200kB or 5GB) into the number of bytes it
-// represents. Supports suffixes up to EB. "" == 0.
-func ParseByteSizeString(input string) (int64, error) {
-	// Empty input
-	if input == "" {
-		return 0, nil
-	}
-
-	// Find where the suffix begins
-	suffixLen := 0
-	for i, chr := range []byte(input) {
-		_, err := strconv.Atoi(string([]byte{chr}))
-		if err != nil {
-			suffixLen = len(input) - i
-			break
-		}
-	}
-
-	if suffixLen == len(input) {
-		return -1, fmt.Errorf("Invalid value: %s", input)
-	}
-
-	// Extract the suffix
-	suffix := input[len(input)-suffixLen:]
-
-	// Extract the value
-	value := input[0 : len(input)-suffixLen]
-	valueInt, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return -1, fmt.Errorf("Invalid integer: %s", input)
-	}
-
-	// Figure out the multiplicator
-	multiplicator := int64(0)
-	switch suffix {
-	case "", "B", " bytes":
-		multiplicator = 1
-	case "kB":
-		multiplicator = 1000
-	case "MB":
-		multiplicator = 1000 * 1000
-	case "GB":
-		multiplicator = 1000 * 1000 * 1000
-	case "TB":
-		multiplicator = 1000 * 1000 * 1000 * 1000
-	case "PB":
-		multiplicator = 1000 * 1000 * 1000 * 1000 * 1000
-	case "EB":
-		multiplicator = 1000 * 1000 * 1000 * 1000 * 1000 * 1000
-	case "KiB":
-		multiplicator = 1024
-	case "MiB":
-		multiplicator = 1024 * 1024
-	case "GiB":
-		multiplicator = 1024 * 1024 * 1024
-	case "TiB":
-		multiplicator = 1024 * 1024 * 1024 * 1024
-	case "PiB":
-		multiplicator = 1024 * 1024 * 1024 * 1024 * 1024
-	case "EiB":
-		multiplicator = 1024 * 1024 * 1024 * 1024 * 1024 * 1024
-	default:
-		return -1, fmt.Errorf("Invalid value: %s", input)
-	}
-
-	return valueInt * multiplicator, nil
-}
-
-// Parse a size string in bits (e.g. 200kbit or 5Gbit) into the number of bits
-// it represents. Supports suffixes up to Ebit. "" == 0.
-func ParseBitSizeString(input string) (int64, error) {
-	// Empty input
-	if input == "" {
-		return 0, nil
-	}
-
-	// Find where the suffix begins
-	suffixLen := 0
-	for i, chr := range []byte(input) {
-		_, err := strconv.Atoi(string([]byte{chr}))
-		if err != nil {
-			suffixLen = len(input) - i
-			break
-		}
-	}
-
-	if suffixLen == len(input) {
-		return -1, fmt.Errorf("Invalid value: %s", input)
-	}
-
-	// Extract the suffix
-	suffix := input[len(input)-suffixLen:]
-
-	// Extract the value
-	value := input[0 : len(input)-suffixLen]
-	valueInt, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return -1, fmt.Errorf("Invalid integer: %s", input)
-	}
-
-	// Figure out the multiplicator
-	multiplicator := int64(0)
-	switch suffix {
-	case "", "bit":
-		multiplicator = 1
-	case "kbit":
-		multiplicator = 1000
-	case "Mbit":
-		multiplicator = 1000 * 1000
-	case "Gbit":
-		multiplicator = 1000 * 1000 * 1000
-	case "Tbit":
-		multiplicator = 1000 * 1000 * 1000 * 1000
-	case "Pbit":
-		multiplicator = 1000 * 1000 * 1000 * 1000 * 1000
-	case "Ebit":
-		multiplicator = 1000 * 1000 * 1000 * 1000 * 1000 * 1000
-	case "Kibit":
-		multiplicator = 1024
-	case "Mibit":
-		multiplicator = 1024 * 1024
-	case "Gibit":
-		multiplicator = 1024 * 1024 * 1024
-	case "Tibit":
-		multiplicator = 1024 * 1024 * 1024 * 1024
-	case "Pibit":
-		multiplicator = 1024 * 1024 * 1024 * 1024 * 1024
-	case "Eibit":
-		multiplicator = 1024 * 1024 * 1024 * 1024 * 1024 * 1024
-
-	default:
-		return -1, fmt.Errorf("Unsupported suffix: %s", suffix)
-	}
-
-	return valueInt * multiplicator, nil
-}
-
-func GetByteSizeString(input int64, precision uint) string {
-	if input < 1000 {
-		return fmt.Sprintf("%dB", input)
-	}
-
-	value := float64(input)
-
-	for _, unit := range []string{"kB", "MB", "GB", "TB", "PB", "EB"} {
-		value = value / 1000
-		if value < 1000 {
-			return fmt.Sprintf("%.*f%s", precision, value, unit)
-		}
-	}
-
-	return fmt.Sprintf("%.*fEB", precision, value)
-}
-
 // RemoveDuplicatesFromString removes all duplicates of the string 'sep'
 // from the specified string 's'.  Leading and trailing occurrences of sep
 // are NOT removed (duplicate leading/trailing are).  Performs poorly if
@@ -918,25 +756,41 @@ func RemoveDuplicatesFromString(s string, sep string) string {
 }
 
 type RunError struct {
-	msg string
-	Err error
+	msg    string
+	Err    error
+	Stdout string
+	Stderr string
 }
 
 func (e RunError) Error() string {
 	return e.msg
 }
 
-func RunCommand(name string, arg ...string) (string, error) {
-	output, err := exec.Command(name, arg...).CombinedOutput()
+func RunCommandSplit(name string, arg ...string) (string, string, error) {
+	cmd := exec.Command(name, arg...)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
 	if err != nil {
 		err := RunError{
-			msg: fmt.Sprintf("Failed to run: %s %s: %s", name, strings.Join(arg, " "), strings.TrimSpace(string(output))),
-			Err: err,
+			msg:    fmt.Sprintf("Failed to run: %s %s: %s", name, strings.Join(arg, " "), strings.TrimSpace(string(stderr.Bytes()))),
+			Stdout: string(stdout.Bytes()),
+			Stderr: string(stderr.Bytes()),
+			Err:    err,
 		}
-		return string(output), err
+		return string(stdout.Bytes()), string(stderr.Bytes()), err
 	}
 
-	return string(output), nil
+	return string(stdout.Bytes()), string(stderr.Bytes()), nil
+}
+
+func RunCommand(name string, arg ...string) (string, error) {
+	stdout, _, err := RunCommandSplit(name, arg...)
+	return stdout, err
 }
 
 func RunCommandWithFds(stdin io.Reader, stdout io.Writer, name string, arg ...string) error {
@@ -1036,11 +890,11 @@ func SetProgressMetadata(metadata map[string]interface{}, stage, displayPrefix s
 
 	// <stage>_progress with formatted text sent for lxc cli.
 	if percent > 0 {
-		metadata[stage+"_progress"] = fmt.Sprintf("%s: %d%% (%s/s)", displayPrefix, percent, GetByteSizeString(speed, 2))
+		metadata[stage+"_progress"] = fmt.Sprintf("%s: %d%% (%s/s)", displayPrefix, percent, units.GetByteSizeString(speed, 2))
 	} else if processed > 0 {
-		metadata[stage+"_progress"] = fmt.Sprintf("%s: %s (%s/s)", displayPrefix, GetByteSizeString(processed, 2), GetByteSizeString(speed, 2))
+		metadata[stage+"_progress"] = fmt.Sprintf("%s: %s (%s/s)", displayPrefix, units.GetByteSizeString(processed, 2), units.GetByteSizeString(speed, 2))
 	} else {
-		metadata[stage+"_progress"] = fmt.Sprintf("%s: %s/s", displayPrefix, GetByteSizeString(speed, 2))
+		metadata[stage+"_progress"] = fmt.Sprintf("%s: %s/s", displayPrefix, units.GetByteSizeString(speed, 2))
 	}
 }
 
@@ -1079,9 +933,9 @@ func DownloadFileHash(httpClient *http.Client, useragent string, progress func(p
 				Length: r.ContentLength,
 				Handler: func(percent int64, speed int64) {
 					if filename != "" {
-						progress(ioprogress.ProgressData{Text: fmt.Sprintf("%s: %d%% (%s/s)", filename, percent, GetByteSizeString(speed, 2))})
+						progress(ioprogress.ProgressData{Text: fmt.Sprintf("%s: %d%% (%s/s)", filename, percent, units.GetByteSizeString(speed, 2))})
 					} else {
-						progress(ioprogress.ProgressData{Text: fmt.Sprintf("%d%% (%s/s)", percent, GetByteSizeString(speed, 2))})
+						progress(ioprogress.ProgressData{Text: fmt.Sprintf("%d%% (%s/s)", percent, units.GetByteSizeString(speed, 2))})
 					}
 				},
 			},

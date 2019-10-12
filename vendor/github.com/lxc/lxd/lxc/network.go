@@ -1,15 +1,12 @@
 package main
 
 import (
-	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
@@ -18,6 +15,7 @@ import (
 	cli "github.com/lxc/lxd/shared/cmd"
 	"github.com/lxc/lxd/shared/i18n"
 	"github.com/lxc/lxd/shared/termios"
+	"github.com/lxc/lxd/shared/units"
 )
 
 type cmdNetwork struct {
@@ -784,8 +782,8 @@ func (c *cmdNetworkInfo) Run(cmd *cobra.Command, args []string) error {
 	// Network usage
 	fmt.Println("")
 	fmt.Println(i18n.G("Network usage:"))
-	fmt.Printf("  %s: %s\n", i18n.G("Bytes received"), shared.GetByteSizeString(state.Counters.BytesReceived, 2))
-	fmt.Printf("  %s: %s\n", i18n.G("Bytes sent"), shared.GetByteSizeString(state.Counters.BytesSent, 2))
+	fmt.Printf("  %s: %s\n", i18n.G("Bytes received"), units.GetByteSizeString(state.Counters.BytesReceived, 2))
+	fmt.Printf("  %s: %s\n", i18n.G("Bytes sent"), units.GetByteSizeString(state.Counters.BytesSent, 2))
 	fmt.Printf("  %s: %d\n", i18n.G("Packets received"), state.Counters.PacketsReceived)
 	fmt.Printf("  %s: %d\n", i18n.G("Packets sent"), state.Counters.PacketsSent)
 
@@ -862,6 +860,7 @@ func (c *cmdNetworkList) Run(cmd *cobra.Command, args []string) error {
 		}
 		data = append(data, details)
 	}
+	sort.Sort(byName(data))
 
 	header := []string{
 		i18n.G("NAME"),
@@ -874,51 +873,15 @@ func (c *cmdNetworkList) Run(cmd *cobra.Command, args []string) error {
 		header = append(header, i18n.G("STATE"))
 	}
 
-	switch c.flagFormat {
-	case listFormatTable:
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetAutoWrapText(false)
-		table.SetAlignment(tablewriter.ALIGN_LEFT)
-		table.SetRowLine(true)
-		table.SetHeader(header)
-		sort.Sort(byName(data))
-		table.AppendBulk(data)
-		table.Render()
-	case listFormatCSV:
-		sort.Sort(byName(data))
-		data = append(data, []string{})
-		copy(data[1:], data[0:])
-		data[0] = header
-		w := csv.NewWriter(os.Stdout)
-		w.WriteAll(data)
-		if err := w.Error(); err != nil {
-			return err
-		}
-	case listFormatJSON:
-		data := networks
-		enc := json.NewEncoder(os.Stdout)
-		err := enc.Encode(data)
-		if err != nil {
-			return err
-		}
-	case listFormatYAML:
-		data := networks
-		out, err := yaml.Marshal(data)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s", out)
-	default:
-		return fmt.Errorf(i18n.G("Invalid format %q"), c.flagFormat)
-	}
-
-	return nil
+	return renderTable(c.flagFormat, header, data, networks)
 }
 
 // List leases
 type cmdNetworkListLeases struct {
 	global  *cmdGlobal
 	network *cmdNetwork
+
+	flagFormat string
 }
 
 func (c *cmdNetworkListLeases) Command() *cobra.Command {
@@ -927,6 +890,7 @@ func (c *cmdNetworkListLeases) Command() *cobra.Command {
 	cmd.Short = i18n.G("List DHCP leases")
 	cmd.Long = cli.FormatSection(i18n.G("Description"), i18n.G(
 		`List DHCP leases`))
+	cmd.Flags().StringVar(&c.flagFormat, "format", "table", i18n.G("Format (csv|json|table|yaml)")+"``")
 
 	cmd.RunE = c.Run
 
@@ -967,12 +931,8 @@ func (c *cmdNetworkListLeases) Run(cmd *cobra.Command, args []string) error {
 
 		data = append(data, entry)
 	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoWrapText(false)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
 	sort.Sort(byName(data))
+
 	header := []string{
 		i18n.G("HOSTNAME"),
 		i18n.G("MAC ADDRESS"),
@@ -982,11 +942,8 @@ func (c *cmdNetworkListLeases) Run(cmd *cobra.Command, args []string) error {
 	if resource.server.IsClustered() {
 		header = append(header, i18n.G("LOCATION"))
 	}
-	table.SetHeader(header)
-	table.AppendBulk(data)
-	table.Render()
 
-	return nil
+	return renderTable(c.flagFormat, header, data, leases)
 }
 
 // Rename
@@ -1048,10 +1005,13 @@ type cmdNetworkSet struct {
 
 func (c *cmdNetworkSet) Command() *cobra.Command {
 	cmd := &cobra.Command{}
-	cmd.Use = i18n.G("set [<remote>:]<network> <key> <value>")
+	cmd.Use = i18n.G("set [<remote>:]<network> <key>=<value>...")
 	cmd.Short = i18n.G("Set network configuration keys")
 	cmd.Long = cli.FormatSection(i18n.G("Description"), i18n.G(
-		`Set network configuration keys`))
+		`Set network configuration keys
+
+For backward compatibility, a single configuration key may still be set with:
+    lxc network set [<remote>:]<network> <key> <value>`))
 
 	cmd.Flags().StringVar(&c.network.flagTarget, "target", "", i18n.G("Cluster member name")+"``")
 	cmd.RunE = c.Run
@@ -1061,7 +1021,7 @@ func (c *cmdNetworkSet) Command() *cobra.Command {
 
 func (c *cmdNetworkSet) Run(cmd *cobra.Command, args []string) error {
 	// Sanity checks
-	exit, err := c.global.CheckArgs(cmd, args, 3, 3)
+	exit, err := c.global.CheckArgs(cmd, args, 2, -1)
 	if exit {
 		return err
 	}
@@ -1079,11 +1039,12 @@ func (c *cmdNetworkSet) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(i18n.G("Missing network name"))
 	}
 
-	// Set the config key
+	// Handle targeting
 	if c.network.flagTarget != "" {
 		client = client.UseTarget(c.network.flagTarget)
 	}
 
+	// Get the network
 	network, etag, err := client.GetNetwork(resource.name)
 	if err != nil {
 		return err
@@ -1093,18 +1054,15 @@ func (c *cmdNetworkSet) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(i18n.G("Only managed networks can be modified"))
 	}
 
-	key := args[1]
-	value := args[2]
-
-	if !termios.IsTerminal(getStdinFd()) && value == "-" {
-		buf, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			return fmt.Errorf(i18n.G("Can't read from stdin: %s"), err)
-		}
-		value = string(buf[:])
+	// Set the keys
+	keys, err := getConfig(args[1:]...)
+	if err != nil {
+		return err
 	}
 
-	network.Config[key] = value
+	for k, v := range keys {
+		network.Config[k] = v
+	}
 
 	return client.UpdateNetwork(resource.name, network.Writable(), etag)
 }

@@ -5,10 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"os"
 	"sort"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
 	"github.com/lxc/lxd/shared"
@@ -105,6 +103,8 @@ type cmdConfigTrustList struct {
 	global      *cmdGlobal
 	config      *cmdConfig
 	configTrust *cmdConfigTrust
+
+	flagFormat string
 }
 
 func (c *cmdConfigTrustList) Command() *cobra.Command {
@@ -114,6 +114,7 @@ func (c *cmdConfigTrustList) Command() *cobra.Command {
 	cmd.Short = i18n.G("List trusted clients")
 	cmd.Long = cli.FormatSection(i18n.G("Description"), i18n.G(
 		`List trusted clients`))
+	cmd.Flags().StringVar(&c.flagFormat, "format", "table", i18n.G("Format (csv|json|table|yaml)")+"``")
 
 	cmd.RunE = c.Run
 
@@ -165,21 +166,16 @@ func (c *cmdConfigTrustList) Run(cmd *cobra.Command, args []string) error {
 		expiry := cert.NotAfter.Format(layout)
 		data = append(data, []string{fp, cert.Subject.CommonName, issue, expiry})
 	}
+	sort.Sort(stringList(data))
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoWrapText(false)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.SetHeader([]string{
+	header := []string{
 		i18n.G("FINGERPRINT"),
 		i18n.G("COMMON NAME"),
 		i18n.G("ISSUE DATE"),
-		i18n.G("EXPIRY DATE")})
-	sort.Sort(stringList(data))
-	table.AppendBulk(data)
-	table.Render()
+		i18n.G("EXPIRY DATE"),
+	}
 
-	return nil
+	return renderTable(c.flagFormat, header, data, trust)
 }
 
 // Remove

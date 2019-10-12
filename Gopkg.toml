@@ -109,7 +109,7 @@
   version = "15.0.0"
 
 [[constraint]]
-  version = "lxd-3.14"
+  version = "lxd-3.16"
   name = "github.com/lxc/lxd"
 
 [prune]

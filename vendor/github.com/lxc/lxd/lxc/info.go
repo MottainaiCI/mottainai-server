@@ -14,6 +14,7 @@ import (
 	"github.com/lxc/lxd/shared/api"
 	cli "github.com/lxc/lxd/shared/cmd"
 	"github.com/lxc/lxd/shared/i18n"
+	"github.com/lxc/lxd/shared/units"
 )
 
 type cmdInfo struct {
@@ -80,6 +81,227 @@ func (c *cmdInfo) Run(cmd *cobra.Command, args []string) error {
 	return c.containerInfo(d, conf.Remotes[remote], cName, c.flagShowLog)
 }
 
+func (c *cmdInfo) renderGPU(gpu api.ResourcesGPUCard, prefix string, initial bool) {
+	if initial {
+		fmt.Printf(prefix)
+	}
+	fmt.Printf(i18n.G("NUMA node: %v")+"\n", gpu.NUMANode)
+
+	if gpu.Vendor != "" {
+		fmt.Printf(prefix+i18n.G("Vendor: %v (%v)")+"\n", gpu.Vendor, gpu.VendorID)
+	}
+
+	if gpu.Product != "" {
+		fmt.Printf(prefix+i18n.G("Product: %v (%v)")+"\n", gpu.Product, gpu.ProductID)
+	}
+
+	if gpu.PCIAddress != "" {
+		fmt.Printf(prefix+i18n.G("PCI address: %v")+"\n", gpu.PCIAddress)
+	}
+	if gpu.Driver != "" {
+		fmt.Printf(prefix+i18n.G("Driver: %v (%v)")+"\n", gpu.Driver, gpu.DriverVersion)
+	}
+
+	if gpu.DRM != nil {
+		fmt.Printf(prefix + i18n.G("DRM:") + "\n")
+		fmt.Printf(prefix+"  "+i18n.G("ID: %d")+"\n", gpu.DRM.ID)
+
+		if gpu.DRM.CardName != "" {
+			fmt.Printf(prefix+"  "+i18n.G("Card: %s (%s)")+"\n", gpu.DRM.CardName, gpu.DRM.CardDevice)
+		}
+
+		if gpu.DRM.ControlName != "" {
+			fmt.Printf(prefix+"  "+i18n.G("Control: %s (%s)")+"\n", gpu.DRM.ControlName, gpu.DRM.ControlDevice)
+		}
+
+		if gpu.DRM.RenderName != "" {
+			fmt.Printf(prefix+"  "+i18n.G("Render: %s (%s)")+"\n", gpu.DRM.RenderName, gpu.DRM.RenderDevice)
+		}
+	}
+
+	if gpu.Nvidia != nil {
+		fmt.Printf(prefix + i18n.G("NVIDIA information:") + "\n")
+		fmt.Printf(prefix+"  "+i18n.G("Architecture: %v")+"\n", gpu.Nvidia.Architecture)
+		fmt.Printf(prefix+"  "+i18n.G("Brand: %v")+"\n", gpu.Nvidia.Brand)
+		fmt.Printf(prefix+"  "+i18n.G("Model: %v")+"\n", gpu.Nvidia.Model)
+		fmt.Printf(prefix+"  "+i18n.G("CUDA Version: %v")+"\n", gpu.Nvidia.CUDAVersion)
+		fmt.Printf(prefix+"  "+i18n.G("NVRM Version: %v")+"\n", gpu.Nvidia.NVRMVersion)
+		fmt.Printf(prefix+"  "+i18n.G("UUID: %v")+"\n", gpu.Nvidia.UUID)
+	}
+
+	if gpu.SRIOV != nil {
+		fmt.Printf(prefix + i18n.G("SR-IOV information:") + "\n")
+		fmt.Printf(prefix+"  "+i18n.G("Current number of VFs: %d")+"\n", gpu.SRIOV.CurrentVFs)
+		fmt.Printf(prefix+"  "+i18n.G("Maximum number of VFs: %d")+"\n", gpu.SRIOV.MaximumVFs)
+		if len(gpu.SRIOV.VFs) > 0 {
+			fmt.Printf(prefix+"  "+i18n.G("VFs: %d")+"\n", gpu.SRIOV.MaximumVFs)
+			for _, vf := range gpu.SRIOV.VFs {
+				fmt.Printf(prefix + "  - ")
+				c.renderGPU(vf, prefix+"    ", false)
+			}
+		}
+	}
+}
+
+func (c *cmdInfo) renderNIC(nic api.ResourcesNetworkCard, prefix string, initial bool) {
+	if initial {
+		fmt.Printf(prefix)
+	}
+	fmt.Printf(i18n.G("NUMA node: %v")+"\n", nic.NUMANode)
+
+	if nic.Vendor != "" {
+		fmt.Printf(prefix+i18n.G("Vendor: %v (%v)")+"\n", nic.Vendor, nic.VendorID)
+	}
+
+	if nic.Product != "" {
+		fmt.Printf(prefix+i18n.G("Product: %v (%v)")+"\n", nic.Product, nic.ProductID)
+	}
+
+	if nic.PCIAddress != "" {
+		fmt.Printf(prefix+i18n.G("PCI address: %v")+"\n", nic.PCIAddress)
+	}
+	if nic.Driver != "" {
+		fmt.Printf(prefix+i18n.G("Driver: %v (%v)")+"\n", nic.Driver, nic.DriverVersion)
+	}
+
+	if len(nic.Ports) > 0 {
+		fmt.Printf(prefix + i18n.G("Ports:") + "\n")
+		for _, port := range nic.Ports {
+			fmt.Printf(prefix+"  "+i18n.G("- Port %d (%s)")+"\n", port.Port, port.Protocol)
+			fmt.Printf(prefix+"    "+i18n.G("ID: %s")+"\n", port.ID)
+
+			if port.Address != "" {
+				fmt.Printf(prefix+"    "+i18n.G("Address: %s")+"\n", port.Address)
+			}
+
+			if port.SupportedModes != nil {
+				fmt.Printf(prefix+"    "+i18n.G("Supported modes: %s")+"\n", strings.Join(port.SupportedModes, ", "))
+			}
+
+			if port.SupportedPorts != nil {
+				fmt.Printf(prefix+"    "+i18n.G("Supported ports: %s")+"\n", strings.Join(port.SupportedPorts, ", "))
+			}
+
+			if port.PortType != "" {
+				fmt.Printf(prefix+"    "+i18n.G("Port type: %s")+"\n", port.PortType)
+			}
+
+			if port.TransceiverType != "" {
+				fmt.Printf(prefix+"    "+i18n.G("Transceiver type: %s")+"\n", port.TransceiverType)
+			}
+
+			fmt.Printf(prefix+"    "+i18n.G("Auto negotiation: %v")+"\n", port.AutoNegotiation)
+			fmt.Printf(prefix+"    "+i18n.G("Link detected: %v")+"\n", port.LinkDetected)
+			if port.LinkSpeed > 0 {
+				fmt.Printf(prefix+"    "+i18n.G("Link speed: %dMbit/s (%s duplex)")+"\n", port.LinkSpeed, port.LinkDuplex)
+			}
+
+			if port.Infiniband != nil {
+				fmt.Printf(prefix + "    " + i18n.G("Infiniband:") + "\n")
+
+				if port.Infiniband.IsSMName != "" {
+					fmt.Printf(prefix+"      "+i18n.G("IsSM: %s (%s)")+"\n", port.Infiniband.IsSMName, port.Infiniband.IsSMDevice)
+				}
+
+				if port.Infiniband.MADName != "" {
+					fmt.Printf(prefix+"      "+i18n.G("MAD: %s (%s)")+"\n", port.Infiniband.MADName, port.Infiniband.MADDevice)
+				}
+
+				if port.Infiniband.VerbName != "" {
+					fmt.Printf(prefix+"      "+i18n.G("Verb: %s (%s)")+"\n", port.Infiniband.VerbName, port.Infiniband.VerbDevice)
+				}
+			}
+		}
+	}
+
+	if nic.SRIOV != nil {
+		fmt.Printf(prefix + i18n.G("SR-IOV information:") + "\n")
+		fmt.Printf(prefix+"  "+i18n.G("Current number of VFs: %d")+"\n", nic.SRIOV.CurrentVFs)
+		fmt.Printf(prefix+"  "+i18n.G("Maximum number of VFs: %d")+"\n", nic.SRIOV.MaximumVFs)
+		if len(nic.SRIOV.VFs) > 0 {
+			fmt.Printf(prefix+"  "+i18n.G("VFs: %d")+"\n", nic.SRIOV.MaximumVFs)
+			for _, vf := range nic.SRIOV.VFs {
+				fmt.Printf(prefix + "  - ")
+				c.renderNIC(vf, prefix+"    ", false)
+			}
+		}
+	}
+}
+
+func (c *cmdInfo) renderDisk(disk api.ResourcesStorageDisk, prefix string, initial bool) {
+	if initial {
+		fmt.Printf(prefix)
+	}
+	fmt.Printf(i18n.G("NUMA node: %v")+"\n", disk.NUMANode)
+
+	fmt.Printf(prefix+i18n.G("ID: %s")+"\n", disk.ID)
+	fmt.Printf(prefix+i18n.G("Device: %s")+"\n", disk.Device)
+
+	if disk.Model != "" {
+		fmt.Printf(prefix+i18n.G("Model: %s")+"\n", disk.Model)
+	}
+
+	if disk.Type != "" {
+		fmt.Printf(prefix+i18n.G("Type: %s")+"\n", disk.Type)
+	}
+
+	fmt.Printf(prefix+i18n.G("Size: %s")+"\n", units.GetByteSizeString(int64(disk.Size), 2))
+
+	if disk.WWN != "" {
+		fmt.Printf(prefix+i18n.G("WWN: %s")+"\n", disk.WWN)
+	}
+
+	fmt.Printf(prefix+i18n.G("Read-Only: %v")+"\n", disk.ReadOnly)
+	fmt.Printf(prefix+i18n.G("Removable: %v")+"\n", disk.Removable)
+
+	if len(disk.Partitions) != 0 {
+		fmt.Printf(prefix + i18n.G("Partitions:") + "\n")
+		for _, partition := range disk.Partitions {
+			fmt.Printf(prefix+"  "+i18n.G("- Partition %d")+"\n", partition.Partition)
+			fmt.Printf(prefix+"    "+i18n.G("ID: %s")+"\n", partition.ID)
+			fmt.Printf(prefix+"    "+i18n.G("Device: %s")+"\n", partition.Device)
+			fmt.Printf(prefix+"    "+i18n.G("Read-Only: %v")+"\n", partition.ReadOnly)
+			fmt.Printf(prefix+"    "+i18n.G("Size: %s")+"\n", units.GetByteSizeString(int64(partition.Size), 2))
+		}
+	}
+}
+
+func (c *cmdInfo) renderCPU(cpu api.ResourcesCPUSocket, prefix string) {
+	if cpu.Vendor != "" {
+		fmt.Printf(prefix+i18n.G("Vendor: %v")+"\n", cpu.Vendor)
+	}
+
+	if cpu.Name != "" {
+		fmt.Printf(prefix+i18n.G("Name: %v")+"\n", cpu.Name)
+	}
+
+	if cpu.Cache != nil {
+		fmt.Printf(prefix + i18n.G("Caches:") + "\n")
+		for _, cache := range cpu.Cache {
+			fmt.Printf(prefix+"  "+i18n.G("- Level %d (type: %s): %s")+"\n", cache.Level, cache.Type, units.GetByteSizeString(int64(cache.Size), 0))
+		}
+	}
+
+	fmt.Printf(prefix + i18n.G("Cores:") + "\n")
+	for _, core := range cpu.Cores {
+		fmt.Printf(prefix+"  - "+i18n.G("Core %d")+"\n", core.Core)
+		fmt.Printf(prefix+"    "+i18n.G("Frequency: %vMhz")+"\n", core.Frequency)
+		fmt.Printf(prefix+"    "+i18n.G("NUMA node: %v")+"\n", core.NUMANode)
+		fmt.Printf(prefix + "    " + i18n.G("Threads:") + "\n")
+		for _, thread := range core.Threads {
+			fmt.Printf(prefix+"      - "+i18n.G("%d (id: %d, online: %v)")+"\n", thread.Thread, thread.ID, thread.Online)
+		}
+	}
+
+	if cpu.Frequency > 0 {
+		if cpu.FrequencyTurbo > 0 && cpu.FrequencyMinimum > 0 {
+			fmt.Printf(prefix+i18n.G("Frequency: %vMhz (min: %vMhz, max: %vMhz)")+"\n", cpu.Frequency, cpu.FrequencyMinimum, cpu.FrequencyTurbo)
+		} else {
+			fmt.Printf(prefix+i18n.G("Frequency: %vMhz")+"\n", cpu.Frequency)
+		}
+	}
+}
+
 func (c *cmdInfo) remoteInfo(d lxd.ContainerServer) error {
 	// Targeting
 	if c.flagTarget != "" {
@@ -91,82 +313,89 @@ func (c *cmdInfo) remoteInfo(d lxd.ContainerServer) error {
 	}
 
 	if c.flagResources {
+		if !d.HasExtension("resources_v2") {
+			return fmt.Errorf("The server doesn't implement the newer v2 resources API")
+		}
+
 		resources, err := d.GetServerResources()
 		if err != nil {
 			return err
 		}
 
-		renderCPU := func(cpu api.ResourcesCPUSocket, prefix string) {
-			if cpu.Vendor != "" {
-				fmt.Printf(prefix+i18n.G("Vendor: %v")+"\n", cpu.Vendor)
-			}
-
-			if cpu.Name != "" {
-				fmt.Printf(prefix+i18n.G("Name: %v")+"\n", cpu.Name)
-			}
-
-			fmt.Printf(prefix+i18n.G("Cores: %v")+"\n", cpu.Cores)
-			fmt.Printf(prefix+i18n.G("Threads: %v")+"\n", cpu.Threads)
-
-			if cpu.Frequency > 0 {
-				if cpu.FrequencyTurbo > 0 {
-					fmt.Printf(prefix+i18n.G("Frequency: %vMhz (max: %vMhz)")+"\n", cpu.Frequency, cpu.FrequencyTurbo)
-				} else {
-					fmt.Printf(prefix+i18n.G("Frequency: %vMhz")+"\n", cpu.Frequency)
-				}
-			}
-
-			fmt.Printf(prefix+i18n.G("NUMA node: %v")+"\n", cpu.NUMANode)
-		}
-
+		// CPU
 		if len(resources.CPU.Sockets) == 1 {
-			fmt.Printf(i18n.G("CPU:") + "\n")
-			renderCPU(resources.CPU.Sockets[0], "  ")
+			fmt.Printf(i18n.G("CPU (%s):")+"\n", resources.CPU.Architecture)
+			c.renderCPU(resources.CPU.Sockets[0], "  ")
 		} else if len(resources.CPU.Sockets) > 1 {
-			fmt.Printf(i18n.G("CPUs:") + "\n")
+			fmt.Printf(i18n.G("CPUs (%s):")+"\n", resources.CPU.Architecture)
 			for _, cpu := range resources.CPU.Sockets {
 				fmt.Printf("  "+i18n.G("Socket %d:")+"\n", cpu.Socket)
-				renderCPU(cpu, "    ")
+				c.renderCPU(cpu, "    ")
 			}
 		}
 
+		// Memory
 		fmt.Printf("\n" + i18n.G("Memory:") + "\n")
-		fmt.Printf("  "+i18n.G("Free: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Total-resources.Memory.Used), 2))
-		fmt.Printf("  "+i18n.G("Used: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Used), 2))
-		fmt.Printf("  "+i18n.G("Total: %v")+"\n", shared.GetByteSizeString(int64(resources.Memory.Total), 2))
+		if resources.Memory.HugepagesTotal > 0 {
+			fmt.Printf("  " + i18n.G("Hugepages:"+"\n"))
+			fmt.Printf("    "+i18n.G("Free: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.HugepagesTotal-resources.Memory.HugepagesUsed), 2))
+			fmt.Printf("    "+i18n.G("Used: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.HugepagesUsed), 2))
+			fmt.Printf("    "+i18n.G("Total: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.HugepagesTotal), 2))
+		}
 
-		renderGPU := func(gpu api.ResourcesGPUCard, prefix string) {
-			if gpu.Vendor != "" {
-				fmt.Printf(prefix+i18n.G("Vendor: %v (%v)")+"\n", gpu.Vendor, gpu.VendorID)
-			}
-
-			if gpu.Product != "" {
-				fmt.Printf(prefix+i18n.G("Product: %v (%v)")+"\n", gpu.Product, gpu.ProductID)
-			}
-
-			fmt.Printf(prefix+i18n.G("PCI address: %v")+"\n", gpu.PCIAddress)
-			fmt.Printf(prefix+i18n.G("Driver: %v (%v)")+"\n", gpu.Driver, gpu.DriverVersion)
-			fmt.Printf(prefix+i18n.G("NUMA node: %v")+"\n", gpu.NUMANode)
-
-			if gpu.Nvidia != nil {
-				fmt.Printf(prefix + i18n.G("NVIDIA information:") + "\n")
-				fmt.Printf(prefix+"  "+i18n.G("Architecture: %v")+"\n", gpu.Nvidia.Architecture)
-				fmt.Printf(prefix+"  "+i18n.G("Brand: %v")+"\n", gpu.Nvidia.Brand)
-				fmt.Printf(prefix+"  "+i18n.G("Model: %v")+"\n", gpu.Nvidia.Model)
-				fmt.Printf(prefix+"  "+i18n.G("CUDA Version: %v")+"\n", gpu.Nvidia.CUDAVersion)
-				fmt.Printf(prefix+"  "+i18n.G("NVRM Version: %v")+"\n", gpu.Nvidia.NVRMVersion)
-				fmt.Printf(prefix+"  "+i18n.G("UUID: %v")+"\n", gpu.Nvidia.UUID)
+		if len(resources.Memory.Nodes) > 1 {
+			fmt.Printf("  " + i18n.G("NUMA nodes:"+"\n"))
+			for _, node := range resources.Memory.Nodes {
+				fmt.Printf("    "+i18n.G("Node %d:"+"\n"), node.NUMANode)
+				if node.HugepagesTotal > 0 {
+					fmt.Printf("      " + i18n.G("Hugepages:"+"\n"))
+					fmt.Printf("        "+i18n.G("Free: %v")+"\n", units.GetByteSizeString(int64(node.HugepagesTotal-node.HugepagesUsed), 2))
+					fmt.Printf("        "+i18n.G("Used: %v")+"\n", units.GetByteSizeString(int64(node.HugepagesUsed), 2))
+					fmt.Printf("        "+i18n.G("Total: %v")+"\n", units.GetByteSizeString(int64(node.HugepagesTotal), 2))
+				}
+				fmt.Printf("      "+i18n.G("Free: %v")+"\n", units.GetByteSizeString(int64(node.Total-node.Used), 2))
+				fmt.Printf("      "+i18n.G("Used: %v")+"\n", units.GetByteSizeString(int64(node.Used), 2))
+				fmt.Printf("      "+i18n.G("Total: %v")+"\n", units.GetByteSizeString(int64(node.Total), 2))
 			}
 		}
 
+		fmt.Printf("  "+i18n.G("Free: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.Total-resources.Memory.Used), 2))
+		fmt.Printf("  "+i18n.G("Used: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.Used), 2))
+		fmt.Printf("  "+i18n.G("Total: %v")+"\n", units.GetByteSizeString(int64(resources.Memory.Total), 2))
+
+		// GPUs
 		if len(resources.GPU.Cards) == 1 {
 			fmt.Printf("\n" + i18n.G("GPU:") + "\n")
-			renderGPU(resources.GPU.Cards[0], "  ")
+			c.renderGPU(resources.GPU.Cards[0], "  ", true)
 		} else if len(resources.GPU.Cards) > 1 {
 			fmt.Printf("\n" + i18n.G("GPUs:") + "\n")
-			for _, gpu := range resources.GPU.Cards {
-				fmt.Printf("  "+i18n.G("Card %d:")+"\n", gpu.ID)
-				renderGPU(gpu, "    ")
+			for id, gpu := range resources.GPU.Cards {
+				fmt.Printf("  "+i18n.G("Card %d:")+"\n", id)
+				c.renderGPU(gpu, "    ", true)
+			}
+		}
+
+		// Network interfaces
+		if len(resources.Network.Cards) == 1 {
+			fmt.Printf("\n" + i18n.G("NIC:") + "\n")
+			c.renderNIC(resources.Network.Cards[0], "  ", true)
+		} else if len(resources.Network.Cards) > 1 {
+			fmt.Printf("\n" + i18n.G("NICs:") + "\n")
+			for id, nic := range resources.Network.Cards {
+				fmt.Printf("  "+i18n.G("Card %d:")+"\n", id)
+				c.renderNIC(nic, "    ", true)
+			}
+		}
+
+		// Storage
+		if len(resources.Storage.Disks) == 1 {
+			fmt.Printf("\n" + i18n.G("Disk:") + "\n")
+			c.renderDisk(resources.Storage.Disks[0], "  ", true)
+		} else if len(resources.Storage.Disks) > 1 {
+			fmt.Printf("\n" + i18n.G("Disks:") + "\n")
+			for id, nic := range resources.Storage.Disks {
+				fmt.Printf("  "+i18n.G("Disk %d:")+"\n", id)
+				c.renderDisk(nic, "    ", true)
 			}
 		}
 
@@ -258,7 +487,7 @@ func (c *cmdInfo) containerInfo(d lxd.ContainerServer, remote config.Remote, nam
 		if cs.Disk != nil {
 			for entry, disk := range cs.Disk {
 				if disk.Usage != 0 {
-					diskInfo += fmt.Sprintf("    %s: %s\n", entry, shared.GetByteSizeString(disk.Usage, 2))
+					diskInfo += fmt.Sprintf("    %s: %s\n", entry, units.GetByteSizeString(disk.Usage, 2))
 				}
 			}
 		}
@@ -282,19 +511,19 @@ func (c *cmdInfo) containerInfo(d lxd.ContainerServer, remote config.Remote, nam
 		// Memory usage
 		memoryInfo := ""
 		if cs.Memory.Usage != 0 {
-			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Memory (current)"), shared.GetByteSizeString(cs.Memory.Usage, 2))
+			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Memory (current)"), units.GetByteSizeString(cs.Memory.Usage, 2))
 		}
 
 		if cs.Memory.UsagePeak != 0 {
-			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Memory (peak)"), shared.GetByteSizeString(cs.Memory.UsagePeak, 2))
+			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Memory (peak)"), units.GetByteSizeString(cs.Memory.UsagePeak, 2))
 		}
 
 		if cs.Memory.SwapUsage != 0 {
-			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Swap (current)"), shared.GetByteSizeString(cs.Memory.SwapUsage, 2))
+			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Swap (current)"), units.GetByteSizeString(cs.Memory.SwapUsage, 2))
 		}
 
 		if cs.Memory.SwapUsagePeak != 0 {
-			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Swap (peak)"), shared.GetByteSizeString(cs.Memory.SwapUsagePeak, 2))
+			memoryInfo += fmt.Sprintf("    %s: %s\n", i18n.G("Swap (peak)"), units.GetByteSizeString(cs.Memory.SwapUsagePeak, 2))
 		}
 
 		if memoryInfo != "" {
@@ -307,8 +536,8 @@ func (c *cmdInfo) containerInfo(d lxd.ContainerServer, remote config.Remote, nam
 		if cs.Network != nil {
 			for netName, net := range cs.Network {
 				networkInfo += fmt.Sprintf("    %s:\n", netName)
-				networkInfo += fmt.Sprintf("      %s: %s\n", i18n.G("Bytes received"), shared.GetByteSizeString(net.Counters.BytesReceived, 2))
-				networkInfo += fmt.Sprintf("      %s: %s\n", i18n.G("Bytes sent"), shared.GetByteSizeString(net.Counters.BytesSent, 2))
+				networkInfo += fmt.Sprintf("      %s: %s\n", i18n.G("Bytes received"), units.GetByteSizeString(net.Counters.BytesReceived, 2))
+				networkInfo += fmt.Sprintf("      %s: %s\n", i18n.G("Bytes sent"), units.GetByteSizeString(net.Counters.BytesSent, 2))
 				networkInfo += fmt.Sprintf("      %s: %d\n", i18n.G("Packets received"), net.Counters.PacketsReceived)
 				networkInfo += fmt.Sprintf("      %s: %d\n", i18n.G("Packets sent"), net.Counters.PacketsSent)
 			}

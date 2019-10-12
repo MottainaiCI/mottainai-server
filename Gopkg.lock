@@ -886,7 +886,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:165f0dcb43f9de8a538c789669a0b5f66da4622a57a8eb5320aa6e66e2618ada"
+  digest = "1:651fe5db7658d904447a1249374d12bb58407c5cc816d833c3b0f1a5595f1150"
   name = "github.com/lxc/lxd"
   packages = [
     "client",
@@ -901,10 +901,11 @@
     "shared/osarch",
     "shared/simplestreams",
     "shared/termios",
+    "shared/units",
   ]
   pruneopts = "T"
-  revision = "d3ac182f55faae8f9540b6577ea78581f73a83a4"
-  version = "lxd-3.14"
+  revision = "cfa3c9083b4038ff1f003cd68808e0a81c9cb114"
+  version = "lxd-3.16"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"

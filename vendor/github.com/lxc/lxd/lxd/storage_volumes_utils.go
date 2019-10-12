@@ -176,6 +176,23 @@ func storagePoolVolumeUpdate(state *state.State, poolName string, volumeName str
 		s.SetStoragePoolVolumeWritable(&newWritable)
 	}
 
+	// Check that security.unmapped and security.shifted aren't set together
+	if shared.IsTrue(newConfig["security.unmapped"]) && shared.IsTrue(newConfig["security.shifted"]) {
+		return fmt.Errorf("security.unmapped and security.shifted are mutually exclusive")
+	}
+
+	// Confirm that no containers are running when changing shifted state
+	if newConfig["security.shifted"] != oldConfig["security.shifted"] {
+		ctsUsingVolume, err := storagePoolVolumeUsedByRunningContainersWithProfilesGet(state, poolName, volumeName, storagePoolVolumeTypeNameCustom, true)
+		if err != nil {
+			return err
+		}
+
+		if len(ctsUsingVolume) != 0 {
+			return fmt.Errorf("Cannot modify shifting with running containers using the volume")
+		}
+	}
+
 	// Unset idmap keys if volume is unmapped
 	if shared.IsTrue(newConfig["security.unmapped"]) {
 		delete(newConfig, "volatile.idmap.last")
@@ -628,7 +645,7 @@ func storagePoolVolumeCreateInternal(state *state.State, poolName string, vol *a
 			}
 
 			for _, snap := range snapshots {
-				_, err := storagePoolVolumeSnapshotCreateInternal(state, poolName, vol, shared.ExtractSnapshotName(snap))
+				_, err := storagePoolVolumeSnapshotCopyInternal(state, poolName, vol, shared.ExtractSnapshotName(snap))
 				if err != nil {
 					return err
 				}
@@ -646,7 +663,7 @@ func storagePoolVolumeCreateInternal(state *state.State, poolName string, vol *a
 	return nil
 }
 
-func storagePoolVolumeSnapshotCreateInternal(state *state.State, poolName string, vol *api.StorageVolumesPost, snapshotName string) (storage, error) {
+func storagePoolVolumeSnapshotCopyInternal(state *state.State, poolName string, vol *api.StorageVolumesPost, snapshotName string) (storage, error) {
 	volumeType, err := storagePoolVolumeTypeNameToType(vol.Type)
 	if err != nil {
 		return nil, err
@@ -659,7 +676,7 @@ func storagePoolVolumeSnapshotCreateInternal(state *state.State, poolName string
 		return nil, err
 	}
 
-	volumeID, err := state.Cluster.StoragePoolNodeVolumeGetTypeID(fullSnapshotName, volumeType, sourcePoolID)
+	volumeID, err := state.Cluster.StoragePoolNodeVolumeGetTypeID(vol.Source.Name, volumeType, sourcePoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -670,7 +687,7 @@ func storagePoolVolumeSnapshotCreateInternal(state *state.State, poolName string
 	}
 
 	dbArgs := &db.StorageVolumeArgs{
-		Name:        fmt.Sprintf("%s/%s", vol.Name, snapshotName),
+		Name:        fullSnapshotName,
 		PoolName:    poolName,
 		TypeName:    vol.Type,
 		Snapshot:    true,

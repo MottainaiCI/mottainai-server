@@ -759,9 +759,62 @@ by a container that a registered syscall has been performed. LXD can then
 decide to trigger various actions.
 
 ## lxc\_features
-This introduces the `lxc_features` section output from the `lxc info` command
+This introduces the `lxc\_features` section output from the `lxc info` command
 via the `GET /1.0/` route. It outputs the result of checks for key features being present in the
 underlying LXC library.
 
 ## container\_nic\_ipvlan
 This introduces the `ipvlan` "nic" device type.
+
+## network\_vlan\_sriov
+This introduces VLAN (`vlan`) and MAC filtering (`security.mac\_filtering`) support for SR-IOV devices.
+
+## storage\_cephfs
+Add support for CEPHFS as a storage pool driver. This can only be used
+for custom volumes, images and containers should be on CEPH (RBD)
+instead.
+
+## container\_nic\_ipfilter
+This introduces container IP filtering (`security.ipv4\_filtering` and `security.ipv6\_filtering`) support for `bridged` nic devices.
+
+## resources\_v2
+Rework the resources API at /1.0/resources, especially:
+ - CPU
+   - Fix reporting to track sockets, cores and threads
+   - Track NUMA node per core
+   - Track base and turbo frequency per socket
+   - Track current frequency per core
+   - Add CPU cache information
+   - Export the CPU architecture
+   - Show online/offline status of threads
+ - Memory
+   - Add hugepages tracking
+   - Track memory consumption per NUMA node too
+ - GPU
+   - Split DRM information to separate struct
+   - Export device names and nodes in DRM struct
+   - Export device name and node in NVIDIA struct
+   - Add SR-IOV VF tracking
+
+## container\_exec\_user\_group\_cwd
+Adds support for specifying User, Group and Cwd during `POST /1.0/containers/NAME/exec`.
+
+## container\_syscall\_intercept
+Adds the `security.syscalls.intercept.\*` configuration keys to control
+what system calls will be interecepted by LXD and processed with
+elevated permissions.
+
+## container\_disk\_shift
+Adds the `shift` property on `disk` devices which controls the use of the shiftfs overlay.
+
+## storage\_shifted
+Introduces a new `security.shifted` boolean on storage volumes.
+
+Setting it to true will allow multiple isolated containers to attach the
+same storage volume while keeping the filesystem writable from all of
+them.
+
+This makes use of shiftfs as an overlay filesystem.
+
+## resources\_infiniband
+Export infiniband character device information (issm, umad, uverb) as part of the resources API.

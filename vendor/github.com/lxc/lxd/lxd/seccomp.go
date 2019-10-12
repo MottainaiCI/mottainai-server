@@ -10,13 +10,18 @@ import (
 	"net"
 	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
 
+	"github.com/lxc/lxd/lxd/device/config"
 	"github.com/lxc/lxd/lxd/util"
 	"github.com/lxc/lxd/shared"
+	log "github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logger"
 	"github.com/lxc/lxd/shared/netutils"
 	"github.com/lxc/lxd/shared/osarch"
@@ -26,6 +31,7 @@ import (
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#include <elf.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/seccomp.h>
@@ -36,11 +42,16 @@ import (
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#ifndef SECCOMP_GET_NOTIF_SIZES
+#define SECCOMP_GET_NOTIF_SIZES 3
+#endif
 
 #ifndef SECCOMP_RET_USER_NOTIF
 #define SECCOMP_RET_USER_NOTIF 0x7fc00000U
@@ -64,21 +75,41 @@ struct seccomp_notif_resp {
 	__s32 error;
 	__u32 flags;
 };
-#endif
+
+#endif // !SECCOMP_RET_USER_NOTIF
+
+struct seccomp_notif_sizes expected_sizes;
 
 struct seccomp_notify_proxy_msg {
-	uint32_t version;
-#ifdef SECCOMP_RET_USER_NOTIF
-	struct seccomp_notif req;
-	struct seccomp_notif_resp resp;
-#endif // SECCOMP_RET_USER_NOTIF
+	uint64_t __reserved;
 	pid_t monitor_pid;
 	pid_t init_pid;
+	struct seccomp_notif_sizes sizes;
+	uint64_t cookie_len;
+	// followed by: seccomp_notif, seccomp_notif_resp, cookie
 };
 
 #define SECCOMP_PROXY_MSG_SIZE (sizeof(struct seccomp_notify_proxy_msg))
+#define SECCOMP_NOTIFY_SIZE (sizeof(struct seccomp_notif))
+#define SECCOMP_RESPONSE_SIZE (sizeof(struct seccomp_notif_resp))
+#define SECCOMP_MSG_SIZE_MIN (SECCOMP_PROXY_MSG_SIZE + SECCOMP_NOTIFY_SIZE + SECCOMP_RESPONSE_SIZE)
+#define SECCOMP_COOKIE_SIZE (64 * sizeof(char))
+#define SECCOMP_MSG_SIZE_MAX (SECCOMP_MSG_SIZE_MIN + SECCOMP_COOKIE_SIZE)
 
 #ifdef SECCOMP_RET_USER_NOTIF
+
+static int seccomp_notify_get_sizes(struct seccomp_notif_sizes *sizes)
+{
+	if (syscall(SYS_seccomp, SECCOMP_GET_NOTIF_SIZES, 0, sizes) != 0)
+		return -1;
+
+	if (sizes->seccomp_notif != sizeof(struct seccomp_notif) ||
+	    sizes->seccomp_notif_resp != sizeof(struct seccomp_notif_resp) ||
+	    sizes->seccomp_data != sizeof(struct seccomp_data))
+		return -1;
+
+	return 0;
+}
 
 static int device_allowed(dev_t dev, mode_t mode)
 {
@@ -109,88 +140,141 @@ static int device_allowed(dev_t dev, mode_t mode)
 	return -EPERM;
 }
 
-static int seccomp_notify_mknod_set_response(int fd_mem, struct seccomp_notify_proxy_msg *msg,
-					     char *buf, size_t size,
-					     mode_t *mode, dev_t *dev,
-					     pid_t *pid)
-{
-	struct seccomp_notif *req = &msg->req;
-	struct seccomp_notif_resp *resp = &msg->resp;
-	int ret;
-	ssize_t bytes;
+#include <linux/audit.h>
 
+struct lxd_seccomp_data_arch {
+	int arch;
+	int nr_mknod;
+	int nr_mknodat;
+	int nr_setxattr;
+};
+
+#define LXD_SECCOMP_NOTIFY_MKNOD    0
+#define LXD_SECCOMP_NOTIFY_MKNODAT  1
+#define LXD_SECCOMP_NOTIFY_SETXATTR 2
+
+// ordered by likelihood of usage...
+static const struct lxd_seccomp_data_arch seccomp_notify_syscall_table[] = {
+	{ -1, LXD_SECCOMP_NOTIFY_MKNOD, LXD_SECCOMP_NOTIFY_MKNODAT, LXD_SECCOMP_NOTIFY_SETXATTR },
+#ifdef AUDIT_ARCH_X86_64
+	{ AUDIT_ARCH_X86_64,      133, 259, 188 },
+#endif
+#ifdef AUDIT_ARCH_I386
+	{ AUDIT_ARCH_I386,         14, 297, 226 },
+#endif
+#ifdef AUDIT_ARCH_AARCH64
+	{ AUDIT_ARCH_AARCH64,      -1,  33,   5 },
+#endif
+#ifdef AUDIT_ARCH_ARM
+	{ AUDIT_ARCH_ARM,          14, 324, 226 },
+#endif
+#ifdef AUDIT_ARCH_ARMEB
+	{ AUDIT_ARCH_ARMEB,        14, 324, 226 },
+#endif
+#ifdef AUDIT_ARCH_S390
+	{ AUDIT_ARCH_S390,         14, 290, 224 },
+#endif
+#ifdef AUDIT_ARCH_S390X
+	{ AUDIT_ARCH_S390X,        14, 290, 224 },
+#endif
+#ifdef AUDIT_ARCH_PPC
+	{ AUDIT_ARCH_PPC,          14, 288, 209 },
+#endif
+#ifdef AUDIT_ARCH_PPC64
+	{ AUDIT_ARCH_PPC64,        14, 288, 209 },
+#endif
+#ifdef AUDIT_ARCH_PPC64LE
+	{ AUDIT_ARCH_PPC64LE,      14, 288, 209 },
+#endif
+#ifdef AUDIT_ARCH_SPARC
+	{ AUDIT_ARCH_SPARC,        14, 286, 169 },
+#endif
+#ifdef AUDIT_ARCH_SPARC64
+	{ AUDIT_ARCH_SPARC64,      14, 286, 169 },
+#endif
+#ifdef AUDIT_ARCH_MIPS
+	{ AUDIT_ARCH_MIPS,         14, 290, 224 },
+#endif
+#ifdef AUDIT_ARCH_MIPSEL
+	{ AUDIT_ARCH_MIPSEL,       14, 290, 224 },
+#endif
+#ifdef AUDIT_ARCH_MIPS64
+	{ AUDIT_ARCH_MIPS64,      131, 249, 180 },
+#endif
+#ifdef AUDIT_ARCH_MIPS64N32
+	{ AUDIT_ARCH_MIPS64N32,   131, 253, 180 },
+#endif
+#ifdef AUDIT_ARCH_MIPSEL64
+	{ AUDIT_ARCH_MIPSEL64,    131, 249, 180 },
+#endif
+#ifdef AUDIT_ARCH_MIPSEL64N32
+	{ AUDIT_ARCH_MIPSEL64N32, 131, 253, 180 },
+#endif
+};
+
+static int seccomp_notify_get_syscall(struct seccomp_notif *req,
+				      struct seccomp_notif_resp *resp)
+{
 	resp->id = req->id;
 	resp->flags = req->flags;
 	resp->val = 0;
+	resp->error = 0;
 
-	switch (req->data.nr) {
-	case __NR_mknod:
-		resp->error = device_allowed(req->data.args[2], req->data.args[1]);
-		if (resp->error) {
-			errno = EPERM;
-			return -1;
-		}
+	for (size_t i = 0; i < (sizeof(seccomp_notify_syscall_table) /
+				sizeof(seccomp_notify_syscall_table[0]));
+	     i++) {
+		const struct lxd_seccomp_data_arch *entry = &seccomp_notify_syscall_table[i];
 
-		bytes = pread(fd_mem, buf, size, req->data.args[0]);
-		if (bytes < 0)
-			return -1;
+		if (entry->arch != req->data.arch)
+			continue;
 
-		*mode = req->data.args[1];
-		*dev = req->data.args[2];
-		*pid = req->pid;
+		if (entry->nr_mknod == req->data.nr)
+			return LXD_SECCOMP_NOTIFY_MKNOD;
 
-		break;
-	case __NR_mknodat:
-		if (req->data.args[0] != AT_FDCWD) {
-			errno = EINVAL;
-			return -1;
-		}
+		if (entry->nr_mknodat == req->data.nr)
+			return LXD_SECCOMP_NOTIFY_MKNODAT;
 
-		resp->error = device_allowed(req->data.args[3], req->data.args[2]);
-		if (resp->error) {
-			errno = EPERM;
-			return -EPERM;
-		}
-
-		bytes = pread(fd_mem, buf, size, req->data.args[1]);
-		if (bytes < 0)
-			return -1;
-
-		*mode = req->data.args[2];
-		*dev = req->data.args[3];
-		*pid = req->pid;
+		if (entry->nr_setxattr == req->data.nr)
+			return LXD_SECCOMP_NOTIFY_SETXATTR;
 
 		break;
-	default:
-		return -1;
 	}
 
-	return 0;
+	errno = EINVAL;
+	return -EINVAL;
 }
 
-static void seccomp_notify_mknod_update_response(struct seccomp_notify_proxy_msg *msg,
-						 int new_neg_errno)
+static void seccomp_notify_update_response(struct seccomp_notif_resp *resp,
+					   int new_neg_errno)
 {
-	msg->resp.error = new_neg_errno;
-}
-#else
-static int seccomp_notify_mknod_set_response(int fd_mem, struct seccomp_notify_proxy_msg *msg,
-					     char *buf, size_t size,
-					     mode_t *mode, dev_t *dev,
-					     pid_t *pid)
-{
-	errno = ENOSYS;
-	return -1;
+	resp->error = new_neg_errno;
 }
 
-static void seccomp_notify_mknod_update_response(struct seccomp_notify_proxy_msg *msg,
-						 int new_neg_errno)
+static void prepare_seccomp_iovec(struct iovec *iov,
+				  struct seccomp_notify_proxy_msg *msg,
+				  struct seccomp_notif *notif,
+				  struct seccomp_notif_resp *resp, char *cookie)
 {
+	iov[0].iov_base = msg;
+	iov[0].iov_len = SECCOMP_PROXY_MSG_SIZE;
+
+	iov[1].iov_base = notif;
+	iov[1].iov_len = SECCOMP_NOTIFY_SIZE;
+
+	iov[2].iov_base = resp;
+	iov[2].iov_len = SECCOMP_RESPONSE_SIZE;
+
+	iov[3].iov_base = cookie;
+	iov[3].iov_len = SECCOMP_COOKIE_SIZE;
 }
 #endif // SECCOMP_RET_USER_NOTIF
 */
 // #cgo CFLAGS: -std=gnu11 -Wvla
 import "C"
+
+const LxdSeccompNotifyMknod = C.LXD_SECCOMP_NOTIFY_MKNOD
+const LxdSeccompNotifyMknodat = C.LXD_SECCOMP_NOTIFY_MKNODAT
+const LxdSeccompNotifySetxattr = C.LXD_SECCOMP_NOTIFY_SETXATTR
 
 const SECCOMP_HEADER = `2
 `
@@ -203,10 +287,14 @@ init_module errno 38
 finit_module errno 38
 delete_module errno 38
 `
-const SECCOMP_NOTIFY_POLICY = `mknod notify [1,8192,SCMP_CMP_MASKED_EQ,61440]
+
+const SECCOMP_NOTIFY_MKNOD = `mknod notify [1,8192,SCMP_CMP_MASKED_EQ,61440]
 mknod notify [1,24576,SCMP_CMP_MASKED_EQ,61440]
 mknodat notify [2,8192,SCMP_CMP_MASKED_EQ,61440]
-mknodat notify [2,24576,SCMP_CMP_MASKED_EQ,61440]`
+mknodat notify [2,24576,SCMP_CMP_MASKED_EQ,61440]
+`
+const SECCOMP_NOTIFY_SETXATTR = `setxattr notify [3,1,SCMP_CMP_EQ]
+`
 
 const COMPAT_BLOCKING_POLICY = `[%s]
 compat_sys_rt_sigaction errno 38
@@ -251,9 +339,10 @@ func SeccompProfilePath(c container) string {
 	return path.Join(seccompPath, c.Name())
 }
 
-func ContainerNeedsSeccomp(c container) bool {
+func seccompContainerNeedsPolicy(c container) bool {
 	config := c.ExpandedConfig()
 
+	// Check for text keys
 	keys := []string{
 		"raw.seccomp",
 		"security.syscalls.whitelist",
@@ -267,50 +356,114 @@ func ContainerNeedsSeccomp(c container) bool {
 		}
 	}
 
-	compat := config["security.syscalls.blacklist_compat"]
-	if shared.IsTrue(compat) {
-		return true
+	// Check for boolean keys that default to false
+	keys = []string{
+		"security.syscalls.blacklist_compat",
+		"security.syscalls.intercept.mknod",
+		"security.syscalls.intercept.setxattr",
 	}
 
-	/* this are enabled by default, so if the keys aren't present, that
-	 * means "true"
-	 */
-	default_, ok := config["security.syscalls.blacklist_default"]
-	if !ok || shared.IsTrue(default_) {
-		return true
+	for _, k := range keys {
+		if shared.IsTrue(config[k]) {
+			return true
+		}
+	}
+
+	// Check for boolean keys that default to true
+	keys = []string{
+		"security.syscalls.blacklist_default",
+	}
+
+	for _, k := range keys {
+		value, ok := config[k]
+		if !ok || shared.IsTrue(value) {
+			return true
+		}
 	}
 
 	return false
 }
 
-func getSeccompProfileContent(c container) (string, error) {
+func seccompContainerNeedsIntercept(c container) (bool, error) {
+	// No need if privileged
+	if c.IsPrivileged() {
+		return false, nil
+	}
+
+	// If nested, assume the host handles it
+	if c.DaemonState().OS.RunningInUserNS {
+		return false, nil
+	}
+
 	config := c.ExpandedConfig()
 
+	keys := []string{
+		"security.syscalls.intercept.mknod",
+		"security.syscalls.intercept.setxattr",
+	}
+
+	needed := false
+	for _, k := range keys {
+		if shared.IsTrue(config[k]) {
+			needed = true
+			break
+		}
+	}
+
+	if needed {
+		if !lxcSupportSeccompNotify(c.DaemonState()) {
+			return needed, fmt.Errorf("System doesn't support syscall interception")
+		}
+	}
+
+	return needed, nil
+}
+
+func seccompGetPolicyContent(c container) (string, error) {
+	config := c.ExpandedConfig()
+
+	// Full policy override
 	raw := config["raw.seccomp"]
 	if raw != "" {
 		return raw, nil
 	}
 
+	// Policy header
 	policy := SECCOMP_HEADER
-
 	whitelist := config["security.syscalls.whitelist"]
 	if whitelist != "" {
 		policy += "whitelist\n[all]\n"
 		policy += whitelist
+	} else {
+		policy += "blacklist\n"
+
+		default_, ok := config["security.syscalls.blacklist_default"]
+		if !ok || shared.IsTrue(default_) {
+			policy += DEFAULT_SECCOMP_POLICY
+		}
+	}
+
+	// Syscall interception
+	ok, err := seccompContainerNeedsIntercept(c)
+	if err != nil {
+		return "", err
+	}
+
+	if ok {
+		if shared.IsTrue(config["security.syscalls.intercept.mknod"]) {
+			policy += SECCOMP_NOTIFY_MKNOD
+		}
+
+		if shared.IsTrue(config["security.syscalls.intercept.setxattr"]) {
+			policy += SECCOMP_NOTIFY_SETXATTR
+		}
+	}
+
+	if whitelist != "" {
 		return policy, nil
 	}
 
-	policy += "blacklist\n"
-
-	default_, ok := config["security.syscalls.blacklist_default"]
-	if !ok || shared.IsTrue(default_) {
-		policy += DEFAULT_SECCOMP_POLICY
-	}
-
-	if !c.IsPrivileged() && !c.DaemonState().OS.RunningInUserNS && lxcSupportSeccompNotify(c.DaemonState()) {
-		policy += SECCOMP_NOTIFY_POLICY
-	}
-
+	// Additional blacklist entries
 	compat := config["security.syscalls.blacklist_compat"]
 	if shared.IsTrue(compat) {
 		arch, err := osarch.ArchitectureName(c.Architecture())
@@ -335,13 +488,13 @@ func SeccompCreateProfile(c container) error {
 	 * the mtime on the file for any compiler purpose, so let's just write
 	 * out the profile.
 	 */
-	if !ContainerNeedsSeccomp(c) {
+	if !seccompContainerNeedsPolicy(c) {
 		return nil
 	}
 
-	profile, err := getSeccompProfileContent(c)
+	profile, err := seccompGetPolicyContent(c)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := os.MkdirAll(seccompPath, 0700); err != nil {
@@ -364,7 +517,145 @@ type SeccompServer struct {
 	l    net.Listener
 }
 
+type SeccompIovec struct {
+	ucred  *ucred
+	memFd  int
+	procFd int
+	msg    *C.struct_seccomp_notify_proxy_msg
+	req    *C.struct_seccomp_notif
+	resp   *C.struct_seccomp_notif_resp
+	cookie *C.char
+	iov    *C.struct_iovec
+}
+
+func NewSeccompIovec(ucred *ucred) *SeccompIovec {
+	msg_ptr := C.malloc(C.sizeof_struct_seccomp_notify_proxy_msg)
+	msg := (*C.struct_seccomp_notify_proxy_msg)(msg_ptr)
+	C.memset(msg_ptr, 0, C.sizeof_struct_seccomp_notify_proxy_msg)
+
+	req_ptr := C.malloc(C.sizeof_struct_seccomp_notif)
+	req := (*C.struct_seccomp_notif)(req_ptr)
+	C.memset(req_ptr, 0, C.sizeof_struct_seccomp_notif)
+
+	resp_ptr := C.malloc(C.sizeof_struct_seccomp_notif_resp)
+	resp := (*C.struct_seccomp_notif_resp)(resp_ptr)
+	C.memset(resp_ptr, 0, C.sizeof_struct_seccomp_notif_resp)
+
+	cookie_ptr := C.malloc(64 * C.sizeof_char)
+	cookie := (*C.char)(cookie_ptr)
+	C.memset(cookie_ptr, 0, 64*C.sizeof_char)
+
+	iov_unsafe_ptr := C.malloc(4 * C.sizeof_struct_iovec)
+	iov := (*C.struct_iovec)(iov_unsafe_ptr)
+	C.memset(iov_unsafe_ptr, 0, 4*C.sizeof_struct_iovec)
+
+	C.prepare_seccomp_iovec(iov, msg, req, resp, cookie)
+
+	return &SeccompIovec{
+		memFd:  -1,
+		procFd: -1,
+		msg:    msg,
+		req:    req,
+		resp:   resp,
+		cookie: cookie,
+		iov:    iov,
+		ucred:  ucred,
+	}
+}
+
+func (siov *SeccompIovec) PutSeccompIovec() {
+	if siov.memFd >= 0 {
+		unix.Close(siov.memFd)
+	}
+	if siov.procFd >= 0 {
+		unix.Close(siov.procFd)
+	}
+	C.free(unsafe.Pointer(siov.msg))
+	C.free(unsafe.Pointer(siov.req))
+	C.free(unsafe.Pointer(siov.resp))
+	C.free(unsafe.Pointer(siov.cookie))
+	C.free(unsafe.Pointer(siov.iov))
+}
+
+func (siov *SeccompIovec) ReceiveSeccompIovec(fd int) (uint64, error) {
+	bytes, fds, err := netutils.AbstractUnixReceiveFdData(fd, 2, unsafe.Pointer(siov.iov), 4)
+	if err != nil || err == io.EOF {
+		return 0, err
+	}
+
+	if len(fds) == 2 {
+		siov.procFd = int(fds[0])
+		siov.memFd = int(fds[1])
+	} else {
+		siov.memFd = int(fds[0])
+	}
+
+	return bytes, nil
+}
+
+func (siov *SeccompIovec) IsValidSeccompIovec(size uint64) bool {
+	if size < uint64(C.SECCOMP_MSG_SIZE_MIN) {
+		logger.Warnf("Disconnected from seccomp socket after incomplete receive")
+		return false
+	}
+	if siov.msg.__reserved != 0 {
+		logger.Warnf("Disconnected from seccomp socket after client sent non-zero reserved field: pid=%v",
+			siov.ucred.pid)
+		return false
+	}
+
+	if siov.msg.sizes.seccomp_notif != C.expected_sizes.seccomp_notif {
+		logger.Warnf("Disconnected from seccomp socket since client uses different seccomp_notif sizes: %d != %d, pid=%v",
+			siov.msg.sizes.seccomp_notif, C.expected_sizes.seccomp_notif, siov.ucred.pid)
+		return false
+	}
+
+	if siov.msg.sizes.seccomp_notif_resp != C.expected_sizes.seccomp_notif_resp {
+		logger.Warnf("Disconnected from seccomp socket since client uses different seccomp_notif_resp sizes: %d != %d, pid=%v",
+			siov.msg.sizes.seccomp_notif_resp, C.expected_sizes.seccomp_notif_resp, siov.ucred.pid)
+		return false
+	}
+
+	if siov.msg.sizes.seccomp_data != C.expected_sizes.seccomp_data {
+		logger.Warnf("Disconnected from seccomp socket since client uses different seccomp_data sizes: %d != %d, pid=%v",
+			siov.msg.sizes.seccomp_data, C.expected_sizes.seccomp_data, siov.ucred.pid)
+		return false
+	}
+
+	return true
+}
+
+func (siov *SeccompIovec) SendSeccompIovec(fd int, errno int) error {
+	C.seccomp_notify_update_response(siov.resp, C.int(errno))
+
+	msghdr := C.struct_msghdr{}
+	msghdr.msg_iov = siov.iov
+	msghdr.msg_iovlen = 4 - 1 // without cookie
+retry:
+	bytes, err := C.sendmsg(C.int(fd), &msghdr, C.MSG_NOSIGNAL)
+	if bytes < 0 {
+		if err == unix.EINTR {
+			logger.Debugf("Caught EINTR, retrying...")
+			goto retry
+		}
+		logger.Debugf("Disconnected from seccomp socket after failed write for process %v: %s", siov.ucred.pid, err)
+		return fmt.Errorf("Failed to send response to seccomp client %v", siov.ucred.pid)
+	}
+
+	if uint64(bytes) != uint64(C.SECCOMP_MSG_SIZE_MIN) {
+		logger.Debugf("Disconnected from seccomp socket after short write: pid=%v", siov.ucred.pid)
+		return fmt.Errorf("Failed to send full response to seccomp client %v", siov.ucred.pid)
+	}
+
+	return nil
+}
+
 func NewSeccompServer(d *Daemon, path string) (*SeccompServer, error) {
+	ret := C.seccomp_notify_get_sizes(&C.expected_sizes)
+	if ret < 0 {
+		return nil, fmt.Errorf("Failed to query kernel for seccomp notifier sizes")
+	}
+
 	// Cleanup existing sockets
 	if shared.PathExists(path) {
 		err := os.Remove(path)
@@ -374,7 +665,7 @@ func NewSeccompServer(d *Daemon, path string) (*SeccompServer, error) {
 	}
 
 	// Bind new socket
-	l, err := net.Listen("unix", path)
+	l, err := net.Listen("unixpacket", path)
 	if err != nil {
 		return nil, err
 	}
@@ -414,15 +705,19 @@ func NewSeccompServer(d *Daemon, path string) (*SeccompServer, error) {
 				}
 
 				for {
-					buf := make([]byte, C.SECCOMP_PROXY_MSG_SIZE)
-					fdMem, err := netutils.AbstractUnixReceiveFdData(int(unixFile.Fd()), buf)
-					if err != nil || err == io.EOF {
-						logger.Debugf("Disconnected from seccomp socket after receive: pid=%v", ucred.pid)
+					siov := NewSeccompIovec(ucred)
+					bytes, err := siov.ReceiveSeccompIovec(int(unixFile.Fd()))
+					if err != nil {
+						logger.Debugf("Disconnected from seccomp socket after failed receive: pid=%v, err=%s", ucred.pid, err)
 						c.Close()
 						return
 					}
 
-					go s.Handler(c, ucred, buf, fdMem)
+					if siov.IsValidSeccompIovec(bytes) {
+						go s.Handler(int(unixFile.Fd()), siov)
+					} else {
+						go s.InvalidHandler(int(unixFile.Fd()), siov)
+					}
 				}
 			}()
 		}
@@ -431,49 +726,366 @@ func NewSeccompServer(d *Daemon, path string) (*SeccompServer, error) {
 	return &s, nil
 }
 
-func (s *SeccompServer) Handler(c net.Conn, ucred *ucred, buf []byte, fdMem int) error {
-	logger.Debugf("Handling seccomp notification from: %v", ucred.pid)
+func taskIds(pid int) (error, int64, int64, int64, int64) {
+	status, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/status", pid))
+	if err != nil {
+		return err, -1, -1, -1, -1
+	}
 
-	defer unix.Close(fdMem)
-	var msg C.struct_seccomp_notify_proxy_msg
-	C.memcpy(unsafe.Pointer(&msg), unsafe.Pointer(&buf[0]), C.SECCOMP_PROXY_MSG_SIZE)
+	reUid := regexp.MustCompile("Uid:\\s*([0-9]*)\\s*([0-9]*)\\s*([0-9]*)\\s*([0-9]*)")
+	reGid := regexp.MustCompile("Gid:\\s*([0-9]*)\\s*([0-9]*)\\s*([0-9]*)\\s*([0-9]*)")
+	var gid int64 = -1
+	var uid int64 = -1
+	var fsgid int64 = -1
+	var fsuid int64 = -1
+	uidFound := false
+	gidFound := false
+	for _, line := range strings.Split(string(status), "\n") {
+		if uidFound && gidFound {
+			break
+		}
 
-	var cMode C.mode_t
-	var cDev C.dev_t
-	var cPid C.pid_t
-	cPathBuf := [unix.PathMax]C.char{}
-	ret := C.seccomp_notify_mknod_set_response(C.int(fdMem), &msg,
-		&cPathBuf[0],
-		unix.PathMax, &cMode,
-		&cDev, &cPid)
-	if ret == 0 {
-		errnoMsg, err := shared.RunCommand(util.GetExecPath(),
-			"forkmknod",
-			fmt.Sprintf("%d", cPid),
-			C.GoString(&cPathBuf[0]),
-			fmt.Sprintf("%d", cMode),
-			fmt.Sprintf("%d", cDev))
-		if err != nil {
-			cErrno := C.int(-C.EPERM)
-			goErrno, err2 := strconv.Atoi(errnoMsg)
-			if err2 == nil {
-				cErrno = -C.int(goErrno)
+		if !uidFound {
+			m := reUid.FindStringSubmatch(line)
+			if m != nil && len(m) > 2 {
+				// effective uid
+				result, err := strconv.ParseInt(m[2], 10, 64)
+				if err != nil {
+					return err, -1, -1, -1, -1
+				}
+
+				uid = result
+				uidFound = true
 			}
 
-			C.seccomp_notify_mknod_update_response(&msg, cErrno)
-			logger.Errorf("Failed to create device node: %s", err)
+			if m != nil && len(m) > 4 {
+				// fsuid
+				result, err := strconv.ParseInt(m[4], 10, 64)
+				if err != nil {
+					return err, -1, -1, -1, -1
+				}
+
+				fsuid = result
+			}
+
+			continue
+		}
+
+		if !gidFound {
+			m := reGid.FindStringSubmatch(line)
+			if m != nil && len(m) > 2 {
+				// effective gid
+				result, err := strconv.ParseInt(m[2], 10, 64)
+				if err != nil {
+					return err, -1, -1, -1, -1
+				}
+
+				gid = result
+				gidFound = true
+			}
+
+			if m != nil && len(m) > 4 {
+				// fsgid
+				result, err := strconv.ParseInt(m[4], 10, 64)
+				if err != nil {
+					return err, -1, -1, -1, -1
+				}
+
+				fsgid = result
+			}
+
+			continue
 		}
 	}
 
-	C.memcpy(unsafe.Pointer(&buf[0]), unsafe.Pointer(&msg), C.SECCOMP_PROXY_MSG_SIZE)
+	return nil, uid, gid, fsuid, fsgid
+}
 
-	_, err := c.Write(buf)
+func CallForkmknod(c container, dev config.Device, requestPID int) int {
+	rootLink := fmt.Sprintf("/proc/%d/root", requestPID)
+	rootPath, err := os.Readlink(rootLink)
 	if err != nil {
-		logger.Debugf("Disconnected from seccomp socket after write: pid=%v", ucred.pid)
+		return int(-C.EPERM)
+	}
+
+	err, uid, gid, fsuid, fsgid := taskIds(requestPID)
+	if err != nil {
+		return int(-C.EPERM)
+	}
+
+	if !path.IsAbs(dev["path"]) {
+		cwdLink := fmt.Sprintf("/proc/%d/cwd", requestPID)
+		prefixPath, err := os.Readlink(cwdLink)
+		if err != nil {
+			return int(-C.EPERM)
+		}
+
+		prefixPath = strings.TrimPrefix(prefixPath, rootPath)
+		dev["hostpath"] = filepath.Join(c.RootfsPath(), rootPath, prefixPath, dev["path"])
+	} else {
+		dev["hostpath"] = filepath.Join(c.RootfsPath(), rootPath, dev["path"])
+	}
+
+	_, stderr, err := shared.RunCommandSplit(util.GetExecPath(),
+		"forksyscall", "mknod", dev["pid"], dev["path"],
+		dev["mode_t"], dev["dev_t"], dev["hostpath"],
+		fmt.Sprintf("%d", uid), fmt.Sprintf("%d", gid),
+		fmt.Sprintf("%d", fsuid), fmt.Sprintf("%d", fsgid))
+	if err != nil {
+		errno, err := strconv.Atoi(stderr)
+		if err != nil || errno == C.ENOANO {
+			return int(-C.EPERM)
+		}
+
+		return -errno
+	}
+
+	return 0
+}
+
+// InvalidHandler sends a dummy message to LXC. LXC will notice the short write
+// and send a default message to the kernel thereby avoiding a 30s hang.
+func (s *SeccompServer) InvalidHandler(fd int, siov *SeccompIovec) {
+	msghdr := C.struct_msghdr{}
+	C.sendmsg(C.int(fd), &msghdr, C.MSG_NOSIGNAL)
+	siov.PutSeccompIovec()
+}
+
+type MknodArgs struct {
+	cMode C.mode_t
+	cDev  C.dev_t
+	cPid  C.pid_t
+	path  string
+}
+
+func (s *SeccompServer) doDeviceSyscall(c container, args *MknodArgs, siov *SeccompIovec) int {
+	dev := config.Device{}
+	dev["type"] = "unix-char"
+	dev["mode"] = fmt.Sprintf("%#o", args.cMode)
+	dev["major"] = fmt.Sprintf("%d", unix.Major(uint64(args.cDev)))
+	dev["minor"] = fmt.Sprintf("%d", unix.Minor(uint64(args.cDev)))
+	dev["pid"] = fmt.Sprintf("%d", args.cPid)
+	dev["path"] = args.path
+	dev["mode_t"] = fmt.Sprintf("%d", args.cMode)
+	dev["dev_t"] = fmt.Sprintf("%d", args.cDev)
+
+	errno := CallForkmknod(c, dev, int(args.cPid))
+	if errno != int(-C.ENOMEDIUM) {
+		return errno
+	}
+
+	err := c.InsertSeccompUnixDevice(fmt.Sprintf("forkmknod.unix.%d", int(args.cPid)), dev, int(args.cPid))
+	if err != nil {
+		return int(-C.EPERM)
+	}
+
+	return 0
+}
+
+func (s *SeccompServer) HandleMknodSyscall(c container, siov *SeccompIovec) int {
+	logger.Debug("Handling mknod syscall",
+		log.Ctx{"container": c.Name(),
+			"project":              c.Project(),
+			"syscall_number":       siov.req.data.nr,
+			"audit_architecture":   siov.req.data.arch,
+			"seccomp_notify_id":    siov.req.id,
+			"seccomp_notify_flags": siov.req.flags,
+		})
+
+	siov.resp.error = C.device_allowed(C.dev_t(siov.req.data.args[2]), C.mode_t(siov.req.data.args[1]))
+	if siov.resp.error != 0 {
+		logger.Debugf("Device not allowed")
+		return int(siov.resp.error)
+	}
+
+	cPathBuf := [unix.PathMax]C.char{}
+	_, err := C.pread(C.int(siov.memFd), unsafe.Pointer(&cPathBuf[0]), C.size_t(unix.PathMax), C.off_t(siov.req.data.args[0]))
+	if err != nil {
+		logger.Errorf("Failed to read memory for mknod syscall: %s", err)
+		return int(-C.EPERM)
+	}
+
+	args := MknodArgs{
+		cMode: C.mode_t(siov.req.data.args[1]),
+		cDev:  C.dev_t(siov.req.data.args[2]),
+		cPid:  C.pid_t(siov.req.pid),
+		path:  C.GoString(&cPathBuf[0]),
+	}
+
+	return s.doDeviceSyscall(c, &args, siov)
+}
+
+func (s *SeccompServer) HandleMknodatSyscall(c container, siov *SeccompIovec) int {
+	logger.Debug("Handling mknodat syscall",
+		log.Ctx{"container": c.Name(),
+			"project":              c.Project(),
+			"syscall_number":       siov.req.data.nr,
+			"audit_architecture":   siov.req.data.arch,
+			"seccomp_notify_id":    siov.req.id,
+			"seccomp_notify_flags": siov.req.flags,
+		})
+
+	// Make sure to handle 64bit kernel, 32bit container/userspace, LXD
+	// built on 64bit userspace correctly.
+	if int32(siov.req.data.args[0]) != int32(C.AT_FDCWD) {
+		logger.Debugf("Non AT_FDCWD mknodat calls are not allowed")
+		return int(-C.EINVAL)
+	}
+
+	siov.resp.error = C.device_allowed(C.dev_t(siov.req.data.args[3]), C.mode_t(siov.req.data.args[2]))
+	if siov.resp.error != 0 {
+		logger.Debugf("Device not allowed")
+		return int(siov.resp.error)
+	}
+
+	cPathBuf := [unix.PathMax]C.char{}
+	_, err := C.pread(C.int(siov.memFd), unsafe.Pointer(&cPathBuf[0]), C.size_t(unix.PathMax), C.off_t(siov.req.data.args[1]))
+	if err != nil {
+		logger.Errorf("Failed to read memory for mknodat syscall: %s", err)
+		return int(-C.EPERM)
+	}
+
+	args := MknodArgs{
+		cMode: C.mode_t(siov.req.data.args[2]),
+		cDev:  C.dev_t(siov.req.data.args[3]),
+		cPid:  C.pid_t(siov.req.pid),
+		path:  C.GoString(&cPathBuf[0]),
+	}
+
+	return s.doDeviceSyscall(c, &args, siov)
+}
+
+type SetxattrArgs struct {
+	nsuid   int64
+	nsgid   int64
+	nsfsuid int64
+	nsfsgid int64
+	size    int
+	pid     int
+	path    string
+	name    string
+	value   []byte
+	flags   C.int
+}
+
+func (s *SeccompServer) HandleSetxattrSyscall(c container, siov *SeccompIovec) int {
+	logger.Debug("Handling setxattr syscall",
+		log.Ctx{"container": c.Name(),
+			"project":              c.Project(),
+			"syscall_number":       siov.req.data.nr,
+			"audit_architecture":   siov.req.data.arch,
+			"seccomp_notify_id":    siov.req.id,
+			"seccomp_notify_flags": siov.req.flags,
+		})
+
+	args := SetxattrArgs{}
+
+	args.pid = int(siov.req.pid)
+	err, uid, gid, fsuid, fsgid := taskIds(args.pid)
+	if err != nil {
+		return int(-C.EPERM)
+	}
+
+	idmapset, err := c.CurrentIdmap()
+	if err != nil {
+		return int(-C.EINVAL)
+	}
+
+	args.nsuid, args.nsgid = idmapset.ShiftFromNs(uid, gid)
+	args.nsfsuid, args.nsfsgid = idmapset.ShiftFromNs(fsuid, fsgid)
+
+	// const char *path
+	cBuf := [unix.PathMax]C.char{}
+	_, err = C.pread(C.int(siov.memFd), unsafe.Pointer(&cBuf[0]), C.size_t(unix.PathMax), C.off_t(siov.req.data.args[0]))
+	if err != nil {
+		logger.Errorf("Failed to read memory for setxattr syscall: %s", err)
+		return int(-C.EPERM)
+	}
+	args.path = C.GoString(&cBuf[0])
+
+	// const char *name
+	_, err = C.pread(C.int(siov.memFd), unsafe.Pointer(&cBuf[0]), C.size_t(unix.PathMax), C.off_t(siov.req.data.args[1]))
+	if err != nil {
+		logger.Errorf("Failed to read memory for setxattr syscall: %s", err)
+		return int(-C.EPERM)
+	}
+	args.name = C.GoString(&cBuf[0])
+
+	// size_t size
+	args.size = int(siov.req.data.args[3])
+
+	// int flags
+	args.flags = C.int(siov.req.data.args[4])
+
+	buf := make([]byte, args.size)
+	_, err = C.pread(C.int(siov.memFd), unsafe.Pointer(&buf[0]), C.size_t(args.size), C.off_t(siov.req.data.args[2]))
+	if err != nil {
+		logger.Errorf("Failed to read memory for setxattr syscall: %s", err)
+		return int(-C.EPERM)
+	}
+	args.value = buf
+
+	whiteout := 0
+	if string(args.name) == "trusted.overlay.opaque" && string(args.value) == "y" {
+		whiteout = 1
+	}
+
+	_, stderr, err := shared.RunCommandSplit(util.GetExecPath(),
+		"forksyscall",
+		"setxattr",
+		fmt.Sprintf("%d", args.pid),
+		fmt.Sprintf("%d", args.nsuid),
+		fmt.Sprintf("%d", args.nsgid),
+		fmt.Sprintf("%d", args.nsfsuid),
+		fmt.Sprintf("%d", args.nsfsgid),
+		args.name,
+		args.path,
+		fmt.Sprintf("%d", args.flags),
+		fmt.Sprintf("%d", whiteout),
+		fmt.Sprintf("%d", args.size),
+		fmt.Sprintf("%s", args.value))
+	if err != nil {
+		errno, err := strconv.Atoi(stderr)
+		if err != nil || errno == C.ENOANO {
+			return int(-C.EPERM)
+		}
+
+		return -errno
+	}
+
+	return 0
+}
+
+func (s *SeccompServer) HandleSyscall(c container, siov *SeccompIovec) int {
+	switch int(C.seccomp_notify_get_syscall(siov.req, siov.resp)) {
+	case LxdSeccompNotifyMknod:
+		return s.HandleMknodSyscall(c, siov)
+	case LxdSeccompNotifyMknodat:
+		return s.HandleMknodatSyscall(c, siov)
+	case LxdSeccompNotifySetxattr:
+		return s.HandleSetxattrSyscall(c, siov)
+	}
+
+	return int(-C.EINVAL)
+}
+
+func (s *SeccompServer) Handler(fd int, siov *SeccompIovec) error {
+	defer siov.PutSeccompIovec()
+
+	c, err := findContainerForPid(int32(siov.msg.monitor_pid), s.d)
+	if err != nil {
+		siov.SendSeccompIovec(fd, int(-C.EPERM))
+		logger.Errorf("Failed to find container for monitor %d", siov.msg.monitor_pid)
 		return err
 	}
 
-	logger.Debugf("Handled seccomp notification from: %v", ucred.pid)
+	errno := s.HandleSyscall(c, siov)
+
+	err = siov.SendSeccompIovec(fd, errno)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

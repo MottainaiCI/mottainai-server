@@ -1,4 +1,7 @@
 test_clustering_enable() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   LXD_INIT_DIR=$(mktemp -d -p "${TEST_DIR}" XXX)
   chmod +x "${LXD_INIT_DIR}"
   spawn_lxd "${LXD_INIT_DIR}" false
@@ -34,6 +37,9 @@ test_clustering_enable() {
 }
 
 test_clustering_membership() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -180,6 +186,9 @@ test_clustering_membership() {
 }
 
 test_clustering_containers() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -346,6 +355,9 @@ test_clustering_containers() {
 }
 
 test_clustering_storage() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -391,7 +403,7 @@ test_clustering_storage() {
       driver_config="size=20GB"
   fi
   if [ "${driver}" = "ceph" ]; then
-      driver_config="source=pool1-$(basename "${TEST_DIR}")"
+      driver_config="source=lxdtest-$(basename "${TEST_DIR}")-pool1"
   fi
   driver_config_node1="${driver_config}"
   driver_config_node2="${driver_config}"
@@ -439,7 +451,7 @@ test_clustering_storage() {
   source2="$(basename "${LXD_TWO_DIR}")"
   if [ "${driver}" = "ceph" ]; then
     # For ceph volume the source field is the name of the underlying ceph pool
-    source1="pool1-$(basename "${TEST_DIR}")"
+    source1="lxdtest-$(basename "${TEST_DIR}")"
     source2="${source1}"
   fi
   LXD_DIR="${LXD_ONE_DIR}" lxc storage show pool1 --target node1 | grep source | grep -q "${source1}"
@@ -629,6 +641,9 @@ test_clustering_storage() {
 }
 
 test_clustering_network() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -698,6 +713,9 @@ test_clustering_network() {
 }
 
 test_clustering_upgrade() {
+  # shellcheck disable=2039
+  local LXD_DIR LXD_NETNS
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -790,6 +808,9 @@ test_clustering_upgrade() {
 }
 
 test_clustering_publish() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -809,6 +830,9 @@ test_clustering_publish() {
   chmod +x "${LXD_TWO_DIR}"
   ns2="${prefix}2"
   spawn_lxd_and_join_cluster "${ns2}" "${bridge}" "${cert}" 2 1 "${LXD_TWO_DIR}"
+
+  # Give LXD a couple of seconds to get event API connected properly
+  sleep 2
 
   # Init a container on node2, using a client connected to node1
   LXD_DIR="${LXD_TWO_DIR}" ensure_import_testimage
@@ -836,6 +860,9 @@ test_clustering_publish() {
 }
 
 test_clustering_profiles() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -861,6 +888,8 @@ test_clustering_profiles() {
 
   # Launch two containers on the two nodes, using the above profile.
   LXD_DIR="${LXD_TWO_DIR}" ensure_import_testimage
+  # TODO: Fix known race in importing small images that complete before event listener is setup.
+  sleep 2
   LXD_DIR="${LXD_ONE_DIR}" lxc launch --target node1 -p default -p web testimage c1
   LXD_DIR="${LXD_ONE_DIR}" lxc launch --target node2 -p default -p web testimage c2
 
@@ -905,6 +934,9 @@ EOF
 }
 
 test_clustering_join_api() {
+  # shellcheck disable=2039,2034
+  local LXD_DIR LXD_NETNS
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -942,6 +974,9 @@ test_clustering_join_api() {
 }
 
 test_clustering_shutdown_nodes() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -969,7 +1004,7 @@ test_clustering_shutdown_nodes() {
   ns3="${prefix}3"
   spawn_lxd_and_join_cluster "${ns3}" "${bridge}" "${cert}" 3 1 "${LXD_THREE_DIR}"
 
-  # Init a container on node2, using a client connected to node1
+  # Init a container on node1, using a client connected to node1
   LXD_DIR="${LXD_ONE_DIR}" ensure_import_testimage
   LXD_DIR="${LXD_ONE_DIR}" lxc launch --target node1 testimage foo
 
@@ -1008,6 +1043,9 @@ test_clustering_shutdown_nodes() {
 }
 
 test_clustering_projects() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -1060,6 +1098,9 @@ test_clustering_projects() {
 }
 
 test_clustering_address() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -1125,6 +1166,8 @@ test_clustering_address() {
   rm -f "${LXD_TWO_DIR}/unix.socket"
   rm -f "${LXD_ONE_DIR}/unix.socket"
 
+  lxc remote remove cluster
+
   teardown_clustering_netns
   teardown_clustering_bridge
 
@@ -1133,6 +1176,9 @@ test_clustering_address() {
 }
 
 test_clustering_image_replication() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   setup_clustering_bridge
   prefix="lxd$$"
   bridge="${prefix}"
@@ -1292,6 +1338,9 @@ test_clustering_image_replication() {
 }
 
 test_clustering_dns() {
+  # shellcheck disable=2039
+  local LXD_DIR
+
   # Because we do not want tests to only run on Ubuntu (due to cluster's fan network dependency)
   # instead we will just spawn forkdns directly and check DNS resolution.
 
