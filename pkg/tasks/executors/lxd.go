@@ -50,6 +50,7 @@ import (
 	lxd_shared "github.com/lxc/lxd/shared"
 	lxd_api "github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/ioprogress"
+	lxd_units "github.com/lxc/lxd/shared/units"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -674,10 +675,19 @@ func (l *LxdExecutor) DoAction2Container(name, action string) error {
 		return nil
 	}
 
-	l.Report(fmt.Sprintf(
-		"Trying to execute action %s to container %s: %v",
-		action, name, container,
-	))
+	if l.Config.GetGeneral().Debug {
+		// Permit logging with details about profiles and container
+		// configurations only in debug mode.
+		l.Report(fmt.Sprintf(
+			"Trying to execute action %s to container %s: %v",
+			action, name, container,
+		))
+	} else {
+		l.Report(fmt.Sprintf(
+			"Executing action %s to container %s...",
+			action, name,
+		))
+	}
 
 	req := lxd_api.ContainerStatePut{
 		Action:   action,
@@ -1080,11 +1090,11 @@ func (l *LxdExecutor) RecursivePushFile(nameContainer, source, target string) er
 					Handler: func(percent int64, speed int64) {
 
 						l.Report(fmt.Sprintf("%d%% (%s/s)", percent,
-							lxd_shared.GetByteSizeString(speed, 2)))
+							lxd_units.GetByteSizeString(speed, 2)))
 
 						progress.UpdateProgress(ioprogress.ProgressData{
 							Text: fmt.Sprintf("%d%% (%s/s)", percent,
-								lxd_shared.GetByteSizeString(speed, 2))})
+								lxd_units.GetByteSizeString(speed, 2))})
 					},
 				},
 			}, args.Content)
@@ -1163,13 +1173,13 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 				Handler: func(bytesReceived int64, speed int64) {
 
 					l.Report(fmt.Sprintf("%s (%s/s)\n",
-						lxd_shared.GetByteSizeString(bytesReceived, 2),
-						lxd_shared.GetByteSizeString(speed, 2)))
+						lxd_units.GetByteSizeString(bytesReceived, 2),
+						lxd_units.GetByteSizeString(speed, 2)))
 
 					progress.UpdateProgress(ioprogress.ProgressData{
 						Text: fmt.Sprintf("%s (%s/s)",
-							lxd_shared.GetByteSizeString(bytesReceived, 2),
-							lxd_shared.GetByteSizeString(speed, 2))})
+							lxd_units.GetByteSizeString(bytesReceived, 2),
+							lxd_units.GetByteSizeString(speed, 2))})
 				},
 			},
 		}
