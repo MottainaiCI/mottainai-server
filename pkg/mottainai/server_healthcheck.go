@@ -30,8 +30,6 @@ import (
 	"time"
 )
 
-const timeformat = "20060102150405"
-
 // Monitor state of tasks and nodes
 // If a task hasn't been updated for a long time, and it's running we mark it as errored and
 // we annotate in the task field the reason for the abort (agent unreachable).
@@ -95,7 +93,7 @@ func (m *Mottainai) CheckTasksDeadline(d *database.Database, config *setting.Con
 	for _, t := range tasks {
 		now := time.Now()
 		if len(t.UpdatedTime) > 0 {
-			last_update, e := time.Parse(timeformat, t.UpdatedTime)
+			last_update, e := time.Parse(setting.Timeformat, t.UpdatedTime)
 			if e != nil {
 				return e
 			}
@@ -125,7 +123,7 @@ func (m *Mottainai) CheckNodesDeadline(d *database.Database, config *setting.Con
 	nodes := d.Driver.AllNodes()
 
 	for _, n := range nodes {
-		last_update, e := time.Parse(timeformat, n.LastReport)
+		last_update, e := time.Parse(setting.Timeformat, n.LastReport)
 		if e != nil {
 			return e
 		}

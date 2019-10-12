@@ -35,6 +35,8 @@ const (
 	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
 	MOTTAINAI_CONFIGNAME = "mottainai-server"
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
+
+	Timeformat = "20060102150405"
 )
 
 // Web UI Settings

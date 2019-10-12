@@ -108,10 +108,11 @@ func NewFuncMap(config *setting.Config) []template.FuncMap {
 	}
 	tf["HumanTimeDiff"] = func(startTime, endTime string) string {
 		ans := "-"
-		s, _ := strconv.Atoi(startTime)
-		e, _ := strconv.Atoi(endTime)
-		if s > 0 && e > 0 {
-			diff := e - s
+		s, e1 := time.Parse(setting.Timeformat, startTime)
+		e, e2 := time.Parse(setting.Timeformat, endTime)
+
+		if e1 == nil && e2 == nil {
+			diff := int(e.Unix() - s.Unix())
 			seconds := diff % (60 * 60 * 24 * 7)
 			days := math.Floor(float64(seconds) / 60 / 60 / 24)
 			seconds = diff % (60 * 60 * 24)
