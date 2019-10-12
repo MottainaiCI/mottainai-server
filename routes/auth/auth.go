@@ -247,7 +247,7 @@ func Setup(m *macaron.Macaron) {
 			m.Get("/auth/github", RequiresIntegrationSetting, reqSignIn, GithubLogin)
 
 			m.Get("/user/list", reqSignIn, reqManager, ListUsers)
-			m.Get("/user/show/:id", reqSignIn, reqManager, Show)
+			m.Get("/user/show/:id", reqSignIn, reqSignIn, Show)
 
 			m.Get("/user/set/admin/:id", reqSignIn, reqAdmin, SetAdmin)
 			m.Get("/user/unset/admin/:id", reqSignIn, reqAdmin, UnSetAdmin)
