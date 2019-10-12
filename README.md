@@ -1,7 +1,5 @@
 # Mottainai Continuous Integration Server
-[![LICENSE](https://img.shields.io/badge/license-GPL%20(%3E%3D3)-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html)
-
-[![master](https://img.shields.io/travis/MottainaiCI/mottainai-server/master.svg?label=master)](https://travis-ci.org/MottainaiCI/mottainai-server) [![develop](https://img.shields.io/travis/MottainaiCI/mottainai-server/master.svg?label=develop)](https://travis-ci.org/MottainaiCI/mottainai-server)
+[![LICENSE](https://img.shields.io/badge/license-GPL%20(%3E%3D3)-blue.svg)](https://spdx.org/licenses/GPL-3.0-or-later.html) [![master](https://img.shields.io/travis/MottainaiCI/mottainai-server/master.svg?label=master)](https://travis-ci.org/MottainaiCI/mottainai-server) [![develop](https://img.shields.io/travis/MottainaiCI/mottainai-server/master.svg?label=develop)](https://travis-ci.org/MottainaiCI/mottainai-server)
 
 Build powerful, flexible and decentralized pipelines playable locally. Manage, Publish and release your task's produced content.
 
