@@ -280,7 +280,7 @@ func Setup(m *macaron.Macaron) {
 
 		m.Group(config.GetWeb().GroupAppPath(), func() {
 			v1.Schema.GetUserRoute("show_all").ToMacaron(m, reqManager, reqSignIn, ListUsers)
-			v1.Schema.GetUserRoute("show").ToMacaron(m, reqManager, reqSignIn, ShowUser)
+			v1.Schema.GetUserRoute("show").ToMacaron(m, reqSignIn, reqSignIn, ShowUser)
 			v1.Schema.GetUserRoute("set_admin").ToMacaron(m, reqSignIn, reqAdmin, SetAdminUser)
 			v1.Schema.GetUserRoute("unset_admin").ToMacaron(m, reqSignIn, reqAdmin, UnSetAdminUser)
 
