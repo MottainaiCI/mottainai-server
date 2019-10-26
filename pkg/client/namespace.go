@@ -52,7 +52,7 @@ func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error
 func (f *Fetcher) NamespaceClone(from, to string) (event.APIResponse, error) {
 
 	req := schema.Request{
-		Route: v1.Schema.GetNamespaceRoute("append"),
+		Route: v1.Schema.GetNamespaceRoute("clone"),
 		Options: map[string]interface{}{
 			":from": from,
 			":name": to,
