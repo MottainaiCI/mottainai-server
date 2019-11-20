@@ -82,7 +82,8 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 		// Checking for PR that needs update
 		for k, v := range w {
 
-			if v.EventType == "pipeline" {
+			switch v.EventType {
+			case "pipeline":
 
 				url := config.GetWeb().BuildAbsURL("/pipeline/" + v.EventId)
 				pip, err := db.Driver.GetPipeline(db.Config, v.EventId)
@@ -127,7 +128,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 				}
 
 				// Handle task events
-			} else if v.EventType == "task" {
+			case "task":
 
 				url := config.GetWeb().BuildAbsURL("/tasks/display/" + v.EventId)
 				task, err := db.Driver.GetTask(db.Config, v.EventId)
@@ -150,7 +151,7 @@ func GlobalWatcher(client *ggithub.Client, a *anagent.Anagent, db *database.Data
 					delete(w, k)
 				}
 
-			} else {
+			default:
 				logger.Error("Unknown event %s", v)
 				delete(w, k)
 			}
