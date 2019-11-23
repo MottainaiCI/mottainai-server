@@ -123,7 +123,7 @@
   revision = "b1d5d44c82d6c9fb6c8e8dad28412163586fd8ac"
 
 [[projects]]
-  digest = "1:62c29b4fe8353eb6f1e6eee0b49af5ba190239e6a7ede1723b31714c9c26c956"
+  digest = "1:22dc2be020214e0d661893ae8b1ccd7d2bc71180655df25d2e287f574c732478"
   name = "github.com/RichardKnop/machinery"
   packages = [
     "v1",
@@ -151,8 +151,8 @@
     "v1/tracing",
   ]
   pruneopts = "UT"
-  revision = "45c722bb48504fcc9cf9090ea137d96402d2c96a"
-  version = "v1.6.9"
+  revision = "0095c83cdd8e651a366ab849dcf4a158ef84ef17"
+  version = "v1.7.1"
 
 [[projects]]
   digest = "1:3ec1b34a4c161eee98ba2530ed7bee201ad57705d4c8e1d8c4bf27b58ce1e728"
@@ -524,6 +524,22 @@
   pruneopts = "UT"
   revision = "7e8dd5ceab83c86d17bc967d09e195414fe2b47e"
   version = "v0.19.2"
+
+[[projects]]
+  digest = "1:b46f50677ef33284ebde2b285a42b707ff9e1de1f37328d91869859c929ebbd2"
+  name = "github.com/go-redis/redis"
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto",
+    "internal/util",
+  ]
+  pruneopts = "UT"
+  revision = "7f69d5e32072d151eb6936cbe2306413e8117488"
+  version = "v6.15.6"
 
 [[projects]]
   digest = "1:586ea76dbd0374d6fb649a91d70d652b7fe0ccffb8910a77468e7702e7901f3d"
@@ -2195,6 +2211,7 @@
     "github.com/lxc/lxd/shared",
     "github.com/lxc/lxd/shared/api",
     "github.com/lxc/lxd/shared/ioprogress",
+    "github.com/lxc/lxd/shared/units",
     "github.com/markbates/goth",
     "github.com/markbates/goth/providers/github",
     "github.com/michaelklishin/rabbit-hole",
