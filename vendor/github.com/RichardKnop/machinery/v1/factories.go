@@ -23,6 +23,7 @@ import (
 	backendiface "github.com/RichardKnop/machinery/v1/backends/iface"
 	memcachebackend "github.com/RichardKnop/machinery/v1/backends/memcache"
 	mongobackend "github.com/RichardKnop/machinery/v1/backends/mongo"
+	nullbackend "github.com/RichardKnop/machinery/v1/backends/null"
 	redisbackend "github.com/RichardKnop/machinery/v1/backends/redis"
 )
 
@@ -139,6 +140,10 @@ func BackendFactory(cnf *config.Config) (backendiface.Backend, error) {
 
 	if strings.HasPrefix(cnf.ResultBackend, "eager") {
 		return eagerbackend.New(), nil
+	}
+
+	if strings.HasPrefix(cnf.ResultBackend, "null") {
+		return nullbackend.New(), nil
 	}
 
 	if strings.HasPrefix(cnf.ResultBackend, "https://dynamodb") {

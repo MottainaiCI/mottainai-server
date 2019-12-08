@@ -25,6 +25,7 @@ package template
 import (
 	"fmt"
 	"html/template"
+	"math"
 	"path"
 	"runtime"
 	"strconv"
@@ -35,6 +36,7 @@ import (
 
 	macaron "gopkg.in/macaron.v1"
 
+	"github.com/Masterminds/sprig"
 	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -67,60 +69,98 @@ func Setup(m *macaron.Macaron) {
 	})
 }
 
+func plural(count int, e string) (ans string) {
+	if (count == 1) || (count == 0) {
+		ans = strconv.Itoa(count) + " " + e + " "
+	} else {
+		ans = strconv.Itoa(count) + " " + e + "s "
+	}
+	return
+}
+
 // TODO: only initialize map once and save to a local variable to reduce copies.
 func NewFuncMap(config *setting.Config) []template.FuncMap {
-	return []template.FuncMap{map[string]interface{}{
-		"GoVer": func() string {
-			return strings.Title(runtime.Version())
-		},
-		"UseHTTPS": func() bool {
-			return strings.HasPrefix(config.GetWeb().AppURL, "https")
-		},
-		"AppName": func() string {
-			return config.GetWeb().AppName
-		},
-		"AppSubURL": func() string {
-			return config.GetWeb().AppSubURL
-		},
-		"AppURL": func() string {
-			return config.GetWeb().AppURL
-		},
-		"AppVer": func() string {
-			return setting.MOTTAINAI_VERSION
-		},
-		"BuildURI": func(pattern string) string {
-			return config.GetWeb().BuildURI(pattern)
-		},
-		"LoadTimes": func(startTime time.Time) string {
-			return fmt.Sprint(time.Since(startTime).Nanoseconds()/1e6) + "ms"
-		},
-		"Safe":     Safe,
-		"Sanitize": bluemonday.UGCPolicy().Sanitize,
-		"Str2html": Str2html,
-		"Add": func(a, b int) int {
-			return a + b
-		},
-		"SubStr": func(str string, start, length int) string {
-			if len(str) == 0 {
-				return ""
+	tf := sprig.HtmlFuncMap()
+	//tf := sprig.TxtFuncMap()
+	tf["GoVer"] = func() string {
+		return strings.Title(runtime.Version())
+	}
+	tf["UseHTTPS"] = func() bool {
+		return strings.HasPrefix(config.GetWeb().AppURL, "https")
+	}
+	tf["AppName"] = func() string {
+		return config.GetWeb().AppName
+	}
+	tf["AppSubURL"] = func() string {
+		return config.GetWeb().AppSubURL
+	}
+	tf["AppURL"] = func() string {
+		return config.GetWeb().AppURL
+	}
+	tf["AppVer"] = func() string {
+		return setting.MOTTAINAI_VERSION
+	}
+	tf["BuildURI"] = func(pattern string) string {
+		return config.GetWeb().BuildURI(pattern)
+	}
+	tf["LoadTimes"] = func(startTime time.Time) string {
+		return fmt.Sprint(time.Since(startTime).Nanoseconds()/1e6) + "ms"
+	}
+	tf["HumanTimeDiff"] = func(startTime, endTime string) string {
+		ans := "-"
+		s, e1 := time.Parse(setting.Timeformat, startTime)
+		e, e2 := time.Parse(setting.Timeformat, endTime)
+
+		if e1 == nil && e2 == nil {
+			diff := int(e.Unix() - s.Unix())
+			seconds := diff % (60 * 60 * 24 * 7)
+			days := math.Floor(float64(seconds) / 60 / 60 / 24)
+			seconds = diff % (60 * 60 * 24)
+			hours := math.Floor(float64(seconds) / 60 / 60)
+			seconds = diff % (60 * 60)
+			minutes := math.Floor(float64(seconds) / 60)
+			seconds = diff % 60
+			if days > 0 {
+				ans = plural(int(days), "day") + plural(int(hours), "hour") + strconv.Itoa(int(minutes)) + "min " + strconv.Itoa(seconds) + "s"
+			} else if hours > 0 {
+				ans = plural(int(hours), "hour") + strconv.Itoa(int(minutes)) + "min " + strconv.Itoa(seconds) + "s"
+			} else if minutes > 0 {
+				ans = strconv.Itoa(int(minutes)) + "min " + strconv.Itoa(seconds) + "s"
+			} else {
+				ans = strconv.Itoa(seconds) + "s"
 			}
-			end := start + length
-			if length == -1 {
-				end = len(str)
-			}
-			if len(str) < end {
-				return str
-			}
-			return str[start:end]
-		},
-		"Join":      strings.Join,
-		"Sha1":      Sha1,
-		"ShortSHA1": utils.ShortSHA1,
-		"MD5":       utils.MD5,
-		"GenAvatar": func(name string, size int) string {
-			return "https://avatars.moe/Default/" + string(utils.MD5(name)) + "/" + strconv.Itoa(size) + ".jpg"
-		},
-	}}
+		}
+		return ans
+	}
+	tf["Safe"] = Safe
+	tf["Sanitize"] = bluemonday.UGCPolicy().Sanitize
+	tf["Str2html"] = Str2html
+	tf["Add"] = func(a, b int) int {
+		return a + b
+	}
+	tf["SubStr"] = func(str string, start, length int) string {
+		if len(str) == 0 {
+			return ""
+		}
+		end := start + length
+		if length == -1 {
+			end = len(str)
+		}
+		if len(str) < end {
+			return str
+		}
+		return str[start:end]
+	}
+	tf["Join"] = strings.Join
+	tf["Sha1"] = Sha1
+	tf["ShortSHA1"] = utils.ShortSHA1
+	tf["MD5"] = utils.MD5
+	tf["GenAvatar"] = func(name string, size int) string {
+		a := NewGetAvataaarsCom()
+		return a.GetAvatar(name)
+		//return "https://avatars.moe/Default/" + string(utils.MD5(name)) + "/" + strconv.Itoa(size) + ".jpg"
+	}
+	return []template.FuncMap{tf}
 }
 
 func Safe(raw string) template.HTML {

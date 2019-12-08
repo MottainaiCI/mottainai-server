@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -21,7 +22,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
+
 	"gopkg.in/yaml.v2"
 
 	lxd "github.com/lxc/lxd/client"
@@ -1208,12 +1209,14 @@ func pruneLeftoverImages(d *Daemon) {
 	op, err := operationCreate(d.cluster, "", operationClassTask, db.OperationImagesPruneLeftover, nil, nil, opRun, nil, nil)
 	if err != nil {
 		logger.Error("Failed to start image leftover cleanup operation", log.Ctx{"err": err})
+		return
 	}
 
 	logger.Infof("Pruning leftover image files")
 	_, err = op.Run()
 	if err != nil {
 		logger.Error("Failed to prune leftover image files", log.Ctx{"err": err})
+		return
 	}
 	logger.Infof("Done pruning leftover image files")
 }

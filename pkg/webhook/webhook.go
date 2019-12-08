@@ -45,6 +45,7 @@ type WebHookSingle struct {
 
 type WebHook struct {
 	ID       string `json:"id" form:"id"`
+	Name     string `json:"name" form:"name"`
 	Key      string `json:"key" form:"key"`
 	Type     string `json:"type" form:"type"`
 	URL      string `json:"url" form:"url"`
@@ -189,7 +190,6 @@ func NewWebHookFromMap(t map[string]interface{}) WebHook {
 				valueField.SetBool(b)
 			}
 		}
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return *u
 }
@@ -214,7 +214,6 @@ func (t *WebHook) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }

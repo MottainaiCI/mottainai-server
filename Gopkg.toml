@@ -50,7 +50,7 @@
 
 [[constraint]]
   name = "github.com/RichardKnop/machinery"
-  version = "v1.6.5"
+  version = "v1.6.9"
 
 [[constraint]]
   branch = "master"
@@ -109,7 +109,7 @@
   version = "15.0.0"
 
 [[constraint]]
-  version = "lxd-3.14"
+  version = "lxd-3.16"
   name = "github.com/lxc/lxd"
 
 [prune]

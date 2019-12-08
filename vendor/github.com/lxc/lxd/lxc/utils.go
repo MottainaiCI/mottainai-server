@@ -1,12 +1,22 @@
 package main
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
+	"strings"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 
 	"github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/i18n"
+	"github.com/lxc/lxd/shared/termios"
 )
 
 // Lists
@@ -216,4 +226,83 @@ func GetExistingAliases(aliases []string, allAliases []api.ImageAliasesEntry) []
 		}
 	}
 	return existing
+}
+
+func getConfig(args ...string) (map[string]string, error) {
+	if len(args) == 2 && !strings.Contains(args[0], "=") {
+		if args[1] == "-" && !termios.IsTerminal(getStdinFd()) {
+			buf, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return nil, errors.Wrap(err, i18n.G("Can't read from stdin: %s"))
+			}
+
+			args[1] = string(buf[:])
+		}
+
+		return map[string]string{args[0]: args[1]}, nil
+	}
+
+	values := map[string]string{}
+
+	for _, arg := range args {
+		fields := strings.SplitN(arg, "=", 2)
+		if len(fields) != 2 {
+			return nil, fmt.Errorf("Invalid key=value configuration: %s", arg)
+		}
+
+		if fields[1] == "-" && !termios.IsTerminal(getStdinFd()) {
+			buf, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return nil, fmt.Errorf(i18n.G("Can't read from stdin: %s"), err)
+			}
+
+			fields[1] = string(buf[:])
+		}
+
+		values[fields[0]] = fields[1]
+	}
+
+	return values, nil
+}
+
+func renderTable(format string, header []string, data [][]string, raw interface{}) error {
+	switch format {
+	case listFormatTable:
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetAutoWrapText(false)
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.SetRowLine(true)
+		table.SetHeader(header)
+		table.AppendBulk(data)
+		table.Render()
+	case listFormatCSV:
+		data = append(data, []string{})
+		copy(data[1:], data[0:])
+		data[0] = header
+		w := csv.NewWriter(os.Stdout)
+		w.WriteAll(data)
+
+		err := w.Error()
+		if err != nil {
+			return err
+		}
+	case listFormatJSON:
+		enc := json.NewEncoder(os.Stdout)
+
+		err := enc.Encode(raw)
+		if err != nil {
+			return err
+		}
+	case listFormatYAML:
+		out, err := yaml.Marshal(raw)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%s", out)
+	default:
+		return fmt.Errorf(i18n.G("Invalid format %q"), format)
+	}
+
+	return nil
 }

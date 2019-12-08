@@ -18,12 +18,11 @@
                 <i class="fa fa-question" aria-hidden="true"></i>
                 {{end}}
     <span class="badge" ><h6> {{.ID}} </h6></span> </a>  </td>
-  <td>{{.Name}}</td>
+  <td style="width: 200px" >{{.Name}}</td>
   <td>{{.Source}}</td>
   <td>{{.Image}}</td>
+  <td>{{ $duration := HumanTimeDiff .StartTime .EndTime }}{{ $duration }}</td>
+  <td data-order="{{.StartTime}}"><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time></td>
+  <td>{{template "tasks/action" .}}</td>
 
-  <td data-order="{{.StartTime}}"><time class="timeago" datetime="{{.StartTime}}">{{.StartTime}}</time>{{template "tasks/action" .}}</td>
-
-  <!--<td><time class="timeago" datetime="{{.CreatedTime}}">{{.CreatedTime}}</time></td>
-  <td><time class="timeago" datetime="{{.EndTime}}">{{.EndTime}}</time></td>-->
 </tr>

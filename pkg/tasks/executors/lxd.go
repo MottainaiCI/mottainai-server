@@ -50,6 +50,7 @@ import (
 	lxd_shared "github.com/lxc/lxd/shared"
 	lxd_api "github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/ioprogress"
+	lxd_units "github.com/lxc/lxd/shared/units"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -674,10 +675,19 @@ func (l *LxdExecutor) DoAction2Container(name, action string) error {
 		return nil
 	}
 
-	l.Report(fmt.Sprintf(
-		"Trying to execute action %s to container %s: %v",
-		action, name, container,
-	))
+	if l.Config.GetGeneral().Debug {
+		// Permit logging with details about profiles and container
+		// configurations only in debug mode.
+		l.Report(fmt.Sprintf(
+			"Trying to execute action %s to container %s: %v",
+			action, name, container,
+		))
+	} else {
+		l.Report(fmt.Sprintf(
+			"Executing action %s to container %s...",
+			action, name,
+		))
+	}
 
 	req := lxd_api.ContainerStatePut{
 		Action:   action,
@@ -836,10 +846,13 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 		return err
 	}
 
+	// NOTE: we can't use copy aliases here because
+	//       LXD doesn't handle correctly concurrency copy
+	//       of the same image.
+	//       I use i.Aliases after that image is been copied.
 	copyArgs := &lxd.ImageCopyArgs{
-		CopyAliases: true,
-		Public:      true,
-		AutoUpdate:  false,
+		Public:     true,
+		AutoUpdate: false,
 	}
 
 	// Ask LXD to copy the image from the remote server
@@ -872,7 +885,14 @@ func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer,
 		return err
 	}
 
+	// Add aliases to images
+	for _, alias := range i.Aliases {
+		// Ignore error for handle parallel fetching.
+		l.AddAlias2Image(i.Fingerprint, alias, l.LxdClient)
+	}
+
 	l.Report(fmt.Sprintf("Image %s copy locally.", imageFingerprint))
+
 	return nil
 }
 
@@ -1070,11 +1090,11 @@ func (l *LxdExecutor) RecursivePushFile(nameContainer, source, target string) er
 					Handler: func(percent int64, speed int64) {
 
 						l.Report(fmt.Sprintf("%d%% (%s/s)", percent,
-							lxd_shared.GetByteSizeString(speed, 2)))
+							lxd_units.GetByteSizeString(speed, 2)))
 
 						progress.UpdateProgress(ioprogress.ProgressData{
 							Text: fmt.Sprintf("%d%% (%s/s)", percent,
-								lxd_shared.GetByteSizeString(speed, 2))})
+								lxd_units.GetByteSizeString(speed, 2))})
 					},
 				},
 			}, args.Content)
@@ -1153,13 +1173,13 @@ func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, l
 				Handler: func(bytesReceived int64, speed int64) {
 
 					l.Report(fmt.Sprintf("%s (%s/s)\n",
-						lxd_shared.GetByteSizeString(bytesReceived, 2),
-						lxd_shared.GetByteSizeString(speed, 2)))
+						lxd_units.GetByteSizeString(bytesReceived, 2),
+						lxd_units.GetByteSizeString(speed, 2)))
 
 					progress.UpdateProgress(ioprogress.ProgressData{
 						Text: fmt.Sprintf("%s (%s/s)",
-							lxd_shared.GetByteSizeString(bytesReceived, 2),
-							lxd_shared.GetByteSizeString(speed, 2))})
+							lxd_units.GetByteSizeString(bytesReceived, 2),
+							lxd_units.GetByteSizeString(speed, 2))})
 				},
 			},
 		}
@@ -1335,6 +1355,15 @@ func (l *LxdExecutor) GetContainerName(task *tasks.Task) string {
 	}
 
 	return ans
+}
+
+func (l *LxdExecutor) AddAlias2Image(fingerprint string, alias lxd_api.ImageAlias,
+	server lxd.ContainerServer) error {
+	aliasPost := lxd_api.ImageAliasesPost{}
+	aliasPost.Name = alias.Name
+	aliasPost.Description = alias.Description
+	aliasPost.Target = fingerprint
+	return server.CreateImageAlias(aliasPost)
 }
 
 func (l *LxdExecutor) waitOperation(rawOp interface{}, p *lxd_utils.ProgressRenderer) error {

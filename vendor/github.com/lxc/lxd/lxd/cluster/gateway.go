@@ -2,7 +2,9 @@ package cluster
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -14,15 +16,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CanonicalLtd/go-dqlite"
-	"github.com/hashicorp/raft"
+	dqlite "github.com/canonical/go-dqlite"
 	"github.com/lxc/lxd/lxd/db"
 	"github.com/lxc/lxd/lxd/util"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/eagain"
+	log "github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logger"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // NewGateway creates a new Gateway for managing access to the dqlite cluster.
@@ -30,11 +31,11 @@ import (
 // When a new gateway is created, the node-level database is queried to check
 // what kind of role this node plays and if it's exposed over the network. It
 // will initialize internal data structures accordingly, for example starting a
-// dqlite driver if this node is a database node.
+// local dqlite server if this node is a database node.
 //
 // After creation, the Daemon is expected to expose whatever http handlers the
-// HandlerFuncs method returns and to access the dqlite cluster using the gRPC
-// dialer returned by the Dialer method.
+// HandlerFuncs method returns and to access the dqlite cluster using the
+// dialer returned by the DialFunc method.
 func NewGateway(db *db.Node, cert *shared.CertInfo, options ...Option) (*Gateway, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -102,6 +103,10 @@ type Gateway struct {
 	// detected a peer with an higher version.
 	upgradeTriggered bool
 
+	// Used for the heartbeat handler
+	Cluster           *db.Cluster
+	HeartbeatNodeHook func(*APIHeartbeat)
+
 	// ServerStore wrapper.
 	store *dqliteServerStore
 
@@ -109,7 +114,12 @@ type Gateway struct {
 }
 
 // Current dqlite protocol version.
-const dqliteVersion = 0
+const dqliteVersion = 1
+
+// Set the dqlite version header.
+func setDqliteVersionHeader(request *http.Request) {
+	request.Header.Set("X-Dqlite-Version", fmt.Sprintf("%d", dqliteVersion))
+}
 
 // HandlerFuncs returns the HTTP handlers that should be added to the REST API
 // endpoint in order to handle database-related requests.
@@ -120,7 +130,7 @@ const dqliteVersion = 0
 // These handlers might return 404, either because this LXD node is a
 // non-clustered node not available over the network or because it is not a
 // database node part of the dqlite cluster.
-func (g *Gateway) HandlerFuncs() map[string]http.HandlerFunc {
+func (g *Gateway) HandlerFuncs(nodeRefreshTask func(*APIHeartbeat)) map[string]http.HandlerFunc {
 	database := func(w http.ResponseWriter, r *http.Request) {
 		g.lock.RLock()
 		defer g.lock.RUnlock()
@@ -143,32 +153,67 @@ func (g *Gateway) HandlerFuncs() map[string]http.HandlerFunc {
 			return
 		}
 		if version != dqliteVersion {
-			if !g.upgradeTriggered && version > dqliteVersion {
-				err = triggerUpdate()
-				if err == nil {
-					g.upgradeTriggered = true
+			if version > dqliteVersion {
+				if !g.upgradeTriggered {
+					err = triggerUpdate()
+					if err == nil {
+						g.upgradeTriggered = true
+					}
 				}
+				http.Error(w, "503 unsupported dqlite version", http.StatusServiceUnavailable)
+			} else {
+				http.Error(w, "426 dqlite version too old ", http.StatusUpgradeRequired)
 			}
-			http.Error(w, "503 dqlite version mismatch", http.StatusServiceUnavailable)
 			return
 		}
 
-		// Handle heatbeats.
+		// Handle heatbeats (these normally come from leader, but can come from joining nodes too).
 		if r.Method == "PUT" {
-			var nodes []db.RaftNode
-			err := shared.ReadToJSON(r.Body, &nodes)
+			var heartbeatData APIHeartbeat
+			err := json.NewDecoder(r.Body).Decode(&heartbeatData)
 			if err != nil {
-				http.Error(w, "400 invalid raft nodes payload", http.StatusBadRequest)
+				logger.Errorf("Error decoding heartbeat body: %v", err)
+				http.Error(w, "400 invalid heartbeat payload", http.StatusBadRequest)
 				return
 			}
-			logger.Debugf("Replace current raft nodes with %+v", nodes)
-			err = g.db.Transaction(func(tx *db.NodeTx) error {
-				return tx.RaftNodesReplace(nodes)
-			})
-			if err != nil {
-				http.Error(w, "500 failed to update raft nodes", http.StatusInternalServerError)
+
+			raftNodes := make([]db.RaftNode, 0)
+			for _, node := range heartbeatData.Members {
+				if node.RaftID > 0 {
+					raftNodes = append(raftNodes, db.RaftNode{
+						ID:      node.RaftID,
+						Address: node.Address,
+					})
+				}
+			}
+
+			// Check we have been sent at least 1 raft node before wiping our set.
+			if len(raftNodes) > 0 {
+				// Accept Raft node updates from any node (joining nodes just send raft nodes heartbeat data).
+				logger.Debugf("Replace current raft nodes with %+v", raftNodes)
+				err = g.db.Transaction(func(tx *db.NodeTx) error {
+					return tx.RaftNodesReplace(raftNodes)
+				})
+				if err != nil {
+					logger.Errorf("Error updating raft nodes: %v", err)
+					http.Error(w, "500 failed to update raft nodes", http.StatusInternalServerError)
+					return
+				}
+			} else {
+				logger.Errorf("Empty raft node set received")
+			}
+
+			// Only perform node refresh task if we have received a full state list from leader.
+			if !heartbeatData.FullStateList {
+				logger.Debugf("Partial node list heartbeat received, skipping full update")
 				return
 			}
+
+			// If node refresh task is specified, run it async.
+			if nodeRefreshTask != nil {
+				go nodeRefreshTask(&heartbeatData)
+			}
+
 			return
 		}
 
@@ -187,11 +232,12 @@ func (g *Gateway) HandlerFuncs() map[string]http.HandlerFunc {
 			return
 		}
 
-		// Before actually establishing the gRPC SQL connection, our
-		// dialer probes the node to see if it's currently the leader
+		// Before actually establishing the connection, our dialer
+		// probes the node to see if it's currently the leader
 		// (otherwise it tries with another node or retry later).
 		if r.Method == "HEAD" {
-			if g.raft.Raft().State() != raft.Leader {
+			info := g.server.Leader()
+			if info == nil || info.ID != g.raft.info.ID {
 				http.Error(w, "503 not leader", http.StatusServiceUnavailable)
 				return
 			}
@@ -237,48 +283,9 @@ func (g *Gateway) HandlerFuncs() map[string]http.HandlerFunc {
 
 		g.acceptCh <- conn
 	}
-	raft := func(w http.ResponseWriter, r *http.Request) {
-		g.lock.RLock()
-		defer g.lock.RUnlock()
-
-		// If we are not part of the raft cluster, reply with a
-		// redirect to one of the raft nodes that we know about.
-		if g.raft == nil {
-			var address string
-			err := g.db.Transaction(func(tx *db.NodeTx) error {
-				nodes, err := tx.RaftNodes()
-				if err != nil {
-					return err
-				}
-				address = nodes[0].Address
-				return nil
-			})
-			if err != nil {
-				http.Error(w, "500 failed to fetch raft nodes", http.StatusInternalServerError)
-				return
-			}
-			url := &url.URL{
-				Scheme:   "http",
-				Path:     r.URL.Path,
-				RawQuery: r.URL.RawQuery,
-				Host:     address,
-			}
-			http.Redirect(w, r, url.String(), http.StatusPermanentRedirect)
-			return
-		}
-
-		// If this node is not clustered return a 404.
-		if g.raft.HandlerFunc() == nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		g.raft.HandlerFunc()(w, r)
-	}
 
 	return map[string]http.HandlerFunc{
 		databaseEndpoint: database,
-		raftEndpoint:     raft,
 	}
 }
 
@@ -287,7 +294,8 @@ func (g *Gateway) Snapshot() error {
 	g.lock.RLock()
 	defer g.lock.RUnlock()
 
-	return g.raft.Snapshot()
+	// TODO: implement support for forcing a snapshot in dqlite v1
+	return fmt.Errorf("Not supported")
 }
 
 // WaitUpgradeNotification waits for a notification from another node that all
@@ -317,7 +325,22 @@ func (g *Gateway) DialFunc() dqlite.DialFunc {
 			return g.memoryDial(ctx, address)
 		}
 
-		return dqliteNetworkDial(ctx, address, g)
+		return dqliteNetworkDial(ctx, address, g, true)
+	}
+}
+
+// Dial function for establishing raft connections.
+func (g *Gateway) raftDial() dqlite.DialFunc {
+	return func(ctx context.Context, address string) (net.Conn, error) {
+		if address == "0" {
+			provider := raftAddressProvider{db: g.db}
+			addr, err := provider.ServerAddr(1)
+			if err != nil {
+				return nil, err
+			}
+			address = string(addr)
+		}
+		return dqliteNetworkDial(ctx, address, g, false)
 	}
 }
 
@@ -348,16 +371,6 @@ func (g *Gateway) Kill() {
 // Shutdown this gateway, stopping the gRPC server and possibly the raft factory.
 func (g *Gateway) Shutdown() error {
 	logger.Debugf("Stop database gateway")
-
-	g.lock.RLock()
-	if g.raft != nil {
-		err := g.raft.Shutdown()
-		if err != nil {
-			g.lock.RUnlock()
-			return errors.Wrap(err, "Failed to shutdown raft")
-		}
-	}
-	g.lock.RUnlock()
 
 	if g.server != nil {
 		g.Sync()
@@ -431,11 +444,11 @@ func (g *Gateway) LeaderAddress() (string, error) {
 
 	// If this is a raft node, return the address of the current leader, or
 	// wait a bit until one is elected.
-	if g.raft != nil {
+	if g.server != nil {
 		for ctx.Err() == nil {
-			address := string(g.raft.Raft().Leader())
-			if address != "" {
-				return address, nil
+			info := g.server.Leader()
+			if info != nil {
+				return info.Address, nil
 			}
 			time.Sleep(time.Second)
 		}
@@ -476,6 +489,7 @@ func (g *Gateway) LeaderAddress() (string, error) {
 		if err != nil {
 			return "", err
 		}
+		setDqliteVersionHeader(request)
 		request = request.WithContext(ctx)
 		client := &http.Client{Transport: &http.Transport{TLSClientConfig: config}}
 		response, err := client.Do(request)
@@ -513,32 +527,67 @@ func (g *Gateway) init() error {
 		return errors.Wrap(err, "Failed to create raft factory")
 	}
 
+	dir := filepath.Join(g.db.Dir(), "global")
+	if shared.PathExists(filepath.Join(dir, "logs.db")) {
+		err := shared.DirCopy(dir, dir+".bak")
+		if err != nil {
+			return errors.Wrap(err, "Failed to backup global database")
+		}
+		err = MigrateToDqlite10(dir)
+		if err != nil {
+			return errors.Wrap(err, "Failed to migrate to dqlite 1.0")
+		}
+		os.Remove(filepath.Join(dir, "logs.db"))
+		os.RemoveAll(filepath.Join(dir, "snapshots"))
+	}
+
 	// If the resulting raft instance is not nil, it means that this node
-	// should serve as database node, so create a dqlite driver to be
-	// exposed it over gRPC.
+	// should serve as database node, so create a dqlite driver possibly
+	// exposing it over the network.
 	if raft != nil {
 		listener, err := net.Listen("unix", "")
 		if err != nil {
 			return errors.Wrap(err, "Failed to allocate loopback port")
 		}
+		options := []dqlite.ServerOption{
+			dqlite.WithServerLogFunc(DqliteLog),
+			dqlite.WithServerWatchFunc(g.watchFunc),
+		}
 
-		if raft.HandlerFunc() == nil {
+		if raft.info.Address == "1" {
+			if raft.info.ID != 1 {
+				panic("unexpected server ID")
+			}
 			g.memoryDial = dqliteMemoryDial(listener)
 			g.store.inMemory = dqlite.NewInmemServerStore()
-			g.store.Set(context.Background(), []dqlite.ServerInfo{{Address: "0"}})
+			g.store.Set(context.Background(), []dqlite.ServerInfo{raft.info})
 		} else {
 			go runDqliteProxy(listener, g.acceptCh)
 			g.store.inMemory = nil
+			options = append(options, dqlite.WithServerDialFunc(g.raftDial()))
 		}
 
-		provider := &raftAddressProvider{db: g.db}
 		server, err := dqlite.NewServer(
-			raft.Raft(), raft.Registry(), listener,
-			dqlite.WithServerAddressProvider(provider),
-			dqlite.WithServerLogFunc(DqliteLog),
+			raft.info,
+			dir,
+			options...,
 		)
 		if err != nil {
 			return errors.Wrap(err, "Failed to create dqlite server")
+		}
+
+		if raft.info.ID == 1 {
+			// Bootstrap the node. This is a no-op if we are
+			// already bootstrapped.
+			err := server.Bootstrap([]dqlite.ServerInfo{raft.info})
+			if err != nil && err != dqlite.ErrServerCantBootstrap {
+				return errors.Wrap(err, "Failed to bootstrap dqlite server")
+			}
+		}
+
+		err = server.Start(listener)
+		if err != nil {
+			return errors.Wrap(err, "Failed to start dqlite server")
 		}
 
 		g.lock.Lock()
@@ -567,7 +616,7 @@ func (g *Gateway) waitLeadership() error {
 	sleep := 250 * time.Millisecond
 	for i := 0; i < n; i++ {
 		g.lock.RLock()
-		if g.raft.raft.State() == raft.Leader {
+		if g.isLeader() {
 			g.lock.RUnlock()
 			return nil
 		}
@@ -578,6 +627,17 @@ func (g *Gateway) waitLeadership() error {
 	return fmt.Errorf("RAFT node did not self-elect within %s", time.Duration(n)*sleep)
 }
 
+func (g *Gateway) isLeader() bool {
+	if g.server == nil {
+		return false
+	}
+	info := g.server.Leader()
+	return info != nil && info.ID == g.raft.info.ID
+}
+
+// Internal error signalling that a node not the leader.
+var errNotLeader = fmt.Errorf("Not leader")
+
 // Return information about the LXD nodes that a currently part of the raft
 // cluster, as configured in the raft log. It returns an error if this node is
 // not the leader.
@@ -585,17 +645,17 @@ func (g *Gateway) currentRaftNodes() ([]db.RaftNode, error) {
 	g.lock.RLock()
 	defer g.lock.RUnlock()
 
-	if g.raft == nil {
-		return nil, raft.ErrNotLeader
+	if g.raft == nil || !g.isLeader() {
+		return nil, errNotLeader
 	}
-	servers, err := g.raft.Servers()
+	servers, err := g.server.Cluster()
 	if err != nil {
 		return nil, err
 	}
 	provider := raftAddressProvider{db: g.db}
 	nodes := make([]db.RaftNode, len(servers))
 	for i, server := range servers {
-		address, err := provider.ServerAddr(server.ID)
+		address, err := provider.ServerAddr(int(server.ID))
 		if err != nil {
 			if err != db.ErrNoSuchObject {
 				return nil, errors.Wrap(err, "Failed to fetch raft server address")
@@ -605,11 +665,7 @@ func (g *Gateway) currentRaftNodes() ([]db.RaftNode, error) {
 			// its raft_nodes table is not fully up-to-date yet.
 			address = server.Address
 		}
-		id, err := strconv.Atoi(string(server.ID))
-		if err != nil {
-			return nil, errors.Wrap(err, "Non-numeric server ID")
-		}
-		nodes[i].ID = int64(id)
+		nodes[i].ID = int64(server.ID)
 		nodes[i].Address = string(address)
 	}
 	return nodes, nil
@@ -633,52 +689,55 @@ func (g *Gateway) cachedRaftNodes() ([]string, error) {
 	return addresses, nil
 }
 
-func dqliteNetworkDial(ctx context.Context, addr string, g *Gateway) (net.Conn, error) {
+func dqliteNetworkDial(ctx context.Context, addr string, g *Gateway, checkLeader bool) (net.Conn, error) {
 	config, err := tlsClientConfig(g.cert)
 	if err != nil {
 		return nil, err
 	}
 
-	// Make a probe HEAD request to check if the target node is the leader.
 	path := fmt.Sprintf("https://%s%s", addr, databaseEndpoint)
-	request, err := http.NewRequest("HEAD", path, nil)
-	if err != nil {
-		return nil, err
-	}
-	request = request.WithContext(ctx)
-	client := &http.Client{Transport: &http.Transport{TLSClientConfig: config}}
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-
-	// If the remote server has detected that we are out of date, let's
-	// trigger an upgrade.
-	if response.StatusCode == http.StatusUpgradeRequired {
-		g.lock.Lock()
-		defer g.lock.Unlock()
-		if !g.upgradeTriggered {
-			err = triggerUpdate()
-			if err == nil {
-				g.upgradeTriggered = true
-			}
+	if checkLeader {
+		// Make a probe HEAD request to check if the target node is the leader.
+		request, err := http.NewRequest("HEAD", path, nil)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("Upgrade needed")
-	}
+		setDqliteVersionHeader(request)
+		request = request.WithContext(ctx)
+		client := &http.Client{Transport: &http.Transport{TLSClientConfig: config}}
+		response, err := client.Do(request)
+		if err != nil {
+			return nil, err
+		}
 
-	// If the endpoint does not exists, it means that the target node is
-	// running version 1 of dqlite protocol. In that case we simply behave
-	// as the node was at an older LXD version.
-	if response.StatusCode == http.StatusNotFound {
-		return nil, db.ErrSomeNodesAreBehind
-	}
+		// If the remote server has detected that we are out of date, let's
+		// trigger an upgrade.
+		if response.StatusCode == http.StatusUpgradeRequired {
+			g.lock.Lock()
+			defer g.lock.Unlock()
+			if !g.upgradeTriggered {
+				err = triggerUpdate()
+				if err == nil {
+					g.upgradeTriggered = true
+				}
+			}
+			return nil, fmt.Errorf("Upgrade needed")
+		}
 
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(response.Status)
+		// If the endpoint does not exists, it means that the target node is
+		// running version 1 of dqlite protocol. In that case we simply behave
+		// as the node was at an older LXD version.
+		if response.StatusCode == http.StatusNotFound {
+			return nil, db.ErrSomeNodesAreBehind
+		}
+
+		if response.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf(response.Status)
+		}
 	}
 
 	// Establish the connection
-	request = &http.Request{
+	request := &http.Request{
 		Method:     "POST",
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
@@ -692,6 +751,7 @@ func dqliteNetworkDial(ctx context.Context, addr string, g *Gateway) (net.Conn, 
 	}
 
 	request.Header.Set("Upgrade", "dqlite")
+	setDqliteVersionHeader(request)
 	request = request.WithContext(ctx)
 
 	deadline, _ := ctx.Deadline()
@@ -707,7 +767,7 @@ func dqliteNetworkDial(ctx context.Context, addr string, g *Gateway) (net.Conn, 
 		return nil, errors.Wrap(err, "Sending HTTP request failed")
 	}
 
-	response, err = http.ReadResponse(bufio.NewReader(conn), request)
+	response, err := http.ReadResponse(bufio.NewReader(conn), request)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read response")
 	}
@@ -718,7 +778,51 @@ func dqliteNetworkDial(ctx context.Context, addr string, g *Gateway) (net.Conn, 
 		return nil, fmt.Errorf("Missing or unexpected Upgrade header in response")
 	}
 
-	return conn, err
+	listener, err := net.Listen("unix", "")
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create unix listener")
+	}
+
+	goUnix, err := net.Dial("unix", listener.Addr().String())
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to connect to unix listener")
+	}
+
+	cUnix, err := listener.Accept()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to connect to unix listener")
+	}
+
+	listener.Close()
+
+	go func() {
+		_, err := io.Copy(eagain.Writer{Writer: goUnix}, eagain.Reader{Reader: conn})
+		if err != nil {
+			logger.Warnf("Error during dqlite proxy copy: %v", err)
+		}
+		conn.Close()
+	}()
+
+	go func() {
+		_, err := io.Copy(eagain.Writer{Writer: conn}, eagain.Reader{Reader: goUnix})
+		if err != nil {
+			logger.Warnf("Error during dqlite proxy copy: %v", err)
+		}
+
+		goUnix.Close()
+	}()
+
+	return cUnix, nil
+}
+
+func (g *Gateway) watchFunc(oldState int, newState int) {
+	time.Sleep(300 * time.Millisecond)
+	if newState == dqlite.Leader && g.raft != nil {
+		logger.Info("Node was elected as dqlite leader", log.Ctx{"id": g.raft.info.ID, "address": g.raft.info.Address})
+
+		// Trigger an immediate full hearbeat run
+		go g.heartbeat(g.ctx, true)
+	}
 }
 
 // Create a dial function that connects to the given listener.
@@ -752,7 +856,7 @@ func runDqliteProxy(listener net.Listener, acceptCh chan net.Conn) {
 		src := <-acceptCh
 		dst, err := net.Dial("unix", listener.Addr().String())
 		if err != nil {
-			panic(err)
+			continue
 		}
 
 		go func() {

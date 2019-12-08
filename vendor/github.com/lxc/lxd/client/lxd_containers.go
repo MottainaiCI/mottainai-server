@@ -14,6 +14,7 @@ import (
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/cancel"
 	"github.com/lxc/lxd/shared/ioprogress"
+	"github.com/lxc/lxd/shared/units"
 )
 
 // Container handling functions
@@ -698,6 +699,12 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 	if exec.RecordOutput {
 		if !r.HasExtension("container_exec_recording") {
 			return nil, fmt.Errorf("The server is missing the required \"container_exec_recording\" API extension")
+		}
+	}
+
+	if exec.User > 0 || exec.Group > 0 || exec.Cwd != "" {
+		if !r.HasExtension("container_exec_user_group_cwd") {
+			return nil, fmt.Errorf("The server is missing the required \"container_exec_user_group_cwd\" API extension")
 		}
 	}
 
@@ -1890,7 +1897,7 @@ func (r *ProtocolLXD) GetContainerBackupFile(containerName string, name string, 
 			Tracker: &ioprogress.ProgressTracker{
 				Length: response.ContentLength,
 				Handler: func(percent int64, speed int64) {
-					req.ProgressHandler(ioprogress.ProgressData{Text: fmt.Sprintf("%d%% (%s/s)", percent, shared.GetByteSizeString(speed, 2))})
+					req.ProgressHandler(ioprogress.ProgressData{Text: fmt.Sprintf("%d%% (%s/s)", percent, units.GetByteSizeString(speed, 2))})
 				},
 			},
 		}

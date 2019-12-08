@@ -277,7 +277,15 @@ func (f *Fetcher) HandleRaw(req schema.Request, fn func(io.ReadCloser) error) er
 
 func (f *Fetcher) Handle(req schema.Request) error {
 	return f.HandleRaw(req, func(b io.ReadCloser) error {
-		return json.NewDecoder(b).Decode(req.Target)
+		buf := new(bytes.Buffer)
+		n, err := buf.ReadFrom(b)
+		if n == 0 {
+			return errors.New("Received empty response from server")
+		} else if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(buf.Bytes(), req.Target)
 	})
 }
 

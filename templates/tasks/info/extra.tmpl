@@ -30,6 +30,9 @@
 <span class="badge badge-info">
     <i class="fa fa-clock-o"></i>&nbsp; Finished <time class="timeago" datetime="{{.Task.EndTime}}">{{.Task.EndTime}}</time>
 </span>
+<span class="badge badge-info">
+    <i class="fa fa-clock-o"></i>&nbsp; Duration {{ HumanTimeDiff .Task.StartTime .Task.EndTime }}
+</span>
 {{end}}
 
 {{if .Task.StartTime}}

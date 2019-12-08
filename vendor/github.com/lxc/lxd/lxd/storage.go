@@ -13,12 +13,14 @@ import (
 
 	"github.com/lxc/lxd/lxd/db"
 	"github.com/lxc/lxd/lxd/migration"
+	"github.com/lxc/lxd/lxd/project"
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/idmap"
 	"github.com/lxc/lxd/shared/ioprogress"
 	"github.com/lxc/lxd/shared/logger"
+	"github.com/lxc/lxd/shared/units"
 	"github.com/lxc/lxd/shared/version"
 )
 
@@ -83,13 +85,14 @@ type storageType int
 const (
 	storageTypeBtrfs storageType = iota
 	storageTypeCeph
+	storageTypeCephFs
 	storageTypeDir
 	storageTypeLvm
 	storageTypeMock
 	storageTypeZfs
 )
 
-var supportedStoragePoolDrivers = []string{"btrfs", "ceph", "dir", "lvm", "zfs"}
+var supportedStoragePoolDrivers = []string{"btrfs", "ceph", "cephfs", "dir", "lvm", "zfs"}
 
 func storageTypeToString(sType storageType) (string, error) {
 	switch sType {
@@ -97,6 +100,8 @@ func storageTypeToString(sType storageType) (string, error) {
 		return "btrfs", nil
 	case storageTypeCeph:
 		return "ceph", nil
+	case storageTypeCephFs:
+		return "cephfs", nil
 	case storageTypeDir:
 		return "dir", nil
 	case storageTypeLvm:
@@ -116,6 +121,8 @@ func storageStringToType(sName string) (storageType, error) {
 		return storageTypeBtrfs, nil
 	case "ceph":
 		return storageTypeCeph, nil
+	case "cephfs":
+		return storageTypeCephFs, nil
 	case "dir":
 		return storageTypeDir, nil
 	case "lvm":
@@ -266,6 +273,13 @@ func storageCoreInit(driver string) (storage, error) {
 			return nil, err
 		}
 		return &ceph, nil
+	case storageTypeCephFs:
+		cephfs := storageCephFs{}
+		err = cephfs.StorageCoreInit()
+		if err != nil {
+			return nil, err
+		}
+		return &cephfs, nil
 	case storageTypeLvm:
 		lvm := storageLvm{}
 		err = lvm.StorageCoreInit()
@@ -356,6 +370,17 @@ func storageInit(s *state.State, project, poolName, volumeName string, volumeTyp
 			return nil, err
 		}
 		return &ceph, nil
+	case storageTypeCephFs:
+		cephfs := storageCephFs{}
+		cephfs.poolID = poolID
+		cephfs.pool = pool
+		cephfs.volume = volume
+		cephfs.s = s
+		err = cephfs.StoragePoolInit()
+		if err != nil {
+			return nil, err
+		}
+		return &cephfs, nil
 	case storageTypeLvm:
 		lvm := storageLvm{}
 		lvm.poolID = poolID
@@ -422,22 +447,24 @@ func storagePoolVolumeAttachInit(s *state.State, poolName string, volumeName str
 		}
 	}
 
-	// Get the container's idmap
 	var nextIdmap *idmap.IdmapSet
-	if c.IsRunning() {
-		nextIdmap, err = c.CurrentIdmap()
-	} else {
-		nextIdmap, err = c.NextIdmap()
-	}
-	if err != nil {
-		return nil, err
-	}
-
 	nextJsonMap := "[]"
-	if nextIdmap != nil {
-		nextJsonMap, err = idmapsetToJSON(nextIdmap)
+	if !shared.IsTrue(poolVolumePut.Config["security.shifted"]) {
+		// Get the container's idmap
+		if c.IsRunning() {
+			nextIdmap, err = c.CurrentIdmap()
+		} else {
+			nextIdmap, err = c.NextIdmap()
+		}
 		if err != nil {
 			return nil, err
+		}
+
+		if nextIdmap != nil {
+			nextJsonMap, err = idmapsetToJSON(nextIdmap)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	poolVolumePut.Config["volatile.idmap.next"] = nextJsonMap
@@ -453,39 +480,42 @@ func storagePoolVolumeAttachInit(s *state.State, poolName string, volumeName str
 
 	if !nextIdmap.Equals(lastIdmap) {
 		logger.Debugf("Shifting storage volume")
-		volumeUsedBy, err := storagePoolVolumeUsedByContainersGet(s,
-			"default", volumeName, volumeTypeName)
-		if err != nil {
-			return nil, err
-		}
 
-		if len(volumeUsedBy) > 1 {
-			for _, ctName := range volumeUsedBy {
-				ct, err := containerLoadByProjectAndName(s, c.Project(), ctName)
-				if err != nil {
-					continue
-				}
-
-				var ctNextIdmap *idmap.IdmapSet
-				if ct.IsRunning() {
-					ctNextIdmap, err = ct.CurrentIdmap()
-				} else {
-					ctNextIdmap, err = ct.NextIdmap()
-				}
-				if err != nil {
-					return nil, fmt.Errorf("Failed to retrieve idmap of container")
-				}
-
-				if !nextIdmap.Equals(ctNextIdmap) {
-					return nil, fmt.Errorf("Idmaps of container %v and storage volume %v are not identical", ctName, volumeName)
-				}
+		if !shared.IsTrue(poolVolumePut.Config["security.shifted"]) {
+			volumeUsedBy, err := storagePoolVolumeUsedByContainersGet(s,
+				"default", volumeName, volumeTypeName)
+			if err != nil {
+				return nil, err
 			}
-		} else if len(volumeUsedBy) == 1 {
-			// If we're the only one who's attached that container
-			// we can shift the storage volume.
-			// I'm not sure if we want some locking here.
-			if volumeUsedBy[0] != c.Name() {
-				return nil, fmt.Errorf("idmaps of container and storage volume are not identical")
+
+			if len(volumeUsedBy) > 1 {
+				for _, ctName := range volumeUsedBy {
+					ct, err := containerLoadByProjectAndName(s, c.Project(), ctName)
+					if err != nil {
+						continue
+					}
+
+					var ctNextIdmap *idmap.IdmapSet
+					if ct.IsRunning() {
+						ctNextIdmap, err = ct.CurrentIdmap()
+					} else {
+						ctNextIdmap, err = ct.NextIdmap()
+					}
+					if err != nil {
+						return nil, fmt.Errorf("Failed to retrieve idmap of container")
+					}
+
+					if !nextIdmap.Equals(ctNextIdmap) {
+						return nil, fmt.Errorf("Idmaps of container %v and storage volume %v are not identical", ctName, volumeName)
+					}
+				}
+			} else if len(volumeUsedBy) == 1 {
+				// If we're the only one who's attached that container
+				// we can shift the storage volume.
+				// I'm not sure if we want some locking here.
+				if volumeUsedBy[0] != c.Name() {
+					return nil, fmt.Errorf("idmaps of container and storage volume are not identical")
+				}
 			}
 		}
 
@@ -593,13 +623,13 @@ func getStoragePoolMountPoint(poolName string) string {
 }
 
 // ${LXD_DIR}/storage-pools/<pool>/containers/[<project_name>_]<container_name>
-func getContainerMountPoint(project string, poolName string, containerName string) string {
-	return shared.VarPath("storage-pools", poolName, "containers", projectPrefix(project, containerName))
+func getContainerMountPoint(projectName string, poolName string, containerName string) string {
+	return shared.VarPath("storage-pools", poolName, "containers", project.Prefix(projectName, containerName))
 }
 
 // ${LXD_DIR}/storage-pools/<pool>/containers-snapshots/<snapshot_name>
-func getSnapshotMountPoint(project, poolName string, snapshotName string) string {
-	return shared.VarPath("storage-pools", poolName, "containers-snapshots", projectPrefix(project, snapshotName))
+func getSnapshotMountPoint(projectName, poolName string, snapshotName string) string {
+	return shared.VarPath("storage-pools", poolName, "containers-snapshots", project.Prefix(projectName, snapshotName))
 }
 
 // ${LXD_DIR}/storage-pools/<pool>/images/<fingerprint>
@@ -792,9 +822,9 @@ func progressWrapperRender(op *operation, key string, description string, progre
 		meta = make(map[string]interface{})
 	}
 
-	progress := fmt.Sprintf("%s (%s/s)", shared.GetByteSizeString(progressInt, 2), shared.GetByteSizeString(speedInt, 2))
+	progress := fmt.Sprintf("%s (%s/s)", units.GetByteSizeString(progressInt, 2), units.GetByteSizeString(speedInt, 2))
 	if description != "" {
-		progress = fmt.Sprintf("%s: %s (%s/s)", description, shared.GetByteSizeString(progressInt, 2), shared.GetByteSizeString(speedInt, 2))
+		progress = fmt.Sprintf("%s: %s (%s/s)", description, units.GetByteSizeString(progressInt, 2), units.GetByteSizeString(speedInt, 2))
 	}
 
 	if meta[key] != progress {

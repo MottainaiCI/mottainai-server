@@ -20,6 +20,9 @@ import (
 	lxd "github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/lxd/cluster"
 	"github.com/lxc/lxd/lxd/db"
+	"github.com/lxc/lxd/lxd/device"
+	"github.com/lxc/lxd/lxd/dnsmasq"
+	"github.com/lxc/lxd/lxd/iptables"
 	"github.com/lxc/lxd/lxd/node"
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/lxd/util"
@@ -924,10 +927,9 @@ func networkStateGet(d *Daemon, r *http.Request) Response {
 
 	// Get some information
 	osInfo, _ := net.InterfaceByName(name)
-	_, dbInfo, _ := d.cluster.NetworkGet(name)
 
 	// Sanity check
-	if osInfo == nil || dbInfo == nil {
+	if osInfo == nil {
 		return NotFound(fmt.Errorf("Interface '%s' not found", name))
 	}
 
@@ -1082,12 +1084,12 @@ func (n *network) Start() error {
 
 	// IPv6 bridge configuration
 	if !shared.StringInSlice(n.config["ipv6.address"], []string{"", "none"}) {
-		err := networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/autoconf", n.name), "0")
+		err := device.NetworkSysctlSet(fmt.Sprintf("ipv6/conf/%s/autoconf", n.name), "0")
 		if err != nil {
 			return err
 		}
 
-		err = networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_dad", n.name), "0")
+		err = device.NetworkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_dad", n.name), "0")
 		if err != nil {
 			return err
 		}
@@ -1129,7 +1131,7 @@ func (n *network) Start() error {
 		if err == nil {
 			_, err = shared.RunCommand("ip", "link", "set", "dev", fmt.Sprintf("%s-mtu", n.name), "up")
 			if err == nil {
-				networkAttachInterface(n.name, fmt.Sprintf("%s-mtu", n.name))
+				device.NetworkAttachInterface(n.name, fmt.Sprintf("%s-mtu", n.name))
 			}
 		}
 	}
@@ -1183,7 +1185,7 @@ func (n *network) Start() error {
 				return fmt.Errorf("Only unconfigured network interfaces can be bridged")
 			}
 
-			err = networkAttachInterface(n.name, entry)
+			err = device.NetworkAttachInterface(n.name, entry)
 			if err != nil {
 				return err
 			}
@@ -1191,17 +1193,17 @@ func (n *network) Start() error {
 	}
 
 	// Remove any existing IPv4 iptables rules
-	err = networkIptablesClear("ipv4", n.name, "")
+	err = iptables.NetworkClear("ipv4", n.name, "")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv4", n.name, "mangle")
+	err = iptables.NetworkClear("ipv4", n.name, "mangle")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv4", n.name, "nat")
+	err = iptables.NetworkClear("ipv4", n.name, "nat")
 	if err != nil {
 		return err
 	}
@@ -1215,12 +1217,6 @@ func (n *network) Start() error {
 
 	// Flush all IPv4 addresses and routes
 	_, err = shared.RunCommand("ip", "-4", "addr", "flush", "dev", n.name, "scope", "global")
-	if err != nil {
-		return err
-	}
-
-	// Restore container specific IPv4 routes to interface.
-	err = networkApplyBootRoutesV4(n.name, ctRoutes)
 	if err != nil {
 		return err
 	}
@@ -1243,7 +1239,7 @@ func (n *network) Start() error {
 				{"ipv4", n.name, "", "OUTPUT", "-o", n.name, "-p", "tcp", "--sport", "53", "-j", "ACCEPT"}}
 
 			for _, rule := range rules {
-				err = networkIptablesPrepend(rule[0], rule[1], rule[2], rule[3], rule[4:]...)
+				err = iptables.NetworkPrepend(rule[0], rule[1], rule[2], rule[3], rule[4:]...)
 				if err != nil {
 					return err
 				}
@@ -1252,35 +1248,35 @@ func (n *network) Start() error {
 
 		// Attempt a workaround for broken DHCP clients
 		if n.config["ipv4.firewall"] == "" || shared.IsTrue(n.config["ipv4.firewall"]) {
-			networkIptablesPrepend("ipv4", n.name, "mangle", "POSTROUTING", "-o", n.name, "-p", "udp", "--dport", "68", "-j", "CHECKSUM", "--checksum-fill")
+			iptables.NetworkPrepend("ipv4", n.name, "mangle", "POSTROUTING", "-o", n.name, "-p", "udp", "--dport", "68", "-j", "CHECKSUM", "--checksum-fill")
 		}
 
 		// Allow forwarding
 		if n.config["bridge.mode"] == "fan" || n.config["ipv4.routing"] == "" || shared.IsTrue(n.config["ipv4.routing"]) {
-			err = networkSysctlSet("ipv4/ip_forward", "1")
+			err = device.NetworkSysctlSet("ipv4/ip_forward", "1")
 			if err != nil {
 				return err
 			}
 
 			if n.config["ipv4.firewall"] == "" || shared.IsTrue(n.config["ipv4.firewall"]) {
-				err = networkIptablesPrepend("ipv4", n.name, "", "FORWARD", "-i", n.name, "-j", "ACCEPT")
+				err = iptables.NetworkPrepend("ipv4", n.name, "", "FORWARD", "-i", n.name, "-j", "ACCEPT")
 				if err != nil {
 					return err
 				}
 
-				err = networkIptablesPrepend("ipv4", n.name, "", "FORWARD", "-o", n.name, "-j", "ACCEPT")
+				err = iptables.NetworkPrepend("ipv4", n.name, "", "FORWARD", "-o", n.name, "-j", "ACCEPT")
 				if err != nil {
 					return err
 				}
 			}
 		} else {
 			if n.config["ipv4.firewall"] == "" || shared.IsTrue(n.config["ipv4.firewall"]) {
-				err = networkIptablesPrepend("ipv4", n.name, "", "FORWARD", "-i", n.name, "-j", "REJECT")
+				err = iptables.NetworkPrepend("ipv4", n.name, "", "FORWARD", "-i", n.name, "-j", "REJECT")
 				if err != nil {
 					return err
 				}
 
-				err = networkIptablesPrepend("ipv4", n.name, "", "FORWARD", "-o", n.name, "-j", "REJECT")
+				err = iptables.NetworkPrepend("ipv4", n.name, "", "FORWARD", "-o", n.name, "-j", "REJECT")
 				if err != nil {
 					return err
 				}
@@ -1292,14 +1288,22 @@ func (n *network) Start() error {
 	dnsmasqCmd := []string{"dnsmasq", "--strict-order", "--bind-interfaces",
 		fmt.Sprintf("--pid-file=%s", shared.VarPath("networks", n.name, "dnsmasq.pid")),
 		"--except-interface=lo",
+		"--no-ping", // --no-ping is very important to prevent delays to lease file updates.
 		fmt.Sprintf("--interface=%s", n.name)}
+
+	dnsmasqVersion, err := dnsmasq.GetVersion()
+
+	// --dhcp-rapid-commit option is only supported on >2.79
+	minVer, _ := version.NewDottedVersion("2.79")
+	if dnsmasqVersion.Compare(minVer) > 0 {
+		dnsmasqCmd = append(dnsmasqCmd, "--dhcp-rapid-commit")
+	}
 
 	if !debug {
 		// --quiet options are only supported on >2.67
 		minVer, _ := version.NewDottedVersion("2.67")
 
-		v, err := networkGetDnsmasqVersion()
-		if err == nil && v.Compare(minVer) > 0 {
+		if err == nil && dnsmasqVersion.Compare(minVer) > 0 {
 			dnsmasqCmd = append(dnsmasqCmd, []string{"--quiet-dhcp", "--quiet-dhcp6", "--quiet-ra"}...)
 		}
 	}
@@ -1353,12 +1357,12 @@ func (n *network) Start() error {
 			}
 
 			if n.config["ipv4.nat.order"] == "after" {
-				err = networkIptablesAppend("ipv4", n.name, "nat", "POSTROUTING", args...)
+				err = iptables.NetworkAppend("ipv4", n.name, "nat", "POSTROUTING", args...)
 				if err != nil {
 					return err
 				}
 			} else {
-				err = networkIptablesPrepend("ipv4", n.name, "nat", "POSTROUTING", args...)
+				err = iptables.NetworkPrepend("ipv4", n.name, "nat", "POSTROUTING", args...)
 				if err != nil {
 					return err
 				}
@@ -1375,15 +1379,21 @@ func (n *network) Start() error {
 				}
 			}
 		}
+
+		// Restore container specific IPv4 routes to interface.
+		err = networkApplyBootRoutesV4(n.name, ctRoutes)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Remove any existing IPv6 iptables rules
-	err = networkIptablesClear("ipv6", n.name, "")
+	err = iptables.NetworkClear("ipv6", n.name, "")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv6", n.name, "nat")
+	err = iptables.NetworkClear("ipv6", n.name, "nat")
 	if err != nil {
 		return err
 	}
@@ -1401,12 +1411,6 @@ func (n *network) Start() error {
 		return err
 	}
 
-	// Restore container specific IPv6 routes to interface.
-	err = networkApplyBootRoutesV6(n.name, ctRoutes)
-	if err != nil {
-		return err
-	}
-
 	_, err = shared.RunCommand("ip", "-6", "route", "flush", "dev", n.name, "proto", "static")
 	if err != nil {
 		return err
@@ -1415,7 +1419,7 @@ func (n *network) Start() error {
 	// Configure IPv6
 	if !shared.StringInSlice(n.config["ipv6.address"], []string{"", "none"}) {
 		// Enable IPv6 for the subnet
-		err := networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/disable_ipv6", n.name), "0")
+		err := device.NetworkSysctlSet(fmt.Sprintf("ipv6/conf/%s/disable_ipv6", n.name), "0")
 		if err != nil {
 			return err
 		}
@@ -1439,7 +1443,7 @@ func (n *network) Start() error {
 				{"ipv6", n.name, "", "OUTPUT", "-o", n.name, "-p", "tcp", "--sport", "53", "-j", "ACCEPT"}}
 
 			for _, rule := range rules {
-				err = networkIptablesPrepend(rule[0], rule[1], rule[2], rule[3], rule[4:]...)
+				err = iptables.NetworkPrepend(rule[0], rule[1], rule[2], rule[3], rule[4:]...)
 				if err != nil {
 					return err
 				}
@@ -1487,7 +1491,7 @@ func (n *network) Start() error {
 					continue
 				}
 
-				err = networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_ra", entry.Name()), "2")
+				err = device.NetworkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_ra", entry.Name()), "2")
 				if err != nil && !os.IsNotExist(err) {
 					return err
 				}
@@ -1495,31 +1499,31 @@ func (n *network) Start() error {
 
 			// Then set forwarding for all of them
 			for _, entry := range entries {
-				err = networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/forwarding", entry.Name()), "1")
+				err = device.NetworkSysctlSet(fmt.Sprintf("ipv6/conf/%s/forwarding", entry.Name()), "1")
 				if err != nil && !os.IsNotExist(err) {
 					return err
 				}
 			}
 
 			if n.config["ipv6.firewall"] == "" || shared.IsTrue(n.config["ipv6.firewall"]) {
-				err = networkIptablesPrepend("ipv6", n.name, "", "FORWARD", "-i", n.name, "-j", "ACCEPT")
+				err = iptables.NetworkPrepend("ipv6", n.name, "", "FORWARD", "-i", n.name, "-j", "ACCEPT")
 				if err != nil {
 					return err
 				}
 
-				err = networkIptablesPrepend("ipv6", n.name, "", "FORWARD", "-o", n.name, "-j", "ACCEPT")
+				err = iptables.NetworkPrepend("ipv6", n.name, "", "FORWARD", "-o", n.name, "-j", "ACCEPT")
 				if err != nil {
 					return err
 				}
 			}
 		} else {
 			if n.config["ipv6.firewall"] == "" || shared.IsTrue(n.config["ipv6.firewall"]) {
-				err = networkIptablesPrepend("ipv6", n.name, "", "FORWARD", "-i", n.name, "-j", "REJECT")
+				err = iptables.NetworkPrepend("ipv6", n.name, "", "FORWARD", "-i", n.name, "-j", "REJECT")
 				if err != nil {
 					return err
 				}
 
-				err = networkIptablesPrepend("ipv6", n.name, "", "FORWARD", "-o", n.name, "-j", "REJECT")
+				err = iptables.NetworkPrepend("ipv6", n.name, "", "FORWARD", "-o", n.name, "-j", "REJECT")
 				if err != nil {
 					return err
 				}
@@ -1540,12 +1544,12 @@ func (n *network) Start() error {
 			}
 
 			if n.config["ipv6.nat.order"] == "after" {
-				err = networkIptablesAppend("ipv6", n.name, "nat", "POSTROUTING", args...)
+				err = iptables.NetworkAppend("ipv6", n.name, "nat", "POSTROUTING", args...)
 				if err != nil {
 					return err
 				}
 			} else {
-				err = networkIptablesPrepend("ipv6", n.name, "nat", "POSTROUTING", args...)
+				err = iptables.NetworkPrepend("ipv6", n.name, "nat", "POSTROUTING", args...)
 				if err != nil {
 					return err
 				}
@@ -1561,6 +1565,12 @@ func (n *network) Start() error {
 					return err
 				}
 			}
+		}
+
+		// Restore container specific IPv6 routes to interface.
+		err = networkApplyBootRoutesV6(n.name, ctRoutes)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -1601,7 +1611,7 @@ func (n *network) Start() error {
 		}
 
 		// Update the MTU based on overlay device (if available)
-		fanMtuInt, err := networkGetDevMTU(devName)
+		fanMtuInt, err := device.NetworkGetDevMTU(devName)
 		if err == nil {
 			// Apply overhead
 			if n.config["fan.type"] == "ipip" {
@@ -1675,7 +1685,7 @@ func (n *network) Start() error {
 				return err
 			}
 
-			err = networkAttachInterface(n.name, tunName)
+			err = device.NetworkAttachInterface(n.name, tunName)
 			if err != nil {
 				return err
 			}
@@ -1692,7 +1702,7 @@ func (n *network) Start() error {
 		}
 
 		// Configure NAT
-		err = networkIptablesPrepend("ipv4", n.name, "nat", "POSTROUTING", "-s", overlaySubnet.String(), "!", "-d", overlaySubnet.String(), "-j", "MASQUERADE")
+		err = iptables.NetworkPrepend("ipv4", n.name, "nat", "POSTROUTING", "-s", overlaySubnet.String(), "!", "-d", overlaySubnet.String(), "-j", "MASQUERADE")
 		if err != nil {
 			return err
 		}
@@ -1789,7 +1799,7 @@ func (n *network) Start() error {
 		}
 
 		// Bridge it and bring up
-		err = networkAttachInterface(n.name, tunName)
+		err = device.NetworkAttachInterface(n.name, tunName)
 		if err != nil {
 			return err
 		}
@@ -1806,7 +1816,7 @@ func (n *network) Start() error {
 	}
 
 	// Kill any existing dnsmasq and forkdns daemon for this network
-	err = networkKillDnsmasq(n.name, false)
+	err = dnsmasq.Kill(n.name, false)
 	if err != nil {
 		return err
 	}
@@ -1924,33 +1934,33 @@ func (n *network) Stop() error {
 	}
 
 	// Cleanup iptables
-	err := networkIptablesClear("ipv4", n.name, "")
+	err := iptables.NetworkClear("ipv4", n.name, "")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv4", n.name, "mangle")
+	err = iptables.NetworkClear("ipv4", n.name, "mangle")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv4", n.name, "nat")
+	err = iptables.NetworkClear("ipv4", n.name, "nat")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv6", n.name, "")
+	err = iptables.NetworkClear("ipv6", n.name, "")
 	if err != nil {
 		return err
 	}
 
-	err = networkIptablesClear("ipv6", n.name, "nat")
+	err = iptables.NetworkClear("ipv6", n.name, "nat")
 	if err != nil {
 		return err
 	}
 
 	// Kill any existing dnsmasq and forkdns daemon for this network
-	err = networkKillDnsmasq(n.name, false)
+	err = dnsmasq.Kill(n.name, false)
 	if err != nil {
 		return err
 	}
@@ -2127,40 +2137,30 @@ func (n *network) spawnForkDNS(listenAddress string) error {
 
 // refreshForkdnsServerAddresses retrieves the IPv4 address of each cluster node (excluding ourselves)
 // for this network. It then updates the forkdns server list file if there are changes.
-func (n *network) refreshForkdnsServerAddresses() {
+func (n *network) refreshForkdnsServerAddresses(heartbeatData *cluster.APIHeartbeat) error {
 	addresses := []string{}
-
-	// Get the list of nodes
-	nodes, err := cluster.List(n.state)
-	if err != nil {
-		logger.Errorf("Failed to get forkdns cluster list for '%s': %v", n.name, err)
-		return
-	}
-
 	localAddress, err := node.HTTPSAddress(n.state.Node)
 	if err != nil {
-		logger.Errorf("Failed to get forkdns local cluster address for '%s': %v", n.name, err)
-		return
+		return err
 	}
 
+	logger.Infof("Refreshing forkdns peers for %v", n.name)
+
 	cert := n.state.Endpoints.NetworkCert()
-	for _, node := range nodes {
-		address := strings.TrimPrefix(node.URL, "https://")
-		if address == localAddress {
+	for _, node := range heartbeatData.Members {
+		if node.Address == localAddress {
 			// No need to query ourselves.
 			continue
 		}
 
-		client, err := cluster.Connect(address, cert, false)
+		client, err := cluster.Connect(node.Address, cert, false)
 		if err != nil {
-			logger.Errorf("Failed to connect to cluster node '%s': %v", address, err)
-			return
+			return err
 		}
 
 		state, err := client.GetNetworkState(n.name)
 		if err != nil {
-			logger.Errorf("Failed to get cluster network state for '%s': %v", address, err)
-			return
+			return err
 		}
 
 		for _, addr := range state.Addresses {
@@ -2183,15 +2183,14 @@ func (n *network) refreshForkdnsServerAddresses() {
 
 	// If current list is same as cluster list, nothing to do.
 	if err == nil && reflect.DeepEqual(curList, addresses) {
-		return
+		return nil
 	}
 
 	err = networkUpdateForkdnsServersFile(n.name, addresses)
 	if err != nil {
-		logger.Errorf("Failed to update forkdns servers list for '%s': %v", n.name, err)
-		return
+		return err
 	}
 
 	logger.Infof("Updated forkdns server list for '%s': %v", n.name, addresses)
-	return
+	return nil
 }

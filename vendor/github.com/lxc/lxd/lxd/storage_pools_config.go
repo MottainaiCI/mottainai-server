@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/units"
 )
 
 func updateStoragePoolError(unchangeable []string, driverName string) error {
@@ -24,6 +25,9 @@ var changeableStoragePoolProperties = map[string][]string{
 		"volume.block.filesystem",
 		"volume.block.mount_options",
 		"volume.size"},
+
+	"cephfs": {
+		"rsync.bwlimit"},
 
 	"dir": {
 		"rsync.bwlimit"},
@@ -59,11 +63,16 @@ var storagePoolConfigKeys = map[string]func(value string) error{
 			return nil
 		}
 
-		_, err := shared.ParseByteSizeString(value)
+		_, err := units.ParseByteSizeString(value)
 		return err
 	},
 	"ceph.rbd.clone_copy": shared.IsBool,
 	"ceph.user.name":      shared.IsAny,
+
+	// valid drivers: cephfs
+	"cephfs.cluster_name": shared.IsAny,
+	"cephfs.path":         shared.IsAny,
+	"cephfs.user.name":    shared.IsAny,
 
 	// valid drivers: lvm
 	"lvm.thinpool_name": shared.IsAny,
@@ -76,7 +85,7 @@ var storagePoolConfigKeys = map[string]func(value string) error{
 			return nil
 		}
 
-		_, err := shared.ParseByteSizeString(value)
+		_, err := units.ParseByteSizeString(value)
 		return err
 	},
 
@@ -103,7 +112,7 @@ var storagePoolConfigKeys = map[string]func(value string) error{
 			return nil
 		}
 
-		_, err := shared.ParseByteSizeString(value)
+		_, err := units.ParseByteSizeString(value)
 		return err
 	},
 
@@ -134,7 +143,7 @@ func storagePoolValidateConfig(name string, driver string, config map[string]str
 
 	v, ok := config["rsync.bwlimit"]
 	if ok && v != "" {
-		_, err := shared.ParseByteSizeString(v)
+		_, err := units.ParseByteSizeString(v)
 		if err != nil {
 			return err
 		}
@@ -154,7 +163,7 @@ func storagePoolValidateConfig(name string, driver string, config map[string]str
 		}
 
 		prfx := strings.HasPrefix
-		if driver == "dir" || driver == "ceph" {
+		if driver == "dir" || driver == "ceph" || driver == "cephfs" {
 			if key == "size" {
 				return fmt.Errorf("the key %s cannot be used with %s storage pools", key, strings.ToUpper(driver))
 			}
@@ -194,7 +203,7 @@ func storagePoolValidateConfig(name string, driver string, config map[string]str
 }
 
 func storagePoolFillDefault(name string, driver string, config map[string]string) error {
-	if driver == "dir" || driver == "ceph" {
+	if driver == "dir" || driver == "ceph" || driver == "cephfs" {
 		if config["size"] != "" {
 			return fmt.Errorf(`The "size" property does not apply `+
 				`to %s storage pools`, driver)
@@ -217,7 +226,7 @@ func storagePoolFillDefault(name string, driver string, config map[string]string
 			}
 			config["size"] = strconv.FormatUint(uint64(size), 10) + "GB"
 		} else {
-			_, err := shared.ParseByteSizeString(config["size"])
+			_, err := units.ParseByteSizeString(config["size"])
 			if err != nil {
 				return err
 			}
@@ -237,9 +246,9 @@ func storagePoolFillDefault(name string, driver string, config map[string]string
 		}
 	}
 
-	if driver == "btrfs" || driver == "ceph" || driver == "lvm" || driver == "zfs" {
+	if driver == "btrfs" || driver == "ceph" || driver == "cephfs" || driver == "lvm" || driver == "zfs" {
 		if config["volume.size"] != "" {
-			_, err := shared.ParseByteSizeString(config["volume.size"])
+			_, err := units.ParseByteSizeString(config["volume.size"])
 			if err != nil {
 				return err
 			}

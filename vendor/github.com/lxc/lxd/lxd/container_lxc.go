@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/tar"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -30,17 +29,22 @@ import (
 	"github.com/lxc/lxd/lxd/cluster"
 	"github.com/lxc/lxd/lxd/db"
 	"github.com/lxc/lxd/lxd/db/query"
+	"github.com/lxc/lxd/lxd/device"
+	"github.com/lxc/lxd/lxd/device/config"
+	"github.com/lxc/lxd/lxd/instance"
 	"github.com/lxc/lxd/lxd/maas"
+	"github.com/lxc/lxd/lxd/project"
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/lxd/template"
-	"github.com/lxc/lxd/lxd/types"
 	"github.com/lxc/lxd/lxd/util"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
+	"github.com/lxc/lxd/shared/containerwriter"
 	"github.com/lxc/lxd/shared/idmap"
 	"github.com/lxc/lxd/shared/logger"
 	"github.com/lxc/lxd/shared/netutils"
 	"github.com/lxc/lxd/shared/osarch"
+	"github.com/lxc/lxd/shared/units"
 
 	log "github.com/lxc/lxd/shared/log15"
 )
@@ -371,7 +375,7 @@ func containerLXCCreate(s *state.State, args db.ContainerArgs) (container, error
 		return nil, err
 	}
 
-	err = containerValidDevices(s.Cluster, c.expandedDevices, false, true)
+	err = containerValidDevices(s, s.Cluster, c.expandedDevices, false, true)
 	if err != nil {
 		c.Delete()
 		logger.Error("Failed creating container", ctxMap)
@@ -492,18 +496,24 @@ func containerLXCCreate(s *state.State, args db.ContainerArgs) (container, error
 		return nil, err
 	}
 
-	// Update MAAS
 	if !c.IsSnapshot() {
-		err = c.maasUpdate(false)
+		// Update MAAS
+		err = c.maasUpdate(nil)
 		if err != nil {
 			c.Delete()
 			logger.Error("Failed creating container", ctxMap)
 			return nil, err
 		}
-	}
 
-	// Update lease files
-	networkUpdateStatic(s, "")
+		// Add devices to container.
+		for k, m := range c.expandedDevices {
+			err = c.deviceAdd(k, m)
+			if err != nil && err != device.ErrUnsupportedDevType {
+				c.Delete()
+				return nil, err
+			}
+		}
+	}
 
 	logger.Info("Created container", ctxMap)
 	eventSendLifecycle(c.project, "container-created",
@@ -595,10 +605,10 @@ type containerLXC struct {
 
 	// Config
 	expandedConfig  map[string]string
-	expandedDevices types.Devices
+	expandedDevices config.Devices
 	fromHook        bool
 	localConfig     map[string]string
-	localDevices    types.Devices
+	localDevices    config.Devices
 	profiles        []string
 
 	// Cache
@@ -618,6 +628,10 @@ type containerLXC struct {
 	op *operation
 
 	expiryDate time.Time
+}
+
+func (c *containerLXC) Type() string {
+	return instance.TypeContainer
 }
 
 func (c *containerLXC) createOperation(action string, reusable bool, reuse bool) (*lxcContainerOperation, error) {
@@ -970,7 +984,7 @@ func (c *containerLXC) initLXC(config bool) error {
 	}
 
 	// Load the go-lxc struct
-	cname := projectPrefix(c.Project(), c.Name())
+	cname := project.Prefix(c.Project(), c.Name())
 	cc, err := lxc.NewContainer(cname, c.state.OS.LxcPath)
 	if err != nil {
 		return err
@@ -1194,7 +1208,7 @@ func (c *containerLXC) initLXC(config bool) error {
 		return err
 	}
 
-	err = lxcSetConfigItem(cc, "lxc.hook.pre-start", fmt.Sprintf("%s callhook %s %d start", c.state.OS.ExecPath, shared.VarPath(""), c.id))
+	err = lxcSetConfigItem(cc, "lxc.hook.pre-start", fmt.Sprintf("/proc/%d/exe callhook %s %d start", os.Getpid(), shared.VarPath(""), c.id))
 	if err != nil {
 		return err
 	}
@@ -1287,10 +1301,20 @@ func (c *containerLXC) initLXC(config bool) error {
 	}
 
 	// Setup Seccomp if necessary
-	if ContainerNeedsSeccomp(c) {
+	if seccompContainerNeedsPolicy(c) {
 		err = lxcSetConfigItem(cc, "lxc.seccomp.profile", SeccompProfilePath(c))
 		if err != nil {
 			return err
+		}
+
+		// Setup notification socket
+		// System requirement errors are handled during policy generation instead of here
+		ok, err := seccompContainerNeedsIntercept(c)
+		if err == nil && ok {
+			err = lxcSetConfigItem(cc, "lxc.seccomp.notify.proxy", fmt.Sprintf("unix:%s", shared.VarPath("seccomp.socket")))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1400,7 +1424,7 @@ func (c *containerLXC) initLXC(config bool) error {
 
 				valueInt = int64((memoryTotal / 100) * percent)
 			} else {
-				valueInt, err = shared.ParseByteSizeString(memory)
+				valueInt, err = units.ParseByteSizeString(memory)
 				if err != nil {
 					return err
 				}
@@ -1612,7 +1636,6 @@ func (c *containerLXC) initLXC(config bool) error {
 	}
 
 	// Setup devices
-	networkidx := 0
 	for _, k := range c.expandedDevices.DeviceNames() {
 		m := c.expandedDevices[k]
 		if shared.StringInSlice(m["type"], []string{"unix-char", "unix-block"}) {
@@ -1644,118 +1667,6 @@ func (c *containerLXC) initLXC(config bool) error {
 			if err != nil {
 				return err
 			}
-		} else if m["type"] == "nic" || m["type"] == "infiniband" {
-			// Fill in some fields from volatile
-			m, err = c.fillNetworkDevice(k, m)
-			if err != nil {
-				return err
-			}
-
-			networkKeyPrefix := "lxc.net"
-			if !util.RuntimeLiblxcVersionAtLeast(2, 1, 0) {
-				networkKeyPrefix = "lxc.network"
-			}
-
-			// Interface type specific configuration
-			if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.type", networkKeyPrefix, networkidx), "veth")
-				if err != nil {
-					return err
-				}
-			} else if m["nictype"] == "physical" || m["nictype"] == "sriov" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.type", networkKeyPrefix, networkidx), "phys")
-				if err != nil {
-					return err
-				}
-			} else if m["nictype"] == "macvlan" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.type", networkKeyPrefix, networkidx), "macvlan")
-				if err != nil {
-					return err
-				}
-
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.macvlan.mode", networkKeyPrefix, networkidx), "bridge")
-				if err != nil {
-					return err
-				}
-			} else if m["nictype"] == "ipvlan" {
-				err = c.initLXCIPVLAN(cc, networkKeyPrefix, networkidx, m)
-				if err != nil {
-					return err
-				}
-			}
-
-			// Run network up hook for bridged and p2p nics.
-			if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.script.up", networkKeyPrefix, networkidx), fmt.Sprintf("%s callhook %s %d network-up %s", c.state.OS.ExecPath, shared.VarPath(""), c.id, k))
-				if err != nil {
-					return err
-				}
-			}
-
-			err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.flags", networkKeyPrefix, networkidx), "up")
-			if err != nil {
-				return err
-			}
-
-			if m["nictype"] == "bridged" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.link", networkKeyPrefix, networkidx), m["parent"])
-				if err != nil {
-					return err
-				}
-			} else if m["nictype"] == "sriov" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.link", networkKeyPrefix, networkidx), m["host_name"])
-				if err != nil {
-					return err
-				}
-			} else if shared.StringInSlice(m["nictype"], []string{"macvlan", "ipvlan", "physical"}) {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.link", networkKeyPrefix, networkidx), networkGetHostDevice(m["parent"], m["vlan"]))
-				if err != nil {
-					return err
-				}
-			}
-
-			// Host Virtual NIC name
-			vethName := ""
-			if m["host_name"] != "" && m["nictype"] != "sriov" {
-				vethName = m["host_name"]
-			} else if shared.IsTrue(m["security.mac_filtering"]) {
-				// We need a known device name for MAC filtering
-				vethName = deviceNextVeth()
-			}
-
-			if vethName != "" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.veth.pair", networkKeyPrefix, networkidx), vethName)
-				if err != nil {
-					return err
-				}
-			}
-
-			// MAC address
-			if m["hwaddr"] != "" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.hwaddr", networkKeyPrefix, networkidx), m["hwaddr"])
-				if err != nil {
-					return err
-				}
-			}
-
-			// MTU
-			if m["mtu"] != "" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.mtu", networkKeyPrefix, networkidx), m["mtu"])
-				if err != nil {
-					return err
-				}
-			}
-
-			// Name
-			if m["name"] != "" {
-				err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.name", networkKeyPrefix, networkidx), m["name"])
-				if err != nil {
-					return err
-				}
-			}
-
-			// bump network index
-			networkidx++
 		} else if m["type"] == "disk" {
 			isRootfs := shared.IsRootDiskDevice(m)
 
@@ -1778,7 +1689,7 @@ func (c *containerLXC) initLXC(config bool) error {
 			// mounting a directory.
 			isFile := false
 			if m["pool"] == "" {
-				isFile = !shared.IsDir(srcPath) && !deviceIsBlockdev(srcPath)
+				isFile = !shared.IsDir(srcPath) && !device.IsBlockdev(srcPath)
 			}
 
 			// Deal with a rootfs
@@ -1814,6 +1725,47 @@ func (c *containerLXC) initLXC(config bool) error {
 					}
 				}
 			} else {
+				shift := false
+				if !c.IsPrivileged() {
+					shift = shared.IsTrue(m["shift"])
+					if !shift && m["pool"] != "" {
+						poolID, _, err := c.state.Cluster.StoragePoolGet(m["pool"])
+						if err != nil {
+							return err
+						}
+
+						_, volume, err := c.state.Cluster.StoragePoolNodeVolumeGetTypeByProject(c.project, m["source"], storagePoolVolumeTypeCustom, poolID)
+						if err != nil {
+							return err
+						}
+
+						if shared.IsTrue(volume.Config["security.shifted"]) {
+							shift = true
+						}
+					}
+				}
+
+				if shift {
+					if !c.state.OS.Shiftfs {
+						return fmt.Errorf("shiftfs is required by disk entry '%s' but isn't supported on system", k)
+					}
+
+					err = lxcSetConfigItem(cc, "lxc.hook.pre-start", fmt.Sprintf("/bin/mount -t shiftfs -o mark,passthrough=3 %s %s", sourceDevPath, sourceDevPath))
+					if err != nil {
+						return err
+					}
+
+					err = lxcSetConfigItem(cc, "lxc.hook.pre-mount", fmt.Sprintf("/bin/mount -t shiftfs -o passthrough=3 %s %s", sourceDevPath, sourceDevPath))
+					if err != nil {
+						return err
+					}
+
+					err = lxcSetConfigItem(cc, "lxc.hook.start-host", fmt.Sprintf("/bin/umount -l %s", sourceDevPath))
+					if err != nil {
+						return err
+					}
+				}
+
 				rbind := ""
 				options := []string{}
 				if isReadOnly {
@@ -1829,6 +1781,10 @@ func (c *containerLXC) initLXC(config bool) error {
 				}
 
 				if m["propagation"] != "" {
+					if !util.RuntimeLiblxcVersionAtLeast(3, 0, 0) {
+						return fmt.Errorf("liblxc 3.0 is required for mount propagation configuration")
+					}
+
 					options = append(options, m["propagation"])
 				}
 
@@ -1861,16 +1817,6 @@ func (c *containerLXC) initLXC(config bool) error {
 		return err
 	}
 
-	// NOTE: Don't fail in cases where liblxc is recent enough but libseccomp isn't
-	//       when we add mount() support with user-configurable
-	//       options, we will want a hard fail if the user configured it
-	if !c.IsPrivileged() && !c.state.OS.RunningInUserNS && lxcSupportSeccompNotify(c.state) {
-		err = lxcSetConfigItem(cc, "lxc.seccomp.notify.proxy", fmt.Sprintf("unix:%s", shared.VarPath("seccomp.socket")))
-		if err != nil {
-			return err
-		}
-	}
-
 	// Apply raw.lxc
 	if lxcConfig, ok := c.expandedConfig["raw.lxc"]; ok {
 		f, err := ioutil.TempFile("", "lxd_config_")
@@ -1899,93 +1845,396 @@ func (c *containerLXC) initLXC(config bool) error {
 	return nil
 }
 
-// initLXCIPVLAN runs as part of initLXC function and initialises liblxc with the IPVLAN config.
-func (c *containerLXC) initLXCIPVLAN(cc *lxc.Container, networkKeyPrefix string, networkidx int, m map[string]string) error {
-	err := c.checkIPVLANSupport()
-	if err != nil {
-		return err
+// runHooks executes the callback functions returned from a function.
+func (c *containerLXC) runHooks(hooks []func() error) error {
+	// Run any post start hooks.
+	if len(hooks) > 0 {
+		for _, hook := range hooks {
+			err := hook()
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.type", networkKeyPrefix, networkidx), "ipvlan")
-	if err != nil {
-		return err
-	}
+	return nil
+}
 
-	err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipvlan.mode", networkKeyPrefix, networkidx), "l3s")
-	if err != nil {
-		return err
-	}
+// deviceLoad instantiates and validates a new device and returns it along with enriched config.
+func (c *containerLXC) deviceLoad(deviceName string, rawConfig map[string]string) (device.Device, map[string]string, error) {
+	var configCopy config.Device
+	var err error
 
-	err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipvlan.isolation", networkKeyPrefix, networkidx), "bridge")
-	if err != nil {
-		return err
-	}
-
-	err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.l2proxy", networkKeyPrefix, networkidx), "1")
-	if err != nil {
-		return err
-	}
-
-	if m["ipv4.address"] != "" {
-		//Check necessary sysctls are configured for use with l2proxy parent in IPVLAN l3s mode.
-		ipv4FwdPath := fmt.Sprintf("ipv4/conf/%s/forwarding", m["parent"])
-		sysctlVal, err := networkSysctlGet(ipv4FwdPath)
+	// Create copy of config and load some fields from volatile if device is nic or infiniband.
+	if shared.StringInSlice(rawConfig["type"], []string{"nic", "infiniband"}) {
+		configCopy, err = c.fillNetworkDevice(deviceName, rawConfig)
 		if err != nil {
-			return errors.Wrapf(err, "Error reading net sysctl %s", ipv4FwdPath)
+			return nil, nil, err
 		}
-		if sysctlVal != "1\n" {
-			return fmt.Errorf("IPVLAN in L3S mode requires sysctl net.ipv4.conf.%s.forwarding=1", m["parent"])
+	} else {
+		// Othewise copy the config so it cannot be modified by device.
+		configCopy = make(map[string]string)
+		for k, v := range rawConfig {
+			configCopy[k] = v
+		}
+	}
+
+	d, err := device.New(c, c.state, deviceName, configCopy, c.deviceVolatileGetFunc(deviceName), c.deviceVolatileSetFunc(deviceName))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return d, configCopy, nil
+}
+
+// deviceAdd loads a new device and calls its Setup() function.
+func (c *containerLXC) deviceAdd(deviceName string, rawConfig map[string]string) error {
+	d, _, err := c.deviceLoad(deviceName, rawConfig)
+	if err != nil {
+		return err
+	}
+
+	return d.Add()
+}
+
+// deviceStart loads a new device and calls its Start() function.
+func (c *containerLXC) deviceStart(deviceName string, rawConfig map[string]string, isRunning bool) (*device.RunConfig, error) {
+	d, configCopy, err := c.deviceLoad(deviceName, rawConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if canHotPlug, _ := d.CanHotPlug(); isRunning && !canHotPlug {
+		return nil, fmt.Errorf("Device cannot be started when container is running")
+	}
+
+	runConfig, err := d.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	// If runConfig supplied, perform any container specific setup of device.
+	if runConfig != nil {
+		// Shift device file ownership if needed before mounting into container.
+		// This needs to be done whether or not container is running.
+		if len(runConfig.Mounts) > 0 {
+			err := c.deviceShiftMounts(runConfig.Mounts)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		for _, addr := range strings.Split(m["ipv4.address"], ",") {
-			addr = strings.TrimSpace(addr)
-			err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipv4.address", networkKeyPrefix, networkidx), fmt.Sprintf("%s/32", addr))
+		// If container is running and then live attach device.
+		if isRunning {
+			// Attach mounts if requested.
+			if len(runConfig.Mounts) > 0 {
+				err = c.deviceAttachMounts(configCopy, runConfig.Mounts)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			// Add cgroup rules if requested.
+			if len(runConfig.CGroups) > 0 {
+				err = c.deviceAddCgroupRules(configCopy, runConfig.CGroups)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			// Attach network interface if requested.
+			if len(runConfig.NetworkInterface) > 0 {
+				err = c.deviceAttachNIC(configCopy, runConfig.NetworkInterface)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			err = c.runHooks(runConfig.PostHooks)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return runConfig, nil
+}
+
+// deviceShiftMounts shift device mount files to active idmap if needed.
+func (c *containerLXC) deviceShiftMounts(mounts []device.MountEntryItem) error {
+	idmapSet, err := c.CurrentIdmap()
+	if err != nil {
+		return fmt.Errorf("Failed to get idmap for device: %s", err)
+	}
+
+	// If there is an idmap being applied and LXD not running in a user namespace then shift the
+	// device files before they are mounted.
+	if idmapSet != nil && !c.state.OS.RunningInUserNS {
+		for _, mount := range mounts {
+			err := idmapSet.ShiftFile(mount.DevPath)
+			if err != nil {
+				// uidshift failing is weird, but not a big problem. Log and proceed.
+				logger.Debugf("Failed to uidshift device %s: %s\n", mount.DevPath, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// deviceAttachMounts live attaches mounts to a container.
+func (c *containerLXC) deviceAttachMounts(configCopy map[string]string, mounts []device.MountEntryItem) error {
+	for _, mount := range mounts {
+		flags := 0
+
+		// Convert options into flags.
+		for _, opt := range mount.Opts {
+			if opt == "bind" {
+				flags |= unix.MS_BIND
+			}
+		}
+
+		// Mount it into the container.
+		err := c.insertMount(mount.DevPath, mount.TargetPath, mount.FSType, flags, mount.Shift)
+		if err != nil {
+			return fmt.Errorf("Failed to add mount for device: %s", err)
+		}
+	}
+
+	return nil
+}
+
+// deviceAddCgroupRules live adds cgroup rules to a container.
+func (c *containerLXC) deviceAddCgroupRules(configCopy map[string]string, cgroups []device.RunConfigItem) error {
+	for _, rule := range cgroups {
+		// Only apply devices cgroup rules if container is running privileged and host has devices cgroup controller.
+		if strings.HasPrefix(rule.Key, "devices.") && (!c.isCurrentlyPrivileged() || c.state.OS.RunningInUserNS || !c.state.OS.CGroupDevicesController) {
+			continue
+		}
+
+		// Add the new device cgroup rule.
+		err := c.CGroupSet(rule.Key, rule.Value)
+		if err != nil {
+			return fmt.Errorf("Failed to add cgroup rule for device")
+		}
+	}
+
+	return nil
+}
+
+// deviceAttachNIC live attaches a NIC device to a container.
+func (c *containerLXC) deviceAttachNIC(configCopy map[string]string, netIF []device.RunConfigItem) error {
+	devName := ""
+	for _, dev := range netIF {
+		if dev.Key == "link" {
+			devName = dev.Value
+			break
+		}
+	}
+
+	if devName == "" {
+		return fmt.Errorf("Device didn't provide a link property to use")
+	}
+
+	// Load the go-lxc struct.
+	err := c.initLXC(false)
+	if err != nil {
+		return err
+	}
+
+	// Add the interface to the container.
+	err = c.c.AttachInterface(devName, configCopy["name"])
+	if err != nil {
+		return fmt.Errorf("Failed to attach interface: %s to %s: %s", devName, configCopy["name"], err)
+	}
+
+	return nil
+}
+
+// deviceUpdate loads a new device and calls its Update() function.
+func (c *containerLXC) deviceUpdate(deviceName string, rawConfig map[string]string, oldConfig map[string]string, isRunning bool) error {
+	d, _, err := c.deviceLoad(deviceName, rawConfig)
+	if err != nil {
+		return err
+	}
+
+	err = d.Update(oldConfig, isRunning)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// deviceStop loads a new device and calls its Stop() function.
+func (c *containerLXC) deviceStop(deviceName string, rawConfig map[string]string, stopHookNetnsPath string) error {
+	d, configCopy, err := c.deviceLoad(deviceName, rawConfig)
+	if err != nil {
+		return err
+	}
+
+	canHotPlug, _ := d.CanHotPlug()
+
+	// An empty netns path means we haven't been called from the LXC stop hook, so are running.
+	if stopHookNetnsPath == "" && !canHotPlug {
+		return fmt.Errorf("Device cannot be stopped when container is running")
+	}
+
+	runConfig, err := d.Stop()
+	if err != nil {
+		return err
+	}
+
+	if runConfig != nil {
+		// If network interface settings returned, then detach NIC from container.
+		if len(runConfig.NetworkInterface) > 0 {
+			err = c.deviceDetachNIC(configCopy, runConfig.NetworkInterface, stopHookNetnsPath)
 			if err != nil {
 				return err
 			}
 		}
 
-		err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipv4.gateway", networkKeyPrefix, networkidx), "dev")
-		if err != nil {
-			return err
-		}
-	}
-
-	if m["ipv6.address"] != "" {
-		//Check necessary sysctls are configured for use with l2proxy parent in IPVLAN l3s mode.
-		ipv6FwdPath := fmt.Sprintf("ipv6/conf/%s/forwarding", m["parent"])
-		sysctlVal, err := networkSysctlGet(ipv6FwdPath)
-		if err != nil {
-			return errors.Wrapf(err, "Error reading net sysctl %s", ipv6FwdPath)
-		}
-		if sysctlVal != "1\n" {
-			return fmt.Errorf("IPVLAN in L3S mode requires sysctl net.ipv6.conf.%s.forwarding=1", m["parent"])
-		}
-
-		ipv6ProxyNdpPath := fmt.Sprintf("ipv6/conf/%s/proxy_ndp", m["parent"])
-		sysctlVal, err = networkSysctlGet(ipv6ProxyNdpPath)
-		if err != nil {
-			return errors.Wrapf(err, "Error reading net sysctl %s", ipv6ProxyNdpPath)
-		}
-		if sysctlVal != "1\n" {
-			return fmt.Errorf("IPVLAN in L3S mode requires sysctl net.ipv6.conf.%s.proxy_ndp=1", m["parent"])
-		}
-
-		for _, addr := range strings.Split(m["ipv6.address"], ",") {
-			addr = strings.TrimSpace(addr)
-			err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipv6.address", networkKeyPrefix, networkidx), fmt.Sprintf("%s/128", addr))
+		// Add cgroup rules if requested and container is running.
+		if len(runConfig.CGroups) > 0 && stopHookNetnsPath == "" {
+			err = c.deviceAddCgroupRules(configCopy, runConfig.CGroups)
 			if err != nil {
 				return err
 			}
 		}
 
-		err = lxcSetConfigItem(cc, fmt.Sprintf("%s.%d.ipv6.gateway", networkKeyPrefix, networkidx), "dev")
+		// Detach mounts if requested and container is running.
+		if len(runConfig.Mounts) > 0 && stopHookNetnsPath == "" {
+			err = c.deviceDetachMounts(configCopy, runConfig.Mounts)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = c.runHooks(runConfig.PostHooks)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// deviceDetachNIC detaches a NIC device from a container.
+func (c *containerLXC) deviceDetachNIC(configCopy map[string]string, netIF []device.RunConfigItem, stopHookNetnsPath string) error {
+	// Get requested device name to detach interface back to on the host.
+	devName := ""
+	for _, dev := range netIF {
+		if dev.Key == "link" {
+			devName = dev.Value
+			break
+		}
+	}
+
+	if devName == "" {
+		return fmt.Errorf("Device didn't provide a link property to use")
+	}
+
+	// If container is running, perform live detach of interface back to host.
+	if stopHookNetnsPath == "" {
+		// For some reason, having network config confuses detach, so get our own go-lxc struct.
+		cname := project.Prefix(c.Project(), c.Name())
+		cc, err := lxc.NewContainer(cname, c.state.OS.LxcPath)
+		if err != nil {
+			return err
+		}
+		defer cc.Release()
+
+		// Get interfaces inside container.
+		ifaces, err := cc.Interfaces()
+		if err != nil {
+			return fmt.Errorf("Failed to list network interfaces: %v", err)
+		}
+
+		// If interface doesn't exist inside container, cannot proceed.
+		if !shared.StringInSlice(configCopy["name"], ifaces) {
+			return nil
+		}
+
+		err = cc.DetachInterfaceRename(configCopy["name"], devName)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to detach interface: %s to %s", configCopy["name"], devName)
+		}
+	} else {
+		// Currently liblxc does not move devices back to the host on stop that were added
+		// after the the container was started. For this reason we utilise the lxc.hook.stop
+		// hook so that we can capture the netns path, enter the namespace and move the nics
+		// back to the host and rename them if liblxc hasn't already done it.
+		// We can only move back devices that have an expected host_name record and where
+		// that device doesn't already exist on the host as if a device exists on the host
+		// we can't know whether that is because liblxc has moved it back already or whether
+		// it is a conflicting device.
+		if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", devName)) {
+			err := c.detachInterfaceRename(stopHookNetnsPath, configCopy["name"], devName)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to detach interface: %s to %s", configCopy["name"], devName)
+			}
+		}
+	}
+
+	return nil
+}
+
+// deviceDetachMounts removes a mount from a container.
+func (c *containerLXC) deviceDetachMounts(configCopy map[string]string, mounts []device.MountEntryItem) error {
+	for _, mount := range mounts {
+		relativeDestPath := strings.TrimPrefix(mount.TargetPath, "/")
+		if c.FileExists(relativeDestPath) == nil {
+			err := c.removeMount(mount.TargetPath)
+			if err != nil {
+				return fmt.Errorf("Error unmounting the device: %s", err)
+			}
+
+			err = c.FileRemove(relativeDestPath)
+			if err != nil {
+				return fmt.Errorf("Error removing the device: %s", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// deviceRemove loads a new device and calls its Remove() function.
+func (c *containerLXC) deviceRemove(deviceName string, rawConfig map[string]string) error {
+	d, _, err := c.deviceLoad(deviceName, rawConfig)
+	if err != nil {
+		return err
+	}
+
+	return d.Remove()
+}
+
+// deviceVolatileGetFunc returns a function that retrieves a named device's volatile config and
+// removes its device prefix from the keys.
+func (c *containerLXC) deviceVolatileGetFunc(devName string) func() map[string]string {
+	return func() map[string]string {
+		volatile := make(map[string]string)
+		prefix := fmt.Sprintf("volatile.%s.", devName)
+		for k, v := range c.localConfig {
+			if strings.HasPrefix(k, prefix) {
+				volatile[strings.TrimPrefix(k, prefix)] = v
+			}
+		}
+		return volatile
+	}
+}
+
+// deviceVolatileSetFunc returns a function that can be called to save a named device's volatile
+// config using keys that do not have the device's name prefixed.
+func (c *containerLXC) deviceVolatileSetFunc(devName string) func(save map[string]string) error {
+	return func(save map[string]string) error {
+		volatileSave := make(map[string]string)
+		for k, v := range save {
+			volatileSave[fmt.Sprintf("volatile.%s.%s", devName, k)] = v
+		}
+
+		return c.VolatileSet(volatileSave)
+	}
 }
 
 // Initialize storage interface for this container
@@ -2035,7 +2284,7 @@ func (c *containerLXC) expandDevices(profiles []api.Profile) error {
 
 // setupUnixDevice() creates the unix device and sets up the necessary low-level
 // liblxc configuration items.
-func (c *containerLXC) setupUnixDevice(prefix string, dev types.Device, major int, minor int, path string, createMustSucceed bool, defaultMode bool) error {
+func (c *containerLXC) setupUnixDevice(prefix string, dev config.Device, major int, minor int, path string, createMustSucceed bool, defaultMode bool) error {
 	if c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
 		err := lxcSetConfigItem(c.c, "lxc.cgroup.devices.allow", fmt.Sprintf("c %d:%d rwm", major, minor))
 		if err != nil {
@@ -2043,7 +2292,7 @@ func (c *containerLXC) setupUnixDevice(prefix string, dev types.Device, major in
 		}
 	}
 
-	temp := types.Device{}
+	temp := config.Device{}
 	err := shared.DeepCopy(&dev, &temp)
 	if err != nil {
 		return err
@@ -2053,7 +2302,12 @@ func (c *containerLXC) setupUnixDevice(prefix string, dev types.Device, major in
 	temp["minor"] = fmt.Sprintf("%d", minor)
 	temp["path"] = path
 
-	paths, err := c.createUnixDevice(prefix, temp, defaultMode)
+	idmapSet, err := c.CurrentIdmap()
+	if err != nil {
+		return err
+	}
+
+	paths, err := device.UnixCreateDevice(c.state, idmapSet, c.DevicesPath(), prefix, temp, defaultMode)
 	if err != nil {
 		logger.Debug("Failed to create device", log.Ctx{"err": err, "device": prefix})
 		if createMustSucceed {
@@ -2108,16 +2362,19 @@ func UnshiftBtrfsRootfs(path string, diskIdmap *idmap.IdmapSet) error {
 }
 
 // Start functions
-func (c *containerLXC) startCommon() (string, error) {
+func (c *containerLXC) startCommon() (string, []func() error, error) {
+	var ourStart bool
+	postStartHooks := []func() error{}
+
 	// Load the go-lxc struct
 	err := c.initLXC(true)
 	if err != nil {
-		return "", errors.Wrap(err, "Load go-lxc struct")
+		return "", postStartHooks, errors.Wrap(err, "Load go-lxc struct")
 	}
 
 	// Check that we're not already running
 	if c.IsRunning() {
-		return "", fmt.Errorf("The container is already running")
+		return "", postStartHooks, fmt.Errorf("The container is already running")
 	}
 
 	// Sanity checks for devices
@@ -2130,11 +2387,7 @@ func (c *containerLXC) startCommon() (string, error) {
 			// So do only check for the existence of m["source"]
 			// when m["pool"] is empty.
 			if m["pool"] == "" && m["source"] != "" && !shared.IsTrue(m["optional"]) && !shared.PathExists(shared.HostPath(m["source"])) {
-				return "", fmt.Errorf("Missing source '%s' for disk '%s'", m["source"], name)
-			}
-		case "nic":
-			if m["parent"] != "" && !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", m["parent"])) {
-				return "", fmt.Errorf("Missing parent '%s' for nic '%s'", m["parent"], name)
+				return "", postStartHooks, fmt.Errorf("Missing source '%s' for disk '%s'", m["source"], name)
 			}
 		case "unix-char", "unix-block":
 			srcPath, exist := m["source"]
@@ -2146,10 +2399,10 @@ func (c *containerLXC) startCommon() (string, error) {
 				err = deviceInotifyAddClosestLivingAncestor(c.state, filepath.Dir(srcPath))
 				if err != nil {
 					logger.Errorf("Failed to add \"%s\" to inotify targets", srcPath)
-					return "", fmt.Errorf("Failed to setup inotify watch for '%s': %v", srcPath, err)
+					return "", postStartHooks, fmt.Errorf("Failed to setup inotify watch for '%s': %v", srcPath, err)
 				}
 			} else if srcPath != "" && m["major"] == "" && m["minor"] == "" && !shared.PathExists(srcPath) {
-				return "", fmt.Errorf("Missing source '%s' for device '%s'", srcPath, name)
+				return "", postStartHooks, fmt.Errorf("Missing source '%s' for device '%s'", srcPath, name)
 			}
 		}
 	}
@@ -2161,32 +2414,31 @@ func (c *containerLXC) startCommon() (string, error) {
 			module = strings.TrimPrefix(module, " ")
 			err := util.LoadModule(module)
 			if err != nil {
-				return "", fmt.Errorf("Failed to load kernel module '%s': %s", module, err)
+				return "", postStartHooks, fmt.Errorf("Failed to load kernel module '%s': %s", module, err)
 			}
 		}
 	}
 
-	var ourStart bool
 	newSize, ok := c.LocalConfig()["volatile.apply_quota"]
 	if ok {
 		err := c.initStorage()
 		if err != nil {
-			return "", errors.Wrap(err, "Initialize storage")
+			return "", postStartHooks, errors.Wrap(err, "Initialize storage")
 		}
 
-		size, err := shared.ParseByteSizeString(newSize)
+		size, err := units.ParseByteSizeString(newSize)
 		if err != nil {
-			return "", err
+			return "", postStartHooks, err
 		}
 		err = c.storage.StorageEntitySetQuota(storagePoolVolumeTypeContainer, size, c)
 		if err != nil {
-			return "", errors.Wrap(err, "Set storage quota")
+			return "", postStartHooks, errors.Wrap(err, "Set storage quota")
 		}
 
 		// Remove the volatile key from the DB
 		err = c.state.Cluster.ContainerConfigRemove(c.id, "volatile.apply_quota")
 		if err != nil {
-			return "", errors.Wrap(err, "Remove volatile.apply_quota config key")
+			return "", postStartHooks, errors.Wrap(err, "Remove volatile.apply_quota config key")
 		}
 
 		// Remove the volatile key from the in-memory configs
@@ -2197,17 +2449,17 @@ func (c *containerLXC) startCommon() (string, error) {
 	/* Deal with idmap changes */
 	nextIdmap, err := c.NextIdmap()
 	if err != nil {
-		return "", errors.Wrap(err, "Set ID map")
+		return "", postStartHooks, errors.Wrap(err, "Set ID map")
 	}
 
 	diskIdmap, err := c.DiskIdmap()
 	if err != nil {
-		return "", errors.Wrap(err, "Set last ID map")
+		return "", postStartHooks, errors.Wrap(err, "Set last ID map")
 	}
 
 	if !nextIdmap.Equals(diskIdmap) && !(diskIdmap == nil && c.state.OS.Shiftfs) {
 		if shared.IsTrue(c.expandedConfig["security.protection.shift"]) {
-			return "", fmt.Errorf("Container is protected against filesystem shifting")
+			return "", postStartHooks, fmt.Errorf("Container is protected against filesystem shifting")
 		}
 
 		logger.Debugf("Container idmap changed, remapping")
@@ -2215,7 +2467,7 @@ func (c *containerLXC) startCommon() (string, error) {
 
 		ourStart, err = c.StorageStart()
 		if err != nil {
-			return "", errors.Wrap(err, "Storage start")
+			return "", postStartHooks, errors.Wrap(err, "Storage start")
 		}
 
 		if diskIdmap != nil {
@@ -2230,7 +2482,7 @@ func (c *containerLXC) startCommon() (string, error) {
 				if ourStart {
 					c.StorageStop()
 				}
-				return "", err
+				return "", postStartHooks, err
 			}
 		}
 
@@ -2246,7 +2498,7 @@ func (c *containerLXC) startCommon() (string, error) {
 				if ourStart {
 					c.StorageStop()
 				}
-				return "", err
+				return "", postStartHooks, err
 			}
 		}
 
@@ -2254,14 +2506,14 @@ func (c *containerLXC) startCommon() (string, error) {
 		if nextIdmap != nil && !c.state.OS.Shiftfs {
 			idmapBytes, err := json.Marshal(nextIdmap.Idmap)
 			if err != nil {
-				return "", err
+				return "", postStartHooks, err
 			}
 			jsonDiskIdmap = string(idmapBytes)
 		}
 
 		err = c.VolatileSet(map[string]string{"volatile.last_state.idmap": jsonDiskIdmap})
 		if err != nil {
-			return "", errors.Wrapf(err, "Set volatile.last_state.idmap config key on container %q (id %d)", c.name, c.id)
+			return "", postStartHooks, errors.Wrapf(err, "Set volatile.last_state.idmap config key on container %q (id %d)", c.name, c.id)
 		}
 
 		c.updateProgress("")
@@ -2273,42 +2525,45 @@ func (c *containerLXC) startCommon() (string, error) {
 	} else {
 		idmapBytes, err = json.Marshal(nextIdmap.Idmap)
 		if err != nil {
-			return "", err
+			return "", postStartHooks, err
 		}
 	}
 
 	if c.localConfig["volatile.idmap.current"] != string(idmapBytes) {
 		err = c.VolatileSet(map[string]string{"volatile.idmap.current": string(idmapBytes)})
 		if err != nil {
-			return "", errors.Wrapf(err, "Set volatile.idmap.current config key on container %q (id %d)", c.name, c.id)
+			return "", postStartHooks, errors.Wrapf(err, "Set volatile.idmap.current config key on container %q (id %d)", c.name, c.id)
 		}
 	}
 
 	// Generate the Seccomp profile
 	if err := SeccompCreateProfile(c); err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Cleanup any existing leftover devices
 	c.removeUnixDevices()
 	c.removeDiskDevices()
-	c.removeNetworkFilters()
-	c.removeProxyDevices()
 
 	var usbs []usbDevice
-	var sriov []string
-	diskDevices := map[string]types.Device{}
+	diskDevices := map[string]config.Device{}
 
 	// Create the devices
+	nicID := -1
 	for _, k := range c.expandedDevices.DeviceNames() {
 		m := c.expandedDevices[k]
 		if shared.StringInSlice(m["type"], []string{"unix-char", "unix-block"}) {
+			idmapSet, err := c.CurrentIdmap()
+			if err != nil {
+				return "", postStartHooks, err
+			}
+
 			// Unix device
-			paths, err := c.createUnixDevice(fmt.Sprintf("unix.%s", k), m, true)
+			paths, err := device.UnixCreateDevice(c.state, idmapSet, c.DevicesPath(), fmt.Sprintf("unix.%s", k), m, true)
 			if err != nil {
 				// Deal with device hotplug
 				if m["required"] == "" || shared.IsTrue(m["required"]) {
-					return "", err
+					return "", postStartHooks, err
 				}
 
 				srcPath := m["source"]
@@ -2320,22 +2575,22 @@ func (c *containerLXC) startCommon() (string, error) {
 				err = deviceInotifyAddClosestLivingAncestor(c.state, srcPath)
 				if err != nil {
 					logger.Errorf("Failed to add \"%s\" to inotify targets", srcPath)
-					return "", err
+					return "", postStartHooks, err
 				}
 				continue
 			}
 			devPath := paths[0]
 			if c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
 				// Add the new device cgroup rule
-				dType, dMajor, dMinor, err := deviceGetAttributes(devPath)
+				dType, dMajor, dMinor, err := device.UnixGetDeviceAttributes(devPath)
 				if err != nil {
 					if m["required"] == "" || shared.IsTrue(m["required"]) {
-						return "", err
+						return "", postStartHooks, err
 					}
 				} else {
 					err = lxcSetConfigItem(c.c, "lxc.cgroup.devices.allow", fmt.Sprintf("%s %d:%d rwm", dType, dMajor, dMinor))
 					if err != nil {
-						return "", fmt.Errorf("Failed to add cgroup rule for device")
+						return "", postStartHooks, fmt.Errorf("Failed to add cgroup rule for device")
 					}
 				}
 			}
@@ -2343,7 +2598,7 @@ func (c *containerLXC) startCommon() (string, error) {
 			if usbs == nil {
 				usbs, err = deviceLoadUsb()
 				if err != nil {
-					return "", err
+					return "", postStartHooks, err
 				}
 			}
 
@@ -2354,14 +2609,14 @@ func (c *containerLXC) startCommon() (string, error) {
 
 				err := c.setupUnixDevice(fmt.Sprintf("unix.%s", k), m, usb.major, usb.minor, usb.path, shared.IsTrue(m["required"]), false)
 				if err != nil {
-					return "", err
+					return "", postStartHooks, err
 				}
 			}
 		} else if m["type"] == "gpu" {
 			allGpus := deviceWantsAllGPUs(m)
 			gpus, nvidiaDevices, err := deviceLoadGpu(allGpus)
 			if err != nil {
-				return "", err
+				return "", postStartHooks, err
 			}
 
 			sawNvidia := false
@@ -2378,7 +2633,7 @@ func (c *containerLXC) startCommon() (string, error) {
 
 				err := c.setupUnixDevice(fmt.Sprintf("unix.%s", k), m, gpu.major, gpu.minor, gpu.path, true, false)
 				if err != nil {
-					return "", err
+					return "", postStartHooks, err
 				}
 
 				if !gpu.isNvidia {
@@ -2388,12 +2643,12 @@ func (c *containerLXC) startCommon() (string, error) {
 				if gpu.nvidia.path != "" {
 					err = c.setupUnixDevice(fmt.Sprintf("unix.%s", k), m, gpu.nvidia.major, gpu.nvidia.minor, gpu.nvidia.path, true, false)
 					if err != nil {
-						return "", err
+						return "", postStartHooks, err
 					}
 				} else if !allGpus {
 					errMsg := fmt.Errorf("Failed to detect correct \"/dev/nvidia\" path")
 					logger.Errorf("%s", errMsg)
-					return "", errMsg
+					return "", postStartHooks, errMsg
 				}
 
 				sawNvidia = true
@@ -2408,7 +2663,7 @@ func (c *containerLXC) startCommon() (string, error) {
 					}
 					err := c.setupUnixDevice(fmt.Sprintf("unix.%s", k), m, gpu.major, gpu.minor, gpu.path, true, false)
 					if err != nil {
-						return "", err
+						return "", postStartHooks, err
 					}
 				}
 			}
@@ -2416,177 +2671,91 @@ func (c *containerLXC) startCommon() (string, error) {
 			if !found {
 				msg := "Failed to detect requested GPU device"
 				logger.Error(msg)
-				return "", fmt.Errorf(msg)
+				return "", postStartHooks, fmt.Errorf(msg)
 			}
 		} else if m["type"] == "disk" {
 			if m["path"] != "/" {
 				diskDevices[k] = m
 			}
-		} else if m["type"] == "nic" || m["type"] == "infiniband" {
-			var err error
-			var infiniband map[string]IBF
-			if m["type"] == "infiniband" {
-				infiniband, err = deviceLoadInfiniband()
+		} else {
+			// Use new Device interface if supported.
+			runConfig, err := c.deviceStart(k, m, false)
+			if err != device.ErrUnsupportedDevType {
 				if err != nil {
-					return "", err
-				}
-			}
-
-			networkKeyPrefix := "lxc.net"
-			if !util.RuntimeLiblxcVersionAtLeast(2, 1, 0) {
-				networkKeyPrefix = "lxc.network"
-			}
-
-			m, err = c.fillNetworkDevice(k, m)
-			if err != nil {
-				return "", err
-			}
-
-			networkidx := -1
-			reserved := []string{}
-			// Record nictype == physical devices since those won't
-			// be available for nictype == sriov.
-			for _, dName := range c.expandedDevices.DeviceNames() {
-				m := c.expandedDevices[dName]
-				if m["type"] != "nic" && m["type"] != "infiniband" {
-					continue
+					return "", postStartHooks, err
 				}
 
-				if m["nictype"] != "physical" {
-					continue
-				}
-
-				reserved = append(reserved, m["parent"])
-			}
-
-			for _, dName := range c.expandedDevices.DeviceNames() {
-				m := c.expandedDevices[dName]
-				if m["type"] != "nic" && m["type"] != "infiniband" {
-					continue
-				}
-				networkidx++
-
-				if shared.StringInSlice(dName, sriov) {
-					continue
-				} else {
-					sriov = append(sriov, dName)
-				}
-
-				if m["nictype"] != "sriov" {
-					continue
-				}
-
-				m, err = c.fillSriovNetworkDevice(dName, m, reserved)
-				if err != nil {
-					return "", err
-				}
-
-				// Make sure that no one called dibs.
-				reserved = append(reserved, m["host_name"])
-
-				val := c.c.ConfigItem(fmt.Sprintf("%s.%d.type", networkKeyPrefix, networkidx))
-				if len(val) == 0 || val[0] != "phys" {
-					return "", fmt.Errorf("Network index corresponds to false network")
-				}
-
-				// Fill in correct name right now
-				err = lxcSetConfigItem(c.c, fmt.Sprintf("%s.%d.link", networkKeyPrefix, networkidx), m["host_name"])
-				if err != nil {
-					return "", err
-				}
-
-				if m["type"] == "infiniband" {
-					key := m["host_name"]
-					ifDev, ok := infiniband[key]
-					if !ok {
-						return "", fmt.Errorf("Specified infiniband device \"%s\" not found", key)
-					}
-
-					err := c.addInfinibandDevices(dName, &ifDev, false)
-					if err != nil {
-						return "", err
+				// Pass any cgroups rules into LXC.
+				if len(runConfig.CGroups) > 0 {
+					for _, rule := range runConfig.CGroups {
+						err = lxcSetConfigItem(c.c, fmt.Sprintf("lxc.cgroup.%s", rule.Key), rule.Value)
+						if err != nil {
+							return "", postStartHooks, err
+						}
 					}
 				}
-			}
 
-			if m["type"] == "infiniband" && m["nictype"] == "physical" {
-				key := m["parent"]
-				ifDev, ok := infiniband[key]
-				if !ok {
-					return "", fmt.Errorf("Specified infiniband device \"%s\" not found", key)
+				// Pass any mounts into LXC.
+				if len(runConfig.Mounts) > 0 {
+					for _, mount := range runConfig.Mounts {
+						mntVal := fmt.Sprintf("%s %s %s %s %d %d", shared.EscapePathFstab(mount.DevPath), shared.EscapePathFstab(mount.TargetPath), mount.FSType, strings.Join(mount.Opts, ","), mount.Freq, mount.PassNo)
+						err = lxcSetConfigItem(c.c, "lxc.mount.entry", mntVal)
+						if err != nil {
+							return "", postStartHooks, err
+						}
+					}
 				}
 
-				err := c.addInfinibandDevices(k, &ifDev, false)
-				if err != nil {
-					return "", err
-				}
-			}
+				// Pass any network setup config into LXC.
+				if len(runConfig.NetworkInterface) > 0 {
+					// Increment nicID so that LXC network index is unique per device.
+					nicID++
 
-			if m["nictype"] == "bridged" && shared.IsTrue(m["security.mac_filtering"]) {
-				// Read device name from config
-				vethName := ""
-				for i := 0; i < len(c.c.ConfigItem(networkKeyPrefix)); i++ {
-					val := c.c.ConfigItem(fmt.Sprintf("%s.%d.hwaddr", networkKeyPrefix, i))
-					if len(val) == 0 || val[0] != m["hwaddr"] {
-						continue
+					networkKeyPrefix := "lxc.net"
+					if !util.RuntimeLiblxcVersionAtLeast(2, 1, 0) {
+						networkKeyPrefix = "lxc.network"
 					}
 
-					val = c.c.ConfigItem(fmt.Sprintf("%s.%d.link", networkKeyPrefix, i))
-					if len(val) == 0 || val[0] != m["parent"] {
-						continue
+					for _, dev := range runConfig.NetworkInterface {
+						err = lxcSetConfigItem(c.c, fmt.Sprintf("%s.%d.%s", networkKeyPrefix, nicID, dev.Key), dev.Value)
+						if err != nil {
+							return "", postStartHooks, err
+						}
 					}
-
-					val = c.c.ConfigItem(fmt.Sprintf("%s.%d.veth.pair", networkKeyPrefix, i))
-					if len(val) == 0 {
-						continue
-					}
-
-					vethName = val[0]
-					break
 				}
 
-				if vethName == "" {
-					return "", fmt.Errorf("Failed to find device name for mac_filtering")
+				// Add any post start hooks.
+				if len(runConfig.PostHooks) > 0 {
+					postStartHooks = append(postStartHooks, runConfig.PostHooks...)
 				}
 
-				err = c.createNetworkFilter(vethName, m["parent"], m["hwaddr"])
-				if err != nil {
-					return "", err
-				}
-			}
-
-			// Create VLAN device on parent
-			if shared.StringInSlice(m["nictype"], []string{"macvlan", "ipvlan", "physical"}) {
-				_, err := c.setupPhysicalParent(k, m)
-				if err != nil {
-					return "", err
-				}
+				continue
 			}
 		}
 	}
 
-	err = c.addDiskDevices(diskDevices, func(name string, d types.Device) error {
+	err = c.addDiskDevices(diskDevices, func(name string, d config.Device) error {
 		_, err := c.createDiskDevice(name, d)
 		return err
 	})
 	if err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Create any missing directory
 	err = os.MkdirAll(c.LogPath(), 0700)
 	if err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	err = os.MkdirAll(c.DevicesPath(), 0711)
 	if err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	err = os.MkdirAll(c.ShmountsPath(), 0711)
 	if err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Rotate the log file
@@ -2595,14 +2764,14 @@ func (c *containerLXC) startCommon() (string, error) {
 		os.Remove(logfile + ".old")
 		err := os.Rename(logfile, logfile+".old")
 		if err != nil {
-			return "", err
+			return "", postStartHooks, err
 		}
 	}
 
 	// Storage is guaranteed to be mountable now.
 	ourStart, err = c.StorageStart()
 	if err != nil {
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Generate the LXC config
@@ -2610,7 +2779,7 @@ func (c *containerLXC) startCommon() (string, error) {
 	err = c.c.SaveConfigFile(configPath)
 	if err != nil {
 		os.Remove(configPath)
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Undo liblxc modifying container directory ownership
@@ -2619,7 +2788,7 @@ func (c *containerLXC) startCommon() (string, error) {
 		if ourStart {
 			c.StorageStop()
 		}
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Set right permission to allow traversal
@@ -2635,7 +2804,7 @@ func (c *containerLXC) startCommon() (string, error) {
 		if ourStart {
 			c.StorageStop()
 		}
-		return "", err
+		return "", postStartHooks, err
 	}
 
 	// Update the backup.yaml file
@@ -2644,113 +2813,18 @@ func (c *containerLXC) startCommon() (string, error) {
 		if ourStart {
 			c.StorageStop()
 		}
-		return "", err
+		return "", postStartHooks, err
 	}
 
+	// If starting stateless, wipe state
 	if !c.IsStateful() && shared.PathExists(c.StatePath()) {
 		os.RemoveAll(c.StatePath())
-	}
-
-	_, err = c.StorageStop()
-	if err != nil {
-		return "", err
-	}
-
-	// Update time container was last started
-	err = c.state.Cluster.ContainerLastUsedUpdate(c.id, time.Now().UTC())
-	if err != nil {
-		return "", fmt.Errorf("Error updating last used: %v", err)
 	}
 
 	// Unmount any previously mounted shiftfs
 	unix.Unmount(c.RootfsPath(), unix.MNT_DETACH)
 
-	return configPath, nil
-}
-
-// snapshotPhysicalNic records properties of a network device into volatile map supplied.
-func (c *containerLXC) snapshotPhysicalNic(deviceName string, hostName string, volatile map[string]string) error {
-	mtuKey := "volatile." + deviceName + ".last_state.mtu"
-	macKey := "volatile." + deviceName + ".last_state.hwaddr"
-
-	// Store current MTU for restoration on detach
-	mtu, err := networkGetDevMTU(hostName)
-	if err != nil {
-		return err
-	}
-	volatile[mtuKey] = fmt.Sprintf("%d", mtu)
-
-	// Store current MAC for restoration on detach
-	mac, err := networkGetDevMAC(hostName)
-	if err != nil {
-		return err
-	}
-	volatile[macKey] = mac
-
-	return nil
-}
-
-// createVlanDeviceIfNeeded detects the device type and whether it has a vlan parent configured.
-// It then attempts to detect if the parent vlan interface exists, and if not creates one.
-// Returns boolean as to whether we created it and any errors.
-func (c *containerLXC) createVlanDeviceIfNeeded(m types.Device, hostName string) (bool, error) {
-	if m["vlan"] != "" {
-		if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", hostName)) {
-			_, err := shared.RunCommand("ip", "link", "add", "link", m["parent"], "name", hostName, "up", "type", "vlan", "id", m["vlan"])
-			if err != nil {
-				return false, err
-			}
-
-			// Attempt to disable IPv6 router advertisement acceptance
-			networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_ra", hostName), "0")
-
-			// We created a new vlan interface, return true
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-// setupPhysicalParent creates a VLAN device on parent if needed and tracks original properties of
-// the physical device if not just created so they can be restored when the device is detached.
-// Returns the parent device name detected.
-func (c *containerLXC) setupPhysicalParent(deviceName string, m types.Device) (string, error) {
-	if m["parent"] == "" {
-		return "", errors.New("No parent property on device")
-	}
-
-	hostName := networkGetHostDevice(m["parent"], m["vlan"])
-	createdDev, err := c.createVlanDeviceIfNeeded(m, hostName)
-	if err != nil {
-		return hostName, err
-	}
-
-	// If we are passing the parent device into the container, we need to save properties
-	// of the original device in case they are changed during their time inside the container,
-	// so that we can restore those properties when the device is detached from the container.
-	if m["nictype"] == "physical" {
-		createdKey := "volatile." + deviceName + ".last_state.created"
-		volatile := map[string]string{
-			createdKey: fmt.Sprintf("%t", createdDev),
-		}
-
-		// If we didn't create the device we should track various properties so we can
-		// restore them when the container is stopped or the device is detached.
-		if createdDev == false {
-			err = c.snapshotPhysicalNic(deviceName, hostName, volatile)
-			if err != nil {
-				return hostName, err
-			}
-		}
-
-		err = c.VolatileSet(volatile)
-		if err != nil {
-			return hostName, err
-		}
-	}
-
-	return hostName, nil
+	return configPath, postStartHooks, nil
 }
 
 // detachInterfaceRename enters the container's network namespace and moves the named interface
@@ -2759,7 +2833,7 @@ func (c *containerLXC) detachInterfaceRename(netns string, ifName string, hostNa
 	lxdPID := os.Getpid()
 
 	// Run forknet detach
-	out, err := shared.RunCommand(
+	_, err := shared.RunCommand(
 		c.state.OS.ExecPath,
 		"forknet",
 		"detach",
@@ -2771,94 +2845,10 @@ func (c *containerLXC) detachInterfaceRename(netns string, ifName string, hostNa
 
 	// Process forknet detach response
 	if err != nil {
-		logger.Error("Error calling 'lxd forknet detach", log.Ctx{"container": c.name, "output": out, "pid": c.InitPID()})
+		return err
 	}
 
 	return nil
-}
-
-// restorePhysicalNic uses the data in c.localConfig to restore physical nic properties from the
-// volatile data gathered when the device was attached.
-func (c *containerLXC) restorePhysicalNic(deviceName string, hostName string, netns string) error {
-	createdKey := "volatile." + deviceName + ".last_state.created"
-	mtuKey := "volatile." + deviceName + ".last_state.mtu"
-	macKey := "volatile." + deviceName + ".last_state.hwaddr"
-
-	// If a stop hook netns is supplied and the device isn't present on the host's namespace yet
-	// try detaching it as LXC may have not known about it if it was hot plugged.
-	if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", hostName)) {
-		if netns == "" {
-			return nil // Nothing to do if device doesn't exist and we can't retrieve it.
-		}
-
-		ifNameKey := "volatile." + deviceName + ".name"
-		err := c.detachInterfaceRename(netns, c.localConfig[ifNameKey], hostName)
-		if err != nil {
-			return fmt.Errorf("Failed to detach interface: %s to %s: %v", c.localConfig[ifNameKey], hostName, err)
-		}
-	}
-
-	// If we created the "physical" device and then it should be removed.
-	if shared.IsTrue(c.localConfig[createdKey]) {
-		return deviceRemoveInterface(hostName)
-	}
-
-	// Bring the interface down, as this is sometimes needed to change settings on the nic.
-	_, err := shared.RunCommand("ip", "link", "set", "dev", hostName, "down")
-	if err != nil {
-		return fmt.Errorf("Failed to bring down \"%s\": %v", hostName, err)
-	}
-
-	// If MTU value is specified then there is an original MTU that needs restoring.
-	if c.localConfig[mtuKey] != "" {
-		mtuInt, err := strconv.ParseUint(c.localConfig[mtuKey], 10, 32)
-		if err != nil {
-			return fmt.Errorf("Failed to convert mtu for \"%s\" mtu \"%s\": %v", hostName, c.localConfig[mtuKey], err)
-		}
-
-		err = networkSetDevMTU(hostName, mtuInt)
-		if err != nil {
-			return fmt.Errorf("Failed to restore physical dev \"%s\" mtu to \"%d\": %v", hostName, mtuInt, err)
-		}
-	}
-
-	// If MAC value is specified then there is an original MAC that needs restoring.
-	if c.localConfig[macKey] != "" {
-		err := networkSetDevMAC(hostName, c.localConfig[macKey])
-		if err != nil {
-			return fmt.Errorf("Failed to restore physical dev \"%s\" mac to \"%s\": %v", hostName, c.localConfig[macKey], err)
-		}
-	}
-
-	return nil
-}
-
-// restorePhysicalParent restores parent device settings when removed from a container using the
-// volatile data that was stored when the device was first added with setupPhysicalParent().
-func (c *containerLXC) restorePhysicalParent(deviceName string, m types.Device, netns string) {
-	// Clear volatile data when function finishes.
-	defer func() {
-		// Volatile keys used for parent restore.
-		createdKey := "volatile." + deviceName + ".last_state.created"
-		mtuKey := "volatile." + deviceName + ".last_state.mtu"
-		macKey := "volatile." + deviceName + ".last_state.hwaddr"
-
-		err := c.VolatileSet(map[string]string{createdKey: "", mtuKey: "", macKey: ""})
-		if err != nil {
-			logger.Errorf("Failed to remove volatile config for %s: %v", deviceName, err)
-		}
-	}()
-
-	// Nothing to do if we don't know the original device name.
-	hostName := networkGetHostDevice(m["parent"], m["vlan"])
-	if hostName == "" {
-		return
-	}
-
-	err := c.restorePhysicalNic(deviceName, hostName, netns)
-	if err != nil {
-		logger.Errorf("%v", err)
-	}
 }
 
 func (c *containerLXC) Start(stateful bool) error {
@@ -2877,7 +2867,7 @@ func (c *containerLXC) Start(stateful bool) error {
 	}
 
 	// Run the shared start code
-	configPath, err := c.startCommon()
+	configPath, postStartHooks, err := c.startCommon()
 	if err != nil {
 		return errors.Wrap(err, "Common start logic")
 	}
@@ -2929,10 +2919,11 @@ func (c *containerLXC) Start(stateful bool) error {
 			return errors.Wrap(err, "Start container")
 		}
 
-		// Start proxy devices
-		err = c.restartProxyDevices()
+		// Run any post start hooks.
+		err = c.runHooks(postStartHooks)
 		if err != nil {
-			// Attempt to stop the container
+			// Attempt to stop container.
+			op.Done(err)
 			c.Stop(false)
 			return err
 		}
@@ -2953,23 +2944,15 @@ func (c *containerLXC) Start(stateful bool) error {
 		}
 	}
 
-	name := projectPrefix(c.Project(), c.name)
+	name := project.Prefix(c.Project(), c.name)
 
 	// Start the LXC container
-	out, err := shared.RunCommand(
+	_, err = shared.RunCommand(
 		c.state.OS.ExecPath,
 		"forkstart",
 		name,
 		c.state.OS.LxcPath,
 		configPath)
-
-	// Capture debug output
-	if out != "" {
-		for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
-			logger.Debugf("forkstart: %s", line)
-		}
-	}
-
 	if err != nil && !c.IsRunning() {
 		// Attempt to extract the LXC errors
 		lxcLog := ""
@@ -3004,10 +2987,11 @@ func (c *containerLXC) Start(stateful bool) error {
 		return err
 	}
 
-	// Start proxy devices
-	err = c.restartProxyDevices()
+	// Run any post start hooks.
+	err = c.runHooks(postStartHooks)
 	if err != nil {
-		// Attempt to stop the container
+		// Attempt to stop container.
+		op.Done(err)
 		c.Stop(false)
 		return err
 	}
@@ -3085,20 +3069,22 @@ func (c *containerLXC) OnStart() error {
 		}(c)
 	}
 
-	// Apply network limits
-	for _, name := range c.expandedDevices.DeviceNames() {
-		m := c.expandedDevices[name]
-		if m["type"] != "nic" && m["type"] != "infiniband" {
-			continue
+	// Database updates
+	err = c.state.Cluster.Transaction(func(tx *db.ClusterTx) error {
+		// Record current state
+		err = tx.ContainerSetState(c.id, "RUNNING")
+		if err != nil {
+			return errors.Wrap(err, "Error updating container state")
 		}
 
-		if m["limits.max"] == "" && m["limits.ingress"] == "" && m["limits.egress"] == "" {
-			continue
+		// Update time container last started time
+		err = tx.ContainerLastUsedUpdate(c.id, time.Now().UTC())
+		if err != nil {
+			return errors.Wrap(err, "Error updating last used")
 		}
-	}
 
-	// Record current state
-	err = c.state.Cluster.ContainerSetState(c.id, "RUNNING")
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -3293,8 +3279,8 @@ func (c *containerLXC) OnStopNS(target string, netns string) error {
 		return fmt.Errorf("Invalid stop target: %s", target)
 	}
 
-	// Clean up networking devices
-	c.cleanupNetworkDevices(netns)
+	// Clean up devices.
+	c.cleanupDevices(netns)
 
 	return nil
 }
@@ -3317,14 +3303,8 @@ func (c *containerLXC) OnStop(target string) error {
 	// Make sure we can't call go-lxc functions by mistake
 	c.fromHook = true
 
-	// Kill all proxy devices, must happen before StorageStop
-	err := c.removeProxyDevices()
-	if err != nil {
-		return fmt.Errorf("Unable to remove proxy devices: %v", err)
-	}
-
 	// Stop the storage for this container
-	_, err = c.StorageStop()
+	_, err := c.StorageStop()
 	if err != nil {
 		if op != nil {
 			op.Done(err)
@@ -3351,12 +3331,6 @@ func (c *containerLXC) OnStop(target string) error {
 	err = c.state.Cluster.ContainerSetState(c.id, "STOPPED")
 	if err != nil {
 		logger.Error("Failed to set container state", log.Ctx{"container": c.Name(), "err": err})
-	}
-
-	// Clean up networking veth devices
-	err = c.cleanupHostVethDevices()
-	if err != nil {
-		logger.Error("Failed to cleanup veth devices: ", log.Ctx{"container": c.Name(), "err": err})
 	}
 
 	go func(c *containerLXC, target string, op *lxcContainerOperation) {
@@ -3389,12 +3363,6 @@ func (c *containerLXC) OnStop(target string) error {
 			logger.Error("Unable to remove disk devices", log.Ctx{"container": c.Name(), "err": err})
 		}
 
-		// Clean all network filters
-		err = c.removeNetworkFilters()
-		if err != nil {
-			logger.Error("Unable to remove network filters", log.Ctx{"container": c.Name(), "err": err})
-		}
-
 		// Reboot the container
 		if target == "reboot" {
 			// Start the container again
@@ -3414,106 +3382,19 @@ func (c *containerLXC) OnStop(target string) error {
 	return nil
 }
 
-// cleanupHostVethDevices removes host side configuration for veth devices.
-func (c *containerLXC) cleanupHostVethDevices() error {
-	volatileNics := make([]string, 0)
-
+// cleanupDevices performs any needed device cleanup steps when container is stopped.
+func (c *containerLXC) cleanupDevices(netns string) {
 	for _, k := range c.expandedDevices.DeviceNames() {
 		m := c.expandedDevices[k]
-		if m["type"] != "nic" {
+
+		// Use the device interface if device supports it.
+		err := c.deviceStop(k, m, netns)
+		if err == device.ErrUnsupportedDevType {
 			continue
-		}
-
-		m, err := c.fillNetworkDevice(k, m)
-		if err != nil {
-			continue
-		}
-
-		// Remove any static host side veth routes
-		if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-			c.removeNetworkRoutes(k, m)
-			volatileNics = append(volatileNics, k) // Record for volatile removal
+		} else if err != nil {
+			logger.Errorf("Failed to stop device: %v", err)
 		}
 	}
-
-	// Clear host side config from volatile nics
-	volatile := make(map[string]string)
-	for _, deviceName := range volatileNics {
-		hostNameKey := fmt.Sprintf("volatile.%s.host_name", deviceName)
-		volatile[hostNameKey] = "" // Remove volatile host_name for device
-	}
-
-	err := c.VolatileSet(volatile)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// cleanupNetworkDevices performs any needed network device cleanup steps when container is stopped.
-func (c *containerLXC) cleanupNetworkDevices(netns string) {
-	for _, k := range c.expandedDevices.DeviceNames() {
-		m := c.expandedDevices[k]
-		if m["type"] != "nic" {
-			continue
-		}
-
-		// Restore physical parent devices
-		if m["nictype"] == "physical" {
-			c.restorePhysicalParent(k, m, netns)
-		}
-	}
-}
-
-// OnNetworkUp is called by the LXD callhook when the LXC network up script is run.
-func (c *containerLXC) OnNetworkUp(deviceName string, hostName string) error {
-	device := c.expandedDevices[deviceName]
-
-	// This hook is only for bridged and p2p nics currently.
-	if !shared.StringInSlice(device["nictype"], []string{"bridged", "p2p"}) {
-		return nil
-	}
-
-	// Record boot time host name of nic into volatile for use with routes/limits updates later.
-	// Only need to do this if host_name is not specified in nic config.
-	if device["host_name"] == "" {
-		device["host_name"] = hostName
-		hostNameKey := fmt.Sprintf("volatile.%s.host_name", deviceName)
-		err := c.VolatileSet(map[string]string{hostNameKey: hostName})
-		if err != nil {
-			return err
-		}
-	}
-
-	return c.setupHostVethDevice(deviceName, device, types.Device{})
-}
-
-// setupHostVethDevice configures a nic device's host side veth settings.
-func (c *containerLXC) setupHostVethDevice(deviceName string, device types.Device, oldDevice types.Device) error {
-	// If not configured, check if volatile data contains the most recently added host_name.
-	if device["host_name"] == "" {
-		device["host_name"] = c.getVolatileHostName(deviceName)
-	}
-
-	// Check whether host device resolution succeeded.
-	if device["host_name"] == "" {
-		return fmt.Errorf("Failed to find host side veth name for device \"%s\"", deviceName)
-	}
-
-	// Refresh tc limits
-	err := c.setNetworkLimits(device)
-	if err != nil {
-		return err
-	}
-
-	// Setup static routes to container
-	err = c.setNetworkRoutes(deviceName, device, oldDevice)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Freezer functions
@@ -3864,6 +3745,31 @@ func (c *containerLXC) Restore(sourceContainer container, stateful bool) error {
 	if c.IsRunning() {
 		wasRunning = true
 
+		ephemeral := c.IsEphemeral()
+		if ephemeral {
+			// Unset ephemeral flag
+			args := db.ContainerArgs{
+				Architecture: c.Architecture(),
+				Config:       c.LocalConfig(),
+				Description:  c.Description(),
+				Devices:      c.LocalDevices(),
+				Ephemeral:    false,
+				Profiles:     c.Profiles(),
+				Project:      c.Project(),
+			}
+
+			err := c.Update(args, false)
+			if err != nil {
+				return err
+			}
+
+			// On function return, set the flag back on
+			defer func() {
+				args.Ephemeral = ephemeral
+				c.Update(args, true)
+			}()
+		}
+
 		// This will unmount the container storage.
 		err := c.Stop(false)
 		if err != nil {
@@ -3985,8 +3891,6 @@ func (c *containerLXC) cleanup() {
 	// Unmount any leftovers
 	c.removeUnixDevices()
 	c.removeDiskDevices()
-	c.removeNetworkFilters()
-	c.removeProxyDevices()
 
 	// Remove the security profiles
 	AADeleteProfile(c)
@@ -4092,18 +3996,12 @@ func (c *containerLXC) Delete() error {
 			return err
 		}
 
-		// Update network files
+		// Remove devices from container.
 		for k, m := range c.expandedDevices {
-			if m["type"] != "nic" || m["nictype"] != "bridged" {
-				continue
+			err = c.deviceRemove(k, m)
+			if err != nil && err != device.ErrUnsupportedDevType {
+				return err
 			}
-
-			m, err := c.fillNetworkDevice(k, m)
-			if err != nil {
-				continue
-			}
-
-			networkClearLease(c.state, c.name, m["parent"], m["hwaddr"])
 		}
 	}
 
@@ -4125,11 +4023,6 @@ func (c *containerLXC) Delete() error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if !c.IsSnapshot() {
-		// Remove any static lease file
-		networkUpdateStatic(c.state, "")
 	}
 
 	logger.Info("Deleted container", ctxMap)
@@ -4482,7 +4375,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	}
 
 	if args.Devices == nil {
-		args.Devices = types.Devices{}
+		args.Devices = config.Devices{}
 	}
 
 	if args.Profiles == nil {
@@ -4496,7 +4389,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	}
 
 	// Validate the new devices
-	err = containerValidDevices(c.state.Cluster, args.Devices, false, false)
+	err = containerValidDevices(c.state, c.state.Cluster, args.Devices, false, false)
 	if err != nil {
 		return errors.Wrap(err, "Invalid devices")
 	}
@@ -4565,7 +4458,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 		return err
 	}
 
-	oldExpandedDevices := types.Devices{}
+	oldExpandedDevices := config.Devices{}
 	err = shared.DeepCopy(&c.expandedDevices, &oldExpandedDevices)
 	if err != nil {
 		return err
@@ -4577,7 +4470,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 		return err
 	}
 
-	oldLocalDevices := types.Devices{}
+	oldLocalDevices := config.Devices{}
 	err = shared.DeepCopy(&c.localDevices, &oldLocalDevices)
 	if err != nil {
 		return err
@@ -4662,7 +4555,28 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	}
 
 	// Diff the devices
-	removeDevices, addDevices, updateDevices, updateDiff := oldExpandedDevices.Update(c.expandedDevices)
+	removeDevices, addDevices, updateDevices, updateDiff := oldExpandedDevices.Update(c.expandedDevices, func(oldDevice config.Device, newDevice config.Device) []string {
+		// This function needs to return a list of fields that are excluded from differences
+		// between oldDevice and newDevice. The result of this is that as long as the
+		// devices are otherwise identical except for the fields returned here, then the
+		// device is considered to be being "updated" rather than "added & removed".
+		if oldDevice["type"] != newDevice["type"] || oldDevice["nictype"] != newDevice["nictype"] {
+			return []string{} // Device types aren't the same, so this cannot be an update.
+		}
+
+		d, err := device.New(c, c.state, "", config.Device(newDevice), nil, nil)
+		if err != device.ErrUnsupportedDevType {
+			if err != nil {
+				return []string{} // Couldn't create Device, so this cannot be an update.
+			}
+
+			_, updateFields := d.CanHotPlug()
+			return updateFields
+		}
+
+		// Legacy non-nic updatable fields.
+		return []string{"limits.max", "limits.read", "limits.write"}
+	})
 
 	// Do some validation of the config diff
 	err = containerValidConfig(c.state.OS, c.expandedConfig, false, true)
@@ -4671,7 +4585,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	}
 
 	// Do some validation of the devices diff
-	err = containerValidDevices(c.state.Cluster, c.expandedDevices, false, true)
+	err = containerValidDevices(c.state, c.state.Cluster, c.expandedDevices, false, true)
 	if err != nil {
 		return errors.Wrap(err, "Invalid expanded devices")
 	}
@@ -4780,7 +4694,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 		if (storageTypeName == "lvm" || storageTypeName == "ceph") && isRunning || !storageIsReady {
 			c.localConfig["volatile.apply_quota"] = newRootDiskDeviceSize
 		} else {
-			size, err := shared.ParseByteSizeString(newRootDiskDeviceSize)
+			size, err := units.ParseByteSizeString(newRootDiskDeviceSize)
 			if err != nil {
 				return err
 			}
@@ -4802,10 +4716,16 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	}
 
 	if !c.IsSnapshot() && updateMAAS {
-		err = c.maasUpdate(true)
+		err = c.maasUpdate(oldExpandedDevices)
 		if err != nil {
 			return err
 		}
+	}
+
+	// Use the device interface to apply update changes.
+	err = c.updateDevices(removeDevices, addDevices, updateDevices, oldExpandedDevices)
+	if err != nil {
+		return err
 	}
 
 	// Apply the live changes
@@ -4822,7 +4742,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 				}
 			} else if key == "security.devlxd" {
 				if value == "" || shared.IsTrue(value) {
-					err = c.insertMount(shared.VarPath("devlxd"), "/dev/lxd", "none", unix.MS_BIND)
+					err = c.insertMount(shared.VarPath("devlxd"), "/dev/lxd", "none", unix.MS_BIND, false)
 					if err != nil {
 						return err
 					}
@@ -4896,7 +4816,7 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 
 					memory = fmt.Sprintf("%d", int64((memoryTotal/100)*percent))
 				} else {
-					valueInt, err := shared.ParseByteSizeString(memory)
+					valueInt, err := units.ParseByteSizeString(memory)
 					if err != nil {
 						return err
 					}
@@ -5106,16 +5026,6 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 				if err != nil {
 					return err
 				}
-			} else if m["type"] == "nic" || m["type"] == "infiniband" {
-				err = c.removeNetworkDevice(k, m)
-				if err != nil {
-					return err
-				}
-
-				err = c.removeInfinibandDevices(k, m)
-				if err != nil {
-					return err
-				}
 			} else if m["type"] == "usb" {
 				if usbs == nil {
 					usbs, err = deviceLoadUsb()
@@ -5202,15 +5112,10 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 						}
 					}
 				}
-			} else if m["type"] == "proxy" {
-				err = c.removeProxyDevice(k)
-				if err != nil {
-					return err
-				}
 			}
 		}
 
-		diskDevices := map[string]types.Device{}
+		diskDevices := map[string]config.Device{}
 		for k, m := range addDevices {
 			if shared.StringInSlice(m["type"], []string{"unix-char", "unix-block"}) {
 				err = c.insertUnixDevice(fmt.Sprintf("unix.%s", k), m, true)
@@ -5221,51 +5126,6 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 				}
 			} else if m["type"] == "disk" && m["path"] != "/" {
 				diskDevices[k] = m
-			} else if m["type"] == "nic" || m["type"] == "infiniband" {
-				var err error
-				var infiniband map[string]IBF
-				if m["type"] == "infiniband" {
-					infiniband, err = deviceLoadInfiniband()
-					if err != nil {
-						return err
-					}
-				}
-
-				m, err = c.insertNetworkDevice(k, m)
-				if err != nil {
-					return err
-				}
-
-				// Plugin in all character devices
-				if m["type"] == "infiniband" {
-					key := m["parent"]
-					if m["nictype"] == "sriov" {
-						key = m["host_name"]
-					}
-
-					ifDev, ok := infiniband[key]
-					if !ok {
-						return fmt.Errorf("Specified infiniband device \"%s\" not found", key)
-					}
-
-					err := c.addInfinibandDevices(k, &ifDev, true)
-					if err != nil {
-						return err
-					}
-				}
-
-				if m["type"] == "nic" && shared.StringMapHasStringKey(m, containerNetworkKeys...) && shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-					// Populate network device with container nic names.
-					m, err := c.fillNetworkDevice(k, m)
-					if err != nil {
-						return err
-					}
-
-					err = c.setupHostVethDevice(k, m, oldExpandedDevices[k])
-					if err != nil {
-						return err
-					}
-				}
 			} else if m["type"] == "usb" {
 				if usbs == nil {
 					usbs, err = deviceLoadUsb()
@@ -5353,11 +5213,6 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 					logger.Error(msg)
 					return fmt.Errorf(msg)
 				}
-			} else if m["type"] == "proxy" {
-				err = c.insertProxyDevice(k, m)
-				if err != nil {
-					return err
-				}
 			}
 		}
 
@@ -5367,36 +5222,9 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 		}
 
 		updateDiskLimit := false
-		for k, m := range updateDevices {
+		for _, m := range updateDevices {
 			if m["type"] == "disk" {
 				updateDiskLimit = true
-			} else if m["type"] == "nic" || m["type"] == "infiniband" {
-				// Check to see if network keys have change
-				needsUpdate := false
-				for _, v := range containerNetworkKeys {
-					needsUpdate = shared.StringInSlice(v, updateDiff)
-					if needsUpdate {
-						break
-					}
-				}
-
-				if needsUpdate && shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-					// Populate network device with container nic names.
-					m, err := c.fillNetworkDevice(k, m)
-					if err != nil {
-						return err
-					}
-
-					err = c.setupHostVethDevice(k, m, oldExpandedDevices[k])
-					if err != nil {
-						return err
-					}
-				}
-			} else if m["type"] == "proxy" {
-				err = c.updateProxyDevice(k, m)
-				if err != nil {
-					return err
-				}
 			}
 		}
 
@@ -5528,19 +5356,6 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 		}
 	}
 
-	// Update network leases
-	needsUpdate := false
-	for _, m := range updateDevices {
-		if m["type"] == "nic" && m["nictype"] == "bridged" {
-			needsUpdate = true
-			break
-		}
-	}
-
-	if needsUpdate {
-		networkUpdateStatic(c.state, "")
-	}
-
 	// Send devlxd notifications
 	if isRunning {
 		// Config changes (only for user.* keys
@@ -5619,6 +5434,51 @@ func (c *containerLXC) Update(args db.ContainerArgs, userRequested bool) error {
 	return nil
 }
 
+func (c *containerLXC) updateDevices(removeDevices map[string]config.Device, addDevices map[string]config.Device, updateDevices map[string]config.Device, oldExpandedDevices config.Devices) error {
+	isRunning := c.IsRunning()
+
+	for k, m := range removeDevices {
+		if isRunning {
+			err := c.deviceStop(k, m, "")
+			if err == device.ErrUnsupportedDevType {
+				continue // No point in trying to remove device below.
+			} else if err != nil {
+				return err
+			}
+		}
+
+		err := c.deviceRemove(k, m)
+		if err != nil && err != device.ErrUnsupportedDevType {
+			return err
+		}
+	}
+
+	for k, m := range addDevices {
+		err := c.deviceAdd(k, m)
+		if err == device.ErrUnsupportedDevType {
+			continue // No point in trying to start device below.
+		} else if err != nil {
+			return err
+		}
+
+		if isRunning {
+			_, err := c.deviceStart(k, m, isRunning)
+			if err != nil && err != device.ErrUnsupportedDevType {
+				return err
+			}
+		}
+	}
+
+	for k, m := range updateDevices {
+		err := c.deviceUpdate(k, m, oldExpandedDevices[k], isRunning)
+		if err != nil && err != device.ErrUnsupportedDevType {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 	ctxMap := log.Ctx{
 		"project":   c.project,
@@ -5679,10 +5539,9 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 	}
 
 	// Create the tarball
-	tw := tar.NewWriter(w)
+	ctw := containerwriter.NewContainerTarWriter(w, idmap)
 
 	// Keep track of the first path we saw for each path with nlink>1
-	linkmap := map[uint64]string{}
 	cDir := c.Path()
 
 	// Path inside the tar image is the pathname starting after cDir
@@ -5693,7 +5552,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			return err
 		}
 
-		err = c.tarStoreFile(linkmap, offset, tw, path, fi)
+		err = ctw.WriteFile(offset, path, fi)
 		if err != nil {
 			logger.Debugf("Error tarring up %s: %s", path, err)
 			return err
@@ -5707,7 +5566,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 		// Generate a new metadata.yaml
 		tempDir, err := ioutil.TempDir("", "lxd_lxd_metadata_")
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Error("Failed exporting container", ctxMap)
 			return err
 		}
@@ -5719,7 +5578,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			parentName, _, _ := containerGetParentAndSnapshotName(c.name)
 			parent, err := containerLoadByProjectAndName(c.state, c.project, parentName)
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5745,7 +5604,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 
 		data, err := yaml.Marshal(&meta)
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Error("Failed exporting container", ctxMap)
 			return err
 		}
@@ -5754,21 +5613,21 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 		fnam = filepath.Join(tempDir, "metadata.yaml")
 		err = ioutil.WriteFile(fnam, data, 0644)
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Error("Failed exporting container", ctxMap)
 			return err
 		}
 
 		fi, err := os.Lstat(fnam)
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Error("Failed exporting container", ctxMap)
 			return err
 		}
 
 		tmpOffset := len(path.Dir(fnam)) + 1
-		if err := c.tarStoreFile(linkmap, tmpOffset, tw, fnam, fi); err != nil {
-			tw.Close()
+		if err := ctw.WriteFile(tmpOffset, fnam, fi); err != nil {
+			ctw.Close()
 			logger.Debugf("Error writing to tarfile: %s", err)
 			logger.Error("Failed exporting container", ctxMap)
 			return err
@@ -5778,7 +5637,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			// Parse the metadata
 			content, err := ioutil.ReadFile(fnam)
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5786,7 +5645,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			metadata := new(api.ImageMetadata)
 			err = yaml.Unmarshal(content, &metadata)
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5795,7 +5654,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			// Generate a new metadata.yaml
 			tempDir, err := ioutil.TempDir("", "lxd_lxd_metadata_")
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5803,7 +5662,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 
 			data, err := yaml.Marshal(&metadata)
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5812,7 +5671,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 			fnam = filepath.Join(tempDir, "metadata.yaml")
 			err = ioutil.WriteFile(fnam, data, 0644)
 			if err != nil {
-				tw.Close()
+				ctw.Close()
 				logger.Error("Failed exporting container", ctxMap)
 				return err
 			}
@@ -5821,7 +5680,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 		// Include metadata.yaml in the tarball
 		fi, err := os.Lstat(fnam)
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Debugf("Error statting %s during export", fnam)
 			logger.Error("Failed exporting container", ctxMap)
 			return err
@@ -5829,12 +5688,12 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 
 		if properties != nil {
 			tmpOffset := len(path.Dir(fnam)) + 1
-			err = c.tarStoreFile(linkmap, tmpOffset, tw, fnam, fi)
+			err = ctw.WriteFile(tmpOffset, fnam, fi)
 		} else {
-			err = c.tarStoreFile(linkmap, offset, tw, fnam, fi)
+			err = ctw.WriteFile(offset, fnam, fi)
 		}
 		if err != nil {
-			tw.Close()
+			ctw.Close()
 			logger.Debugf("Error writing to tarfile: %s", err)
 			logger.Error("Failed exporting container", ctxMap)
 			return err
@@ -5859,7 +5718,7 @@ func (c *containerLXC) Export(w io.Writer, properties map[string]string) error {
 		}
 	}
 
-	err = tw.Close()
+	err = ctw.Close()
 	if err != nil {
 		logger.Error("Failed exporting container", ctxMap)
 		return err
@@ -5964,7 +5823,7 @@ func (c *containerLXC) Migrate(args *CriuMigrationArgs) error {
 	 */
 	if args.cmd == lxc.MIGRATE_RESTORE {
 		// Run the shared start
-		_, err := c.startCommon()
+		_, postStartHooks, err := c.startCommon()
 		if err != nil {
 			return err
 		}
@@ -6011,8 +5870,7 @@ func (c *containerLXC) Migrate(args *CriuMigrationArgs) error {
 			finalStateDir = fmt.Sprintf("%s/%s", args.stateDir, args.dumpDir)
 		}
 
-		var out string
-		out, migrateErr = shared.RunCommand(
+		_, migrateErr = shared.RunCommand(
 			c.state.OS.ExecPath,
 			"forkmigrate",
 			c.name,
@@ -6021,17 +5879,11 @@ func (c *containerLXC) Migrate(args *CriuMigrationArgs) error {
 			finalStateDir,
 			fmt.Sprintf("%v", preservesInodes))
 
-		if out != "" {
-			for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
-				logger.Debugf("forkmigrate: %s", line)
-			}
-		}
-
 		if migrateErr == nil {
-			// Start proxy devices
-			err = c.restartProxyDevices()
+			// Run any post start hooks.
+			err := c.runHooks(postStartHooks)
 			if err != nil {
-				// Attempt to stop the container
+				// Attempt to stop container.
 				c.Stop(false)
 				return err
 			}
@@ -6282,7 +6134,7 @@ func (c *containerLXC) FileExists(path string) error {
 	}
 
 	// Check if the file exists in the container
-	out, err := shared.RunCommand(
+	_, stderr, err := shared.RunCommandSplit(
 		c.state.OS.ExecPath,
 		"forkfile",
 		"exists",
@@ -6300,12 +6152,12 @@ func (c *containerLXC) FileExists(path string) error {
 	}
 
 	// Process forkcheckfile response
-	if out != "" {
-		if strings.HasPrefix(out, "error:") {
-			return fmt.Errorf(strings.TrimPrefix(strings.TrimSuffix(out, "\n"), "error: "))
+	if stderr != "" {
+		if strings.HasPrefix(stderr, "error:") {
+			return fmt.Errorf(strings.TrimPrefix(strings.TrimSuffix(stderr, "\n"), "error: "))
 		}
 
-		for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
+		for _, line := range strings.Split(strings.TrimRight(stderr, "\n"), "\n") {
 			logger.Debugf("forkcheckfile: %s", line)
 		}
 	}
@@ -6329,7 +6181,7 @@ func (c *containerLXC) FilePull(srcpath string, dstpath string) (int64, int64, o
 	}
 
 	// Get the file from the container
-	out, err := shared.RunCommand(
+	_, stderr, err := shared.RunCommandSplit(
 		c.state.OS.ExecPath,
 		"forkfile",
 		"pull",
@@ -6355,7 +6207,7 @@ func (c *containerLXC) FilePull(srcpath string, dstpath string) (int64, int64, o
 	var errStr string
 
 	// Process forkgetfile response
-	for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
+	for _, line := range strings.Split(strings.TrimRight(stderr, "\n"), "\n") {
 		if line == "" {
 			continue
 		}
@@ -6473,7 +6325,7 @@ func (c *containerLXC) FilePush(type_ string, srcpath string, dstpath string, ui
 	}
 
 	// Push the file to the container
-	out, err := shared.RunCommand(
+	_, stderr, err := shared.RunCommandSplit(
 		c.state.OS.ExecPath,
 		"forkfile",
 		"push",
@@ -6500,7 +6352,7 @@ func (c *containerLXC) FilePush(type_ string, srcpath string, dstpath string, ui
 	}
 
 	// Process forkgetfile response
-	for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
+	for _, line := range strings.Split(strings.TrimRight(stderr, "\n"), "\n") {
 		if line == "" {
 			continue
 		}
@@ -6542,7 +6394,7 @@ func (c *containerLXC) FileRemove(path string) error {
 	}
 
 	// Remove the file from the container
-	out, err := shared.RunCommand(
+	_, stderr, err := shared.RunCommandSplit(
 		c.state.OS.ExecPath,
 		"forkfile",
 		"remove",
@@ -6560,7 +6412,7 @@ func (c *containerLXC) FileRemove(path string) error {
 	}
 
 	// Process forkremovefile response
-	for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
+	for _, line := range strings.Split(strings.TrimRight(stderr, "\n"), "\n") {
 		if line == "" {
 			continue
 		}
@@ -6592,7 +6444,7 @@ func (c *containerLXC) Console(terminal *os.File) *exec.Cmd {
 	args := []string{
 		c.state.OS.ExecPath,
 		"forkconsole",
-		projectPrefix(c.Project(), c.Name()),
+		project.Prefix(c.Project(), c.Name()),
 		c.state.OS.LxcPath,
 		filepath.Join(c.LogPath(), "lxc.conf"),
 		"tty=0",
@@ -6616,7 +6468,7 @@ func (c *containerLXC) ConsoleLog(opts lxc.ConsoleLogOptions) (string, error) {
 	return string(msg), nil
 }
 
-func (c *containerLXC) Exec(command []string, env map[string]string, stdin *os.File, stdout *os.File, stderr *os.File, wait bool) (*exec.Cmd, int, int, error) {
+func (c *containerLXC) Exec(command []string, env map[string]string, stdin *os.File, stdout *os.File, stderr *os.File, wait bool, cwd string, uid uint32, gid uint32) (*exec.Cmd, int, int, error) {
 	// Prepare the environment
 	envSlice := []string{}
 
@@ -6632,8 +6484,17 @@ func (c *containerLXC) Exec(command []string, env map[string]string, stdin *os.F
 	}
 
 	// Prepare the subcommand
-	cname := projectPrefix(c.Project(), c.Name())
-	args := []string{c.state.OS.ExecPath, "forkexec", cname, c.state.OS.LxcPath, filepath.Join(c.LogPath(), "lxc.conf")}
+	cname := project.Prefix(c.Project(), c.Name())
+	args := []string{
+		c.state.OS.ExecPath,
+		"forkexec",
+		cname,
+		c.state.OS.LxcPath,
+		filepath.Join(c.LogPath(), "lxc.conf"),
+		cwd,
+		fmt.Sprintf("%d", uid),
+		fmt.Sprintf("%d", gid),
+	}
 
 	args = append(args, "--")
 	args = append(args, "env")
@@ -6843,7 +6704,7 @@ func (c *containerLXC) networkState() map[string]api.ContainerStateNetwork {
 
 		// Process forkgetnet response
 		if err != nil {
-			logger.Error("Error calling 'lxd forkgetnet", log.Ctx{"container": c.name, "output": out, "pid": pid})
+			logger.Error("Error calling 'lxd forkgetnet", log.Ctx{"container": c.name, "err": err, "pid": pid})
 			return result
 		}
 
@@ -6859,6 +6720,14 @@ func (c *containerLXC) networkState() map[string]api.ContainerStateNetwork {
 			return result
 		}
 		result = nw
+	}
+
+	// Get host_name from volatile data if not set already.
+	for name, dev := range result {
+		if dev.HostName == "" {
+			dev.HostName = c.localConfig[fmt.Sprintf("volatile.%s.host_name", name)]
+			result[name] = dev
+		}
 	}
 
 	return result
@@ -6906,101 +6775,6 @@ func (c *containerLXC) processesState() int64 {
 	}
 
 	return int64(len(pids))
-}
-
-func (c *containerLXC) tarStoreFile(linkmap map[uint64]string, offset int, tw *tar.Writer, path string, fi os.FileInfo) error {
-	var err error
-	var major, minor, nlink int
-	var ino uint64
-
-	link := ""
-	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-		link, err = os.Readlink(path)
-		if err != nil {
-			return fmt.Errorf("failed to resolve symlink: %s", err)
-		}
-	}
-
-	// Sockets cannot be stored in tarballs, just skip them (consistent with tar)
-	if fi.Mode()&os.ModeSocket == os.ModeSocket {
-		return nil
-	}
-
-	hdr, err := tar.FileInfoHeader(fi, link)
-	if err != nil {
-		return fmt.Errorf("failed to create tar info header: %s", err)
-	}
-
-	hdr.Name = path[offset:]
-	if fi.IsDir() || fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-		hdr.Size = 0
-	} else {
-		hdr.Size = fi.Size()
-	}
-
-	hdr.Uid, hdr.Gid, major, minor, ino, nlink, err = shared.GetFileStat(path)
-	if err != nil {
-		return fmt.Errorf("failed to get file stat: %s", err)
-	}
-
-	// Unshift the id under /rootfs/ for unpriv containers
-	if strings.HasPrefix(hdr.Name, "/rootfs") {
-		idmapset, err := c.DiskIdmap()
-		if err != nil {
-			return err
-		}
-
-		if idmapset != nil {
-			huid, hgid := idmapset.ShiftFromNs(int64(hdr.Uid), int64(hdr.Gid))
-			hdr.Uid = int(huid)
-			hdr.Gid = int(hgid)
-			if hdr.Uid == -1 || hdr.Gid == -1 {
-				return nil
-			}
-		}
-	}
-
-	if major != -1 {
-		hdr.Devmajor = int64(major)
-		hdr.Devminor = int64(minor)
-	}
-
-	// If it's a hardlink we've already seen use the old name
-	if fi.Mode().IsRegular() && nlink > 1 {
-		if firstpath, found := linkmap[ino]; found {
-			hdr.Typeflag = tar.TypeLink
-			hdr.Linkname = firstpath
-			hdr.Size = 0
-		} else {
-			linkmap[ino] = hdr.Name
-		}
-	}
-
-	// Handle xattrs (for real files only)
-	if link == "" {
-		hdr.Xattrs, err = shared.GetAllXattr(path)
-		if err != nil {
-			return fmt.Errorf("Failed to read xattr for '%s': %s", path, err)
-		}
-	}
-
-	if err := tw.WriteHeader(hdr); err != nil {
-		return fmt.Errorf("Failed to write tar header: %s", err)
-	}
-
-	if hdr.Typeflag == tar.TypeReg {
-		f, err := os.Open(path)
-		if err != nil {
-			return fmt.Errorf("Failed to open the file: %s", err)
-		}
-		defer f.Close()
-
-		if _, err := io.Copy(tw, f); err != nil {
-			return fmt.Errorf("Failed to copy file content: %s", err)
-		}
-	}
-
-	return nil
 }
 
 // Storage functions
@@ -7064,74 +6838,89 @@ func (c *containerLXC) StorageStop() (bool, error) {
 }
 
 // Mount handling
-func (c *containerLXC) insertMount(source, target, fstype string, flags int) error {
-	var err error
-
-	// Get the init PID
-	pid := c.InitPID()
-	if pid == -1 {
-		// Container isn't running
-		return fmt.Errorf("Can't insert mount into stopped container")
+func (c *containerLXC) insertMountLXD(source, target, fstype string, flags int, mntnsPID int, shiftfs bool) error {
+	pid := mntnsPID
+	if pid <= 0 {
+		// Get the init PID
+		pid = c.InitPID()
+		if pid == -1 {
+			// Container isn't running
+			return fmt.Errorf("Can't insert mount into stopped container")
+		}
 	}
 
-	if c.state.OS.LXCFeatures["mount_injection_file"] {
-		cname := projectPrefix(c.Project(), c.Name())
-		configPath := filepath.Join(c.LogPath(), "lxc.conf")
-		if fstype == "" {
-			fstype = "none"
-		}
-
-		if !strings.HasPrefix(target, "/") {
-			target = "/" + target
-		}
-
-		_, err := shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxc-mount", cname, c.state.OS.LxcPath, configPath, source, target, fstype, fmt.Sprintf("%d", flags))
+	// Create the temporary mount target
+	var tmpMount string
+	var err error
+	if shared.IsDir(source) {
+		tmpMount, err = ioutil.TempDir(c.ShmountsPath(), "lxdmount_")
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to create shmounts path: %s", err)
 		}
 	} else {
-		// Create the temporary mount target
-		var tmpMount string
-		if shared.IsDir(source) {
-			tmpMount, err = ioutil.TempDir(c.ShmountsPath(), "lxdmount_")
-			if err != nil {
-				return fmt.Errorf("Failed to create shmounts path: %s", err)
-			}
-		} else {
-			f, err := ioutil.TempFile(c.ShmountsPath(), "lxdmount_")
-			if err != nil {
-				return fmt.Errorf("Failed to create shmounts path: %s", err)
-			}
-
-			tmpMount = f.Name()
-			f.Close()
-		}
-		defer os.Remove(tmpMount)
-
-		// Mount the filesystem
-		err = unix.Mount(source, tmpMount, fstype, uintptr(flags), "")
+		f, err := ioutil.TempFile(c.ShmountsPath(), "lxdmount_")
 		if err != nil {
-			return fmt.Errorf("Failed to setup temporary mount: %s", err)
+			return fmt.Errorf("Failed to create shmounts path: %s", err)
+		}
+
+		tmpMount = f.Name()
+		f.Close()
+	}
+	defer os.Remove(tmpMount)
+
+	// Mount the filesystem
+	err = unix.Mount(source, tmpMount, fstype, uintptr(flags), "")
+	if err != nil {
+		return fmt.Errorf("Failed to setup temporary mount: %s", err)
+	}
+	defer unix.Unmount(tmpMount, unix.MNT_DETACH)
+
+	// Setup host side shiftfs as needed
+	if shiftfs {
+		err = unix.Mount(tmpMount, tmpMount, "shiftfs", 0, "mark,passthrough=3")
+		if err != nil {
+			return fmt.Errorf("Failed to setup host side shiftfs mount: %s", err)
 		}
 		defer unix.Unmount(tmpMount, unix.MNT_DETACH)
+	}
 
-		// Move the mount inside the container
-		mntsrc := filepath.Join("/dev/.lxd-mounts", filepath.Base(tmpMount))
-		pidStr := fmt.Sprintf("%d", pid)
+	// Move the mount inside the container
+	mntsrc := filepath.Join("/dev/.lxd-mounts", filepath.Base(tmpMount))
+	pidStr := fmt.Sprintf("%d", pid)
 
-		out, err := shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxd-mount", pidStr, mntsrc, target)
-
-		if out != "" {
-			for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
-				logger.Debugf("forkmount: %s", line)
-			}
-		}
-		if err != nil {
-			return err
-		}
+	_, err = shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxd-mount", pidStr, mntsrc, target, fmt.Sprintf("%v", shiftfs))
+	if err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func (c *containerLXC) insertMountLXC(source, target, fstype string, flags int) error {
+	cname := project.Prefix(c.Project(), c.Name())
+	configPath := filepath.Join(c.LogPath(), "lxc.conf")
+	if fstype == "" {
+		fstype = "none"
+	}
+
+	if !strings.HasPrefix(target, "/") {
+		target = "/" + target
+	}
+
+	_, err := shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxc-mount", cname, c.state.OS.LxcPath, configPath, source, target, fstype, fmt.Sprintf("%d", flags))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *containerLXC) insertMount(source, target, fstype string, flags int, shiftfs bool) error {
+	if c.state.OS.LXCFeatures["mount_injection_file"] && !shiftfs {
+		return c.insertMountLXC(source, target, fstype, flags)
+	}
+
+	return c.insertMountLXD(source, target, fstype, flags, -1, shiftfs)
 }
 
 func (c *containerLXC) removeMount(mount string) error {
@@ -7144,7 +6933,7 @@ func (c *containerLXC) removeMount(mount string) error {
 
 	if c.state.OS.LXCFeatures["mount_injection_file"] {
 		configPath := filepath.Join(c.LogPath(), "lxc.conf")
-		cname := projectPrefix(c.Project(), c.Name())
+		cname := project.Prefix(c.Project(), c.Name())
 
 		if !strings.HasPrefix(mount, "/") {
 			mount = "/" + mount
@@ -7157,14 +6946,7 @@ func (c *containerLXC) removeMount(mount string) error {
 	} else {
 		// Remove the mount from the container
 		pidStr := fmt.Sprintf("%d", pid)
-		out, err := shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxd-umount", pidStr, mount)
-
-		if out != "" {
-			for _, line := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
-				logger.Debugf("forkumount: %s", line)
-			}
-		}
-
+		_, err := shared.RunCommand(c.state.OS.ExecPath, "forkmount", "lxd-umount", pidStr, mount)
 		if err != nil {
 			return err
 		}
@@ -7182,157 +6964,19 @@ func (c *containerLXC) deviceExistsInDevicesFolder(prefix string, path string) b
 	return shared.PathExists(devPath)
 }
 
-// Unix devices handling
-func (c *containerLXC) createUnixDevice(prefix string, m types.Device, defaultMode bool) ([]string, error) {
-	var err error
-	var major, minor int
-
-	// Extra checks for nesting
-	if c.state.OS.RunningInUserNS {
-		for key, value := range m {
-			if shared.StringInSlice(key, []string{"major", "minor", "mode", "uid", "gid"}) && value != "" {
-				return nil, fmt.Errorf("The \"%s\" property may not be set when adding a device to a nested container", key)
-			}
-		}
-	}
-
-	srcPath := m["source"]
-	if srcPath == "" {
-		srcPath = m["path"]
-	}
-	srcPath = shared.HostPath(srcPath)
-
-	// Get the major/minor of the device we want to create
-	if m["major"] == "" && m["minor"] == "" {
-		// If no major and minor are set, use those from the device on the host
-		_, major, minor, err = deviceGetAttributes(srcPath)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get device attributes for %s: %s", m["path"], err)
-		}
-	} else if m["major"] == "" || m["minor"] == "" {
-		return nil, fmt.Errorf("Both major and minor must be supplied for device: %s", m["path"])
-	} else {
-		major, err = strconv.Atoi(m["major"])
-		if err != nil {
-			return nil, fmt.Errorf("Bad major %s in device %s", m["major"], m["path"])
-		}
-
-		minor, err = strconv.Atoi(m["minor"])
-		if err != nil {
-			return nil, fmt.Errorf("Bad minor %s in device %s", m["minor"], m["path"])
-		}
-	}
-
-	// Get the device mode
-	mode := os.FileMode(0660)
-	if m["mode"] != "" {
-		tmp, err := deviceModeOct(m["mode"])
-		if err != nil {
-			return nil, fmt.Errorf("Bad mode %s in device %s", m["mode"], m["path"])
-		}
-		mode = os.FileMode(tmp)
-	} else if !defaultMode {
-		mode, err = shared.GetPathMode(srcPath)
-		if err != nil {
-			errno, isErrno := shared.GetErrno(err)
-			if !isErrno || errno != unix.ENOENT {
-				return nil, fmt.Errorf("Failed to retrieve mode of device %s: %s", m["path"], err)
-			}
-			mode = os.FileMode(0660)
-		}
-	}
-
-	if m["type"] == "unix-block" {
-		mode |= unix.S_IFBLK
-	} else {
-		mode |= unix.S_IFCHR
-	}
-
-	// Get the device owner
-	uid := 0
-	gid := 0
-
-	if m["uid"] != "" {
-		uid, err = strconv.Atoi(m["uid"])
-		if err != nil {
-			return nil, fmt.Errorf("Invalid uid %s in device %s", m["uid"], m["path"])
-		}
-	}
-
-	if m["gid"] != "" {
-		gid, err = strconv.Atoi(m["gid"])
-		if err != nil {
-			return nil, fmt.Errorf("Invalid gid %s in device %s", m["gid"], m["path"])
-		}
-	}
-
-	// Create the devices directory if missing
-	if !shared.PathExists(c.DevicesPath()) {
-		os.Mkdir(c.DevicesPath(), 0711)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create devices path: %s", err)
-		}
-	}
-
-	destPath := m["path"]
-	if destPath == "" {
-		destPath = m["source"]
-	}
-	relativeDestPath := strings.TrimPrefix(destPath, "/")
-	devName := fmt.Sprintf("%s.%s", strings.Replace(prefix, "/", "-", -1), strings.Replace(relativeDestPath, "/", "-", -1))
-	devPath := filepath.Join(c.DevicesPath(), devName)
-
-	// Create the new entry
-	if !c.state.OS.RunningInUserNS {
-		encoded_device_number := (minor & 0xff) | (major << 8) | ((minor & ^0xff) << 12)
-		if err := unix.Mknod(devPath, uint32(mode), encoded_device_number); err != nil {
-			return nil, fmt.Errorf("Failed to create device %s for %s: %s", devPath, m["path"], err)
-		}
-
-		if err := os.Chown(devPath, uid, gid); err != nil {
-			return nil, fmt.Errorf("Failed to chown device %s: %s", devPath, err)
-		}
-
-		// Needed as mknod respects the umask
-		if err := os.Chmod(devPath, mode); err != nil {
-			return nil, fmt.Errorf("Failed to chmod device %s: %s", devPath, err)
-		}
-
-		idmapset, err := c.CurrentIdmap()
-		if err != nil {
-			return nil, err
-		}
-
-		if idmapset != nil {
-			if err := idmapset.ShiftFile(devPath); err != nil {
-				// uidshift failing is weird, but not a big problem.  Log and proceed
-				logger.Debugf("Failed to uidshift device %s: %s\n", m["path"], err)
-			}
-		}
-	} else {
-		f, err := os.Create(devPath)
-		if err != nil {
-			return nil, err
-		}
-		f.Close()
-
-		err = deviceMountDisk(srcPath, devPath, false, false, "")
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return []string{devPath, relativeDestPath}, nil
-}
-
-func (c *containerLXC) insertUnixDevice(prefix string, m types.Device, defaultMode bool) error {
+func (c *containerLXC) insertUnixDevice(prefix string, m config.Device, defaultMode bool) error {
 	// Check that the container is running
 	if !c.IsRunning() {
 		return fmt.Errorf("Can't insert device into stopped container")
 	}
 
+	idmapSet, err := c.CurrentIdmap()
+	if err != nil {
+		return err
+	}
+
 	// Create the device on the host
-	paths, err := c.createUnixDevice(prefix, m, defaultMode)
+	paths, err := device.UnixCreateDevice(c.state, idmapSet, c.DevicesPath(), prefix, m, defaultMode)
 	if err != nil {
 		return fmt.Errorf("Failed to setup device: %s", err)
 	}
@@ -7340,7 +6984,7 @@ func (c *containerLXC) insertUnixDevice(prefix string, m types.Device, defaultMo
 	tgtPath := paths[1]
 
 	// Bind-mount it into the container
-	err = c.insertMount(devPath, tgtPath, "none", unix.MS_BIND)
+	err = c.insertMount(devPath, tgtPath, "none", unix.MS_BIND, false)
 	if err != nil {
 		return fmt.Errorf("Failed to add mount for device: %s", err)
 	}
@@ -7371,13 +7015,13 @@ func (c *containerLXC) insertUnixDevice(prefix string, m types.Device, defaultMo
 	}
 
 	if dType == "" || dMajor < 0 || dMinor < 0 {
-		dType, dMajor, dMinor, err = deviceGetAttributes(devPath)
+		dType, dMajor, dMinor, err = device.UnixGetDeviceAttributes(devPath)
 		if err != nil {
 			return err
 		}
 	}
 
-	if !c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
+	if c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
 		// Add the new device cgroup rule
 		if err := c.CGroupSet("devices.allow", fmt.Sprintf("%s %d:%d rwm", dType, dMajor, dMinor)); err != nil {
 			return fmt.Errorf("Failed to add cgroup rule for device")
@@ -7387,8 +7031,63 @@ func (c *containerLXC) insertUnixDevice(prefix string, m types.Device, defaultMo
 	return nil
 }
 
-func (c *containerLXC) insertUnixDeviceNum(name string, m types.Device, major int, minor int, path string, defaultMode bool) error {
-	temp := types.Device{}
+func (c *containerLXC) InsertSeccompUnixDevice(prefix string, m config.Device, pid int) error {
+	if pid < 0 {
+		return fmt.Errorf("Invalid request PID specified")
+	}
+
+	rootLink := fmt.Sprintf("/proc/%d/root", pid)
+	rootPath, err := os.Readlink(rootLink)
+	if err != nil {
+		return err
+	}
+
+	err, uid, gid, _, _ := taskIds(pid)
+	if err != nil {
+		return err
+	}
+
+	idmapset, err := c.CurrentIdmap()
+	if err != nil {
+		return err
+	}
+
+	nsuid, nsgid := idmapset.ShiftFromNs(uid, gid)
+	m["uid"] = fmt.Sprintf("%d", nsuid)
+	m["gid"] = fmt.Sprintf("%d", nsgid)
+
+	if !path.IsAbs(m["path"]) {
+		cwdLink := fmt.Sprintf("/proc/%d/cwd", pid)
+		prefixPath, err := os.Readlink(cwdLink)
+		if err != nil {
+			return err
+		}
+
+		prefixPath = strings.TrimPrefix(prefixPath, rootPath)
+		m["path"] = filepath.Join(rootPath, prefixPath, m["path"])
+	} else {
+		m["path"] = filepath.Join(rootPath, m["path"])
+	}
+
+	idmapSet, err := c.CurrentIdmap()
+	if err != nil {
+		return err
+	}
+
+	paths, err := device.UnixCreateDevice(c.state, idmapSet, c.DevicesPath(), prefix, m, true)
+	if err != nil {
+		return fmt.Errorf("Failed to setup device: %s", err)
+	}
+	devPath := paths[0]
+	tgtPath := paths[1]
+
+	// Bind-mount it into the container
+	defer os.Remove(devPath)
+	return c.insertMountLXD(devPath, tgtPath, "none", unix.MS_BIND, pid, false)
+}
+
+func (c *containerLXC) insertUnixDeviceNum(name string, m config.Device, major int, minor int, path string, defaultMode bool) error {
+	temp := config.Device{}
 	if err := shared.DeepCopy(&m, &temp); err != nil {
 		return err
 	}
@@ -7400,7 +7099,11 @@ func (c *containerLXC) insertUnixDeviceNum(name string, m types.Device, major in
 	return c.insertUnixDevice(name, temp, defaultMode)
 }
 
-func (c *containerLXC) removeUnixDevice(prefix string, m types.Device, eject bool) error {
+// removeUnixDevice does the following: retrieves the device type, major and minor numbers,
+// adds a cgroup deny rule for the device if container is privileged.
+// Then it removes the mount and file inside container.
+// Finally it removes the host-side mount if running in UserNS and removes host-side dev file.
+func (c *containerLXC) removeUnixDevice(prefix string, m config.Device, eject bool) error {
 	// Check that the container is running
 	pid := c.InitPID()
 	if pid == -1 {
@@ -7443,7 +7146,7 @@ func (c *containerLXC) removeUnixDevice(prefix string, m types.Device, eject boo
 	devPath := filepath.Join(c.DevicesPath(), devName)
 
 	if dType == "" || dMajor < 0 || dMinor < 0 {
-		dType, dMajor, dMinor, err = deviceGetAttributes(devPath)
+		dType, dMajor, dMinor, err = device.UnixGetDeviceAttributes(devPath)
 		if err != nil {
 			return err
 		}
@@ -7482,13 +7185,13 @@ func (c *containerLXC) removeUnixDevice(prefix string, m types.Device, eject boo
 	return nil
 }
 
-func (c *containerLXC) removeUnixDeviceNum(prefix string, m types.Device, major int, minor int, path string) error {
+func (c *containerLXC) removeUnixDeviceNum(prefix string, m config.Device, major int, minor int, path string) error {
 	pid := c.InitPID()
 	if pid == -1 {
 		return fmt.Errorf("Can't remove device from stopped container")
 	}
 
-	temp := types.Device{}
+	temp := config.Device{}
 	if err := shared.DeepCopy(&m, &temp); err != nil {
 		return err
 	}
@@ -7507,233 +7210,6 @@ func (c *containerLXC) removeUnixDeviceNum(prefix string, m types.Device, major 
 	return nil
 }
 
-func (c *containerLXC) addInfinibandDevicesPerPort(deviceName string, ifDev *IBF, devices []os.FileInfo, inject bool) error {
-	for _, unixCharDev := range ifDev.PerPortDevices {
-		destPath := fmt.Sprintf("/dev/infiniband/%s", unixCharDev)
-		relDestPath := destPath[1:]
-		devPrefix := fmt.Sprintf("infiniband.unix.%s", deviceName)
-
-		// Unix device
-		dummyDevice := types.Device{
-			"source": destPath,
-		}
-
-		deviceExists := false
-		// only handle infiniband.unix.<device-name>.
-		prefix := fmt.Sprintf("infiniband.unix.")
-		for _, ent := range devices {
-
-			// skip non infiniband.unix.<device-name> devices
-			devName := ent.Name()
-			if !strings.HasPrefix(devName, prefix) {
-				continue
-			}
-
-			// extract the path inside the container
-			idx := strings.LastIndex(devName, ".")
-			if idx == -1 {
-				return fmt.Errorf("Invalid infiniband device name \"%s\"", devName)
-			}
-			rPath := devName[idx+1:]
-			rPath = strings.Replace(rPath, "-", "/", -1)
-			if rPath != relDestPath {
-				continue
-			}
-
-			deviceExists = true
-			break
-		}
-
-		if inject && !deviceExists {
-			err := c.insertUnixDevice(devPrefix, dummyDevice, false)
-			if err != nil {
-				return err
-			}
-			continue
-		}
-
-		paths, err := c.createUnixDevice(devPrefix, dummyDevice, false)
-		if err != nil {
-			return err
-		}
-		devPath := paths[0]
-
-		if deviceExists {
-			continue
-		}
-
-		// inform liblxc about the mount
-		err = lxcSetConfigItem(c.c, "lxc.mount.entry",
-			fmt.Sprintf("%s %s none bind,create=file 0 0",
-				shared.EscapePathFstab(devPath),
-				shared.EscapePathFstab(relDestPath)))
-		if err != nil {
-			return err
-		}
-
-		if c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
-			// Add the new device cgroup rule
-			dType, dMajor, dMinor, err := deviceGetAttributes(devPath)
-			if err != nil {
-				return err
-			}
-
-			err = lxcSetConfigItem(c.c, "lxc.cgroup.devices.allow", fmt.Sprintf("%s %d:%d rwm", dType, dMajor, dMinor))
-			if err != nil {
-				return fmt.Errorf("Failed to add cgroup rule for device")
-			}
-		}
-	}
-
-	return nil
-}
-
-func (c *containerLXC) addInfinibandDevicesPerFun(deviceName string, ifDev *IBF, inject bool) error {
-	for _, unixCharDev := range ifDev.PerFunDevices {
-		destPath := fmt.Sprintf("/dev/infiniband/%s", unixCharDev)
-		uniqueDevPrefix := fmt.Sprintf("infiniband.unix.%s", deviceName)
-		relativeDestPath := fmt.Sprintf("dev/infiniband/%s", unixCharDev)
-		uniqueDevName := fmt.Sprintf("%s.%s", uniqueDevPrefix, strings.Replace(relativeDestPath, "/", "-", -1))
-		hostDevPath := filepath.Join(c.DevicesPath(), uniqueDevName)
-
-		dummyDevice := types.Device{
-			"source": destPath,
-		}
-
-		if inject {
-			err := c.insertUnixDevice(uniqueDevPrefix, dummyDevice, false)
-			if err != nil {
-				return err
-			}
-			continue
-		}
-
-		// inform liblxc about the mount
-		err := lxcSetConfigItem(c.c, "lxc.mount.entry", fmt.Sprintf("%s %s none bind,create=file 0 0", hostDevPath, relativeDestPath))
-		if err != nil {
-			return err
-		}
-
-		paths, err := c.createUnixDevice(uniqueDevPrefix, dummyDevice, false)
-		if err != nil {
-			return err
-		}
-		devPath := paths[0]
-		if c.isCurrentlyPrivileged() && !c.state.OS.RunningInUserNS && c.state.OS.CGroupDevicesController {
-			// Add the new device cgroup rule
-			dType, dMajor, dMinor, err := deviceGetAttributes(devPath)
-			if err != nil {
-				return err
-			}
-
-			err = lxcSetConfigItem(c.c, "lxc.cgroup.devices.allow", fmt.Sprintf("%s %d:%d rwm", dType, dMajor, dMinor))
-			if err != nil {
-				return fmt.Errorf("Failed to add cgroup rule for device")
-			}
-		}
-	}
-
-	return nil
-}
-
-func (c *containerLXC) addInfinibandDevices(deviceName string, ifDev *IBF, inject bool) error {
-	// load all devices
-	dents, err := ioutil.ReadDir(c.DevicesPath())
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-	}
-
-	err = c.addInfinibandDevicesPerPort(deviceName, ifDev, dents, inject)
-	if err != nil {
-		return err
-	}
-
-	return c.addInfinibandDevicesPerFun(deviceName, ifDev, inject)
-}
-
-func (c *containerLXC) removeInfinibandDevices(deviceName string, device types.Device) error {
-	// load all devices
-	dents, err := ioutil.ReadDir(c.DevicesPath())
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-	}
-
-	tmp := []string{}
-	ourInfinibandDevs := []string{}
-	prefix := fmt.Sprintf("infiniband.unix.")
-	ourPrefix := fmt.Sprintf("infiniband.unix.%s.", deviceName)
-	for _, ent := range dents {
-		// skip non infiniband.unix.<device-name> devices
-		devName := ent.Name()
-		if !strings.HasPrefix(devName, prefix) {
-			continue
-		}
-
-		// this is our infiniband device
-		if strings.HasPrefix(devName, ourPrefix) {
-			ourInfinibandDevs = append(ourInfinibandDevs, devName)
-			continue
-		}
-
-		// this someone else's infiniband device
-		tmp = append(tmp, devName)
-	}
-
-	residualInfinibandDevs := []string{}
-	for _, peerDevName := range tmp {
-		idx := strings.LastIndex(peerDevName, ".")
-		if idx == -1 {
-			return fmt.Errorf("Invalid infiniband device name \"%s\"", peerDevName)
-		}
-		rPeerPath := peerDevName[idx+1:]
-		rPeerPath = strings.Replace(rPeerPath, "-", "/", -1)
-		absPeerPath := fmt.Sprintf("/%s", rPeerPath)
-		residualInfinibandDevs = append(residualInfinibandDevs, absPeerPath)
-	}
-
-	ourName := fmt.Sprintf("infiniband.unix.%s", deviceName)
-	for _, devName := range ourInfinibandDevs {
-		idx := strings.LastIndex(devName, ".")
-		if idx == -1 {
-			return fmt.Errorf("Invalid infiniband device name \"%s\"", devName)
-		}
-		rPath := devName[idx+1:]
-		rPath = strings.Replace(rPath, "-", "/", -1)
-		absPath := fmt.Sprintf("/%s", rPath)
-
-		dummyDevice := types.Device{
-			"path": absPath,
-		}
-
-		if len(residualInfinibandDevs) == 0 {
-			err := c.removeUnixDevice(ourName, dummyDevice, true)
-			if err != nil {
-				return err
-			}
-			continue
-		}
-
-		eject := true
-		for _, peerDevPath := range residualInfinibandDevs {
-			if peerDevPath == absPath {
-				eject = false
-				break
-			}
-		}
-
-		err := c.removeUnixDevice(ourName, dummyDevice, eject)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (c *containerLXC) removeUnixDevices() error {
 	// Check that we indeed have devices to remove
 	if !shared.PathExists(c.DevicesPath()) {
@@ -7749,7 +7225,7 @@ func (c *containerLXC) removeUnixDevices() error {
 	// Go through all the unix devices
 	for _, f := range dents {
 		// Skip non-Unix devices
-		if !strings.HasPrefix(f.Name(), "unix.") && !strings.HasPrefix(f.Name(), "infiniband.unix.") {
+		if !strings.HasPrefix(f.Name(), "forkmknod.unix.") && !strings.HasPrefix(f.Name(), "unix.") && !strings.HasPrefix(f.Name(), "infiniband.unix.") {
 			continue
 		}
 
@@ -7764,499 +7240,10 @@ func (c *containerLXC) removeUnixDevices() error {
 	return nil
 }
 
-func (c *containerLXC) insertProxyDevice(devName string, m types.Device) error {
-	if !c.IsRunning() {
-		return fmt.Errorf("Can't add proxy device to stopped container")
-	}
-
-	if shared.IsTrue(m["nat"]) {
-		return c.doNat(devName, m)
-	}
-
-	proxyValues, err := setupProxyProcInfo(c, m)
-	if err != nil {
-		return err
-	}
-
-	devFileName := fmt.Sprintf("proxy.%s", devName)
-	pidPath := filepath.Join(c.DevicesPath(), devFileName)
-	logFileName := fmt.Sprintf("proxy.%s.log", devName)
-	logPath := filepath.Join(c.LogPath(), logFileName)
-
-	_, err = shared.RunCommand(
-		c.state.OS.ExecPath,
-		"forkproxy",
-		proxyValues.listenPid,
-		proxyValues.listenAddr,
-		proxyValues.connectPid,
-		proxyValues.connectAddr,
-		logPath,
-		pidPath,
-		proxyValues.listenAddrGid,
-		proxyValues.listenAddrUid,
-		proxyValues.listenAddrMode,
-		proxyValues.securityGid,
-		proxyValues.securityUid,
-		proxyValues.proxyProtocol,
-	)
-	if err != nil {
-		return fmt.Errorf("Error occurred when starting proxy device: %s", err)
-	}
-
-	return nil
-}
-
-func (c *containerLXC) doNat(proxy string, device types.Device) error {
-	listenAddr, err := proxyParseAddr(device["listen"])
-	if err != nil {
-		return err
-	}
-
-	connectAddr, err := proxyParseAddr(device["connect"])
-	if err != nil {
-		return err
-	}
-
-	address, _, err := net.SplitHostPort(connectAddr.addr[0])
-	if err != nil {
-		return err
-	}
-
-	var IPv4Addr string
-	var IPv6Addr string
-
-	for _, name := range c.expandedDevices.DeviceNames() {
-		m := c.expandedDevices[name]
-		if m["type"] != "nic" || (m["type"] == "nic" && m["nictype"] != "bridged") {
-			continue
-		}
-
-		// Check whether the NIC has a static IP
-		ip := m["ipv4.address"]
-		// Ensure that the provided IP address matches the container's IP
-		// address otherwise we could mess with other containers.
-		if ip != "" && IPv4Addr == "" && (address == ip || address == "0.0.0.0") {
-			IPv4Addr = ip
-		}
-
-		ip = m["ipv6.address"]
-		if ip != "" && IPv6Addr == "" && (address == ip || address == "::") {
-			IPv6Addr = ip
-		}
-	}
-
-	if IPv4Addr == "" && IPv6Addr == "" {
-		return fmt.Errorf("NIC IP doesn't match proxy target IP")
-	}
-
-	iptablesComment := fmt.Sprintf("%s (%s)", c.Name(), proxy)
-
-	revert := true
-	defer func() {
-		if revert {
-			if IPv4Addr != "" {
-				containerIptablesClear("ipv4", iptablesComment, "nat")
-			}
-
-			if IPv6Addr != "" {
-				containerIptablesClear("ipv6", iptablesComment, "nat")
-			}
-		}
-	}()
-
-	for i, lAddr := range listenAddr.addr {
-		address, port, err := net.SplitHostPort(lAddr)
-		if err != nil {
-			return err
-		}
-		var cPort string
-		if len(connectAddr.addr) == 1 {
-			_, cPort, _ = net.SplitHostPort(connectAddr.addr[0])
-		} else {
-			_, cPort, _ = net.SplitHostPort(connectAddr.addr[i])
-		}
-
-		if IPv4Addr != "" {
-			// outbound <-> container
-			err := containerIptablesPrepend("ipv4", iptablesComment, "nat",
-				"PREROUTING", "-p", listenAddr.connType, "--destination",
-				address, "--dport", port, "-j", "DNAT",
-				"--to-destination", fmt.Sprintf("%s:%s", IPv4Addr, cPort))
-			if err != nil {
-				return err
-			}
-
-			// host <-> container
-			err = containerIptablesPrepend("ipv4", iptablesComment, "nat",
-				"OUTPUT", "-p", listenAddr.connType, "--destination",
-				address, "--dport", port, "-j", "DNAT",
-				"--to-destination", fmt.Sprintf("%s:%s", IPv4Addr, cPort))
-			if err != nil {
-				return err
-			}
-		}
-
-		if IPv6Addr != "" {
-			// outbound <-> container
-			err := containerIptablesPrepend("ipv6", iptablesComment, "nat",
-				"PREROUTING", "-p", listenAddr.connType, "--destination",
-				address, "--dport", port, "-j", "DNAT",
-				"--to-destination", fmt.Sprintf("[%s]:%s", IPv6Addr, cPort))
-			if err != nil {
-				return err
-			}
-
-			// host <-> container
-			err = containerIptablesPrepend("ipv6", iptablesComment, "nat",
-				"OUTPUT", "-p", listenAddr.connType, "--destination",
-				address, "--dport", port, "-j", "DNAT",
-				"--to-destination", fmt.Sprintf("[%s]:%s", IPv6Addr, cPort))
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	revert = false
-	logger.Info(fmt.Sprintf("Using NAT for proxy device '%s'", proxy))
-	return nil
-}
-
-func (c *containerLXC) removeProxyDevice(devName string) error {
-	if !c.IsRunning() {
-		return fmt.Errorf("Can't remove proxy device from stopped container")
-	}
-
-	// Remove possible iptables entries
-	containerIptablesClear("ipv4", fmt.Sprintf("%s (%s)", c.Name(), devName), "nat")
-	containerIptablesClear("ipv6", fmt.Sprintf("%s (%s)", c.Name(), devName), "nat")
-
-	devFileName := fmt.Sprintf("proxy.%s", devName)
-	devPath := filepath.Join(c.DevicesPath(), devFileName)
-
-	if !shared.PathExists(devPath) {
-		// There's no proxy process if NAT is enabled
-		return nil
-	}
-
-	err := killProxyProc(devPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *containerLXC) removeProxyDevices() error {
-	// Remove possible iptables entries
-	containerIptablesClear("ipv4", fmt.Sprintf("%s", c.Name()), "nat")
-	containerIptablesClear("ipv6", fmt.Sprintf("%s", c.Name()), "nat")
-
-	// Check that we actually have devices to remove
-	if !shared.PathExists(c.DevicesPath()) {
-		return nil
-	}
-
-	// Load the directory listing
-	devFiles, err := ioutil.ReadDir(c.DevicesPath())
-	if err != nil {
-		return err
-	}
-
-	for _, f := range devFiles {
-		// Skip non-proxy devices
-		if !strings.HasPrefix(f.Name(), "proxy.") {
-			continue
-		}
-
-		// Kill the process
-		devicePath := filepath.Join(c.DevicesPath(), f.Name())
-		err = killProxyProc(devicePath)
-		if err != nil {
-			logger.Error("Failed removing proxy device", log.Ctx{"err": err, "path": devicePath})
-		}
-	}
-
-	return nil
-}
-
-func (c *containerLXC) updateProxyDevice(devName string, m types.Device) error {
-	if !c.IsRunning() {
-		return fmt.Errorf("Can't update proxy device in stopped container")
-	}
-
-	devFileName := fmt.Sprintf("proxy.%s", devName)
-	pidPath := filepath.Join(c.DevicesPath(), devFileName)
-	err := killProxyProc(pidPath)
-	if err != nil {
-		return fmt.Errorf("Error occurred when removing old proxy device: %v", err)
-	}
-
-	return c.insertProxyDevice(devName, m)
-}
-
-func (c *containerLXC) restartProxyDevices() error {
-	for _, name := range c.expandedDevices.DeviceNames() {
-		m := c.expandedDevices[name]
-		if m["type"] == "proxy" {
-			err := c.insertProxyDevice(name, m)
-			if err != nil {
-				return fmt.Errorf("Error when starting proxy device '%s' for container %s: %v\n", name, c.name, err)
-			}
-		}
-	}
-
-	return nil
-}
-
-// Network device handling
-func (c *containerLXC) createNetworkDevice(name string, m types.Device) (string, error) {
-	var dev, n1 string
-
-	if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p", "macvlan"}) {
-		// Host Virtual NIC name
-		if m["host_name"] != "" {
-			n1 = m["host_name"]
-		} else {
-			n1 = deviceNextVeth()
-		}
-	}
-
-	if m["nictype"] == "sriov" {
-		dev = m["host_name"]
-	}
-
-	// Handle bridged and p2p
-	if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-		n2 := deviceNextVeth()
-
-		_, err := shared.RunCommand("ip", "link", "add", "dev", n1, "type", "veth", "peer", "name", n2)
-		if err != nil {
-			return "", fmt.Errorf("Failed to create the veth interface: %s", err)
-		}
-
-		_, err = shared.RunCommand("ip", "link", "set", "dev", n1, "up")
-		if err != nil {
-			return "", fmt.Errorf("Failed to bring up the veth interface %s: %s", n1, err)
-		}
-
-		if m["nictype"] == "bridged" {
-			err = networkAttachInterface(m["parent"], n1)
-			if err != nil {
-				deviceRemoveInterface(n2)
-				return "", fmt.Errorf("Failed to add interface to bridge: %s", err)
-			}
-
-			// Attempt to disable router advertisement acceptance
-			networkSysctlSet(fmt.Sprintf("ipv6/conf/%s/accept_ra", n1), "0")
-		}
-
-		// Record the new device's host name for use in setupHostVethDevice()
-		hostNameKey := fmt.Sprintf("volatile.%s.host_name", name)
-		c.localConfig[hostNameKey] = n1
-
-		dev = n2
-	}
-
-	// Handle physical and macvlan
-	if shared.StringInSlice(m["nictype"], []string{"macvlan", "physical"}) {
-		// Deal with VLAN on parent
-		device, err := c.setupPhysicalParent(name, m)
-		if err != nil {
-			return "", err
-		}
-
-		// Handle physical
-		if m["nictype"] == "physical" {
-			dev = device
-		}
-
-		// Handle macvlan
-		if m["nictype"] == "macvlan" {
-			_, err := shared.RunCommand("ip", "link", "add", "dev", n1, "link", device, "type", "macvlan", "mode", "bridge")
-			if err != nil {
-				return "", fmt.Errorf("Failed to create the new macvlan interface: %s", err)
-			}
-
-			dev = n1
-		}
-	}
-
-	// Set the MAC address
-	if m["hwaddr"] != "" {
-		_, err := shared.RunCommand("ip", "link", "set", "dev", dev, "address", m["hwaddr"])
-		if err != nil {
-			deviceRemoveInterface(dev)
-			return "", fmt.Errorf("Failed to set the MAC address: %s", err)
-		}
-	}
-
-	// Set the MTU
-	if m["mtu"] != "" {
-		_, err := shared.RunCommand("ip", "link", "set", "dev", dev, "mtu", m["mtu"])
-		if err != nil {
-			deviceRemoveInterface(dev)
-			return "", fmt.Errorf("Failed to set the MTU: %s", err)
-		}
-	}
-
-	// Bring the interface up
-	_, err := shared.RunCommand("ip", "link", "set", "dev", dev, "up")
-	if err != nil {
-		deviceRemoveInterface(dev)
-		return "", fmt.Errorf("Failed to bring up the interface: %s", err)
-	}
-
-	// Set the filter
-	if m["nictype"] == "bridged" && shared.IsTrue(m["security.mac_filtering"]) {
-		err = c.createNetworkFilter(dev, m["parent"], m["hwaddr"])
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return dev, nil
-}
-
-func (c *containerLXC) fillSriovNetworkDevice(name string, m types.Device, reserved []string) (types.Device, error) {
-	if m["nictype"] != "sriov" {
-		return m, nil
-	}
-
-	if m["parent"] == "" {
-		return nil, fmt.Errorf("Missing parent for 'sriov' nic '%s'", name)
-	}
-
-	newDevice := types.Device{}
-	err := shared.DeepCopy(&m, &newDevice)
-	if err != nil {
-		return nil, err
-	}
-
-	if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", m["parent"])) {
-		return nil, fmt.Errorf("Parent device '%s' doesn't exist", m["parent"])
-	}
-	sriovNumVFs := fmt.Sprintf("/sys/class/net/%s/device/sriov_numvfs", m["parent"])
-	sriovTotalVFs := fmt.Sprintf("/sys/class/net/%s/device/sriov_totalvfs", m["parent"])
-
-	// verify that this is indeed a SR-IOV enabled device
-	if !shared.PathExists(sriovTotalVFs) {
-		return nil, fmt.Errorf("Parent device '%s' doesn't support SR-IOV", m["parent"])
-	}
-
-	// get number of currently enabled VFs
-	sriovNumVfsBuf, err := ioutil.ReadFile(sriovNumVFs)
-	if err != nil {
-		return nil, err
-	}
-	sriovNumVfsStr := strings.TrimSpace(string(sriovNumVfsBuf))
-	sriovNum, err := strconv.Atoi(sriovNumVfsStr)
-	if err != nil {
-		return nil, err
-	}
-
-	// get number of possible VFs
-	sriovTotalVfsBuf, err := ioutil.ReadFile(sriovTotalVFs)
-	if err != nil {
-		return nil, err
-	}
-	sriovTotalVfsStr := strings.TrimSpace(string(sriovTotalVfsBuf))
-	sriovTotal, err := strconv.Atoi(sriovTotalVfsStr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Ensure parent is up (needed for Intel at least)
-	_, err = shared.RunCommand("ip", "link", "set", "dev", m["parent"], "up")
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if any VFs are already enabled
-	nicName := ""
-	for i := 0; i < sriovNum; i++ {
-		if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s/device/virtfn%d/net", m["parent"], i)) {
-			continue
-		}
-
-		// Check if VF is already in use
-		empty, err := shared.PathIsEmpty(fmt.Sprintf("/sys/class/net/%s/device/virtfn%d/net", m["parent"], i))
-		if err != nil {
-			return nil, err
-		}
-		if empty {
-			continue
-		}
-
-		vf := fmt.Sprintf("/sys/class/net/%s/device/virtfn%d/net", m["parent"], i)
-		ents, err := ioutil.ReadDir(vf)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, ent := range ents {
-			// another nic device entry called dibs
-			if shared.StringInSlice(ent.Name(), reserved) {
-				continue
-			}
-
-			nicName = ent.Name()
-			break
-		}
-
-		// found a free one
-		if nicName != "" {
-			break
-		}
-	}
-
-	if nicName == "" && m["type"] != "infiniband" {
-		if sriovNum == sriovTotal {
-			return nil, fmt.Errorf("All virtual functions of sriov device '%s' seem to be in use", m["parent"])
-		}
-
-		// bump the number of VFs to the maximum
-		err := ioutil.WriteFile(sriovNumVFs, []byte(sriovTotalVfsStr), 0644)
-		if err != nil {
-			return nil, err
-		}
-
-		// use next free VF index
-		for i := sriovNum + 1; i < sriovTotal; i++ {
-			vf := fmt.Sprintf("/sys/class/net/%s/device/virtfn%d/net", m["parent"], i)
-			ents, err := ioutil.ReadDir(vf)
-			if err != nil {
-				return nil, err
-			}
-
-			if len(ents) != 1 {
-				return nil, fmt.Errorf("Failed to determine unique device name")
-			}
-
-			// another nic device entry called dibs
-			if shared.StringInSlice(ents[0].Name(), reserved) {
-				continue
-			}
-
-			// found a free one
-			nicName = ents[0].Name()
-			break
-		}
-	}
-
-	if nicName == "" {
-		return nil, fmt.Errorf("All virtual functions on device \"%s\" are already in use", name)
-	}
-
-	newDevice["host_name"] = nicName
-	hostNameKey := fmt.Sprintf("volatile.%s.host_name", name)
-	c.localConfig[hostNameKey] = nicName
-
-	return newDevice, nil
-}
-
-func (c *containerLXC) fillNetworkDevice(name string, m types.Device) (types.Device, error) {
-	newDevice := types.Device{}
+// fillNetworkDevice takes a nic or infiniband device type and enriches it with automatically
+// generated name and hwaddr properties if these are missing from the device.
+func (c *containerLXC) fillNetworkDevice(name string, m config.Device) (config.Device, error) {
+	newDevice := config.Device{}
 	err := shared.DeepCopy(&m, &newDevice)
 	if err != nil {
 		return nil, err
@@ -8293,7 +7280,7 @@ func (c *containerLXC) fillNetworkDevice(name string, m types.Device) (types.Dev
 		}
 
 		// Attempt to include all existing interfaces
-		cname := projectPrefix(c.Project(), c.Name())
+		cname := project.Prefix(c.Project(), c.Name())
 		cc, err := lxc.NewContainer(cname, c.state.OS.LxcPath)
 		if err == nil {
 			defer cc.Release()
@@ -8324,7 +7311,7 @@ func (c *containerLXC) fillNetworkDevice(name string, m types.Device) (types.Dev
 				return name, nil
 			}
 
-			i += 1
+			i++
 		}
 	}
 
@@ -8349,7 +7336,7 @@ func (c *containerLXC) fillNetworkDevice(name string, m types.Device) (types.Dev
 	}
 
 	// Fill in the MAC address
-	if !shared.StringInSlice(m["nictype"], []string{"physical", "ipvlan", "infiniband"}) && m["hwaddr"] == "" {
+	if !shared.StringInSlice(m["nictype"], []string{"physical", "ipvlan", "infiniband", "sriov"}) && m["hwaddr"] == "" {
 		configKey := fmt.Sprintf("volatile.%s.hwaddr", name)
 		volatileHwaddr := c.localConfig[configKey]
 		if volatileHwaddr == "" {
@@ -8418,212 +7405,8 @@ func (c *containerLXC) fillNetworkDevice(name string, m types.Device) (types.Dev
 	return newDevice, nil
 }
 
-// getVolatileHostName returns the last host_name stored for a nic device.
-// Can be used when the host_name of a nic is not statically defined in config and need to find
-// out what the most recently dynamically generated one is.
-func (c *containerLXC) getVolatileHostName(deviceName string) string {
-	hostNameKey := fmt.Sprintf("volatile.%s.host_name", deviceName)
-	return c.localConfig[hostNameKey]
-}
-
-func (c *containerLXC) createNetworkFilter(name string, bridge string, hwaddr string) error {
-	_, err := shared.RunCommand("ebtables", "-A", "FORWARD", "-s", "!", hwaddr, "-i", name, "-o", bridge, "-j", "DROP")
-	if err != nil {
-		return err
-	}
-
-	_, err = shared.RunCommand("ebtables", "-A", "INPUT", "-s", "!", hwaddr, "-i", name, "-j", "DROP")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *containerLXC) removeNetworkFilter(hwaddr string, bridge string) error {
-	out, err := shared.RunCommand("ebtables", "-L", "--Lmac2", "--Lx")
-	if err != nil {
-		return err
-	}
-
-	for _, line := range strings.Split(out, "\n") {
-		line = strings.TrimSpace(line)
-		fields := strings.Fields(line)
-
-		if len(fields) == 12 {
-			match := []string{"ebtables", "-t", "filter", "-A", "INPUT", "-s", "!", hwaddr, "-i", fields[9], "-j", "DROP"}
-			if reflect.DeepEqual(fields, match) {
-				fields[3] = "-D"
-				_, err = shared.RunCommand(fields[0], fields[1:]...)
-				if err != nil {
-					return err
-				}
-			}
-		} else if len(fields) == 14 {
-			match := []string{"ebtables", "-t", "filter", "-A", "FORWARD", "-s", "!", hwaddr, "-i", fields[9], "-o", bridge, "-j", "DROP"}
-			if reflect.DeepEqual(fields, match) {
-				fields[3] = "-D"
-				_, err = shared.RunCommand(fields[0], fields[1:]...)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (c *containerLXC) removeNetworkFilters() error {
-	for k, m := range c.expandedDevices {
-		if m["type"] != "nic" || m["nictype"] != "bridged" {
-			continue
-		}
-
-		m, err := c.fillNetworkDevice(k, m)
-		if err != nil {
-			return err
-		}
-
-		err = c.removeNetworkFilter(m["hwaddr"], m["parent"])
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (c *containerLXC) insertNetworkDevice(name string, m types.Device) (types.Device, error) {
-	// Load the go-lxc struct
-	err := c.initLXC(false)
-	if err != nil {
-		return m, nil
-	}
-
-	// Fill in some fields from volatile
-	m, err = c.fillNetworkDevice(name, m)
-	if err != nil {
-		return m, nil
-	}
-
-	if m["parent"] != "" && !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", m["parent"])) {
-		return nil, fmt.Errorf("Parent device '%s' doesn't exist", m["parent"])
-	}
-
-	// Return empty list if not running
-	if !c.IsRunning() {
-		return nil, fmt.Errorf("Can't insert device into stopped container")
-	}
-
-	// Fill in some fields from volatile
-	m, err = c.fillSriovNetworkDevice(name, m, []string{})
-	if err != nil {
-		return nil, err
-	}
-
-	// Block user trying to add an ipvlan nic on running container as is only supported via LXC
-	if m["nictype"] == "ipvlan" {
-		return nil, errors.New("Can't insert ipvlan device to running container")
-	}
-
-	// Create the interface
-	devName, err := c.createNetworkDevice(name, m)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add the interface to the container
-	err = c.c.AttachInterface(devName, m["name"])
-	if err != nil {
-		return nil, fmt.Errorf("Failed to attach interface: %s: %s", devName, err)
-	}
-
-	return m, nil
-}
-
-// checkIPVLANSupport checks whether the liblxc available has the necessary IPVLAN features.
-func (c *containerLXC) checkIPVLANSupport() error {
-	extensions := c.state.OS.LXCFeatures
-	if extensions["network_ipvlan"] && extensions["network_l2proxy"] && extensions["network_gateway_device_route"] {
-		return nil
-	}
-
-	return errors.New("LXC is missing one or more API extensions: network_ipvlan, network_l2proxy, network_gateway_device_route")
-}
-
-func (c *containerLXC) removeNetworkDevice(name string, m types.Device) error {
-	// Fill in some fields from volatile
-	m, err := c.fillNetworkDevice(name, m)
-	if err != nil {
-		return err
-	}
-
-	// Return empty list if not running
-	if !c.IsRunning() {
-		return fmt.Errorf("Can't remove device from stopped container")
-	}
-
-	// Get a temporary device name
-	var hostName string
-	if m["nictype"] == "physical" {
-		hostName = networkGetHostDevice(m["parent"], m["vlan"])
-	} else if m["nictype"] == "sriov" {
-		hostName = m["host_name"]
-	} else {
-		hostName = deviceNextVeth()
-	}
-
-	// For some reason, having network config confuses detach, so get our own go-lxc struct
-	cname := projectPrefix(c.Project(), c.Name())
-	cc, err := lxc.NewContainer(cname, c.state.OS.LxcPath)
-	if err != nil {
-		return err
-	}
-	defer cc.Release()
-
-	// Check if interface exists inside container namespace
-	ifaces, err := cc.Interfaces()
-	if err != nil {
-		return fmt.Errorf("Failed to list network interfaces: %v", err)
-	}
-
-	// Remove the interface from the container if it exists
-	if shared.StringInSlice(m["name"], ifaces) {
-		err = cc.DetachInterfaceRename(m["name"], hostName)
-		if err != nil {
-			return fmt.Errorf("Failed to detach interface: %s to %s: %v", m["name"], hostName, err)
-		}
-	}
-
-	// Remove any static veth routes
-	if shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-		c.removeNetworkRoutes(name, m)
-	}
-
-	// If physical dev, restore MTU using value recorded on parent after removal from container.
-	if m["nictype"] == "physical" {
-		c.restorePhysicalParent(name, m, "")
-	}
-
-	// If a veth, destroy it
-	if m["nictype"] != "physical" && m["nictype"] != "sriov" {
-		deviceRemoveInterface(hostName)
-	}
-
-	// Remove any filter
-	if m["nictype"] == "bridged" {
-		err = c.removeNetworkFilter(m["hwaddr"], m["parent"])
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // Disk device handling
-func (c *containerLXC) createDiskDevice(name string, m types.Device) (string, error) {
+func (c *containerLXC) createDiskDevice(name string, m config.Device) (string, error) {
 	// source paths
 	relativeDestPath := strings.TrimPrefix(m["path"], "/")
 	devName := fmt.Sprintf("disk.%s.%s", strings.Replace(name, "/", "-", -1), strings.Replace(relativeDestPath, "/", "-", -1))
@@ -8637,7 +7420,7 @@ func (c *containerLXC) createDiskDevice(name string, m types.Device) (string, er
 
 	isFile := false
 	if m["pool"] == "" {
-		isFile = !shared.IsDir(srcPath) && !deviceIsBlockdev(srcPath)
+		isFile = !shared.IsDir(srcPath) && !device.IsBlockdev(srcPath)
 	} else {
 		// Deal with mounting storage volumes created via the storage
 		// api. Extract the name of the storage volume that we are
@@ -8742,7 +7525,7 @@ func (c *containerLXC) createDiskDevice(name string, m types.Device) (string, er
 	}
 
 	// Mount the fs
-	err := deviceMountDisk(srcPath, devPath, isReadOnly, isRecursive, m["propagation"])
+	err := device.DiskMount(srcPath, devPath, isReadOnly, isRecursive, m["propagation"])
 	if err != nil {
 		return "", err
 	}
@@ -8750,7 +7533,7 @@ func (c *containerLXC) createDiskDevice(name string, m types.Device) (string, er
 	return devPath, nil
 }
 
-func (c *containerLXC) insertDiskDevice(name string, m types.Device) error {
+func (c *containerLXC) insertDiskDevice(name string, m config.Device) error {
 	// Check that the container is running
 	if !c.IsRunning() {
 		return fmt.Errorf("Can't insert device into stopped container")
@@ -8773,9 +7556,34 @@ func (c *containerLXC) insertDiskDevice(name string, m types.Device) error {
 		flags |= unix.MS_REC
 	}
 
+	// Detect shifting
+	shift := false
+	if !c.isCurrentlyPrivileged() {
+		shift = shared.IsTrue(m["shift"])
+		if !shift && m["pool"] != "" {
+			poolID, _, err := c.state.Cluster.StoragePoolGet(m["pool"])
+			if err != nil {
+				return err
+			}
+
+			_, volume, err := c.state.Cluster.StoragePoolNodeVolumeGetTypeByProject(c.project, m["source"], storagePoolVolumeTypeCustom, poolID)
+			if err != nil {
+				return err
+			}
+
+			if shared.IsTrue(volume.Config["security.shifted"]) {
+				shift = true
+			}
+		}
+	}
+
+	if shift && !c.state.OS.Shiftfs {
+		return fmt.Errorf("shiftfs is required by disk entry '%s' but isn't supported on system", name)
+	}
+
 	// Bind-mount it into the container
 	destPath := strings.TrimSuffix(m["path"], "/")
-	err = c.insertMount(devPath, destPath, "none", flags)
+	err = c.insertMount(devPath, destPath, "none", flags, shift)
 	if err != nil {
 		return fmt.Errorf("Failed to add mount for device: %s", err)
 	}
@@ -8783,7 +7591,7 @@ func (c *containerLXC) insertDiskDevice(name string, m types.Device) error {
 	return nil
 }
 
-type byPath []types.Device
+type byPath []config.Device
 
 func (a byPath) Len() int {
 	return len(a)
@@ -8797,7 +7605,7 @@ func (a byPath) Less(i, j int) bool {
 	return a[i]["path"] < a[j]["path"]
 }
 
-func (c *containerLXC) addDiskDevices(devices map[string]types.Device, handler func(string, types.Device) error) error {
+func (c *containerLXC) addDiskDevices(devices map[string]config.Device, handler func(string, config.Device) error) error {
 	ordered := byPath{}
 
 	for _, d := range devices {
@@ -8824,7 +7632,7 @@ func (c *containerLXC) addDiskDevices(devices map[string]types.Device, handler f
 	return nil
 }
 
-func (c *containerLXC) removeDiskDevice(name string, m types.Device) error {
+func (c *containerLXC) removeDiskDevice(name string, m config.Device) error {
 	// Check that the container is running
 	pid := c.InitPID()
 	if pid == -1 {
@@ -9105,166 +7913,6 @@ func (c *containerLXC) setNetworkPriority() error {
 	return nil
 }
 
-// setNetworkRoutes applies any static routes configured from the host to the container nic.
-func (c *containerLXC) setNetworkRoutes(deviceName string, m types.Device, oldDevice types.Device) error {
-	if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", m["host_name"])) {
-		return fmt.Errorf("Unknown or missing host side veth: %s", m["host_name"])
-	}
-
-	// Remove any old routes that were setup for this nic device.
-	c.removeNetworkRoutes(deviceName, oldDevice)
-
-	// Decide whether the route should point to the veth parent or the bridge parent
-	routeDev := m["host_name"]
-	if m["nictype"] == "bridged" {
-		routeDev = m["parent"]
-	}
-
-	// Add additional IPv4 routes (using boot proto to avoid conflicts with network static routes)
-	if m["ipv4.routes"] != "" {
-		for _, route := range strings.Split(m["ipv4.routes"], ",") {
-			route = strings.TrimSpace(route)
-			_, err := shared.RunCommand("ip", "-4", "route", "add", route, "dev", routeDev, "proto", "boot")
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	// Add additional IPv6 routes (using boot proto to avoid conflicts with network static routes)
-	if m["ipv6.routes"] != "" {
-		for _, route := range strings.Split(m["ipv6.routes"], ",") {
-			route = strings.TrimSpace(route)
-			_, err := shared.RunCommand("ip", "-6", "route", "add", route, "dev", routeDev, "proto", "boot")
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// removeNetworkRoutes removes any routes created for this device on the host that were first added
-// with setNetworkRoutes(). Expects to be passed the device config from the oldExpandedDevices.
-func (c *containerLXC) removeNetworkRoutes(deviceName string, m types.Device) {
-	// If not configured, check if volatile data contains the most recently added host_name.
-	if m["host_name"] == "" {
-		m["host_name"] = c.getVolatileHostName(deviceName)
-	}
-
-	// Decide whether the route should point to the veth parent or the bridge parent
-	routeDev := m["host_name"]
-	if m["nictype"] == "bridged" {
-		routeDev = m["parent"]
-	}
-
-	if m["ipv4.routes"] != "" || m["ipv6.routes"] != "" {
-		if routeDev == "" {
-			logger.Errorf("Failed to remove static routes as route dev isn't set")
-			return
-		}
-
-		if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", routeDev)) {
-			return //Routes will already be gone if device doesn't exist.
-		}
-	}
-
-	// Remove IPv4 routes
-	if m["ipv4.routes"] != "" {
-		for _, route := range strings.Split(m["ipv4.routes"], ",") {
-			route = strings.TrimSpace(route)
-			_, err := shared.RunCommand("ip", "-4", "route", "flush", route, "dev", routeDev, "proto", "boot")
-			if err != nil {
-				logger.Errorf("Failed to remove static route: %s to %s: %s", route, routeDev, err)
-			}
-		}
-	}
-
-	// Remove IPv6 routes
-	if m["ipv6.routes"] != "" {
-		for _, route := range strings.Split(m["ipv6.routes"], ",") {
-			route = strings.TrimSpace(route)
-			_, err := shared.RunCommand("ip", "-6", "route", "flush", route, "dev", routeDev, "proto", "boot")
-			if err != nil {
-				logger.Errorf("Failed to remove static route: %s to %s: %s", route, routeDev, err)
-			}
-		}
-	}
-}
-
-func (c *containerLXC) setNetworkLimits(m types.Device) error {
-	var err error
-	// We can only do limits on some network type
-	if m["nictype"] != "bridged" && m["nictype"] != "p2p" {
-		return fmt.Errorf("Network limits are only supported on bridged and p2p interfaces")
-	}
-
-	veth := m["host_name"]
-	if !shared.PathExists(fmt.Sprintf("/sys/class/net/%s", veth)) {
-		return fmt.Errorf("Unknown or missing host side veth: %s", veth)
-	}
-
-	// Apply max limit
-	if m["limits.max"] != "" {
-		m["limits.ingress"] = m["limits.max"]
-		m["limits.egress"] = m["limits.max"]
-	}
-
-	// Parse the values
-	var ingressInt int64
-	if m["limits.ingress"] != "" {
-		ingressInt, err = shared.ParseBitSizeString(m["limits.ingress"])
-		if err != nil {
-			return err
-		}
-	}
-
-	var egressInt int64
-	if m["limits.egress"] != "" {
-		egressInt, err = shared.ParseBitSizeString(m["limits.egress"])
-		if err != nil {
-			return err
-		}
-	}
-
-	// Clean any existing entry
-	shared.RunCommand("tc", "qdisc", "del", "dev", veth, "root")
-	shared.RunCommand("tc", "qdisc", "del", "dev", veth, "ingress")
-
-	// Apply new limits
-	if m["limits.ingress"] != "" {
-		out, err := shared.RunCommand("tc", "qdisc", "add", "dev", veth, "root", "handle", "1:0", "htb", "default", "10")
-		if err != nil {
-			return fmt.Errorf("Failed to create root tc qdisc: %s", out)
-		}
-
-		out, err = shared.RunCommand("tc", "class", "add", "dev", veth, "parent", "1:0", "classid", "1:10", "htb", "rate", fmt.Sprintf("%dbit", ingressInt))
-		if err != nil {
-			return fmt.Errorf("Failed to create limit tc class: %s", out)
-		}
-
-		out, err = shared.RunCommand("tc", "filter", "add", "dev", veth, "parent", "1:0", "protocol", "all", "u32", "match", "u32", "0", "0", "flowid", "1:1")
-		if err != nil {
-			return fmt.Errorf("Failed to create tc filter: %s", out)
-		}
-	}
-
-	if m["limits.egress"] != "" {
-		out, err := shared.RunCommand("tc", "qdisc", "add", "dev", veth, "handle", "ffff:0", "ingress")
-		if err != nil {
-			return fmt.Errorf("Failed to create ingress tc qdisc: %s", out)
-		}
-
-		out, err = shared.RunCommand("tc", "filter", "add", "dev", veth, "parent", "ffff:0", "protocol", "all", "u32", "match", "u32", "0", "0", "police", "rate", fmt.Sprintf("%dbit", egressInt), "burst", "1024k", "mtu", "64kb", "drop")
-		if err != nil {
-			return fmt.Errorf("Failed to create ingress tc qdisc: %s", out)
-		}
-	}
-
-	return nil
-}
-
 // Various state query functions
 func (c *containerLXC) IsStateful() bool {
 	return c.stateful
@@ -9323,7 +7971,7 @@ func (c *containerLXC) ExpandedConfig() map[string]string {
 	return c.expandedConfig
 }
 
-func (c *containerLXC) ExpandedDevices() types.Devices {
+func (c *containerLXC) ExpandedDevices() config.Devices {
 	return c.expandedDevices
 }
 
@@ -9345,7 +7993,7 @@ func (c *containerLXC) LocalConfig() map[string]string {
 	return c.localConfig
 }
 
-func (c *containerLXC) LocalDevices() types.Devices {
+func (c *containerLXC) LocalDevices() config.Devices {
 	return c.localDevices
 }
 
@@ -9416,22 +8064,22 @@ func (c *containerLXC) State() string {
 
 // Various container paths
 func (c *containerLXC) Path() string {
-	name := projectPrefix(c.Project(), c.Name())
+	name := project.Prefix(c.Project(), c.Name())
 	return containerPath(name, c.IsSnapshot())
 }
 
 func (c *containerLXC) DevicesPath() string {
-	name := projectPrefix(c.Project(), c.Name())
+	name := project.Prefix(c.Project(), c.Name())
 	return shared.VarPath("devices", name)
 }
 
 func (c *containerLXC) ShmountsPath() string {
-	name := projectPrefix(c.Project(), c.Name())
+	name := project.Prefix(c.Project(), c.Name())
 	return shared.VarPath("shmounts", name)
 }
 
 func (c *containerLXC) LogPath() string {
-	name := projectPrefix(c.Project(), c.Name())
+	name := project.Prefix(c.Project(), c.Name())
 	return shared.LogPath(name)
 }
 
@@ -9503,9 +8151,9 @@ func (c *containerLXC) updateProgress(progress string) {
 }
 
 // Internal MAAS handling
-func (c *containerLXC) maasInterfaces() ([]maas.ContainerInterface, error) {
+func (c *containerLXC) maasInterfaces(devices map[string]map[string]string) ([]maas.ContainerInterface, error) {
 	interfaces := []maas.ContainerInterface{}
-	for k, m := range c.expandedDevices {
+	for k, m := range devices {
 		if m["type"] != "nic" {
 			continue
 		}
@@ -9553,21 +8201,8 @@ func (c *containerLXC) maasInterfaces() ([]maas.ContainerInterface, error) {
 	return interfaces, nil
 }
 
-func (c *containerLXC) maasConnected() bool {
-	for _, m := range c.expandedDevices {
-		if m["type"] != "nic" {
-			continue
-		}
-
-		if m["maas.subnet.ipv4"] != "" || m["maas.subnet.ipv6"] != "" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (c *containerLXC) maasUpdate(force bool) error {
+func (c *containerLXC) maasUpdate(oldDevices map[string]map[string]string) error {
+	// Check if MAAS is configured
 	maasURL, err := cluster.ConfigGetString(c.state.Cluster, "maas.api.url")
 	if err != nil {
 		return err
@@ -9577,39 +8212,43 @@ func (c *containerLXC) maasUpdate(force bool) error {
 		return nil
 	}
 
-	if c.state.MAAS == nil {
-		return fmt.Errorf("Can't perform the operation because MAAS is currently unavailable")
-	}
-
-	if !c.maasConnected() {
-		if force {
-			exists, err := c.state.MAAS.DefinedContainer(c.name)
-			if err != nil {
-				return err
-			}
-
-			if exists {
-				return c.state.MAAS.DeleteContainer(c.name)
-			}
-		}
-		return nil
-	}
-
-	interfaces, err := c.maasInterfaces()
+	// Check if there's something that uses MAAS
+	interfaces, err := c.maasInterfaces(c.expandedDevices)
 	if err != nil {
 		return err
 	}
 
-	exists, err := c.state.MAAS.DefinedContainer(c.name)
+	var oldInterfaces []maas.ContainerInterface
+	if oldDevices != nil {
+		oldInterfaces, err = c.maasInterfaces(oldDevices)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(interfaces) == 0 && len(oldInterfaces) == 0 {
+		return nil
+	}
+
+	// See if we're connected to MAAS
+	if c.state.MAAS == nil {
+		return fmt.Errorf("Can't perform the operation because MAAS is currently unavailable")
+	}
+
+	exists, err := c.state.MAAS.DefinedContainer(project.Prefix(c.project, c.name))
 	if err != nil {
 		return err
 	}
 
 	if exists {
-		return c.state.MAAS.UpdateContainer(c.name, interfaces)
+		if len(interfaces) == 0 && len(oldInterfaces) > 0 {
+			return c.state.MAAS.DeleteContainer(project.Prefix(c.project, c.name))
+		}
+
+		return c.state.MAAS.UpdateContainer(project.Prefix(c.project, c.name), interfaces)
 	}
 
-	return c.state.MAAS.CreateContainer(c.name, interfaces)
+	return c.state.MAAS.CreateContainer(project.Prefix(c.project, c.name), interfaces)
 }
 
 func (c *containerLXC) maasRename(newName string) error {
@@ -9622,24 +8261,29 @@ func (c *containerLXC) maasRename(newName string) error {
 		return nil
 	}
 
+	interfaces, err := c.maasInterfaces(c.expandedDevices)
+	if err != nil {
+		return err
+	}
+
+	if len(interfaces) == 0 {
+		return nil
+	}
+
 	if c.state.MAAS == nil {
 		return fmt.Errorf("Can't perform the operation because MAAS is currently unavailable")
 	}
 
-	if !c.maasConnected() {
-		return nil
-	}
-
-	exists, err := c.state.MAAS.DefinedContainer(c.name)
+	exists, err := c.state.MAAS.DefinedContainer(project.Prefix(c.project, c.name))
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		return c.maasUpdate(false)
+		return c.maasUpdate(nil)
 	}
 
-	return c.state.MAAS.RenameContainer(c.name, newName)
+	return c.state.MAAS.RenameContainer(project.Prefix(c.project, c.name), project.Prefix(c.project, newName))
 }
 
 func (c *containerLXC) maasDelete() error {
@@ -9652,15 +8296,20 @@ func (c *containerLXC) maasDelete() error {
 		return nil
 	}
 
+	interfaces, err := c.maasInterfaces(c.expandedDevices)
+	if err != nil {
+		return err
+	}
+
+	if len(interfaces) == 0 {
+		return nil
+	}
+
 	if c.state.MAAS == nil {
 		return fmt.Errorf("Can't perform the operation because MAAS is currently unavailable")
 	}
 
-	if !c.maasConnected() {
-		return nil
-	}
-
-	exists, err := c.state.MAAS.DefinedContainer(c.name)
+	exists, err := c.state.MAAS.DefinedContainer(project.Prefix(c.project, c.name))
 	if err != nil {
 		return err
 	}
@@ -9669,5 +8318,5 @@ func (c *containerLXC) maasDelete() error {
 		return nil
 	}
 
-	return c.state.MAAS.DeleteContainer(c.name)
+	return c.state.MAAS.DeleteContainer(project.Prefix(c.project, c.name))
 }

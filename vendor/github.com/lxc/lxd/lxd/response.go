@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	dqlite "github.com/CanonicalLtd/go-dqlite"
+	dqlite "github.com/canonical/go-dqlite"
 	"github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 
@@ -518,9 +518,11 @@ func PreconditionFailed(err error) Response {
  * SmartError returns the right error message based on err.
  */
 func SmartError(err error) Response {
-	switch errors.Cause(err) {
-	case nil:
+	if err == nil {
 		return EmptySyncResponse
+	}
+
+	switch errors.Cause(err) {
 	case os.ErrNotExist, sql.ErrNoRows, db.ErrNoSuchObject:
 		return NotFound(nil)
 	case os.ErrPermission:

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -10,18 +11,18 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 	"gopkg.in/lxc/go-lxc.v2"
 	"gopkg.in/robfig/cron.v2"
 
 	"github.com/flosch/pongo2"
 	"github.com/lxc/lxd/lxd/cluster"
 	"github.com/lxc/lxd/lxd/db"
+	"github.com/lxc/lxd/lxd/device"
+	"github.com/lxc/lxd/lxd/device/config"
 	"github.com/lxc/lxd/lxd/state"
 	"github.com/lxc/lxd/lxd/sys"
 	"github.com/lxc/lxd/lxd/task"
-	"github.com/lxc/lxd/lxd/types"
-	"github.com/lxc/lxd/lxd/util"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/idmap"
@@ -29,8 +30,37 @@ import (
 	log "github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logger"
 	"github.com/lxc/lxd/shared/osarch"
-	"github.com/pkg/errors"
+	"github.com/lxc/lxd/shared/units"
 )
+
+func init() {
+	// Expose containerLoadNodeAll to the device package converting the response to a slice of InstanceIdentifiers.
+	// This is because container types are defined in the main package and are not importable.
+	device.InstanceLoadNodeAll = func(s *state.State) ([]device.InstanceIdentifier, error) {
+		containers, err := containerLoadNodeAll(s)
+		if err != nil {
+			return nil, err
+		}
+
+		identifiers := []device.InstanceIdentifier{}
+		for _, v := range containers {
+			identifiers = append(identifiers, device.InstanceIdentifier(v))
+		}
+
+		return identifiers, nil
+	}
+
+	// Expose containerLoadByProjectAndName to the device package converting the response to an InstanceIdentifier.
+	// This is because container types are defined in the main package and are not importable.
+	device.InstanceLoadByProjectAndName = func(s *state.State, project, name string) (device.InstanceIdentifier, error) {
+		container, err := containerLoadByProjectAndName(s, project, name)
+		if err != nil {
+			return nil, err
+		}
+
+		return device.InstanceIdentifier(container), nil
+	}
+}
 
 // Helper functions
 
@@ -91,10 +121,6 @@ func containerValidConfigKey(os *sys.OS, key string, value string) error {
 	return nil
 }
 
-var containerNetworkLimitKeys = []string{"limits.max", "limits.ingress", "limits.egress"}
-var containerNetworkRouteKeys = []string{"ipv4.routes", "ipv6.routes"}
-var containerNetworkKeys = append(containerNetworkLimitKeys, containerNetworkRouteKeys...)
-
 func containerValidDeviceConfigKey(t, k string) bool {
 	if k == "type" {
 		return true
@@ -122,45 +148,6 @@ func containerValidDeviceConfigKey(t, k string) bool {
 		default:
 			return false
 		}
-	case "nic":
-		switch k {
-		case "limits.max":
-			return true
-		case "limits.ingress":
-			return true
-		case "limits.egress":
-			return true
-		case "host_name":
-			return true
-		case "hwaddr":
-			return true
-		case "mtu":
-			return true
-		case "name":
-			return true
-		case "nictype":
-			return true
-		case "parent":
-			return true
-		case "vlan":
-			return true
-		case "ipv4.address":
-			return true
-		case "ipv6.address":
-			return true
-		case "ipv4.routes":
-			return true
-		case "ipv6.routes":
-			return true
-		case "security.mac_filtering":
-			return true
-		case "maas.subnet.ipv4":
-			return true
-		case "maas.subnet.ipv6":
-			return true
-		default:
-			return false
-		}
 	case "disk":
 		switch k {
 		case "limits.max":
@@ -184,6 +171,8 @@ func containerValidDeviceConfigKey(t, k string) bool {
 		case "pool":
 			return true
 		case "propagation":
+			return true
+		case "shift":
 			return true
 		default:
 			return false
@@ -218,46 +207,6 @@ func containerValidDeviceConfigKey(t, k string) bool {
 		case "mode":
 			return true
 		case "gid":
-			return true
-		case "uid":
-			return true
-		default:
-			return false
-		}
-	case "infiniband":
-		switch k {
-		case "hwaddr":
-			return true
-		case "mtu":
-			return true
-		case "name":
-			return true
-		case "nictype":
-			return true
-		case "parent":
-			return true
-		default:
-			return false
-		}
-	case "proxy":
-		switch k {
-		case "bind":
-			return true
-		case "connect":
-			return true
-		case "gid":
-			return true
-		case "listen":
-			return true
-		case "mode":
-			return true
-		case "proxy_protocol":
-			return true
-		case "nat":
-			return true
-		case "security.gid":
-			return true
-		case "security.uid":
 			return true
 		case "uid":
 			return true
@@ -341,7 +290,7 @@ func containerValidConfig(sysOS *sys.OS, config map[string]string, profile bool,
 	return nil
 }
 
-func containerValidDevices(cluster *db.Cluster, devices types.Devices, profile bool, expanded bool) error {
+func containerValidDevices(state *state.State, cluster *db.Cluster, devices config.Devices, profile bool, expanded bool) error {
 	// Empty device list
 	if devices == nil {
 		return nil
@@ -358,81 +307,22 @@ func containerValidDevices(cluster *db.Cluster, devices types.Devices, profile b
 			return fmt.Errorf("Invalid device type for device '%s'", name)
 		}
 
+		// Validate config using device interface.
+		_, err := device.New(&containerLXC{}, state, name, config.Device(m), nil, nil)
+		if err != device.ErrUnsupportedDevType {
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
 		for k := range m {
 			if !containerValidDeviceConfigKey(m["type"], k) {
 				return fmt.Errorf("Invalid device configuration key for %s: %s", m["type"], k)
 			}
 		}
 
-		if m["type"] == "nic" {
-			if m["nictype"] == "" {
-				return fmt.Errorf("Missing nic type")
-			}
-
-			if !shared.StringInSlice(m["nictype"], []string{"bridged", "macvlan", "ipvlan", "p2p", "physical", "sriov"}) {
-				return fmt.Errorf("Bad nic type: %s", m["nictype"])
-			}
-
-			if shared.StringInSlice(m["nictype"], []string{"bridged", "macvlan", "ipvlan", "physical", "sriov"}) && m["parent"] == "" {
-				return fmt.Errorf("Missing parent for %s type nic", m["nictype"])
-			}
-
-			if m["ipv4.address"] != "" {
-				if m["nictype"] == "ipvlan" {
-					err := networkValidAddressV4List(m["ipv4.address"])
-					if err != nil {
-						return err
-					}
-				} else {
-					err := networkValidAddressV4(m["ipv4.address"])
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			if m["ipv6.address"] != "" {
-				if m["nictype"] == "ipvlan" {
-					err := networkValidAddressV6List(m["ipv6.address"])
-					if err != nil {
-						return err
-					}
-				} else {
-					err := networkValidAddressV6(m["ipv6.address"])
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			if m["ipv4.routes"] != "" {
-				if !shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-					return fmt.Errorf("Bad nic type for ipv4.routes: %s", m["nictype"])
-				}
-
-				for _, route := range strings.Split(m["ipv4.routes"], ",") {
-					route = strings.TrimSpace(route)
-					err := networkValidNetworkV4(route)
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			if m["ipv6.routes"] != "" {
-				if !shared.StringInSlice(m["nictype"], []string{"bridged", "p2p"}) {
-					return fmt.Errorf("Bad nic type for ipv6.routes: %s", m["nictype"])
-				}
-
-				for _, route := range strings.Split(m["ipv6.routes"], ",") {
-					route = strings.TrimSpace(route)
-					err := networkValidNetworkV6(route)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		} else if m["type"] == "infiniband" {
+		if m["type"] == "infiniband" {
 			if m["nictype"] == "" {
 				return fmt.Errorf("Missing nic type")
 			}
@@ -496,12 +386,14 @@ func containerValidDevices(cluster *db.Cluster, devices types.Devices, profile b
 			}
 
 			if m["propagation"] != "" {
-				if !util.RuntimeLiblxcVersionAtLeast(3, 0, 0) {
-					return fmt.Errorf("liblxc 3.0 is required for mount propagation configuration")
-				}
-
 				if !shared.StringInSlice(m["propagation"], []string{"private", "shared", "slave", "unbindable", "rprivate", "rshared", "rslave", "runbindable"}) {
 					return fmt.Errorf("Invalid propagation mode '%s'", m["propagation"])
+				}
+			}
+
+			if m["shift"] != "" {
+				if m["pool"] != "" {
+					return fmt.Errorf("The \"shift\" property cannot be used with custom storage volumes")
 				}
 			}
 		} else if shared.StringInSlice(m["type"], []string{"unix-char", "unix-block"}) {
@@ -518,7 +410,7 @@ func containerValidDevices(cluster *db.Cluster, devices types.Devices, profile b
 					return fmt.Errorf("The device path doesn't exist on the host and major/minor wasn't specified")
 				}
 
-				dType, _, _, err := deviceGetAttributes(srcPath)
+				dType, _, _, err := device.UnixGetDeviceAttributes(srcPath)
 				if err != nil {
 					return err
 				}
@@ -545,52 +437,6 @@ func containerValidDevices(cluster *db.Cluster, devices types.Devices, profile b
 			if m["id"] != "" && (m["pci"] != "" || m["productid"] != "" || m["vendorid"] != "") {
 				return fmt.Errorf("Cannot use pci, productid or vendorid when id is set")
 			}
-		} else if m["type"] == "proxy" {
-			if m["listen"] == "" {
-				return fmt.Errorf("Proxy device entry is missing the required \"listen\" property")
-			}
-
-			if m["connect"] == "" {
-				return fmt.Errorf("Proxy device entry is missing the required \"connect\" property")
-			}
-
-			listenAddr, err := proxyParseAddr(m["listen"])
-			if err != nil {
-				return err
-			}
-
-			connectAddr, err := proxyParseAddr(m["connect"])
-			if err != nil {
-				return err
-			}
-
-			if len(connectAddr.addr) > len(listenAddr.addr) {
-				// Cannot support single port -> multiple port
-				return fmt.Errorf("Cannot map a single port to multiple ports")
-			}
-
-			if shared.IsTrue(m["proxy_protocol"]) && !strings.HasPrefix(m["connect"], "tcp") {
-				return fmt.Errorf("The PROXY header can only be sent to tcp servers")
-			}
-
-			if (!strings.HasPrefix(m["listen"], "unix:") || strings.HasPrefix(m["listen"], "unix:@")) &&
-				(m["uid"] != "" || m["gid"] != "" || m["mode"] != "") {
-				return fmt.Errorf("Only proxy devices for non-abstract unix sockets can carry uid, gid, or mode properties")
-			}
-
-			if shared.IsTrue(m["nat"]) {
-				if m["bind"] != "" && m["bind"] != "host" {
-					return fmt.Errorf("Only host-bound proxies can use NAT")
-				}
-
-				// Support TCP <-> TCP and UDP <-> UDP
-				if listenAddr.connType == "unix" || connectAddr.connType == "unix" ||
-					listenAddr.connType != connectAddr.connType {
-					return fmt.Errorf("Proxying %s <-> %s is not supported when using NAT",
-						listenAddr.connType, connectAddr.connType)
-				}
-			}
-
 		} else if m["type"] == "none" {
 			continue
 		} else {
@@ -665,7 +511,7 @@ type container interface {
 	         *      (the PID returned in the first return argument). It can however
 	         *      be used to e.g. forward signals.)
 	*/
-	Exec(command []string, env map[string]string, stdin *os.File, stdout *os.File, stderr *os.File, wait bool) (*exec.Cmd, int, int, error)
+	Exec(command []string, env map[string]string, stdin *os.File, stdout *os.File, stderr *os.File, wait bool, cwd string, uid uint32, gid uint32) (*exec.Cmd, int, int, error)
 
 	// Status
 	Render() (interface{}, interface{}, error)
@@ -683,21 +529,21 @@ type container interface {
 	OnStart() error
 	OnStopNS(target string, netns string) error
 	OnStop(target string) error
-	OnNetworkUp(deviceName string, hostVeth string) error
 
 	// Properties
 	Id() int
 	Location() string
 	Project() string
 	Name() string
+	Type() string
 	Description() string
 	Architecture() int
 	CreationDate() time.Time
 	LastUsedDate() time.Time
 	ExpandedConfig() map[string]string
-	ExpandedDevices() types.Devices
+	ExpandedDevices() config.Devices
 	LocalConfig() map[string]string
-	LocalDevices() types.Devices
+	LocalDevices() config.Devices
 	Profiles() []string
 	InitPID() int
 	State() string
@@ -711,6 +557,7 @@ type container interface {
 	LogFilePath() string
 	ConsoleBufferLogPath() string
 	LogPath() string
+	DevicesPath() string
 
 	// Storage
 	StoragePool() (string, error)
@@ -725,6 +572,7 @@ type container interface {
 	Storage() storage
 	TemplateApply(trigger string) error
 	DaemonState() *state.State
+	InsertSeccompUnixDevice(prefix string, m config.Device, pid int) error
 
 	CurrentIdmap() (*idmap.IdmapSet, error)
 	DiskIdmap() (*idmap.IdmapSet, error)
@@ -1186,7 +1034,7 @@ func containerCreateInternal(s *state.State, args db.ContainerArgs) (container, 
 	}
 
 	if args.Devices == nil {
-		args.Devices = types.Devices{}
+		args.Devices = config.Devices{}
 	}
 
 	if args.Architecture == 0 {
@@ -1211,7 +1059,7 @@ func containerCreateInternal(s *state.State, args db.ContainerArgs) (container, 
 	}
 
 	// Validate container devices
-	err = containerValidDevices(s.Cluster, args.Devices, false, false)
+	err = containerValidDevices(s, s.Cluster, args.Devices, false, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "Invalid devices")
 	}
@@ -1355,7 +1203,7 @@ func containerConfigureInternal(c container) error {
 				return err
 			}
 		} else {
-			size, err := shared.ParseByteSizeString(rootDiskDevice["size"])
+			size, err := units.ParseByteSizeString(rootDiskDevice["size"])
 			if err != nil {
 				return err
 			}

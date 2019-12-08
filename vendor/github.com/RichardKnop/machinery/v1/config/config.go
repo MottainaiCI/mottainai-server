@@ -40,6 +40,7 @@ var (
 			ReadTimeout:            15,
 			WriteTimeout:           15,
 			ConnectTimeout:         15,
+			NormalTasksPollPeriod:  1000,
 			DelayedTasksPollPeriod: 20,
 		},
 		GCPPubSub: &GCPPubSubConfig{
@@ -60,7 +61,7 @@ type Config struct {
 	SQS             *SQSConfig       `yaml:"sqs"`
 	Redis           *RedisConfig     `yaml:"redis"`
 	GCPPubSub       *GCPPubSubConfig `yaml:"-" ignored:"true"`
-	MongoDB         *MongoDBConfig   `yamk:"-" ignored:"true"`
+	MongoDB         *MongoDBConfig   `yaml:"-" ignored:"true"`
 	TLSConfig       *tls.Config
 	// NoUnixSignals - when set disables signal handling in machinery
 	NoUnixSignals bool            `yaml:"no_unix_signals" envconfig:"NO_UNIX_SIGNALS"`
@@ -77,6 +78,7 @@ type AMQPConfig struct {
 	QueueBindingArgs QueueBindingArgs `yaml:"queue_binding_args" envconfig:"AMQP_QUEUE_BINDING_ARGS"`
 	BindingKey       string           `yaml:"binding_key" envconfig:"AMQP_BINDING_KEY"`
 	PrefetchCount    int              `yaml:"prefetch_count" envconfig:"AMQP_PREFETCH_COUNT"`
+	AutoDelete       bool             `yaml:"auto_delete" envconfig:"AMQP_AUTO_DELETE"`
 }
 
 // DynamoDBConfig wraps DynamoDB related configuration
@@ -122,6 +124,9 @@ type RedisConfig struct {
 	// ConnectTimeout specifies the timeout in seconds for connecting to the Redis server when
 	// no DialNetDial option is specified.
 	ConnectTimeout int `yaml:"connect_timeout" envconfig:"REDIS_CONNECT_TIMEOUT"`
+
+	// NormalTasksPollPeriod specifies the period in milliseconds when polling redis for normal tasks
+	NormalTasksPollPeriod int `yaml:"normal_tasks_poll_period" envconfig:"REDIS_NORMAL_TASKS_POLL_PERIOD"`
 
 	// DelayedTasksPollPeriod specifies the period in milliseconds when polling redis for delayed tasks
 	DelayedTasksPollPeriod int `yaml:"delayed_tasks_poll_period" envconfig:"REDIS_DELAYED_TASKS_POLL_PERIOD"`

@@ -6,6 +6,7 @@ import (
 
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
+	"github.com/lxc/lxd/shared/units"
 )
 
 func storageVolumePropertiesTranslate(targetConfig map[string]string, targetParentPoolDriver string) (map[string]string, error) {
@@ -50,32 +51,46 @@ func updateStoragePoolVolumeError(unchangeable []string, driverName string) erro
 // property.
 var changeableStoragePoolVolumeProperties = map[string][]string{
 	"btrfs": {
+		"security.shifted",
 		"security.unmapped",
 		"size",
 	},
 
 	"ceph": {
+		"security.shifted",
 		"block.mount_options",
 		"security.unmapped",
 		"size"},
 
-	"dir": {
+	"cephfs": {
+		"security.shifted",
 		"security.unmapped",
+		"size",
+	},
+
+	"dir": {
+		"security.shifted",
+		"security.unmapped",
+		"size",
 	},
 
 	"lvm": {
 		"block.mount_options",
+		"security.shifted",
 		"security.unmapped",
-		"size"},
+		"size",
+	},
 
 	"zfs": {
+		"security.shifted",
 		"security.unmapped",
 		"size",
 		"zfs.remove_snapshots",
-		"zfs.use_refquota"},
+		"zfs.use_refquota",
+	},
 }
 
-// btrfs, ceph, dir, lvm, zfs
+// btrfs, ceph, cephfs, dir, lvm, zfs
 var storageVolumeConfigKeys = map[string]func(value string) ([]string, error){
 	"block.filesystem": func(value string) ([]string, error) {
 		err := shared.IsOneOf(value, []string{"btrfs", "ext4", "xfs"})
@@ -88,20 +103,23 @@ var storageVolumeConfigKeys = map[string]func(value string) ([]string, error){
 	"block.mount_options": func(value string) ([]string, error) {
 		return []string{"ceph", "lvm"}, shared.IsAny(value)
 	},
+	"security.shifted": func(value string) ([]string, error) {
+		return supportedPoolTypes, shared.IsBool(value)
+	},
 	"security.unmapped": func(value string) ([]string, error) {
 		return supportedPoolTypes, shared.IsBool(value)
 	},
 	"size": func(value string) ([]string, error) {
 		if value == "" {
-			return []string{"btrfs", "ceph", "lvm", "zfs"}, nil
+			return []string{"btrfs", "ceph", "cephfs", "lvm", "zfs"}, nil
 		}
 
-		_, err := shared.ParseByteSizeString(value)
+		_, err := units.ParseByteSizeString(value)
 		if err != nil {
 			return nil, err
 		}
 
-		return []string{"btrfs", "ceph", "lvm", "zfs"}, nil
+		return []string{"btrfs", "ceph", "cephfs", "lvm", "zfs"}, nil
 	},
 	"volatile.idmap.last": func(value string) ([]string, error) {
 		return supportedPoolTypes, shared.IsAny(value)
@@ -200,7 +218,7 @@ func storageVolumeFillDefault(name string, config map[string]string, parentPool 
 		}
 	} else {
 		if config["size"] != "" {
-			_, err := shared.ParseByteSizeString(config["size"])
+			_, err := units.ParseByteSizeString(config["size"])
 			if err != nil {
 				return err
 			}

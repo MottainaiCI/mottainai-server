@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/lxc/lxd/lxd/db"
-	"github.com/lxc/lxd/lxd/types"
+	"github.com/lxc/lxd/lxd/device/config"
 	"github.com/lxc/lxd/lxd/util"
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
@@ -168,7 +168,7 @@ func projectCreateDefaultProfile(tx *db.ClusterTx, project string) error {
 	profile.Name = "default"
 	profile.Description = fmt.Sprintf("Default LXD profile for project %s", project)
 	profile.Config = map[string]string{}
-	profile.Devices = types.Devices{}
+	profile.Devices = config.Devices{}
 
 	_, err := tx.ProfileCreate(profile)
 	if err != nil {
@@ -483,14 +483,6 @@ func projectIsEmpty(project *api.Project) bool {
 		return false
 	}
 	return true
-}
-
-// Add the "<project>_" prefix when the given project name is not "default".
-func projectPrefix(project string, s string) string {
-	if project != "default" {
-		s = fmt.Sprintf("%s_%s", project, s)
-	}
-	return s
 }
 
 // Validate the project configuration

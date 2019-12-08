@@ -1,20 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"io/ioutil"
-	stdlog "log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
-	"time"
-
-	"github.com/boltdb/bolt"
-	"github.com/hashicorp/raft"
-	"github.com/hashicorp/raft-boltdb"
-	"github.com/pkg/errors"
-	"golang.org/x/sys/unix"
 
 	"github.com/lxc/lxd/lxd/cluster"
 	"github.com/lxc/lxd/lxd/db"
@@ -22,6 +16,8 @@ import (
 	"github.com/lxc/lxd/shared"
 	log "github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logger"
+	"github.com/pkg/errors"
+	"golang.org/x/sys/unix"
 )
 
 /* Patches are one-time actions that are sometimes needed to update
@@ -72,6 +68,7 @@ var patches = []patch{
 	{name: "fix_lvm_pool_volume_names", run: patchRenameCustomVolumeLVs},
 	{name: "storage_api_rename_container_snapshots_dir_again", run: patchStorageApiRenameContainerSnapshotsDir},
 	{name: "storage_api_rename_container_snapshots_links_again", run: patchStorageApiUpdateContainerSnapshots},
+	{name: "storage_api_rename_container_snapshots_dir_again_again", run: patchStorageApiRenameContainerSnapshotsDir},
 }
 
 type patch struct {
@@ -238,111 +235,9 @@ func patchNetworkPermissions(name string, d *Daemon) error {
 	return nil
 }
 
-// Shrink a database/global/logs.db that grew unwildly due to a bug in the 3.6
-// release.
+// This patch used to shrink the database/global/logs.db file, but it's not
+// needed anymore since dqlite 1.0.
 func patchShrinkLogsDBFile(name string, d *Daemon) error {
-	dir := filepath.Join(d.os.VarDir, "database", "global")
-	info, err := os.Stat(filepath.Join(dir, "logs.db"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			// The boltdb file is not there at all, nothing to do.
-			return nil
-		}
-		return errors.Wrap(err, "Get the size of the boltdb database")
-	}
-
-	if info.Size() < 1024*1024*100 {
-		// Only try to shrink databases bigger than 100 Megabytes.
-		return nil
-	}
-
-	snaps, err := raft.NewFileSnapshotStoreWithLogger(
-		dir, 2, stdlog.New(ioutil.Discard, "", 0))
-	if err != nil {
-		return errors.Wrap(err, "Open snapshots")
-	}
-
-	metas, err := snaps.List()
-	if err != nil {
-		return errors.Wrap(err, "Fetch snapshots")
-	}
-
-	if len(metas) == 0 {
-		// No snapshot is available, we can't shrink. This should never
-		// happen, in practice.
-		logger.Warnf("Can't shrink boltdb store, no raft snapshot is available")
-		return nil
-	}
-
-	meta := metas[0] // The most recent snapshot.
-
-	// Copy all log entries from the current boltdb file into a new one,
-	// which will be smaller since it excludes all truncated entries that
-	pathCur := filepath.Join(dir, "logs.db")
-	// got allocated before the latest snapshot.
-	logsCur, err := raftboltdb.New(raftboltdb.Options{
-		Path: pathCur,
-		BoltOptions: &bolt.Options{
-			Timeout:  10 * time.Second,
-			ReadOnly: true,
-		},
-	})
-	if err != nil {
-		return errors.Wrap(err, "Open current boltdb store")
-	}
-	defer logsCur.Close()
-
-	pathNew := filepath.Join(dir, "logs.db.new")
-	logsNew, err := raftboltdb.New(raftboltdb.Options{
-		Path:        pathNew,
-		BoltOptions: &bolt.Options{Timeout: 10 * time.Second},
-	})
-	if err != nil {
-		return errors.Wrap(err, "Open new boltdb store")
-	}
-	defer logsNew.Close()
-
-	lastIndex, err := logsCur.LastIndex()
-	if err != nil {
-		return errors.Wrap(err, "Get most recent raft index")
-	}
-
-	for index := meta.Index; index <= lastIndex; index++ {
-		log := &raft.Log{}
-
-		err := logsCur.GetLog(index, log)
-		if err != nil {
-			return errors.Wrapf(err, "Get raft entry at index %d", index)
-		}
-
-		err = logsNew.StoreLog(log)
-		if err != nil {
-			return errors.Wrapf(err, "Store raft entry at index %d", index)
-		}
-	}
-
-	term, err := logsCur.GetUint64([]byte("CurrentTerm"))
-	if err != nil {
-		return errors.Wrap(err, "Get current term")
-	}
-	err = logsNew.SetUint64([]byte("CurrentTerm"), term)
-	if err != nil {
-		return errors.Wrap(err, "Store current term")
-	}
-
-	logsCur.Close()
-	logsNew.Close()
-
-	err = os.Remove(pathCur)
-	if err != nil {
-		return errors.Wrap(err, "Remove current boltdb store")
-	}
-
-	err = os.Rename(pathNew, pathCur)
-	if err != nil {
-		return errors.Wrap(err, "Rename new boltdb store")
-	}
-
 	return nil
 }
 
@@ -607,7 +502,7 @@ func upgradeFromStorageTypeBtrfs(name string, d *Daemon, defaultPoolName string,
 					return err
 				}
 
-				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "")
+				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "", true)
 				if err != nil {
 					logger.Errorf("Failed to rsync: %s: %s", output, err)
 					return err
@@ -694,7 +589,7 @@ func upgradeFromStorageTypeBtrfs(name string, d *Daemon, defaultPoolName string,
 						return err
 					}
 
-					output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "")
+					output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "", true)
 					if err != nil {
 						logger.Errorf("Failed to rsync: %s: %s", output, err)
 						return err
@@ -898,7 +793,7 @@ func upgradeFromStorageTypeDir(name string, d *Daemon, defaultPoolName string, d
 			// First try to rename.
 			err := os.Rename(oldContainerMntPoint, newContainerMntPoint)
 			if err != nil {
-				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "")
+				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "", true)
 				if err != nil {
 					logger.Errorf("Failed to rsync: %s: %s", output, err)
 					return err
@@ -945,7 +840,7 @@ func upgradeFromStorageTypeDir(name string, d *Daemon, defaultPoolName string, d
 		if shared.PathExists(oldSnapshotMntPoint) && !shared.PathExists(newSnapshotMntPoint) {
 			err := os.Rename(oldSnapshotMntPoint, newSnapshotMntPoint)
 			if err != nil {
-				output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "")
+				output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "", true)
 				if err != nil {
 					logger.Errorf("Failed to rsync: %s: %s", output, err)
 					return err
@@ -1277,7 +1172,7 @@ func upgradeFromStorageTypeLvm(name string, d *Daemon, defaultPoolName string, d
 				}
 
 				// Use rsync to fill the empty volume.
-				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "")
+				output, err := rsyncLocalCopy(oldContainerMntPoint, newContainerMntPoint, "", true)
 				if err != nil {
 					ctStorage.ContainerDelete(ctStruct)
 					return fmt.Errorf("rsync failed: %s", string(output))
@@ -1431,7 +1326,7 @@ func upgradeFromStorageTypeLvm(name string, d *Daemon, defaultPoolName string, d
 					}
 
 					// Use rsync to fill the empty volume.
-					output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "")
+					output, err := rsyncLocalCopy(oldSnapshotMntPoint, newSnapshotMntPoint, "", true)
 					if err != nil {
 						csStorage.ContainerDelete(csStruct)
 						return fmt.Errorf("rsync failed: %s", string(output))
@@ -3260,8 +3155,7 @@ func patchMoveBackups(name string, d *Daemon) error {
 func patchStorageApiRenameContainerSnapshotsDir(name string, d *Daemon) error {
 	pools, err := d.cluster.StoragePools()
 	if err != nil && err == db.ErrNoSuchObject {
-		// No pool was configured in the previous update. So we're on a
-		// pristine LXD instance.
+		// No pool was configured so we're on a pristine LXD instance.
 		return nil
 	} else if err != nil {
 		// Database is screwed.
@@ -3269,7 +3163,9 @@ func patchStorageApiRenameContainerSnapshotsDir(name string, d *Daemon) error {
 		return err
 	}
 
+	// Iterate through all configured pools
 	for _, poolName := range pools {
+		// Make sure the pool is mounted
 		pool, err := storagePoolInit(d.State(), poolName)
 		if err != nil {
 			return err
@@ -3284,15 +3180,111 @@ func patchStorageApiRenameContainerSnapshotsDir(name string, d *Daemon) error {
 			defer pool.StoragePoolUmount()
 		}
 
+		// Figure out source/target path
 		containerSnapshotDirOld := shared.VarPath("storage-pools", poolName, "snapshots")
 		containerSnapshotDirNew := shared.VarPath("storage-pools", poolName, "containers-snapshots")
-		err = shared.FileMove(containerSnapshotDirOld, containerSnapshotDirNew)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
+		if !shared.PathExists(containerSnapshotDirOld) {
+			continue
+		}
+
+		if !shared.PathExists(containerSnapshotDirNew) {
+			// Simple and easy rename (common path)
+			err = os.Rename(containerSnapshotDirOld, containerSnapshotDirNew)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Check if btrfs might have been used
+			hasBtrfs := false
+			_, err = exec.LookPath("btrfs")
+			if err == nil {
+				hasBtrfs = true
 			}
 
-			return err
+			// Get all containers
+			containersDir, err := os.Open(shared.VarPath("storage-pools", poolName, "snapshots"))
+			if err != nil {
+				return err
+			}
+			defer containersDir.Close()
+
+			entries, err := containersDir.Readdirnames(-1)
+			if err != nil {
+				return err
+			}
+
+			for _, entry := range entries {
+				// Create the target (straight rename won't work with btrfs)
+				if !shared.PathExists(filepath.Join(containerSnapshotDirNew, entry)) {
+					err = os.Mkdir(filepath.Join(containerSnapshotDirNew, entry), 0700)
+					if err != nil {
+						return err
+					}
+				}
+
+				// Get all snapshots
+				snapshotsDir, err := os.Open(shared.VarPath("storage-pools", poolName, "snapshots", entry))
+				if err != nil {
+					return err
+				}
+				defer snapshotsDir.Close()
+
+				snaps, err := snapshotsDir.Readdirnames(-1)
+				if err != nil {
+					return err
+				}
+
+				// Disable the read-only properties
+				if hasBtrfs {
+					path := snapshotsDir.Name()
+					subvols, _ := btrfsSubVolumesGet(path)
+					for _, subvol := range subvols {
+						subvol = filepath.Join(path, subvol)
+						newSubvol := filepath.Join(shared.VarPath("storage-pools", poolName, "containers-snapshots", entry), subvol)
+
+						if !btrfsSubVolumeIsRo(subvol) {
+							continue
+						}
+
+						btrfsSubVolumeMakeRw(subvol)
+						defer btrfsSubVolumeMakeRo(newSubvol)
+					}
+				}
+
+				// Rename the snapshots
+				for _, snap := range snaps {
+					err = os.Rename(filepath.Join(containerSnapshotDirOld, entry, snap), filepath.Join(containerSnapshotDirNew, entry, snap))
+					if err != nil {
+						return err
+					}
+				}
+
+				// Cleanup
+				err = os.Remove(snapshotsDir.Name())
+				if err != nil {
+					if hasBtrfs {
+						err1 := btrfsSubVolumeDelete(snapshotsDir.Name())
+						if err1 != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				}
+			}
+
+			// Cleanup
+			err = os.Remove(containersDir.Name())
+			if err != nil {
+				if hasBtrfs {
+					err1 := btrfsSubVolumeDelete(containersDir.Name())
+					if err1 != nil {
+						return err
+					}
+				} else {
+					return err
+				}
+			}
 		}
 	}
 
@@ -3358,38 +3350,28 @@ func patchStorageApiUpdateContainerSnapshots(name string, d *Daemon) error {
 //
 // NOTE: don't add any legacy patch here, instead use the patches
 // mechanism above.
-var legacyPatches = map[int](func(d *Daemon) error){
+var legacyPatches = map[int](func(tx *sql.Tx) error){
 	11: patchUpdateFromV10,
 	12: patchUpdateFromV11,
 	16: patchUpdateFromV15,
 	30: patchUpdateFromV29,
 	31: patchUpdateFromV30,
 }
-var legacyPatchesNeedingDB = []int{11, 12, 16} // Legacy patches doing DB work
 
-func patchUpdateFromV10(d *Daemon) error {
-	if shared.PathExists(shared.VarPath("lxc")) {
-		err := os.Rename(shared.VarPath("lxc"), shared.VarPath("containers"))
-		if err != nil {
-			return err
-		}
-
-		logger.Debugf("Restarting all the containers following directory rename")
-		s := d.State()
-		containersShutdown(s)
-		containersRestart(s)
-	}
-
+func patchUpdateFromV10(_ *sql.Tx) error {
+	// Logic was moved to Daemon.init().
 	return nil
 }
 
-func patchUpdateFromV11(d *Daemon) error {
-	cNames, err := d.cluster.LegacyContainersList(db.CTypeSnapshot)
+func patchUpdateFromV11(_ *sql.Tx) error {
+	containers, err := containersOnDisk()
 	if err != nil {
 		return err
 	}
 
 	errors := 0
+
+	cNames := containers["default"]
 
 	for _, cName := range cNames {
 		snapParentName, snapOnlyName, _ := containerGetParentAndSnapshotName(cName)
@@ -3407,7 +3389,7 @@ func patchUpdateFromV11(d *Daemon) error {
 			// containers/<container>/snapshots/<snap0>
 			// to
 			// snapshots/<container>/<snap0>
-			output, err := rsyncLocalCopy(oldPath, newPath, "")
+			output, err := rsyncLocalCopy(oldPath, newPath, "", true)
 			if err != nil {
 				logger.Error(
 					"Failed rsync snapshot",
@@ -3451,27 +3433,22 @@ func patchUpdateFromV11(d *Daemon) error {
 	return nil
 }
 
-func patchUpdateFromV15(d *Daemon) error {
+func patchUpdateFromV15(tx *sql.Tx) error {
 	// munge all LVM-backed containers' LV names to match what is
 	// required for snapshot support
 
-	cNames, err := d.cluster.LegacyContainersList(db.CTypeRegular)
+	containers, err := containersOnDisk()
 	if err != nil {
 		return err
 	}
+	cNames := containers["default"]
 
 	vgName := ""
-	err = d.db.Transaction(func(tx *db.NodeTx) error {
-		config, err := tx.Config()
-		if err != nil {
-			return err
-		}
-		vgName = config["storage.lvm_vg_name"]
-		return nil
-	})
+	config, err := query.SelectConfig(tx, "config", "")
 	if err != nil {
 		return err
 	}
+	vgName = config["storage.lvm_vg_name"]
 
 	for _, cName := range cNames {
 		var lvLinkPath string
@@ -3512,7 +3489,7 @@ func patchUpdateFromV15(d *Daemon) error {
 	return nil
 }
 
-func patchUpdateFromV29(d *Daemon) error {
+func patchUpdateFromV29(_ *sql.Tx) error {
 	if shared.PathExists(shared.VarPath("zfs.img")) {
 		err := os.Chmod(shared.VarPath("zfs.img"), 0600)
 		if err != nil {
@@ -3523,7 +3500,7 @@ func patchUpdateFromV29(d *Daemon) error {
 	return nil
 }
 
-func patchUpdateFromV30(d *Daemon) error {
+func patchUpdateFromV30(_ *sql.Tx) error {
 	entries, err := ioutil.ReadDir(shared.VarPath("containers"))
 	if err != nil {
 		/* If the directory didn't exist before, the user had never

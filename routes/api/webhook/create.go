@@ -32,9 +32,17 @@ import (
 )
 
 func CreateWebHook(ctx *context.Context, db *database.Database) (*webhook.WebHook, error) {
-	webtype := ctx.Params(":type")
 	var t *webhook.WebHook
 	var err error
+
+	webtype := ctx.Params(":type")
+
+	if webtype != "github" && webtype != "gitlab" {
+		err = errors.New("Invalid webtype")
+		ctx.ServerError("Failed creating webhook", err)
+		return t, err
+	}
+
 	if ctx.IsLogged {
 		t, err = webhook.GenerateUserWebHook(ctx.User.ID)
 		if err != nil {
@@ -52,12 +60,15 @@ func CreateWebHook(ctx *context.Context, db *database.Database) (*webhook.WebHoo
 func Create(ctx *context.Context, db *database.Database) error {
 	t, err := CreateWebHook(ctx, db)
 	if err != nil {
-		return err
+		// NOTE: If it's used ctx.ServerError we need return error
+		//       else a double response is returned and this warning is printed
+		//       by macaron: http: superfluous response.WriteHeader call from github.com/MottainaiCI/mottainai-server/vendor/gopkg.in/macaron%2ev1.(*responseWriter).WriteHeader (response_writer.go:59)
+		return nil
 	}
 	id, err := db.Driver.InsertWebHook(t)
 	if err != nil {
 		ctx.ServerError("Failed creating webhook", err)
-		return err
+		return nil
 	}
 
 	ctx.APIPayload(id, "webhook", t.Key)
