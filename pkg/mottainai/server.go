@@ -24,6 +24,7 @@ package mottainai
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	config "github.com/RichardKnop/machinery/v1/config"
@@ -45,6 +46,7 @@ type BrokerSendOptions struct {
 	Type              string
 	TaskID            string
 	Group, ChordGroup map[string]string
+	Chain             []string
 	Retry             int
 	Concurrency       string
 }
@@ -120,7 +122,8 @@ func (b *Broker) SendChain(opts *BrokerSendOptions) (*results.ChainAsyncResult, 
 
 	group := make([]*machinerytask.Signature, 0)
 
-	for i, task_type := range opts.Group {
+	for _, t := range opts.Chain {
+		td := strings.Split(t, ",")
 		onErr := make([]*machinerytask.Signature, 0)
 
 		onErr = append(onErr, &machinerytask.Signature{
@@ -128,7 +131,7 @@ func (b *Broker) SendChain(opts *BrokerSendOptions) (*results.ChainAsyncResult, 
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
-					Value: i,
+					Value: td[0],
 				},
 			},
 		})
@@ -140,18 +143,18 @@ func (b *Broker) SendChain(opts *BrokerSendOptions) (*results.ChainAsyncResult, 
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
-					Value: i,
+					Value: td[0],
 				},
 			},
 		})
 
 		signature := &machinerytask.Signature{
-			Name:       task_type,
+			Name:       td[1],
 			RetryCount: opts.Retry,
 			Args: []machinerytask.Arg{
 				{
 					Type:  "string",
-					Value: i,
+					Value: td[0],
 				},
 			},
 			OnError:   onErr,

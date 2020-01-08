@@ -399,15 +399,15 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		}
 
 		if len(pip.Chain) > 0 {
-			tt := make(map[string]string)
+			tt := make([]string, 0)
 			for _, m := range pip.Chain {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
+				tt = append(tt, fmt.Sprintf("%s,%s", pip.Tasks[m].ID, pip.Tasks[m].Type))
 			}
 			l.WithFields(logrus.Fields{
 				"component":   "core",
 				"pipeline_id": docID,
 			}).Info("Sending Chain")
-			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
+			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Chain: tt, Concurrency: pip.Concurrency})
 			if err != nil {
 				rerr = err
 				l.WithFields(logrus.Fields{
