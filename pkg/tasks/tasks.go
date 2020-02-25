@@ -73,8 +73,9 @@ type Task struct {
 	PublishMode  string   `json:"publish_mode" form:"publish_mode"`
 	PipelineID   string   `json:"pipeline_id" form:"pipeline_id"`
 
-	NamespaceMerged string `json:"namespace_merged" form:"namespace_merged"`
-	TagNamespace    string `json:"tag_namespace" form:"tag_namespace"`
+	NamespaceMerged  string   `json:"namespace_merged" form:"namespace_merged"`
+	TagNamespace     string   `json:"tag_namespace" form:"tag_namespace"`
+	NamespaceFilters []string `json:"namespace_filters" form:"namespace_filters"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
@@ -178,37 +179,38 @@ func FetchTask(fetcher client.HttpClient) (Task, error) {
 func NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
-		source           string
-		script           []string
-		directory        string
-		namespace        string
-		commit           string
-		tasktype         string
-		output           string
-		image            string
-		status           string
-		result           string
-		exit_status      string
-		created_time     string
-		start_time       string
-		end_time         string
-		last_update_time string
-		storage          string
-		storage_path     string
-		artefact_path    string
-		quota            string
-		root_task        string
-		prune            string
-		namespace_merged string
-		tag_namespace    string
-		name             string
-		cache_image      string
-		cache_clean      string
-		queue            string
-		owner, node      string
-		privkey          string
-		environment      []string
-		binds            []string
+		source            string
+		script            []string
+		directory         string
+		namespace         string
+		commit            string
+		tasktype          string
+		output            string
+		image             string
+		status            string
+		result            string
+		exit_status       string
+		created_time      string
+		start_time        string
+		end_time          string
+		last_update_time  string
+		storage           string
+		storage_path      string
+		artefact_path     string
+		quota             string
+		root_task         string
+		prune             string
+		namespace_merged  string
+		tag_namespace     string
+		name              string
+		cache_image       string
+		cache_clean       string
+		queue             string
+		owner, node       string
+		privkey           string
+		environment       []string
+		binds             []string
+		namespace_filters []string
 	)
 
 	binds = make([]string, 0)
@@ -235,6 +237,12 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 			script = append(script, v.(string))
 		}
 	}
+	if arr, ok := t["namespace_filters"].([]interface{}); ok {
+		for _, v := range arr {
+			namespace_filters = append(namespace_filters, v.(string))
+		}
+	}
+
 	if i, ok := t["name"].(string); ok {
 		name = i
 	}
@@ -361,45 +369,46 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		retry = str
 	}
 	task := Task{
-		Retry:           retry,
-		ID:              id,
-		PipelineID:      pipelineId,
-		Queue:           queue,
-		Source:          source,
-		PrivKey:         privkey,
-		Script:          script,
-		Quota:           quota,
-		Delayed:         delayed,
-		Directory:       directory,
-		Type:            tasktype,
-		Namespace:       namespace,
-		Commit:          commit,
-		Name:            name,
-		Entrypoint:      entrypoint,
-		Output:          output,
-		PublishMode:     publish,
-		Result:          result,
-		Status:          status,
-		Storage:         storage,
-		StoragePath:     storage_path,
-		ArtefactPath:    artefact_path,
-		Image:           image,
-		ExitStatus:      exit_status,
-		CreatedTime:     created_time,
-		StartTime:       start_time,
-		EndTime:         end_time,
-		UpdatedTime:     last_update_time,
-		RootTask:        root_task,
-		NamespaceMerged: namespace_merged,
-		TagNamespace:    tag_namespace,
-		Node:            node,
-		Prune:           prune,
-		CacheImage:      cache_image,
-		Environment:     environment,
-		Binds:           binds,
-		CacheClean:      cache_clean,
-		Owner:           owner,
-		TimeOut:         timeout,
+		Retry:            retry,
+		ID:               id,
+		PipelineID:       pipelineId,
+		Queue:            queue,
+		Source:           source,
+		PrivKey:          privkey,
+		Script:           script,
+		Quota:            quota,
+		Delayed:          delayed,
+		Directory:        directory,
+		Type:             tasktype,
+		Namespace:        namespace,
+		NamespaceFilters: namespace_filters,
+		Commit:           commit,
+		Name:             name,
+		Entrypoint:       entrypoint,
+		Output:           output,
+		PublishMode:      publish,
+		Result:           result,
+		Status:           status,
+		Storage:          storage,
+		StoragePath:      storage_path,
+		ArtefactPath:     artefact_path,
+		Image:            image,
+		ExitStatus:       exit_status,
+		CreatedTime:      created_time,
+		StartTime:        start_time,
+		EndTime:          end_time,
+		UpdatedTime:      last_update_time,
+		RootTask:         root_task,
+		NamespaceMerged:  namespace_merged,
+		TagNamespace:     tag_namespace,
+		Node:             node,
+		Prune:            prune,
+		CacheImage:       cache_image,
+		Environment:      environment,
+		Binds:            binds,
+		CacheClean:       cache_clean,
+		Owner:            owner,
+		TimeOut:          timeout,
 	}
 	return task
 }

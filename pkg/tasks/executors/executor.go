@@ -110,9 +110,12 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
 			if len(f) > 0 {
 				if task_info.IsNamespaceMerged() {
-					err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
+					err = fetcher.DownloadArtefactsFromTask(f, artefactdir, task_info.NamespaceFilters)
 				} else {
-					err = fetcher.DownloadArtefactsFromTask(f, path.Join(artefactdir, f))
+					err = fetcher.DownloadArtefactsFromTask(f,
+						path.Join(artefactdir, f),
+						task_info.NamespaceFilters,
+					)
 				}
 				if err != nil {
 					d.Report("Error on download artefacts from task " + f)
@@ -126,9 +129,12 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 		for _, f := range strings.Split(task_info.Namespace, ",") {
 			if len(f) > 0 {
 				if task_info.IsNamespaceMerged() {
-					err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
+					err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir, task_info.NamespaceFilters)
 				} else {
-					err = fetcher.DownloadArtefactsFromNamespace(f, path.Join(artefactdir, f))
+					err = fetcher.DownloadArtefactsFromNamespace(f,
+						path.Join(artefactdir, f),
+						task_info.NamespaceFilters,
+					)
 				}
 				if err != nil {
 					d.Report("Error on download namespace " + f)

@@ -53,8 +53,8 @@ type HttpClient interface {
 
 	GetTask() ([]byte, error)
 	AbortTask()
-	DownloadArtefactsFromTask(string, string) error
-	DownloadArtefactsFromNamespace(string, string) error
+	DownloadArtefactsFromTask(string, string, []string) error
+	DownloadArtefactsFromNamespace(string, string, []string) error
 	DownloadArtefactsFromStorage(string, string) error
 	UploadFile(string, string) error
 	FailTask(string)
@@ -130,7 +130,7 @@ type HttpClient interface {
 	NamespaceFileList(namespace string) ([]string, error)
 	StorageFileList(storage string) ([]string, error)
 	TaskFileList(task string) ([]string, error)
-	DownloadArtefactsGeneric(id, target, artefact_type string) error
+	DownloadArtefactsGeneric(id, target, artefact_type string, filters []string) error
 	Download(url, where string) (bool, error)
 
 	SecretDelete(id string) (event.APIResponse, error)
