@@ -73,7 +73,8 @@ type Task struct {
 	PublishMode  string   `json:"publish_mode" form:"publish_mode"`
 	PipelineID   string   `json:"pipeline_id" form:"pipeline_id"`
 
-	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
+	NamespaceMerged string `json:"namespace_merged" form:"namespace_merged"`
+	TagNamespace    string `json:"tag_namespace" form:"tag_namespace"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
@@ -198,6 +199,7 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		quota            string
 		root_task        string
 		prune            string
+		namespace_merged string
 		tag_namespace    string
 		name             string
 		cache_image      string
@@ -212,6 +214,9 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	binds = make([]string, 0)
 	environment = make([]string, 0)
 	script = make([]string, 0)
+	// Default way for compatibility with first
+	// implementation is merge namespace.
+	namespace_merged = "true"
 
 	if arr, ok := t["binds"].([]interface{}); ok {
 		for _, v := range arr {
@@ -281,9 +286,11 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["cache_clean"].(string); ok {
 		cache_clean = str
 	}
-
 	if str, ok := t["tag_namespace"].(string); ok {
 		tag_namespace = str
+	}
+	if str, ok := t["namespace_merged"].(string); ok {
+		namespace_merged = str
 	}
 	if str, ok := t["status"].(string); ok {
 		status = str
@@ -315,7 +322,6 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["prune"].(string); ok {
 		prune = str
 	}
-
 	if str, ok := t["cache_image"].(string); ok {
 		cache_image = str
 	}
@@ -355,44 +361,45 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		retry = str
 	}
 	task := Task{
-		Retry:        retry,
-		ID:           id,
-		PipelineID:   pipelineId,
-		Queue:        queue,
-		Source:       source,
-		PrivKey:      privkey,
-		Script:       script,
-		Quota:        quota,
-		Delayed:      delayed,
-		Directory:    directory,
-		Type:         tasktype,
-		Namespace:    namespace,
-		Commit:       commit,
-		Name:         name,
-		Entrypoint:   entrypoint,
-		Output:       output,
-		PublishMode:  publish,
-		Result:       result,
-		Status:       status,
-		Storage:      storage,
-		StoragePath:  storage_path,
-		ArtefactPath: artefact_path,
-		Image:        image,
-		ExitStatus:   exit_status,
-		CreatedTime:  created_time,
-		StartTime:    start_time,
-		EndTime:      end_time,
-		UpdatedTime:  last_update_time,
-		RootTask:     root_task,
-		TagNamespace: tag_namespace,
-		Node:         node,
-		Prune:        prune,
-		CacheImage:   cache_image,
-		Environment:  environment,
-		Binds:        binds,
-		CacheClean:   cache_clean,
-		Owner:        owner,
-		TimeOut:      timeout,
+		Retry:           retry,
+		ID:              id,
+		PipelineID:      pipelineId,
+		Queue:           queue,
+		Source:          source,
+		PrivKey:         privkey,
+		Script:          script,
+		Quota:           quota,
+		Delayed:         delayed,
+		Directory:       directory,
+		Type:            tasktype,
+		Namespace:       namespace,
+		Commit:          commit,
+		Name:            name,
+		Entrypoint:      entrypoint,
+		Output:          output,
+		PublishMode:     publish,
+		Result:          result,
+		Status:          status,
+		Storage:         storage,
+		StoragePath:     storage_path,
+		ArtefactPath:    artefact_path,
+		Image:           image,
+		ExitStatus:      exit_status,
+		CreatedTime:     created_time,
+		StartTime:       start_time,
+		EndTime:         end_time,
+		UpdatedTime:     last_update_time,
+		RootTask:        root_task,
+		NamespaceMerged: namespace_merged,
+		TagNamespace:    tag_namespace,
+		Node:            node,
+		Prune:           prune,
+		CacheImage:      cache_image,
+		Environment:     environment,
+		Binds:           binds,
+		CacheClean:      cache_clean,
+		Owner:           owner,
+		TimeOut:         timeout,
 	}
 	return task
 }
@@ -661,6 +668,13 @@ func (t *Task) IsSuccess() bool {
 		return true
 	}
 
+	return false
+}
+
+func (t *Task) IsNamespaceMerged() bool {
+	if t.NamespaceMerged == "" || t.NamespaceMerged == "true" || t.NamespaceMerged == "yes" {
+		return true
+	}
 	return false
 }
 

@@ -1,6 +1,6 @@
 /*
-
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2020  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -105,32 +105,47 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 		d.Report("Couldn't get task info ", err.Error())
 		return err
 	}
+
 	if len(task_info.RootTask) > 0 {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
-			err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
-			if err != nil {
-				d.Report("Error on download artefacts from task " + f)
-				return err
+			if len(f) > 0 {
+				if task_info.IsNamespaceMerged() {
+					err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
+				} else {
+					err = fetcher.DownloadArtefactsFromTask(f, path.Join(artefactdir, f))
+				}
+				if err != nil {
+					d.Report("Error on download artefacts from task " + f)
+					return err
+				}
 			}
 		}
 	}
 
 	if len(task_info.Namespace) > 0 {
 		for _, f := range strings.Split(task_info.Namespace, ",") {
-			err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
-			if err != nil {
-				d.Report("Error on download namespace " + f)
-				return err
+			if len(f) > 0 {
+				if task_info.IsNamespaceMerged() {
+					err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
+				} else {
+					err = fetcher.DownloadArtefactsFromNamespace(f, path.Join(artefactdir, f))
+				}
+				if err != nil {
+					d.Report("Error on download namespace " + f)
+					return err
+				}
 			}
 		}
 	}
 
 	if len(task_info.Storage) > 0 {
 		for _, f := range strings.Split(task_info.Storage, ",") {
-			err = fetcher.DownloadArtefactsFromStorage(f, storagedir)
-			if err != nil {
-				d.Report("Error on download data from storage " + f)
-				return err
+			if len(f) > 0 {
+				err = fetcher.DownloadArtefactsFromStorage(f, storagedir)
+				if err != nil {
+					d.Report("Error on download data from storage " + f)
+					return err
+				}
 			}
 		}
 	}
