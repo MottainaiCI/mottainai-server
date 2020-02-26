@@ -29,6 +29,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -110,9 +111,12 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 		for _, f := range strings.Split(task_info.RootTask, ",") {
 			if len(f) > 0 {
 				if task_info.IsNamespaceMerged() {
-					err = fetcher.DownloadArtefactsFromTask(f, artefactdir)
+					err = fetcher.DownloadArtefactsFromTask(f, artefactdir, task_info.NamespaceFilters)
 				} else {
-					err = fetcher.DownloadArtefactsFromTask(f, path.Join(artefactdir, f))
+					err = fetcher.DownloadArtefactsFromTask(f,
+						path.Join(artefactdir, f),
+						task_info.NamespaceFilters,
+					)
 				}
 				if err != nil {
 					d.Report("Error on download artefacts from task " + f)
@@ -126,9 +130,12 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 		for _, f := range strings.Split(task_info.Namespace, ",") {
 			if len(f) > 0 {
 				if task_info.IsNamespaceMerged() {
-					err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir)
+					err = fetcher.DownloadArtefactsFromNamespace(f, artefactdir, task_info.NamespaceFilters)
 				} else {
-					err = fetcher.DownloadArtefactsFromNamespace(f, path.Join(artefactdir, f))
+					err = fetcher.DownloadArtefactsFromNamespace(f,
+						path.Join(artefactdir, f),
+						task_info.NamespaceFilters,
+					)
 				}
 				if err != nil {
 					d.Report("Error on download namespace " + f)
@@ -154,7 +161,42 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 }
 
 func (d *TaskExecutor) UploadArtefacts(folder string) error {
-	err := filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+	var filterRegexp []*regexp.Regexp = make([]*regexp.Regexp, 0)
+	fetcher := d.MottainaiClient
+	task_info, err := tasks.FetchTask(fetcher)
+	if err != nil {
+		d.Report("Couldn't get task info ", err.Error())
+		return err
+	}
+
+	for _, filter := range task_info.ArtefactPushFilters {
+		r, e := regexp.Compile(filter)
+		if e != nil {
+			d.Report("Failed compiling regex (" + filter + "):" + e.Error())
+			return err
+		}
+		filterRegexp = append(filterRegexp, r)
+	}
+
+	err = filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+
+		skipped := false
+		if len(task_info.ArtefactPushFilters) > 0 {
+			skipped = true
+			// Check if artefacts match with filter
+			for _, filter := range filterRegexp {
+				if filter.MatchString(path) {
+					skipped = false
+					break
+				}
+			}
+		}
+
+		if skipped {
+			d.Report("[Upload] File " + path + " filtered.")
+			return nil
+		}
+
 		e := d.MottainaiClient.UploadFile(path, folder)
 		if e != nil {
 			d.Report(fmt.Sprintf("Error on upload file %s: ", path) + e.Error())
