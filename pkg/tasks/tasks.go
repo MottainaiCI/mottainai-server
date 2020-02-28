@@ -46,34 +46,37 @@ import (
 type Task struct {
 	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
 
-	Name         string   `json:"name" form:"name"`
-	Source       string   `json:"source" form:"source"`
-	Script       []string `json:"script" form:"script"`
-	Directory    string   `json:"directory" form:"directory"`
-	Type         string   `json:"type" form:"type"`
-	Status       string   `json:"status" form:"status"`
-	Output       string   `json:"output" form:"output"`
-	Result       string   `json:"result" form:"result"`
-	Entrypoint   []string `json:"entrypoint" form:"entrypoint"`
-	Namespace    string   `json:"namespace" form:"namespace"`
-	Commit       string   `json:"commit" form:"commit"`
-	PrivKey      string   `json:"privkey" form:"privkey"`
-	AuthHosts    string   `json:"authhosts" form:"authhosts"`
-	Node         string   `json:"node_id" form:"node_id"`
-	Owner        string   `json:"owner_id" form:"owner_id"`
-	Image        string   `json:"image" form:"image"`
-	ExitStatus   string   `json:"exit_status" form:"exit_status"`
-	Storage      string   `json:"storage" form:"storage"`
-	ArtefactPath string   `json:"artefact_path" form:"artefact_path"`
-	StoragePath  string   `json:"storage_path" form:"storage_path"`
-	RootTask     string   `json:"root_task" form:"root_task"`
-	Prune        string   `json:"prune" form:"prune"`
-	CacheImage   string   `json:"cache_image" form:"cache_image"`
-	CacheClean   string   `json:"cache_clean" form:"cache_clean"`
-	PublishMode  string   `json:"publish_mode" form:"publish_mode"`
-	PipelineID   string   `json:"pipeline_id" form:"pipeline_id"`
+	Name                string   `json:"name" form:"name"`
+	Source              string   `json:"source" form:"source"`
+	Script              []string `json:"script" form:"script"`
+	Directory           string   `json:"directory" form:"directory"`
+	Type                string   `json:"type" form:"type"`
+	Status              string   `json:"status" form:"status"`
+	Output              string   `json:"output" form:"output"`
+	Result              string   `json:"result" form:"result"`
+	Entrypoint          []string `json:"entrypoint" form:"entrypoint"`
+	Namespace           string   `json:"namespace" form:"namespace"`
+	Commit              string   `json:"commit" form:"commit"`
+	PrivKey             string   `json:"privkey" form:"privkey"`
+	AuthHosts           string   `json:"authhosts" form:"authhosts"`
+	Node                string   `json:"node_id" form:"node_id"`
+	Owner               string   `json:"owner_id" form:"owner_id"`
+	Image               string   `json:"image" form:"image"`
+	ExitStatus          string   `json:"exit_status" form:"exit_status"`
+	Storage             string   `json:"storage" form:"storage"`
+	ArtefactPath        string   `json:"artefact_path" form:"artefact_path"`
+	ArtefactPushFilters []string `json:"artefact_push_filters" form:"artefact_push_filters"`
+	StoragePath         string   `json:"storage_path" form:"storage_path"`
+	RootTask            string   `json:"root_task" form:"root_task"`
+	Prune               string   `json:"prune" form:"prune"`
+	CacheImage          string   `json:"cache_image" form:"cache_image"`
+	CacheClean          string   `json:"cache_clean" form:"cache_clean"`
+	PublishMode         string   `json:"publish_mode" form:"publish_mode"`
+	PipelineID          string   `json:"pipeline_id" form:"pipeline_id"`
 
-	TagNamespace string `json:"tag_namespace" form:"tag_namespace"`
+	NamespaceMerged  string   `json:"namespace_merged" form:"namespace_merged"`
+	NamespaceFilters []string `json:"namespace_filters" form:"namespace_filters"`
+	TagNamespace     string   `json:"tag_namespace" form:"tag_namespace"`
 
 	CreatedTime string `json:"created_time" form:"created_time"`
 	StartTime   string `json:"start_time" form:"start_time"`
@@ -177,41 +180,50 @@ func FetchTask(fetcher client.HttpClient) (Task, error) {
 func NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
-		source           string
-		script           []string
-		directory        string
-		namespace        string
-		commit           string
-		tasktype         string
-		output           string
-		image            string
-		status           string
-		result           string
-		exit_status      string
-		created_time     string
-		start_time       string
-		end_time         string
-		last_update_time string
-		storage          string
-		storage_path     string
-		artefact_path    string
-		quota            string
-		root_task        string
-		prune            string
-		tag_namespace    string
-		name             string
-		cache_image      string
-		cache_clean      string
-		queue            string
-		owner, node      string
-		privkey          string
-		environment      []string
-		binds            []string
+		source            string
+		script            []string
+		directory         string
+		namespace         string
+		commit            string
+		tasktype          string
+		output            string
+		image             string
+		status            string
+		result            string
+		exit_status       string
+		created_time      string
+		start_time        string
+		end_time          string
+		last_update_time  string
+		storage           string
+		storage_path      string
+		artefact_path     string
+		quota             string
+		root_task         string
+		prune             string
+		namespace_merged  string
+		tag_namespace     string
+		name              string
+		cache_image       string
+		cache_clean       string
+		queue             string
+		owner, node       string
+		privkey           string
+		environment       []string
+		binds             []string
+		namespace_filters []string
+		artefact_pfilters []string
 	)
 
 	binds = make([]string, 0)
 	environment = make([]string, 0)
 	script = make([]string, 0)
+	namespace_filters = make([]string, 0)
+	artefact_pfilters = make([]string, 0)
+	// Default mode maintains compatibility with first
+	// implementation where merged namespace was the
+	// logic
+	namespace_merged = "true"
 
 	if arr, ok := t["binds"].([]interface{}); ok {
 		for _, v := range arr {
@@ -230,6 +242,17 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 			script = append(script, v.(string))
 		}
 	}
+	if arr, ok := t["namespace_filters"].([]interface{}); ok {
+		for _, v := range arr {
+			namespace_filters = append(namespace_filters, v.(string))
+		}
+	}
+	if arr, ok := t["artefact_push_filters"].([]interface{}); ok {
+		for _, v := range arr {
+			artefact_pfilters = append(artefact_pfilters, v.(string))
+		}
+	}
+
 	if i, ok := t["name"].(string); ok {
 		name = i
 	}
@@ -281,9 +304,11 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["cache_clean"].(string); ok {
 		cache_clean = str
 	}
-
 	if str, ok := t["tag_namespace"].(string); ok {
 		tag_namespace = str
+	}
+	if str, ok := t["namespace_merged"].(string); ok {
+		namespace_merged = str
 	}
 	if str, ok := t["status"].(string); ok {
 		status = str
@@ -315,7 +340,6 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["prune"].(string); ok {
 		prune = str
 	}
-
 	if str, ok := t["cache_image"].(string); ok {
 		cache_image = str
 	}
@@ -355,44 +379,47 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 		retry = str
 	}
 	task := Task{
-		Retry:        retry,
-		ID:           id,
-		PipelineID:   pipelineId,
-		Queue:        queue,
-		Source:       source,
-		PrivKey:      privkey,
-		Script:       script,
-		Quota:        quota,
-		Delayed:      delayed,
-		Directory:    directory,
-		Type:         tasktype,
-		Namespace:    namespace,
-		Commit:       commit,
-		Name:         name,
-		Entrypoint:   entrypoint,
-		Output:       output,
-		PublishMode:  publish,
-		Result:       result,
-		Status:       status,
-		Storage:      storage,
-		StoragePath:  storage_path,
-		ArtefactPath: artefact_path,
-		Image:        image,
-		ExitStatus:   exit_status,
-		CreatedTime:  created_time,
-		StartTime:    start_time,
-		EndTime:      end_time,
-		UpdatedTime:  last_update_time,
-		RootTask:     root_task,
-		TagNamespace: tag_namespace,
-		Node:         node,
-		Prune:        prune,
-		CacheImage:   cache_image,
-		Environment:  environment,
-		Binds:        binds,
-		CacheClean:   cache_clean,
-		Owner:        owner,
-		TimeOut:      timeout,
+		Retry:               retry,
+		ID:                  id,
+		PipelineID:          pipelineId,
+		Queue:               queue,
+		Source:              source,
+		PrivKey:             privkey,
+		Script:              script,
+		Quota:               quota,
+		Delayed:             delayed,
+		Directory:           directory,
+		Type:                tasktype,
+		Namespace:           namespace,
+		NamespaceFilters:    namespace_filters,
+		Commit:              commit,
+		Name:                name,
+		Entrypoint:          entrypoint,
+		Output:              output,
+		PublishMode:         publish,
+		Result:              result,
+		Status:              status,
+		Storage:             storage,
+		StoragePath:         storage_path,
+		ArtefactPath:        artefact_path,
+		ArtefactPushFilters: artefact_pfilters,
+		Image:               image,
+		ExitStatus:          exit_status,
+		CreatedTime:         created_time,
+		StartTime:           start_time,
+		EndTime:             end_time,
+		UpdatedTime:         last_update_time,
+		RootTask:            root_task,
+		NamespaceMerged:     namespace_merged,
+		TagNamespace:        tag_namespace,
+		Node:                node,
+		Prune:               prune,
+		CacheImage:          cache_image,
+		Environment:         environment,
+		Binds:               binds,
+		CacheClean:          cache_clean,
+		Owner:               owner,
+		TimeOut:             timeout,
 	}
 	return task
 }
@@ -661,6 +688,13 @@ func (t *Task) IsSuccess() bool {
 		return true
 	}
 
+	return false
+}
+
+func (t *Task) IsNamespaceMerged() bool {
+	if t.NamespaceMerged == "" || t.NamespaceMerged == "true" || t.NamespaceMerged == "yes" {
+		return true
+	}
 	return false
 }
 

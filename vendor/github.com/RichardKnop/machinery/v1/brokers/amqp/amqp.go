@@ -62,7 +62,7 @@ func (b *Broker) StartConsuming(consumerTag string, concurrency int, taskProcess
 		false,                           // queue delete when unused
 		b.GetConfig().AMQP.BindingKey,   // queue binding key
 		nil,                             // exchange declare args
-		nil,                             // queue declare args
+		amqp.Table(b.GetConfig().AMQP.QueueDeclareArgs), // queue declare args
 		amqp.Table(b.GetConfig().AMQP.QueueBindingArgs), // queue binding args
 	)
 	if err != nil {
@@ -213,7 +213,7 @@ func (b *Broker) Publish(ctx context.Context, signature *tasks.Signature) error 
 		queue,
 		bindingKey, // queue binding key
 		nil,        // exchange declare args
-		nil,        // queue declare args
+		amqp.Table(b.GetConfig().AMQP.QueueDeclareArgs), // queue declare args
 		amqp.Table(b.GetConfig().AMQP.QueueBindingArgs), // queue binding args
 	)
 	if err != nil {
@@ -232,6 +232,7 @@ func (b *Broker) Publish(ctx context.Context, signature *tasks.Signature) error 
 			Headers:      amqp.Table(signature.Headers),
 			ContentType:  "application/json",
 			Body:         msg,
+			Priority:     signature.Priority,
 			DeliveryMode: amqp.Persistent,
 		},
 	); err != nil {
@@ -259,7 +260,10 @@ func (b *Broker) consume(deliveries <-chan amqp.Delivery, concurrency int, taskP
 		}
 	}()
 
-	errorsChan := make(chan error)
+	// make channel with a capacity makes it become a buffered channel so that a worker which wants to
+	// push an error to `errorsChan` doesn't need to be blocked while the for-loop is blocked waiting
+	// a worker, that is, it avoids a possible deadlock
+	errorsChan := make(chan error, 1)
 
 	for {
 		select {
@@ -320,7 +324,9 @@ func (b *Broker) consumeOne(delivery amqp.Delivery, taskProcessor iface.TaskProc
 			requeue = true
 			log.INFO.Printf("Task not registered with this worker. Requeing message: %s", delivery.Body)
 		}
-		delivery.Nack(multiple, requeue)
+		if !signature.IgnoreWhenTaskNotRegistered {
+			delivery.Nack(multiple, requeue)
+		}
 		return nil
 	}
 

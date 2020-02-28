@@ -89,8 +89,8 @@ func GenDefaultTaskHandler(config *setting.Config) *TaskHandler {
 
 		"lxd": LxdPlayer(config),
 
-		"error": HandleErr(config),
-		//	"success":        HandleSuccess,
+		"error":   HandleErr(config),
+		"success": NoOP(config),
 	},
 		Config: config,
 	}

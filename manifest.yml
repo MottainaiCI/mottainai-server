@@ -1,0 +1,5 @@
+applications:
+- name: mottainai-server
+  memory: 2048M
+  env:
+     GOPACKAGENAME: github.com/MottainaiCI/mottainai-server

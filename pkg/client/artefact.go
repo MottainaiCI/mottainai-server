@@ -30,6 +30,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -92,8 +93,8 @@ func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	return fileList, nil
 }
 
-func (d *Fetcher) DownloadArtefactsFromTask(taskid, target string) error {
-	return d.DownloadArtefactsGeneric(taskid, target, "artefact")
+func (d *Fetcher) DownloadArtefactsFromTask(taskid, target string, filters []string) error {
+	return d.DownloadArtefactsGeneric(taskid, target, "artefact", filters)
 }
 
 func (fetcher *Fetcher) UploadFile(path, art string) error {
@@ -118,13 +119,24 @@ func (fetcher *Fetcher) UploadFile(path, art string) error {
 }
 
 func (d *Fetcher) DownloadArtefactsFromStorage(storage, target string) error {
-	return d.DownloadArtefactsGeneric(storage, target, "storage")
+	return d.DownloadArtefactsGeneric(storage, target, "storage", []string{})
 }
 
-func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) error {
+func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, filters []string) error {
 	var list []string
 	var err error
 	var to_download string
+	var filterRegexp []*regexp.Regexp = make([]*regexp.Regexp, 0)
+
+	for _, filter := range filters {
+		r, e := regexp.Compile(filter)
+		if e != nil {
+			d.AppendTaskOutput("Failed compiling regex (" + filter + "):" + e.Error())
+			return err
+		}
+		filterRegexp = append(filterRegexp, r)
+	}
+
 	if artefact_type == "namespace" {
 		list, err = d.NamespaceFileList(id)
 		if err != nil {
@@ -173,6 +185,22 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 	for _, file := range list {
 		trials := 5
 		done := true
+		skipped := false
+		if len(filters) > 0 {
+			skipped = true
+			// Check if artefacts match with filter
+			for _, filter := range filterRegexp {
+				if filter.MatchString(file) {
+					skipped = false
+					break
+				}
+			}
+		}
+
+		if skipped {
+			d.AppendTaskOutput("[Download] File " + file + " filtered.")
+			continue
+		}
 
 		reldir, _ := filepath.Split(file)
 		for done {
@@ -208,8 +236,8 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string) err
 	return nil
 }
 
-func (d *Fetcher) DownloadArtefactsFromNamespace(namespace, target string) error {
-	return d.DownloadArtefactsGeneric(namespace, target, "namespace")
+func (d *Fetcher) DownloadArtefactsFromNamespace(namespace, target string, filters []string) error {
+	return d.DownloadArtefactsGeneric(namespace, target, "namespace", filters)
 }
 
 func responseSuccess(resp *http.Response) bool {
