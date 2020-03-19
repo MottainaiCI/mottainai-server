@@ -98,11 +98,12 @@ type FakeHttpClient struct {
 		result1 bool
 		result2 error
 	}
-	DownloadArtefactsFromNamespaceStub        func(string, string) error
+	DownloadArtefactsFromNamespaceStub        func(string, string, []string) error
 	downloadArtefactsFromNamespaceMutex       sync.RWMutex
 	downloadArtefactsFromNamespaceArgsForCall []struct {
-		arg1 string
-		arg2 string
+		arg1    string
+		arg2    string
+		filters []string
 	}
 	downloadArtefactsFromNamespaceReturns struct {
 		result1 error
@@ -122,11 +123,12 @@ type FakeHttpClient struct {
 	downloadArtefactsFromStorageReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DownloadArtefactsFromTaskStub        func(string, string) error
+	DownloadArtefactsFromTaskStub        func(string, string, []string) error
 	downloadArtefactsFromTaskMutex       sync.RWMutex
 	downloadArtefactsFromTaskArgsForCall []struct {
-		arg1 string
-		arg2 string
+		arg1    string
+		arg2    string
+		filters []string
 	}
 	downloadArtefactsFromTaskReturns struct {
 		result1 error
@@ -134,12 +136,13 @@ type FakeHttpClient struct {
 	downloadArtefactsFromTaskReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DownloadArtefactsGenericStub        func(string, string, string) error
+	DownloadArtefactsGenericStub        func(string, string, string, []string) error
 	downloadArtefactsGenericMutex       sync.RWMutex
 	downloadArtefactsGenericArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 string
+		arg1    string
+		arg2    string
+		arg3    string
+		filters []string
 	}
 	downloadArtefactsGenericReturns struct {
 		result1 error
@@ -1414,17 +1417,18 @@ func (fake *FakeHttpClient) DownloadReturnsOnCall(i int, result1 bool, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromNamespace(arg1 string, arg2 string) error {
+func (fake *FakeHttpClient) DownloadArtefactsFromNamespace(arg1 string, arg2 string, filters []string) error {
 	fake.downloadArtefactsFromNamespaceMutex.Lock()
 	ret, specificReturn := fake.downloadArtefactsFromNamespaceReturnsOnCall[len(fake.downloadArtefactsFromNamespaceArgsForCall)]
 	fake.downloadArtefactsFromNamespaceArgsForCall = append(fake.downloadArtefactsFromNamespaceArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	fake.recordInvocation("DownloadArtefactsFromNamespace", []interface{}{arg1, arg2})
+		arg1    string
+		arg2    string
+		filters []string
+	}{arg1, arg2, filters})
+	fake.recordInvocation("DownloadArtefactsFromNamespace", []interface{}{arg1, arg2, filters})
 	fake.downloadArtefactsFromNamespaceMutex.Unlock()
 	if fake.DownloadArtefactsFromNamespaceStub != nil {
-		return fake.DownloadArtefactsFromNamespaceStub(arg1, arg2)
+		return fake.DownloadArtefactsFromNamespaceStub(arg1, arg2, filters)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1439,17 +1443,17 @@ func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceCallCount() int {
 	return len(fake.downloadArtefactsFromNamespaceArgsForCall)
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceCalls(stub func(string, string) error) {
+func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceCalls(stub func(string, string, []string) error) {
 	fake.downloadArtefactsFromNamespaceMutex.Lock()
 	defer fake.downloadArtefactsFromNamespaceMutex.Unlock()
 	fake.DownloadArtefactsFromNamespaceStub = stub
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceArgsForCall(i int) (string, string) {
+func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceArgsForCall(i int) (string, string, []string) {
 	fake.downloadArtefactsFromNamespaceMutex.RLock()
 	defer fake.downloadArtefactsFromNamespaceMutex.RUnlock()
 	argsForCall := fake.downloadArtefactsFromNamespaceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.filters
 }
 
 func (fake *FakeHttpClient) DownloadArtefactsFromNamespaceReturns(result1 error) {
@@ -1536,17 +1540,18 @@ func (fake *FakeHttpClient) DownloadArtefactsFromStorageReturnsOnCall(i int, res
 	}{result1}
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromTask(arg1 string, arg2 string) error {
+func (fake *FakeHttpClient) DownloadArtefactsFromTask(arg1 string, arg2 string, filters []string) error {
 	fake.downloadArtefactsFromTaskMutex.Lock()
 	ret, specificReturn := fake.downloadArtefactsFromTaskReturnsOnCall[len(fake.downloadArtefactsFromTaskArgsForCall)]
 	fake.downloadArtefactsFromTaskArgsForCall = append(fake.downloadArtefactsFromTaskArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	fake.recordInvocation("DownloadArtefactsFromTask", []interface{}{arg1, arg2})
+		arg1    string
+		arg2    string
+		filters []string
+	}{arg1, arg2, filters})
+	fake.recordInvocation("DownloadArtefactsFromTask", []interface{}{arg1, arg2, filters})
 	fake.downloadArtefactsFromTaskMutex.Unlock()
 	if fake.DownloadArtefactsFromTaskStub != nil {
-		return fake.DownloadArtefactsFromTaskStub(arg1, arg2)
+		return fake.DownloadArtefactsFromTaskStub(arg1, arg2, filters)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1561,17 +1566,17 @@ func (fake *FakeHttpClient) DownloadArtefactsFromTaskCallCount() int {
 	return len(fake.downloadArtefactsFromTaskArgsForCall)
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromTaskCalls(stub func(string, string) error) {
+func (fake *FakeHttpClient) DownloadArtefactsFromTaskCalls(stub func(string, string, []string) error) {
 	fake.downloadArtefactsFromTaskMutex.Lock()
 	defer fake.downloadArtefactsFromTaskMutex.Unlock()
 	fake.DownloadArtefactsFromTaskStub = stub
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsFromTaskArgsForCall(i int) (string, string) {
+func (fake *FakeHttpClient) DownloadArtefactsFromTaskArgsForCall(i int) (string, string, []string) {
 	fake.downloadArtefactsFromTaskMutex.RLock()
 	defer fake.downloadArtefactsFromTaskMutex.RUnlock()
 	argsForCall := fake.downloadArtefactsFromTaskArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.filters
 }
 
 func (fake *FakeHttpClient) DownloadArtefactsFromTaskReturns(result1 error) {
@@ -1597,18 +1602,19 @@ func (fake *FakeHttpClient) DownloadArtefactsFromTaskReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsGeneric(arg1 string, arg2 string, arg3 string) error {
+func (fake *FakeHttpClient) DownloadArtefactsGeneric(arg1 string, arg2 string, arg3 string, filters []string) error {
 	fake.downloadArtefactsGenericMutex.Lock()
 	ret, specificReturn := fake.downloadArtefactsGenericReturnsOnCall[len(fake.downloadArtefactsGenericArgsForCall)]
 	fake.downloadArtefactsGenericArgsForCall = append(fake.downloadArtefactsGenericArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("DownloadArtefactsGeneric", []interface{}{arg1, arg2, arg3})
+		arg1    string
+		arg2    string
+		arg3    string
+		filters []string
+	}{arg1, arg2, arg3, filters})
+	fake.recordInvocation("DownloadArtefactsGeneric", []interface{}{arg1, arg2, arg3, filters})
 	fake.downloadArtefactsGenericMutex.Unlock()
 	if fake.DownloadArtefactsGenericStub != nil {
-		return fake.DownloadArtefactsGenericStub(arg1, arg2, arg3)
+		return fake.DownloadArtefactsGenericStub(arg1, arg2, arg3, filters)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1623,17 +1629,17 @@ func (fake *FakeHttpClient) DownloadArtefactsGenericCallCount() int {
 	return len(fake.downloadArtefactsGenericArgsForCall)
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsGenericCalls(stub func(string, string, string) error) {
+func (fake *FakeHttpClient) DownloadArtefactsGenericCalls(stub func(string, string, string, []string) error) {
 	fake.downloadArtefactsGenericMutex.Lock()
 	defer fake.downloadArtefactsGenericMutex.Unlock()
 	fake.DownloadArtefactsGenericStub = stub
 }
 
-func (fake *FakeHttpClient) DownloadArtefactsGenericArgsForCall(i int) (string, string, string) {
+func (fake *FakeHttpClient) DownloadArtefactsGenericArgsForCall(i int) (string, string, string, []string) {
 	fake.downloadArtefactsGenericMutex.RLock()
 	defer fake.downloadArtefactsGenericMutex.RUnlock()
 	argsForCall := fake.downloadArtefactsGenericArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.filters
 }
 
 func (fake *FakeHttpClient) DownloadArtefactsGenericReturns(result1 error) {

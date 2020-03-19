@@ -179,6 +179,12 @@ func (h *TaskHandler) FetchTask(fetcher client.HttpClient) tasks.Task {
 	return t
 }
 
+func NoOP(config *setting.Config) func(docID string, result int) error {
+	return func(docID string, result int) error {
+		return nil
+	}
+}
+
 func HandleSuccess(config *setting.Config) func(docID string, result int) error {
 	return func(docID string, result int) error {
 		fetcher := client.NewFetcher(docID, config)

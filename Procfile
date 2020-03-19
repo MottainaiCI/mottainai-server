@@ -1,0 +1,1 @@
+web: mottainai-server web

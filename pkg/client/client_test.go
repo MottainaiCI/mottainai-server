@@ -108,7 +108,7 @@ var _ = Describe("Client", func() {
 					helpers.CreateFile(10, filepath.Join(fixture2, f))
 				}
 
-				fetcher.DownloadArtefactsFromTask(helpers.Tasks[0], download)
+				fetcher.DownloadArtefactsFromTask(helpers.Tasks[0], download, []string{})
 
 				for _, f := range fixtures {
 					_, err = os.Stat(filepath.Join(download, "simple", f))
@@ -196,7 +196,7 @@ var _ = Describe("Client", func() {
 				ev, err = fetcher.NamespaceTag(helpers.Tasks[0], "test2")
 				ExpectSuccessfulResponse(ev, err)
 
-				fetcher.DownloadArtefactsFromNamespace("test2", download)
+				fetcher.DownloadArtefactsFromNamespace("test2", download, []string{})
 				for _, f := range fixtures {
 					_, err = os.Stat(filepath.Join(download, "simple", f))
 					Expect(err).ToNot(HaveOccurred())
@@ -207,7 +207,7 @@ var _ = Describe("Client", func() {
 				ev, err = fetcher.NamespaceRemovePath("test2", "simple/fixture1")
 				ExpectSuccessfulResponse(ev, err)
 
-				fetcher.DownloadArtefactsFromNamespace("test2", download2)
+				fetcher.DownloadArtefactsFromNamespace("test2", download2, []string{})
 				_, err = os.Stat(filepath.Join(download2, "simple", "fixture1"))
 				Expect(err).To(HaveOccurred())
 
