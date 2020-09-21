@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+# https://github.com/goose121/initify systemd to openrc conversion perl script.
+#opernrc service unit for mottainai-server
+
+command=/usr/bin/mottainai-server
+command_args="web --config /etc/mottainai/mottainai-server.yaml"
+pidfile=
+
+name="mottainai-server"
+description="Mottainai Server"
