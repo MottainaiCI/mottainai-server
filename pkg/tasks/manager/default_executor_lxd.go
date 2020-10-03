@@ -66,6 +66,7 @@ func SupportedExecutors(config *setting.Config) *TaskHandler {
 		}
 	}
 	se["error"] = HandleErr(config)
+	se["success"] = NoOP(config)
 
 	return &TaskHandler{Tasks: se, Config: config}
 }
