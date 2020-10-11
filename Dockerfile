@@ -11,7 +11,9 @@ RUN mkdir -p /srv/mottainai/web/db
 RUN mkdir -p /srv/mottainai/web/artefact
 RUN mkdir -p /srv/mottainai/web/namespaces
 RUN mkdir -p /srv/mottainai/web/storage
+RUN mkdir -p /build
 RUN chown -R mottainai-server:mottainai /srv/mottainai/web
+RUN chown -R mottainai-server:mottainai /build
 
 
 EXPOSE 9090
