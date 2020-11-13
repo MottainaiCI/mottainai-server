@@ -1,8 +1,7 @@
 package bakery
 
 import (
-	"github.com/juju/loggo"
-	"golang.org/x/net/context"
+	"context"
 )
 
 // Logger is used by the bakery to log informational messages
@@ -12,23 +11,18 @@ type Logger interface {
 	Debugf(ctx context.Context, f string, args ...interface{})
 }
 
-// DefaultLogger returns a Logger instance that uses
-// github.com/juju/loggo to log messages using the
-// given logger name.
+// DefaultLogger returns a Logger instance that does nothing.
+//
+// Deprecated: DefaultLogger exists for historical compatibility
+// only. Previously it logged using github.com/juju/loggo.
 func DefaultLogger(name string) Logger {
-	return loggoLogger{loggo.GetLogger(name)}
+	return nopLogger{}
 }
 
-type loggoLogger struct {
-	logger loggo.Logger
-}
+type nopLogger struct{}
 
 // Debugf implements Logger.Debugf.
-func (l loggoLogger) Debugf(_ context.Context, f string, args ...interface{}) {
-	l.logger.Debugf(f, args...)
-}
+func (nopLogger) Debugf(context.Context, string, ...interface{}) {}
 
 // Debugf implements Logger.Infof.
-func (l loggoLogger) Infof(_ context.Context, f string, args ...interface{}) {
-	l.logger.Infof(f, args...)
-}
+func (nopLogger) Infof(context.Context, string, ...interface{}) {}
