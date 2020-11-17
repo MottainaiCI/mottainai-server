@@ -42,6 +42,7 @@ import (
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
+	_ "github.com/go-macaron/session/redis"
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
@@ -88,11 +89,18 @@ func Classic(config *setting.Config) *Mottainai {
 		Section: "cache",
 	}))
 
+	sessionStore := "memory"
+	sessionConfig := ""
+	switch s := config.GetWeb().SessionProvider; s {
+	case "redis":
+		sessionStore = s
+		sessionConfig = config.GetWeb().SessionProviderConfig
+	}
 	sesopts := session.Options{
 		// Name of provider. Default is "memory".
-		Provider: "memory",
+		Provider: sessionStore,
 		// Provider configuration, it's corresponding to provider.
-		ProviderConfig: "",
+		ProviderConfig: sessionConfig,
 		// Cookie name to save session ID. Default is "MacaronSession".
 		CookieName: "MottainaiSession",
 		// Cookie path to store. Default is "/".
