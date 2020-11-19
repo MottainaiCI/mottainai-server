@@ -6,17 +6,25 @@ module.exports = {
     './src/**/*.jsx',
   ],
   theme: {
-    colors: {
-      primary: 'var(--color-primary)',
-      secondary: 'var(--color-secondary)',
-      sidebar: 'var(--color-sidebar)',
-      "sidebar-active": 'var(--color-sidebar-active)',
-      accent: 'var(--color-accent)',
-      white: colors.white,
-    },
-    fontFamily: {
-      sans: ['Lato', 'sans-serif'],
-    },
-    extend: {}
+    extend: {
+      colors: {
+        beige: {
+          100: '#f6f5f2',
+          300: '#d9dcbf',
+          500: '#908666',
+          600: '#67592c',
+          700: '#5d4530',
+          750: '#463322',
+          751: '#402915'
+        },
+        cultured: {
+          white: '#fbfaf9',
+          black: '#404547'
+        }
+      },
+      fontFamily: {
+        sans: ['Lato', 'sans-serif'],
+      },
+    }
   }
 }
