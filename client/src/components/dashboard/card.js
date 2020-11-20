@@ -2,7 +2,10 @@ import { useContext } from 'preact/hooks';
 import ThemeContext from "@/contexts/theme"
 import themes from '@/themes'
 
-const DashboardCard = ({title, children}) => {
+const DashboardCard = ({
+  title, children,
+  loading, errror,
+}) => {
   let { theme } = useContext(ThemeContext)
   return (<div className={`
     w-full mb-4
@@ -13,7 +16,14 @@ const DashboardCard = ({title, children}) => {
       {title}
     </div>
     <div className="py-4">
-      {children}
+      {loading ?
+        <div className="text-center">Loading ...</div>
+        :
+        errror ?
+          <div className="text-center">There was an error loading data</div>
+          :
+          children
+      }
     </div>
   </div>)
 }

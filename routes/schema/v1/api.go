@@ -142,4 +142,7 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"pipeline_as_yaml": &schema.APIRoute{Path: "/api/tasks/pipeline/:id.yaml", Type: "get"},
 		"artefact_upload":  &schema.APIRoute{Path: "/api/tasks/artefact/upload", Type: "post"},
 	},
+	Client: map[string]schema.Route{
+		"dashboard_stats": &schema.APIRoute{Path: "/api/client/dashboard/stats", Type: "get"},
+	},
 }

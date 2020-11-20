@@ -487,9 +487,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c86c37eebd36c97a761d7f756dbf3c69e9349b095efffa13f5eb54eac505eede"
+  digest = "1:8a0f38c635da38a15f54f49805d93d7041e6e9a3614f11bc1eda101da3061e22"
   name = "github.com/go-macaron/session"
-  packages = ["."]
+  packages = [
+    ".",
+    "redis",
+  ]
   pruneopts = "UT"
   revision = "0a0a789bf1934e55fde19629869caa015a40c525"
 
@@ -1186,6 +1189,14 @@
   version = "v0.8.1"
 
 [[projects]]
+  digest = "1:dc67eaf98006ba99efc8140a5a13a2f718763acd108da9c10c8c7a5e8f7af6ff"
+  name = "github.com/rakyll/statik"
+  packages = ["fs"]
+  pruneopts = "UT"
+  revision = "46bd79c4540341fe472fe71dd2ce0ccd4e635450"
+  version = "v0.1.7"
+
+[[projects]]
   digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
   name = "github.com/robfig/cron"
   packages = ["."]
@@ -1632,6 +1643,14 @@
   version = "v1.18.0"
 
 [[projects]]
+  digest = "1:7cc3d7933457968b045958d40baecf7646fd79d1df860e52491656f720bfc79d"
+  name = "gopkg.in/bufio.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "567b2bfa514e796916c4747494d6ff5132a1dfce"
+  version = "v1"
+
+[[projects]]
   digest = "1:ce0d683e17b7c249c081cf4f5e4a54dce8fedf7e72d2b56aa557ee33abe367f0"
   name = "gopkg.in/clog.v1"
   packages = ["."]
@@ -1769,6 +1788,14 @@
   pruneopts = "UT"
   revision = "1679699b0b723e05f9f16c45b4c6cbd46adb2c78"
   version = "v2.1.0"
+
+[[projects]]
+  digest = "1:fdb02d4c627442e26b633da43e163eebb0af6a5de68d7d1e1ec98a1209abf1a1"
+  name = "gopkg.in/redis.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e6179049628164864e6e84e973cfb56335748dea"
+  version = "v2.3.2"
 
 [[projects]]
   digest = "1:ff998ce43d38d5498c7eee06edee2f0f698db62aa929cabcfe4879b7bc6d35bb"
@@ -2203,6 +2230,7 @@
     "github.com/go-macaron/captcha",
     "github.com/go-macaron/csrf",
     "github.com/go-macaron/session",
+    "github.com/go-macaron/session/redis",
     "github.com/google/go-github/github",
     "github.com/jaypipes/ghw",
     "github.com/lxc/lxd/client",
@@ -2221,6 +2249,7 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/pkg/errors",
+    "github.com/rakyll/statik/fs",
     "github.com/robfig/cron",
     "github.com/sethvargo/go-password/password",
     "github.com/sirupsen/logrus",
