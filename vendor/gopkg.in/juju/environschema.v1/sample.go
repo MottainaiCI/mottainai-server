@@ -157,7 +157,7 @@ func (f fieldsByGroup) Less(i0, i1 int) bool {
 func indentVal(w io.Writer, x interface{}, indentStr string) {
 	data, err := yaml.Marshal(x)
 	if err != nil {
-		panic(fmt.Errorf("cannot marshal YAML", err))
+		panic(fmt.Errorf("cannot marshal YAML: %v", err))
 	}
 	if len(data) == 0 {
 		panic("YAML cannot marshal to empty string")

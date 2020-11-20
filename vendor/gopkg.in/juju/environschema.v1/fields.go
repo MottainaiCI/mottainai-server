@@ -10,9 +10,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/juju/errors"
+	"gopkg.in/errgo.v1"
 	"github.com/juju/schema"
-	"github.com/juju/utils/keyvalues"
 )
 
 // What to do about reading content from paths?
@@ -154,7 +153,7 @@ func (s Fields) ValidationSchema() (schema.Fields, schema.Defaults, error) {
 		path := []string{name}
 		checker, err := attr.Checker()
 		if err != nil {
-			return nil, nil, errors.Annotatef(err, "%s", mkPath(path))
+			return nil, nil, errgo.Notef(err, "%s", mkPath(path))
 		}
 		if !attr.Mandatory {
 			defaults[name] = schema.Omit
@@ -214,9 +213,9 @@ func (c attrsChecker) Coerce(v interface{}, path []string) (interface{}, error) 
 	case reflect.String:
 		s, err := schema.String().Coerce(v, path)
 		if err != nil {
-			return nil, errors.Mask(err)
+			return nil, errgo.Mask(err)
 		}
-		result, err := keyvalues.Parse(strings.Fields(s.(string)), true)
+		result, err := parseKeyValues(strings.Fields(s.(string)), true)
 		if err != nil {
 			return nil, fmt.Errorf("%s%v", pathPrefix(path), err)
 		}
@@ -224,14 +223,14 @@ func (c attrsChecker) Coerce(v interface{}, path []string) (interface{}, error) 
 	case reflect.Slice:
 		slice0, err := attrSliceChecker.Coerce(v, path)
 		if err != nil {
-			return nil, errors.Mask(err)
+			return nil, errgo.Mask(err)
 		}
 		slice := slice0.([]interface{})
 		fields := make([]string, len(slice))
 		for i, f := range slice {
 			fields[i] = f.(string)
 		}
-		result, err := keyvalues.Parse(fields, true)
+		result, err := parseKeyValues(fields, true)
 		if err != nil {
 			return nil, fmt.Errorf("%s%v", pathPrefix(path), err)
 		}
@@ -239,7 +238,7 @@ func (c attrsChecker) Coerce(v interface{}, path []string) (interface{}, error) 
 	case reflect.Map:
 		imap0, err := attrMapChecker.Coerce(v, path)
 		if err != nil {
-			return nil, errors.Mask(err)
+			return nil, errgo.Mask(err)
 		}
 		imap := imap0.(map[interface{}]interface{})
 		result := make(map[string]string)
@@ -248,7 +247,7 @@ func (c attrsChecker) Coerce(v interface{}, path []string) (interface{}, error) 
 		}
 		return result, nil
 	default:
-		return nil, errors.Errorf("%sunexpected type for value, got %T(%v)", pathPrefix(path), v, v)
+		return nil, errgo.Newf("%sunexpected type for value, got %T(%v)", pathPrefix(path), v, v)
 	}
 }
 
@@ -280,4 +279,25 @@ func mkPath(path []string) string {
 // like the providers do currently.
 func (s Fields) ExampleYAML() []byte {
 	panic("unimplemented")
+}
+
+// parseKeyValues parses the supplied string slice into a map mapping
+// keys to values. Duplicate keys cause an error to be returned.
+func parseKeyValues(src []string, allowEmptyValues bool) (map[string]string, error) {
+	results := map[string]string{}
+	for _, kv := range src {
+		parts := strings.SplitN(kv, "=", 2)
+		if len(parts) != 2 {
+			return nil, errgo.Newf(`expected "key=value", got %q`, kv)
+		}
+		key, value := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
+		if len(key) == 0 || (!allowEmptyValues && len(value) == 0) {
+			return nil, errgo.Newf(`expected "key=value", got "%s=%s"`, key, value)
+		}
+		if _, exists := results[key]; exists {
+			return nil, errgo.Newf("key %q specified more than once", key)
+		}
+		results[key] = value
+	}
+	return results, nil
 }

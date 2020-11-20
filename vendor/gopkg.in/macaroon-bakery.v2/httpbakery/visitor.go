@@ -1,12 +1,13 @@
 package httpbakery
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
-	"golang.org/x/net/context"
 	"gopkg.in/errgo.v1"
 	"gopkg.in/httprequest.v1"
+
 	"gopkg.in/macaroon-bakery.v2/bakery"
 )
 
