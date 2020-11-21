@@ -1,5 +1,3 @@
-const Pipelines = () => (
-  <div />
-)
+const Pipelines = () => <div />
 
 export default Pipelines

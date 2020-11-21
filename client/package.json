@@ -33,9 +33,11 @@
     "@fortawesome/free-brands-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "@rehooks/local-storage": "^2.4.0",
+    "axios": "^0.21.0",
     "preact": "^10.3.2",
     "preact-render-to-string": "^5.1.4",
     "preact-router": "^3.2.1",
+    "redaxios": "^0.3.0",
     "tailwindcss": "^2.0.1-compat"
   },
   "jest": {
@@ -44,5 +46,11 @@
       "<rootDir>/tests/__mocks__/browserMocks.js",
       "<rootDir>/tests/__mocks__/setupTests.js"
     ]
+  },
+  "prettier": {
+    "semi": false,
+    "tabWidth": 2,
+    "useTabs": false,
+    "printWidth": 80
   }
 }

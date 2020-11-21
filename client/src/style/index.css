@@ -4,5 +4,6 @@
 
 html,
 body {
-  @apply select-none overflow-hidden;
+  @apply select-none;
+  @apply overflow-hidden;
 }

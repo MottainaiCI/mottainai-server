@@ -1,5 +1,3 @@
-const Tasks = () => (
-  <div />
-)
+const Tasks = () => <div />
 
 export default Tasks

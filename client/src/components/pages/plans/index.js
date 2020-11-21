@@ -1,5 +1,3 @@
-const Plans = () => (
-  <div />
-)
+const Plans = () => <div />
 
 export default Plans

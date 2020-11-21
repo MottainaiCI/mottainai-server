@@ -1,5 +1,3 @@
-const Artefacts = () => (
-  <div />
-)
+const Artefacts = () => <div />
 
 export default Artefacts

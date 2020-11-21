@@ -1,6 +1,6 @@
-import { createContext } from 'preact'
+import { createContext } from "preact"
 const Theme = createContext({
-  theme: 'light',
-  setTheme(){}
+  theme: "light",
+  setTheme() {},
 })
 export default Theme
