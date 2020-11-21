@@ -2,9 +2,10 @@ export default {
   dark: {
     bg: "bg-beige-700",
     textColor: "text-cultured-white",
+    spinnerFrontColor: "#fff",
+    cardBg: "bg-beige-750",
+    cardBorder: "",
     dashboard: {
-      cardBg: "bg-beige-750",
-      cardBorder: "",
       cardTitleBorder: "border-b border-beige-751",
     },
     sidebar: {
@@ -15,9 +16,10 @@ export default {
   light: {
     bg: "bg-cultured-white",
     textColor: "text-cultured-black",
+    spinnerFrontColor: "#000",
+    cardBg: "bg-white",
+    cardBorder: "border border-gray-200",
     dashboard: {
-      cardBg: "bg-white",
-      cardBorder: "border border-gray-200",
       cardTitleBorder: "border-b border-gray-200",
     },
     sidebar: {

@@ -246,7 +246,7 @@ func Contexter() macaron.Handler {
 			c.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 		}
 
-		// Get user from session if logined.
+		// Get user from session if logged in
 		c.User, c.IsBasicAuth = auth.SignedInUser(c.Context, c.Session)
 		if c.User != nil {
 			c.IsLogged = true

@@ -6,6 +6,17 @@ import {
   faCodeBranch,
   faCloud,
   faPalette,
+  faUser,
+  faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons"
 
-library.add(faTachometerAlt, faTasks, faClock, faCodeBranch, faCloud, faPalette)
+library.add(
+  faTachometerAlt,
+  faTasks,
+  faClock,
+  faCodeBranch,
+  faCloud,
+  faPalette,
+  faUser,
+  faSignOutAlt
+)

@@ -1,19 +1,42 @@
 import logo from "@/assets/images/logo.png"
 import { Link } from "preact-router/match"
+import { route } from "preact-router"
 import { FontAwesomeIcon } from "@aduh95/preact-fontawesome"
 import { useContext } from "preact/hooks"
 
 import ThemeContext from "@/contexts/theme"
+import UserContext from "@/contexts/user"
 import themes from "@/themes"
+import UserService from "@/service/user"
 
-const SidebarItem = ({ icon, children }) => {
+const SidebarItem = ({ icon, children, className = "", ...props }) => {
   return (
-    <div class="py-2 px-4">
+    <div className={`py-2 px-4 ${className}`} {...props}>
       <span className="w-8 inline-block text-center">
         {icon && <FontAwesomeIcon icon={icon} />}
       </span>
       <span className="ml-2 text-lg">{children}</span>
     </div>
+  )
+}
+
+const SignOut = () => {
+  let { setUser } = useContext(UserContext)
+  const signOut = () => {
+    UserService.logout().then(() => {
+      setUser(null)
+      route("/")
+    })
+  }
+
+  return (
+    <SidebarItem
+      icon="sign-out-alt"
+      className="cursor-pointer"
+      onClick={signOut}
+    >
+      Log out
+    </SidebarItem>
   )
 }
 
@@ -35,7 +58,7 @@ const SidebarLink = ({ icon, text, ...props }) => {
 
 const Sidebar = () => {
   let { theme, setTheme } = useContext(ThemeContext)
-
+  let { user } = useContext(UserContext)
   function toggleTheme() {
     setTheme(theme === "dark" ? "light" : "dark")
   }
@@ -52,17 +75,32 @@ const Sidebar = () => {
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex flex-col">
           <SidebarLink href="/" icon="tachometer-alt" text="Dashboard" />
-          <SidebarLink href="/tasks" icon="tasks" text="Tasks" />
-          <SidebarLink href="/plans" icon="clock" text="Plans" />
-          <SidebarLink href="/pipelines" icon="code-branch" text="Pipelines" />
-          <SidebarLink href="/artefacts" icon="cloud" text="Artefacts" />
+          {user && (
+            <>
+              <SidebarLink href="/tasks" icon="tasks" text="Tasks" />
+              <SidebarLink href="/plans" icon="clock" text="Plans" />
+              <SidebarLink
+                href="/pipelines"
+                icon="code-branch"
+                text="Pipelines"
+              />
+              <SidebarLink href="/artefacts" icon="cloud" text="Artefacts" />
+            </>
+          )}
         </div>
 
         <div className="flex flex-col">
-          <SidebarItem icon="palette">
-            <button className="focus:outline-none" onClick={toggleTheme}>
-              Toggle Theme
-            </button>
+          {user ? (
+            <SignOut />
+          ) : (
+            <SidebarLink href="/login" icon="user" text="Log In" />
+          )}
+          <SidebarItem
+            icon="palette"
+            className="cursor-pointer"
+            onClick={toggleTheme}
+          >
+            Toggle theme
           </SidebarItem>
         </div>
       </div>

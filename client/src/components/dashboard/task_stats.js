@@ -1,6 +1,6 @@
 import DashboardCard from "./card"
 import { useEffect, useState } from "preact/hooks"
-import axios from "redaxios"
+import axios from "@/axios"
 
 const Stat = ({ label, num }) => (
   <div className="text-center mx-5">
@@ -15,9 +15,9 @@ const TaskStatCard = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    axios("/api/client/dashboard/stats").then(
-      (result) => {
-        setStats(result)
+    axios.get("/dashboard/stats").then(
+      ({ data }) => {
+        setStats(data)
         setLoading(false)
       },
       (error) => {

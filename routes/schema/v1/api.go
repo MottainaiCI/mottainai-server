@@ -143,6 +143,10 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"artefact_upload":  &schema.APIRoute{Path: "/api/tasks/artefact/upload", Type: "post"},
 	},
 	Client: map[string]schema.Route{
+		"auth_login":  &schema.APIRoute{Path: "/api/v1/client/auth/login", Type: "post"},
+		"auth_logout": &schema.APIRoute{Path: "/api/v1/client/auth/logout", Type: "post"},
+		"auth_user":   &schema.APIRoute{Path: "/api/v1/client/auth/user", Type: "get"},
+
 		"dashboard_stats": &schema.APIRoute{Path: "/api/v1/client/dashboard/stats", Type: "get"},
 	},
 }
