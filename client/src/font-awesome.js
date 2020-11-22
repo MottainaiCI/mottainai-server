@@ -8,6 +8,7 @@ import {
   faPalette,
   faUser,
   faSignOutAlt,
+  faCaretRight,
 } from "@fortawesome/free-solid-svg-icons"
 
 library.add(
@@ -18,5 +19,6 @@ library.add(
   faCloud,
   faPalette,
   faUser,
-  faSignOutAlt
+  faSignOutAlt,
+  faCaretRight
 )

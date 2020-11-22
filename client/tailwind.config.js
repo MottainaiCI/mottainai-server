@@ -7,6 +7,7 @@ module.exports = {
       colors: {
         beige: {
           100: "#f6f5f2",
+          200: "#d4d6be",
           300: "#d9dcbf",
           500: "#908666",
           600: "#67592c",
@@ -26,5 +27,8 @@ module.exports = {
         sans: ["Lato", "sans-serif"],
       },
     },
+  },
+  variants: {
+    display: ["group-hover"],
   },
 }

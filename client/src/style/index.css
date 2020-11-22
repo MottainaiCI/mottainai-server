@@ -9,3 +9,7 @@ body {
   @apply select-none;
   @apply overflow-hidden;
 }
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}

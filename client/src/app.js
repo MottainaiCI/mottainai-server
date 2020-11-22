@@ -11,7 +11,7 @@ import Login from "@/components/pages/login"
 import Sidebar from "@/components/sidebar"
 import Spinner from "@/components/spinner"
 
-import ThemeContext from "@/contexts/theme"
+import ThemeContext, { THEME_OPTIONS } from "@/contexts/theme"
 import UserContext from "@/contexts/user"
 import themes from "@/themes"
 import axios from "@/axios"
@@ -21,7 +21,10 @@ const AUTHED = ["/plans", "/pipelines", "/tasks", "/artefacts"]
 const UNAUTHED = ["/login"]
 
 const App = () => {
-  const [theme, setTheme] = useLocalStorage("mottainai-theme", "light")
+  const [theme, setTheme] = useLocalStorage(
+    "mottainai-theme",
+    THEME_OPTIONS[0].value
+  )
   const themeValue = { theme, setTheme }
   const [user, setUser] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)

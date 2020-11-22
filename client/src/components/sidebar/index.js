@@ -1,24 +1,14 @@
 import logo from "@/assets/images/logo.png"
-import { Link } from "preact-router/match"
 import { route } from "preact-router"
-import { FontAwesomeIcon } from "@aduh95/preact-fontawesome"
 import { useContext } from "preact/hooks"
 
-import ThemeContext from "@/contexts/theme"
+import ThemeContext, { THEME_OPTIONS } from "@/contexts/theme"
 import UserContext from "@/contexts/user"
 import themes from "@/themes"
 import UserService from "@/service/user"
 
-const SidebarItem = ({ icon, children, className = "", ...props }) => {
-  return (
-    <div className={`py-2 px-4 ${className}`} {...props}>
-      <span className="w-8 inline-block text-center">
-        {icon && <FontAwesomeIcon icon={icon} />}
-      </span>
-      <span className="ml-2 text-lg">{children}</span>
-    </div>
-  )
-}
+import { SidebarItem, SidebarLink } from "./common"
+import { SidebarPopoutSelector } from "./popout_selector"
 
 const SignOut = () => {
   let { setUser } = useContext(UserContext)
@@ -40,28 +30,9 @@ const SignOut = () => {
   )
 }
 
-const SidebarLink = ({ icon, text, ...props }) => {
-  let { theme } = useContext(ThemeContext)
-  return (
-    <Link
-      class="py-2 px-4"
-      activeClassName={themes[theme].sidebar.activeBg}
-      {...props}
-    >
-      <span className="w-8 inline-block text-center">
-        <FontAwesomeIcon icon={icon} />
-      </span>
-      <span className="ml-2 text-lg">{text}</span>
-    </Link>
-  )
-}
-
 const Sidebar = () => {
   let { theme, setTheme } = useContext(ThemeContext)
   let { user } = useContext(UserContext)
-  function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
 
   return (
     <div
@@ -95,13 +66,13 @@ const Sidebar = () => {
           ) : (
             <SidebarLink href="/login" icon="user" text="Log In" />
           )}
-          <SidebarItem
-            icon="palette"
-            className="cursor-pointer"
-            onClick={toggleTheme}
-          >
-            Toggle theme
-          </SidebarItem>
+          <SidebarPopoutSelector
+            anchor="bottom"
+            label="Theme"
+            options={THEME_OPTIONS}
+            onSelect={setTheme}
+            selected={theme}
+          />
         </div>
       </div>
     </div>
