@@ -4,6 +4,7 @@
 package httprequest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,8 +12,7 @@ import (
 	"reflect"
 
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/net/context"
-	"gopkg.in/errgo.v1"
+	errgo "gopkg.in/errgo.v1"
 )
 
 // Server represents the server side of an HTTP servers, and can be
@@ -129,8 +129,7 @@ func (srv *Server) Handle(f interface{}) Handler {
 		Method: hf.method,
 		Path:   hf.pathPattern,
 		Handle: func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-			ctx, cancel := contextFromRequest(req)
-			defer cancel()
+			ctx := req.Context()
 			p1 := Params{
 				Response:    w,
 				Request:     req,
@@ -164,8 +163,6 @@ func (srv *Server) Handle(f interface{}) Handler {
 // The returned context will be used as the value of Params.Context
 // when Params is passed to any method. It will also be used
 // when writing an error if the function returns an error.
-// Note that it is OK to use both the standard library context.Context
-// or golang.org/x/net/context.Context in the context return value.
 //
 // Handlers will panic if f is not of the required form, no methods are
 // defined on T or any method defined on T is not suitable for Handle.
@@ -225,8 +222,7 @@ func (srv *Server) methodHandler(m reflect.Method, rootv reflect.Value, argInter
 		return Handler{}, errgo.Notef(err, "method %s does not specify route method and path", m.Name)
 	}
 	handler := func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		ctx, cancel := contextFromRequest(req)
-		defer cancel()
+		ctx := req.Context()
 		p1 := Params{
 			Response:    w,
 			Request:     req,
@@ -443,10 +439,11 @@ func (srv *Server) handlerResponder(ft reflect.Type) func(p Params, outv []refle
 }
 
 // ToHTTP converts an httprouter.Handle into an http.Handler.
-// It will pass no path variables to h.
+// It will pass any path variables found in the request context
+// through to h.
 func ToHTTP(h httprouter.Handle) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		h(w, req, nil)
+		h(w, req, httprouter.ParamsFromContext(req.Context()))
 	})
 }
 
@@ -470,8 +467,7 @@ type ErrorHandler func(Params) error
 // have its PathPattern set as that information is not available.
 func (srv *Server) HandleJSON(handle JSONHandler) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		ctx, cancel := contextFromRequest(req)
-		defer cancel()
+		ctx := req.Context()
 		val, err := handle(Params{
 			Response: headerOnlyResponseWriter{w.Header()},
 			Request:  req,
@@ -497,8 +493,7 @@ func (srv *Server) HandleErrors(handle ErrorHandler) httprouter.Handle {
 		w1 := responseWriter{
 			ResponseWriter: w,
 		}
-		ctx, cancel := contextFromRequest(req)
-		defer cancel()
+		ctx := req.Context()
 		if err := handle(Params{
 			Response: &w1,
 			Request:  req,
