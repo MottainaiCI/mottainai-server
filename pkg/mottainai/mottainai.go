@@ -108,7 +108,7 @@ func Classic(config *setting.Config) *Mottainai {
 		// GC interval time in seconds. Default is 3600.
 		Gclifetime: 3600,
 		// Max life time in seconds. Default is whatever GC interval time is.
-		Maxlifetime: 3600,
+		Maxlifetime: 60 * 60 * 24 * 14, // two weeks
 		// Use HTTPS only. Default is false.
 		Secure: false,
 		// Cookie life time. Default is 0.
