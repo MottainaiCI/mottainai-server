@@ -1189,14 +1189,6 @@
   version = "v0.8.1"
 
 [[projects]]
-  digest = "1:dc67eaf98006ba99efc8140a5a13a2f718763acd108da9c10c8c7a5e8f7af6ff"
-  name = "github.com/rakyll/statik"
-  packages = ["fs"]
-  pruneopts = "UT"
-  revision = "46bd79c4540341fe472fe71dd2ce0ccd4e635450"
-  version = "v0.1.7"
-
-[[projects]]
   digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
   name = "github.com/robfig/cron"
   packages = ["."]
@@ -2249,7 +2241,6 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/pkg/errors",
-    "github.com/rakyll/statik/fs",
     "github.com/robfig/cron",
     "github.com/sethvargo/go-password/password",
     "github.com/sirupsen/logrus",

@@ -147,6 +147,7 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"auth_logout": &schema.APIRoute{Path: "/api/v1/client/auth/logout", Type: "post"},
 		"auth_user":   &schema.APIRoute{Path: "/api/v1/client/auth/user", Type: "get"},
 
+		// dashboard
 		"dashboard_stats": &schema.APIRoute{Path: "/api/v1/client/dashboard/stats", Type: "get"},
 	},
 }
