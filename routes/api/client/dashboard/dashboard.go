@@ -37,7 +37,7 @@ type DashboardData struct{
   Failed int `json:"failed"`
   Success int `json:"success"`
   Stopped int `json:"stopped"`
-  Stop int `json:"stop"`
+  Stopping int `json:"stopping"`
 }
 
 func Stats(ctx *macaron.Context, db *database.Database) error {
@@ -83,8 +83,8 @@ func Stats(ctx *macaron.Context, db *database.Database) error {
     running_tasks,
     waiting_tasks,
     error_tasks,
-    succeeded_tasks,
     failed_tasks,
+    succeeded_tasks,
     stopped_tasks,
     instop_tasks,
   }
