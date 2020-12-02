@@ -241,6 +241,7 @@ github.com/go-macaron/inject
 # github.com/go-macaron/session v0.0.0-20190131233854-0a0a789bf193
 ## explicit
 github.com/go-macaron/session
+github.com/go-macaron/session/redis
 # github.com/go-openapi/jsonpointer v0.19.2
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.19.2
@@ -788,6 +789,9 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
+# gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e
+## explicit
+gopkg.in/bufio.v1
 # gopkg.in/clog.v1 v1.2.0
 ## explicit
 gopkg.in/clog.v1
@@ -845,6 +849,9 @@ gopkg.in/macaroon-bakery.v2/httpbakery/form
 gopkg.in/macaroon-bakery.v2/internal/httputil
 # gopkg.in/macaroon.v2 v2.1.0
 gopkg.in/macaroon.v2
+# gopkg.in/redis.v2 v2.3.2
+## explicit
+gopkg.in/redis.v2
 # gopkg.in/retry.v1 v1.0.2
 ## explicit
 gopkg.in/retry.v1

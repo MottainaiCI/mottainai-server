@@ -90,6 +90,7 @@ require (
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/tools v0.0.0-20200304193943-95d2e580d8eb // indirect
+	gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/webhooks.v3 v3.13.0
@@ -100,6 +101,7 @@ require (
 	gopkg.in/ini.v1 v1.41.0 // indirect
 	gopkg.in/macaron.v1 v1.3.2
 	gopkg.in/macaroon-bakery.v2 v2.2.0 // indirect
+	gopkg.in/redis.v2 v2.3.2 // indirect
 	gopkg.in/retry.v1 v1.0.2 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.0 // indirect

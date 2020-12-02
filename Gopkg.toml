@@ -112,6 +112,10 @@
   version = "lxd-3.16"
   name = "github.com/lxc/lxd"
 
+[[constraint]]
+  version = "0.1.7"
+  name = "github.com/rakyll/statik"
+
 [prune]
   go-tests = true
   unused-packages = true

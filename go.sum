@@ -567,6 +567,8 @@ google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiq
 google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=
 google.golang.org/grpc v1.24.0 h1:vb/1TCsVn3DcJlQ0Gs1yB1pKI6Do2/QNwxdKqmc/b0s=
 google.golang.org/grpc v1.24.0/go.mod h1:XDChyiUovWa60DnaeDeZmSW86xtLtjtZbwvSiRnRtcA=
+gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e h1:wGA78yza6bu/mWcc4QfBuIEHEtc06xdiU0X8sY36yUU=
+gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e/go.mod h1:xsQCaysVCudhrYTfzYWe577fCe7Ceci+6qjO2Rdc0Z4=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/clog.v1 v1.2.0 h1:BHfwHRNQy497iBNsRBassPixSAxRbn2z5KVkdBFbwxc=
@@ -601,6 +603,8 @@ gopkg.in/macaroon-bakery.v2 v2.2.0/go.mod h1:XyHjEinGUBsCK60Qv+bBejOQD/WklvntpSV
 gopkg.in/macaroon.v2 v2.1.0 h1:HZcsjBCzq9t0eBPMKqTN/uSN6JOm78ZJ2INbqcBQOUI=
 gopkg.in/macaroon.v2 v2.1.0/go.mod h1:OUb+TQP/OP0WOerC2Jp/3CwhIKyIa9kQjuc7H24e6/o=
 gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce/go.mod h1:yeKp02qBN3iKW1OzL3MGk2IdtZzaj7SFntXj72NppTA=
+gopkg.in/redis.v2 v2.3.2 h1:GPVIIB/JnL1wvfULefy3qXmPu1nfNu2d0yA09FHgwfs=
+gopkg.in/redis.v2 v2.3.2/go.mod h1:4wl9PJ/CqzeHk3LVq1hNLHH8krm3+AXEgut4jVc++LU=
 gopkg.in/retry.v1 v1.0.2 h1:PxdjsMtWk8Yk224+P2Umsbc7D6niLXw2VNcl2tr/fVY=
 gopkg.in/retry.v1 v1.0.2/go.mod h1:tLRIBNXxoKtalyAWBSIbHdWkIBN2x9jVEm5l0Z+BjXs=
 gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 h1:E846t8CnR+lv5nE+VuiKTDG/v1U2stad0QzddfJC7kY=
