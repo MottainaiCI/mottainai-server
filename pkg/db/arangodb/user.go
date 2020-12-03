@@ -53,11 +53,11 @@ func (d *Database) InsertUser(t *user.User) (string, error) {
 		return "", errors.New("No username or password for user")
 	}
 	if u, e := d.GetUserByName(t.Name); e == nil && len(u.Name) != 0 {
-		return "", errors.New("User already exist")
+		return "", errors.New("User already exists")
 	}
 
 	if u, e := d.GetUserByEmail(t.Email); e == nil && len(u.Name) != 0 {
-		return "", errors.New("Mail already used")
+		return "", errors.New("E-mail belongs to another account")
 	}
 
 	return d.CreateUser(t.ToMap())
@@ -89,7 +89,7 @@ func (d *Database) SignIn(name, password string) (user.User, error) {
 		return user.User{}, err
 	}
 	if len(res) == 0 {
-		return user.User{}, errors.New("No username found")
+		return user.User{}, errors.New("Wrong username or password")
 	}
 
 	u := res[0]

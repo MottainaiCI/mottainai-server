@@ -29,6 +29,7 @@ import (
   setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
   user "github.com/MottainaiCI/mottainai-server/pkg/user"
   "github.com/go-macaron/binding"
+  log "gopkg.in/clog.v1"
   "gopkg.in/macaron.v1"
 
   v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -41,6 +42,13 @@ type SignIn struct {
   Remember    bool
 }
 
+type SignUp struct {
+  UserName string `binding:"Required;AlphaDashDot;MaxSize(35)"`
+  Email    string `binding:"Required;Email;MaxSize(254)"`
+  Password string `binding:"Required;MaxSize(255)"`
+  PasswordConfirm string
+}
+
 type UserResp struct {
   ID   string `json:"id"`
   Name string `json:"name"`
@@ -51,6 +59,44 @@ type UserResp struct {
 
 type ErrorResp struct {
   Error string `json:"error"`
+}
+
+func Register(c *context.Context, f SignUp, db *database.Database) {
+  uuu, err := db.Driver.GetSettingByKey(setting.SYSTEM_SIGNUP_ENABLED)
+  if err == nil {
+    if uuu.IsDisabled() {
+      c.JSON(503, map[string]string{"error": "Signup disabled"})
+      return
+    }
+  }
+
+  if f.Password != f.PasswordConfirm {
+    c.JSON(400, map[string]string{"error": "Passwords don't match"})
+    return
+  }
+
+  // todo: create namespace on registration?
+  //check := namespace.Namespace{Name: f.UserName}
+  //if check.Exists() {
+  //		c.RenderWithErr("Username taken as namespace, pick another one", SIGNUP)
+  //		return
+  //	}
+  u := &user.User{
+    Name:     f.UserName,
+    Email:    f.Email,
+    Password: f.Password,
+    // todo: email activation?
+    //IsActive: !setting.Service.RegisterEmailConfirm,
+  }
+  if db.Driver.CountUsers() == 0 {
+    u.MakeAdmin() // XXX: ugly, also fix error
+  }
+  if _, err := db.Driver.InsertAndSaltUser(u); err != nil {
+    c.JSON(500, map[string]string{"error": err.Error()})
+    return
+  }
+  log.Trace("Account created: %s", u.Name)
+  c.JSONSuccess(struct{}{})
 }
 
 func Login(c *context.Context, f SignIn, db *database.Database) {
@@ -125,6 +171,7 @@ func Setup(m *macaron.Macaron) {
       BaseURL:        config.GetWeb().AppSubURL})
 
     v1.Schema.GetClientRoute("auth_login").ToMacaron(m, reqSignOut, bindIgnErr(SignIn{}), Login)
+    v1.Schema.GetClientRoute("auth_register").ToMacaron(m, reqSignOut, bindIgnErr(SignUp{}), Register)
     v1.Schema.GetClientRoute("auth_user").ToMacaron(m, reqSignIn, User)
     v1.Schema.GetClientRoute("auth_logout").ToMacaron(m, reqSignIn, Logout)
   })
