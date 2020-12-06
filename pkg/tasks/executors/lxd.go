@@ -93,12 +93,23 @@ func (l *LxdExecutor) Setup(docID string) error {
 	}
 
 	if len(l.Config.GetAgent().LxdEndpoint) > 0 {
-		client, err = lxd.ConnectLXDUnix(l.Config.GetAgent().LxdEndpoint, nil)
-		if err != nil {
-			return (errors.New("Endpoint:" + l.Config.GetAgent().LxdEndpoint + " Error: " + err.Error()))
+
+		// Unix socket
+		if strings.HasPrefix(l.Config.GetAgent().LxdEndpoint, "unix:") {
+			client, err = lxd.ConnectLXDUnix(strings.TrimPrefix(strings.TrimPrefix(l.Config.GetAgent().LxdEndpoint, "unix:"), "//"), nil)
+			if err != nil {
+				return errors.New("Endpoint:" + l.Config.GetAgent().LxdEndpoint + " Error: " + err.Error())
+			}
+
+		} else {
+			client, err = l.LxdConfig.GetContainerServer(l.Config.GetAgent().LxdEndpoint)
+			if err != nil {
+				return errors.New("Endpoint:" + l.Config.GetAgent().LxdEndpoint + " Error: " + err.Error())
+			}
+
+			// Force use of local. Is this needed??
+			l.LxdConfig.DefaultRemote = l.Config.GetAgent().LxdEndpoint
 		}
-		// Force use of local
-		l.LxdConfig.DefaultRemote = "local"
 	} else {
 		if len(l.LxdConfig.DefaultRemote) > 0 {
 			// POST: If is present default I use default as main ContainerServer
