@@ -25,20 +25,21 @@ package auth
 
 import (
 	"fmt"
+	"reflect"
+	"regexp"
+	"strings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+	
 	"github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/captcha"
 	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
-	"reflect"
-	"regexp"
-	"strings"
-
-	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
 
 type Form interface {
