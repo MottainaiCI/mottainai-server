@@ -61,7 +61,7 @@ require (
 	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/lxc/lxd v0.0.0-20190810000350-cfa3c9083b40
 	github.com/mailru/easyjson v0.0.0-20190620125010-da37f6c1e481 // indirect
-	github.com/markbates/goth v1.49.0
+	github.com/markbates/goth v1.66.0
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/michaelklishin/rabbit-hole v1.5.0-rc.1
@@ -76,7 +76,7 @@ require (
 	github.com/onsi/ginkgo v1.10.0
 	github.com/onsi/gomega v1.7.0
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/rogpeppe/fastuuid v1.0.0 // indirect
 	github.com/russross/blackfriday v1.5.2 // indirect
@@ -87,9 +87,8 @@ require (
 	github.com/spf13/viper v1.3.1
 	github.com/theckman/go-flock v0.4.0
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/tools v0.0.0-20200304193943-95d2e580d8eb // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

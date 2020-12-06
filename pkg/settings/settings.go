@@ -470,7 +470,7 @@ web:
 		c.AccessToken, c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.WebHookGitHubToken, c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
+		c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
 
 	return ans
 }
