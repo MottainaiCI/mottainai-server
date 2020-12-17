@@ -282,6 +282,7 @@ func (d *TaskExecutor) Report(v ...interface{}) {
 }
 
 func (d *TaskExecutor) Setup(docID string) error {
+	var dir, artdir, storagetmp string
 
 	// Handle Pre-execution task commands
 	for _, k := range d.Config.GetAgent().PreTaskHookExec {
@@ -324,17 +325,17 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Context.TaskRelativeDir = task_info.Directory
 
 	tmp_buildpath := path.Join(d.Context.RootTaskDir, "temp")
-	dir := path.Join(tmp_buildpath, "root")
+	dir = path.Join(tmp_buildpath, "root")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 
-	artdir := path.Join(tmp_buildpath, "artefact")
+	artdir = path.Join(tmp_buildpath, "artefact")
 	if err := os.MkdirAll(artdir, os.ModePerm); err != nil {
 		return err
 	}
 
-	storagetmp := path.Join(tmp_buildpath, "storage")
+	storagetmp = path.Join(tmp_buildpath, "storage")
 	if err := os.MkdirAll(storagetmp, os.ModePerm); err != nil {
 		return err
 	}

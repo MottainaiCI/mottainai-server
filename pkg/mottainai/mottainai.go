@@ -42,6 +42,7 @@ import (
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
+	_ "github.com/go-macaron/session/redis"
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
@@ -88,11 +89,18 @@ func Classic(config *setting.Config) *Mottainai {
 		Section: "cache",
 	}))
 
+	sessionStore := "memory"
+	sessionConfig := ""
+	switch s := config.GetWeb().SessionProvider; s {
+	case "redis":
+		sessionStore = s
+		sessionConfig = config.GetWeb().SessionProviderConfig
+	}
 	sesopts := session.Options{
 		// Name of provider. Default is "memory".
-		Provider: "memory",
+		Provider: sessionStore,
 		// Provider configuration, it's corresponding to provider.
-		ProviderConfig: "",
+		ProviderConfig: sessionConfig,
 		// Cookie name to save session ID. Default is "MacaronSession".
 		CookieName: "MottainaiSession",
 		// Cookie path to store. Default is "/".
@@ -100,7 +108,7 @@ func Classic(config *setting.Config) *Mottainai {
 		// GC interval time in seconds. Default is 3600.
 		Gclifetime: 3600,
 		// Max life time in seconds. Default is whatever GC interval time is.
-		Maxlifetime: 3600,
+		Maxlifetime: 60 * 60 * 24 * 14, // two weeks
 		// Use HTTPS only. Default is false.
 		Secure: false,
 		// Cookie life time. Default is 0.
@@ -113,28 +121,10 @@ func Classic(config *setting.Config) *Mottainai {
 		Section: "session",
 	}
 
-	csrfopts := csrf.Options{ // HTTP header used to set and get token. Default is "X-CSRFToken".
+	// send csrf through header so client can save it
+	csrfopts := csrf.Options{
 		Header: "X-CSRFToken",
-		// Form value used to set and get token. Default is "_csrf".
-		Form: "_csrf",
-		// Cookie value used to set and get token. Default is "_csrf".
-		Cookie: "_csrf",
-		// Cookie path. Default is "/".
-		CookiePath: "/",
-		// Key used for getting the unique ID per user. Default is "uid".
-		SessionKey: "uid",
-		// If true, send token via header. Default is false.
-		SetHeader: false,
-		// If true, send token via cookie. Default is false.
-		SetCookie: false,
-		// Set the Secure flag to true on the cookie. Default is false.
-		Secure: false,
-		// Disallow Origin appear in request header. Default is false.
-		Origin: false,
-		// The function called when Validate fails. Default is a simple error print.
-		ErrorFunc: func(w http.ResponseWriter) {
-			http.Error(w, "Invalid csrf token.", http.StatusBadRequest)
-		},
+		SetHeader: true,
 	}
 
 	if config.GetWeb().GetProtocol() == "https" {
@@ -145,7 +135,7 @@ func Classic(config *setting.Config) *Mottainai {
 	}
 
 	m.Use(session.Sessioner(sesopts))
-	m.Use(csrf.Csrfer())
+	m.Use(csrf.Csrfer(csrfopts))
 
 	// Honoring first Posix TMPDIR and if
 	// TMPDIR is not set I use web.upload_tmpdir

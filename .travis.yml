@@ -1,26 +1,27 @@
 language: go
 dist: xenial
 go:
-  - "1.10.x"
+  - "1.14"
 env:
-  - "GO15VENDOREXPERIMENT=1"
+  global:
+    - "GO15VENDOREXPERIMENT=1"
 before_install:
   # Add backport repository for add dependency for -race option
   - sudo echo "deb http://archive.ubuntu.com/ubuntu xenial-backports main universe multiverse restricted" >> /etc/apt/sources.list
   - sudo apt-get update
   - sudo apt-get install -y gcc-arm-linux-gnueabi libc6-dev-armel-cross
-  - sudo apt-get install -y libc6-armel-cross libc6-dev golang-1.10-go
+  - sudo apt-get install -y libc6-armel-cross libc6-dev golang-1.14-go
   - sudo apt-get install -y libc6-dev-i386 libc6-dev-armhf-armel-cross linux-headers-generic
-  - sudo apt-get install -y golang-1.10-race-detector-runtime
+  - sudo apt-get install -y golang-1.14-race-detector-runtime
   - sudo apt-get install -y lib32gcc-5-dev libx32gcc-4.9-dev
   # Fix asm/errno.h: No such file or directory on 386 build
   - sudo cp --archive /usr/include/asm-generic /usr/include/asm
   # - make deps
-  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" EXTENSIONS="lxd" make deps
+  - PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make deps
 script:
   #- make multiarch-build
   #- make build-test
-  - PATH=/usr/lib/go-1.10/bin:$PATH GOROOT="/usr/lib/go-1.10" GOTOOLDIR="/usr/lib/go-1.10/pkg/tool/linux_amd64" EXTENSIONS="lxd" make build-test
+  - PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make build-test
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN

@@ -68,6 +68,14 @@ web:
   # github_secret: 'xxxx'
   # webhook_token: 'xxxxx'
 
+  # Session store
+  # If no option is provided, in-memory store is used by default i.e.
+  # sessions are cleared on server restart
+  # See https://go-macaron.com/middlewares/session for more information
+  # Available options: redis
+  # session_provider: redis
+  # session_provider_config: addr=127.0.0.1:6379,prefix=mottainai:sessions:
+
 broker:
 
   # Broker type

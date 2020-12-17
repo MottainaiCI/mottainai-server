@@ -75,6 +75,9 @@ type WebConfig struct {
 	HealthCheckInterval int `mapstructure:"healthcheck_interval"`
 	TaskDeadline        int `mapstructure:"task_deadline"`
 	NodeDeadline        int `mapstructure:"node_deadline"`
+
+	SessionProvider       string `mapstructure:"session_provider"`
+	SessionProviderConfig string `mapstructure:"session_provider_config"`
 }
 
 type StorageConfig struct {
@@ -252,6 +255,8 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.task_deadline", 21600) // 6h
 	viper.SetDefault("web.node_deadline", 21600)
 	viper.SetDefault("web.healthcheck_interval", 800)
+	viper.SetDefault("web.session_provider", "")
+	viper.SetDefault("web.session_provider_config", "")
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")
@@ -465,7 +470,7 @@ web:
 		c.AccessToken, c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.WebHookGitHubToken, c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
+		c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
 
 	return ans
 }

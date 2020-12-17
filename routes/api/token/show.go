@@ -54,7 +54,16 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 		return
 	}
 
-	all = append(all, mine...)
+	allIds := map[string]bool{}
+	for _, token := range all {
+		allIds[token.ID] = true
+	}
+
+	for _, token := range mine {
+		if _, ok := allIds[token.ID]; !ok {
+			all = append(all, token)
+		}
+	}
 
 	ctx.JSON(200, all)
 }

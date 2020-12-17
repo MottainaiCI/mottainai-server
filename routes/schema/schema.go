@@ -37,6 +37,7 @@ type RouteGenerator interface {
 	GetStorageRoute(s string) Route
 	GetStatsRoute(s string) Route
 	GetSettingRoute(s string) Route
+	GetClientRoute(s string) Route
 }
 
 type APIRouteGenerator struct {
@@ -50,6 +51,7 @@ type APIRouteGenerator struct {
 	Storage   map[string]Route
 	Stats     map[string]Route
 	Setting   map[string]Route
+	Client    map[string]Route
 }
 
 func (g *APIRouteGenerator) GetSecretRoute(s string) Route {
@@ -129,6 +131,14 @@ func (g *APIRouteGenerator) GetStatsRoute(s string) Route {
 }
 func (g *APIRouteGenerator) GetSettingRoute(s string) Route {
 	r, ok := g.Setting[s]
+	if ok {
+		return r
+	}
+
+	return nil
+}
+func (g *APIRouteGenerator) GetClientRoute(s string) Route {
+	r, ok := g.Client[s]
 	if ok {
 		return r
 	}
