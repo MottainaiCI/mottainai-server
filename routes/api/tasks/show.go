@@ -127,16 +127,15 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 	return task.TailLog(pos, db.Config.GetStorage().ArtefactPath, db.Config.GetWeb().LockPath)
 }
 
-func All(ctx *context.Context, db *database.Database) ([]task.Task, []task.Task) {
-
+func All(ctx *context.Context, db *database.Database) []task.Task {
 	var all []task.Task
-	var mine []task.Task
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
 			all = db.Driver.AllTasks(db.Config)
+		} else {
+			all, _ = db.Driver.AllUserTask(db.Config, ctx.User.ID)
 		}
-		mine, _ = db.Driver.AllUserTask(db.Config, ctx.User.ID)
 
 	}
 
@@ -144,22 +143,15 @@ func All(ctx *context.Context, db *database.Database) ([]task.Task, []task.Task)
 		return all[i].CreatedTime > all[j].CreatedTime
 	})
 
-	sort.Slice(mine[:], func(i, j int) bool {
-		return mine[i].CreatedTime > mine[j].CreatedTime
-	})
-	return all, mine
+	return all
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 
-	all, mine := All(ctx, db)
+	all := All(ctx, db)
 
 	if ctx.IsLogged {
-		if ctx.User.IsAdmin() {
-			ctx.JSON(200, all)
-		} else {
-			ctx.JSON(200, mine)
-		}
+		ctx.JSON(200, all)
 	}
 
 }

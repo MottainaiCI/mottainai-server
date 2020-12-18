@@ -139,13 +139,9 @@ func (d *Database) GetTaskByStatus(config *setting.Config, status string) ([]age
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		t, err := d.GetTask(config, id)
-		if err != nil {
-			return res, err
-		}
+	for id, v := range queryResult {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = id
 		res = append(res, t)
 	}
 	return res, nil
@@ -164,14 +160,10 @@ func (d *Database) GetTaskArtefacts(id string) ([]artefact.Artefact, error) {
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetArtefact(id)
-		if err != nil {
-			return res, err
-		}
-		res = append(res, art)
+	for id, v := range queryResult {
+		t := artefact.NewFromMap(v.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	return res, nil
 }
@@ -188,11 +180,9 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 		return tasks_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetTask(config, k)
-		if err != nil {
-			return tasks_id
-		}
+	for k, v := range docs {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = k
 		tasks_id = append(tasks_id, t)
 	}
 
@@ -210,13 +200,9 @@ func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		t, err := d.GetTask(config, id)
-		if err != nil {
-			return res, err
-		}
+	for k, v := range queryResult {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = k
 		res = append(res, t)
 	}
 	return res, nil
@@ -235,13 +221,9 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		t, err := d.GetTask(config, id)
-		if err != nil {
-			return res, err
-		}
+	for id, v := range queryResult {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = id
 		res = append(res, t)
 	}
 	return res, nil

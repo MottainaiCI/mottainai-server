@@ -82,14 +82,10 @@ func (d *Database) SearchNamespace(name string) (namespace.Namespace, error) {
 		return namespace.Namespace{}, err
 	}
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetNamespace(id)
-		if err != nil {
-			return namespace.Namespace{}, err
-		}
-		res = append(res, art)
+	for id, doc := range queryResult {
+		t := namespace.NewFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	return res[0], nil
 }
@@ -118,13 +114,9 @@ func (d *Database) GetNamespaceArtefacts(id string) ([]artefact.Artefact, error)
 	var res []artefact.Artefact
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetArtefact(id)
-		if err != nil {
-			return []artefact.Artefact{}, err
-		}
+	for id, doc := range queryResult {
+		art := artefact.NewFromMap(doc.(map[string]interface{}))
+		art.ID = id
 		res = append(res, art)
 	}
 	return res, nil
@@ -138,14 +130,11 @@ func (d *Database) AllNamespaces() []namespace.Namespace {
 		return []namespace.Namespace{}
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetNamespace(k)
-		if err != nil {
-			return []namespace.Namespace{}
-		}
+	for k, doc := range docs {
+		t := namespace.NewFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		Namespaces_id = append(Namespaces_id, t)
 	}
 
 	return Namespaces_id
-
 }

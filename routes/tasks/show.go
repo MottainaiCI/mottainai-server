@@ -90,16 +90,16 @@ func ShowTaskByStatus(ctx *context.Context, db *database.Database) {
 }
 
 func ShowMyTasks(ctx *context.Context, db *database.Database) {
-	_, mine := tasksapi.All(ctx, db)
+	all := tasksapi.All(ctx, db)
 
-	ctx.Data["Tasks"] = mine
+	ctx.Data["Tasks"] = all
 	ctx.Data["Kind"] = "your"
 
 	template.TemplatePreview(ctx, "tasks/search", db.Config)
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	all, _ := tasksapi.All(ctx, db)
+	all := tasksapi.All(ctx, db)
 
 	ctx.Data["Tasks"] = all
 	ctx.Data["Kind"] = "All"

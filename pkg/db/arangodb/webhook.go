@@ -105,14 +105,10 @@ func (d *Database) GetWebHooksByField(field, name string) ([]webhook.WebHook, er
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		u, err := d.GetWebHook(id)
-		if err != nil {
-			return res, err
-		}
-		res = append(res, u)
+	for id, doc := range queryResult {
+		t := webhook.NewWebHookFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	return res, nil
 }
@@ -157,11 +153,9 @@ func (d *Database) AllWebHooks() []webhook.WebHook {
 		return WebHooks_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetWebHook(k)
-		if err != nil {
-			return WebHooks_id
-		}
+	for k, doc := range docs {
+		t := webhook.NewWebHookFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		WebHooks_id = append(WebHooks_id, t)
 	}
 

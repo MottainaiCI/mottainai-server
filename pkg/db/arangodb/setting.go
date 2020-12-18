@@ -96,14 +96,10 @@ func (d *Database) GetSettingsByField(field, name string) ([]setting.Setting, er
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetSetting(id)
-		if err != nil {
-			return res, err
-		}
-		res = append(res, art)
+	for id, doc := range queryResult {
+		s := setting.NewSettingFromMap(doc.(map[string]interface{}))
+		s.ID = id
+		res = append(res, s)
 	}
 	return res, nil
 }
@@ -143,12 +139,10 @@ func (d *Database) AllSettings() []setting.Setting {
 		return Settings_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetSetting(k)
-		if err != nil {
-			return Settings_id
-		}
-		Settings_id = append(Settings_id, t)
+	for k, doc := range docs {
+		s := setting.NewSettingFromMap(doc.(map[string]interface{}))
+		s.ID = k
+		Settings_id = append(Settings_id, s)
 	}
 
 	return Settings_id

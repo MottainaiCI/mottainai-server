@@ -66,14 +66,10 @@ func (d *Database) SearchArtefact(name string) (artefact.Artefact, error) {
 	var res []artefact.Artefact
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetArtefact(id)
-		if err != nil {
-			return artefact.Artefact{}, err
-		}
-		res = append(res, art)
+	for id, doc := range queryResult {
+		t := artefact.NewFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	return res[0], nil
 }
@@ -90,12 +86,9 @@ func (d *Database) AllArtefacts() []artefact.Artefact {
 		return []artefact.Artefact{}
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetArtefact(k)
-		if err != nil {
-			return []artefact.Artefact{}
-		}
-
+	for k, doc := range docs {
+		t := artefact.NewFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		Artefacts_id = append(Artefacts_id, t)
 	}
 

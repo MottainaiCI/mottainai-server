@@ -109,13 +109,13 @@ func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, err
 	return strconv.Itoa(id), err
 }
 
-func (d *Database) FindDoc(coll string, searchquery string) (map[string]struct{}, error) {
+func (d *Database) FindDoc(coll string, searchquery string) (map[string]interface{}, error) {
 
 	var query interface{}
 	json.Unmarshal([]byte(searchquery), &query)
 
 	queryResult := make(map[int]struct{}) // query result (document IDs) goes into map keys
-	res := make(map[string]struct{})      // query result (document IDs) goes into map keys
+	res := make(map[string]interface{})   // query result (document IDs) goes into map keys
 
 	err := db.EvalQuery(query, d.DB().Use(coll), &queryResult)
 

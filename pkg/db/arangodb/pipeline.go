@@ -69,14 +69,10 @@ func (d *Database) AllUserPipelines(config *setting.Config, id string) ([]agentt
 	var res []agenttasks.Pipeline
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetPipeline(config, id)
-		if err != nil {
-			return []agenttasks.Pipeline{}, err
-		}
-		res = append(res, art)
+	for id, doc := range queryResult {
+		t := agenttasks.NewPipelineFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	return res, nil
 }
@@ -121,11 +117,9 @@ func (d *Database) AllPipelines(config *setting.Config) []agenttasks.Pipeline {
 		return tasks_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetPipeline(config, k)
-		if err != nil {
-			return tasks_id
-		}
+	for k, doc := range docs {
+		t := agenttasks.NewPipelineFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		tasks_id = append(tasks_id, t)
 	}
 
