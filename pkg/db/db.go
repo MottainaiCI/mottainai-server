@@ -46,7 +46,7 @@ import (
 type DatabaseDriver interface {
 	Init()
 	InsertDoc(string, map[string]interface{}) (string, error)
-	FindDoc(string, string) (map[string]struct{}, error)
+	FindDoc(string, string) (map[string]interface{}, error)
 	DeleteDoc(string, string) error
 	UpdateDoc(string, string, map[string]interface{}) error
 	ReplaceDoc(string, string, map[string]interface{}) error

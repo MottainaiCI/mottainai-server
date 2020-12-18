@@ -27,10 +27,10 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/arangodb/go-driver/http"
-
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+
 	arango "github.com/arangodb/go-driver"
+	"github.com/arangodb/go-driver/http"
 	"github.com/mudler/anagent"
 )
 
@@ -200,17 +200,17 @@ func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, err
 	return meta.Key, err
 }
 
-func (d *Database) FindDoc(coll string, searchquery string) (map[string]struct{}, error) {
-	res := make(map[string]struct{})
+func (d *Database) FindDoc(coll string, searchquery string) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
 	ctx := context.Background()
-	cursor, err := d.DB().Query(arango.WithWaitForSync(ctx), searchquery, nil)
+	cursor, err := d.DB().Query(ctx, searchquery, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close()
 	for {
-		var doc struct{}
-		meta, err := cursor.ReadDocument(arango.WithWaitForSync(ctx), &doc)
+		var doc interface{}
+		meta, err := cursor.ReadDocument(ctx, &doc)
 		if arango.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
@@ -288,6 +288,7 @@ func (d *Database) ListDocs(coll string) []dbcommon.DocItem {
 	for k, v := range docs {
 		tasks_id = append(tasks_id, dbcommon.DocItem{Id: k, Content: fmt.Sprintf("%v", v)})
 	}
+
 	return tasks_id
 }
 
