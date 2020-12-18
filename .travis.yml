@@ -1,5 +1,5 @@
 language: go
-dist: xenial
+dist: bionic
 go:
   - "1.14"
 env:
@@ -7,13 +7,15 @@ env:
     - "GO15VENDOREXPERIMENT=1"
 before_install:
   # Add backport repository for add dependency for -race option
-  - sudo echo "deb http://archive.ubuntu.com/ubuntu xenial-backports main universe multiverse restricted" >> /etc/apt/sources.list
+  - sudo echo "deb http://archive.ubuntu.com/ubuntu bionic-backports main universe multiverse restricted" >> /etc/apt/sources.list
+  - sudo apt-get update
+  - sudo apt-get install software-properties-common
+    sudo add-apt-repository ppa:longsleep/golang-backports -y
   - sudo apt-get update
   - sudo apt-get install -y gcc-arm-linux-gnueabi libc6-dev-armel-cross
   - sudo apt-get install -y libc6-armel-cross libc6-dev golang-1.14-go
   - sudo apt-get install -y libc6-dev-i386 libc6-dev-armhf-armel-cross linux-headers-generic
-  - sudo apt-get install -y golang-1.14-race-detector-runtime
-  - sudo apt-get install -y lib32gcc-5-dev libx32gcc-4.9-dev
+  - sudo apt-get install -y lib32gcc-5-dev libx32gcc-5-dev
   # Fix asm/errno.h: No such file or directory on 386 build
   - sudo cp --archive /usr/include/asm-generic /usr/include/asm
   # - make deps
@@ -25,7 +27,7 @@ script:
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
-after_success:
-  - git config --global user.name "Deployer" && git config --global user.email foo@bar.com
-  - go get github.com/tcnksm/ghr
-  - ghr -u MottainaiCI -r mottainai-server --replace --debug $TRAVIS_TAG release/
+#after_success:
+#  - git config --global user.name "Deployer" && git config --global user.email foo@bar.com
+#  - go get github.com/tcnksm/ghr
+#  - ghr -u MottainaiCI -r mottainai-server --replace --debug $TRAVIS_TAG release/
