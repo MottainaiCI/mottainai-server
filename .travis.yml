@@ -18,8 +18,9 @@ before_install:
   - sudo apt-get install -y lib32gcc-5-dev libx32gcc-5-dev
   # Fix asm/errno.h: No such file or directory on 386 build
   - sudo cp --archive /usr/include/asm-generic /usr/include/asm
+  - echo $PWD
   # - make deps
-  - PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make deps
+  #- PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make deps
 script:
   #- make multiarch-build
   #- make build-test
