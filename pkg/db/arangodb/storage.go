@@ -77,14 +77,10 @@ func (d *Database) SearchStorage(name string) (storage.Storage, error) {
 		return storage.Storage{}, err
 	}
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetStorage(id)
-		if err != nil {
-			return storage.Storage{}, err
-		}
-		res = append(res, art)
+	for id, doc := range queryResult {
+		t := storage.NewFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		res = append(res, t)
 	}
 	if len(res) == 0 {
 		return storage.Storage{}, errors.New("No storages found")
@@ -119,13 +115,9 @@ func (d *Database) GetStorageArtefacts(id string) ([]artefact.Artefact, error) {
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		// Read document
-		art, err := d.GetArtefact(id)
-		if err != nil {
-			return res, err
-		}
+	for id, doc := range queryResult {
+		art := artefact.NewFromMap(doc.(map[string]interface{}))
+		art.ID = id
 		res = append(res, art)
 	}
 	return res, nil
@@ -139,11 +131,9 @@ func (d *Database) AllStorages() []storage.Storage {
 		return Storages_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetStorage(k)
-		if err != nil {
-			return Storages_id
-		}
+	for k, doc := range docs {
+		t := storage.NewFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		Storages_id = append(Storages_id, t)
 	}
 

@@ -70,14 +70,10 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
-
-		u, err := d.GetNode(id)
-		u.ID = id
-		if err != nil {
-			return nodes.Node{}, err
-		}
-		res = append(res, u)
+	for id, doc := range queryResult {
+		n := nodes.NewNodeFromMap(doc.(map[string]interface{}))
+		n.ID = id
+		res = append(res, n)
 	}
 	return res[0], nil
 
@@ -95,12 +91,10 @@ func (d *Database) AllNodes() []nodes.Node {
 		return []nodes.Node{}
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetNode(k)
-		if err != nil {
-			return []nodes.Node{}
-		}
-		node_list = append(node_list, t)
+	for id, doc := range docs {
+		n := nodes.NewNodeFromMap(doc.(map[string]interface{}))
+		n.ID = id
+		node_list = append(node_list, n)
 	}
 
 	return node_list

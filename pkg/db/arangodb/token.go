@@ -140,11 +140,9 @@ func (d *Database) AllTokens() []token.Token {
 		return Tokens_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetToken(k)
-		if err != nil {
-			return Tokens_id
-		}
+	for k, doc := range docs {
+		t := token.NewTokenFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		Tokens_id = append(Tokens_id, t)
 	}
 

@@ -84,11 +84,9 @@ func (d *Database) AllPlans(config *setting.Config) []agenttasks.Plan {
 		return tasks_id
 	}
 
-	for k, _ := range docs {
-		t, err := d.GetPlan(config, k)
-		if err != nil {
-			return tasks_id
-		}
+	for k, doc := range docs {
+		t := agenttasks.NewPlanFromMap(doc.(map[string]interface{}))
+		t.ID = k
 		tasks_id = append(tasks_id, t)
 	}
 
