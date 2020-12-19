@@ -43,6 +43,9 @@ type Cluster interface {
 	// CleanOutServer triggers activities to clean out a DBServer.
 	CleanOutServer(ctx context.Context, serverID string) error
 
+	// ResignServer triggers activities to let a DBServer resign for all shards.
+	ResignServer(ctx context.Context, serverID string) error
+
 	// IsCleanedOut checks if the dbserver with given ID has been cleaned out.
 	IsCleanedOut(ctx context.Context, serverID string) (bool, error)
 
@@ -114,6 +117,8 @@ const (
 
 // DatabaseInventory describes a detailed state of the collections & shards of a specific database within a cluster.
 type DatabaseInventory struct {
+	// Details of database, this is present since ArangoDB 3.6
+	Info DatabaseInfo `json:"properties,omitempty"`
 	// Details of all collections
 	Collections []InventoryCollection `json:"collections,omitempty"`
 	// Details of all views
@@ -198,11 +203,15 @@ type InventoryCollectionParameters struct {
 		AllowUserKeys bool   `json:"allowUserKeys,omitempty"`
 		LastValue     int64  `json:"lastValue,omitempty"`
 	} `json:"keyOptions"`
-	Name                 string                 `json:"name,omitempty"`
-	NumberOfShards       int                    `json:"numberOfShards,omitempty"`
-	Path                 string                 `json:"path,omitempty"`
-	PlanID               string                 `json:"planId,omitempty"`
-	ReplicationFactor    int                    `json:"replicationFactor,omitempty"`
+	Name              string `json:"name,omitempty"`
+	NumberOfShards    int    `json:"numberOfShards,omitempty"`
+	Path              string `json:"path,omitempty"`
+	PlanID            string `json:"planId,omitempty"`
+	ReplicationFactor int    `json:"replicationFactor,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// Available from 3.6 arangod version.
+	WriteConcern         int                    `json:"writeConcern,omitempty"`
 	ShardKeys            []string               `json:"shardKeys,omitempty"`
 	Shards               map[ShardID][]ServerID `json:"shards,omitempty"`
 	Status               CollectionStatus       `json:"status,omitempty"`
@@ -211,6 +220,10 @@ type InventoryCollectionParameters struct {
 	DistributeShardsLike string                 `json:"distributeShardsLike,omitempty"`
 	SmartJoinAttribute   string                 `json:"smartJoinAttribute,omitempty"`
 	ShardingStrategy     ShardingStrategy       `json:"shardingStrategy,omitempty"`
+	// Available from 3.7 arangod version
+	UsesRevisionsAsDocumentIds bool `json:"usesRevisionsAsDocumentIds,omitempty"`
+	// Available from 3.7 arangod version
+	SyncByRevision bool `json:"syncByRevision,omitempty"`
 }
 
 // IsSatellite returns true if the collection is a satellite collection
@@ -231,6 +244,8 @@ type InventoryIndex struct {
 	Deduplicate bool     `json:"deduplicate"`
 	MinLength   int      `json:"minLength,omitempty"`
 	GeoJSON     bool     `json:"geoJson,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	ExpireAfter int      `json:"expireAfter,omitempty"`
 }
 
 // FieldsEqual returns true when the given fields list equals the

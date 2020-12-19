@@ -267,47 +267,68 @@ func (c *collection) Truncate(ctx context.Context) error {
 
 type collectionPropertiesInternal struct {
 	CollectionInfo
-	WaitForSync bool  `json:"waitForSync,omitempty"`
-	DoCompact   bool  `json:"doCompact,omitempty"`
-	JournalSize int64 `json:"journalSize,omitempty"`
-	KeyOptions  struct {
+	WaitForSync  bool  `json:"waitForSync,omitempty"`
+	DoCompact    bool  `json:"doCompact,omitempty"`
+	JournalSize  int64 `json:"journalSize,omitempty"`
+	CacheEnabled bool  `json:"cacheEnabled,omitempty"`
+	KeyOptions   struct {
 		Type          KeyGeneratorType `json:"type,omitempty"`
 		AllowUserKeys bool             `json:"allowUserKeys,omitempty"`
 	} `json:"keyOptions,omitempty"`
-	NumberOfShards     int               `json:"numberOfShards,omitempty"`
-	ShardKeys          []string          `json:"shardKeys,omitempty"`
-	ReplicationFactor  replicationFactor `json:"replicationFactor,omitempty"`
-	SmartJoinAttribute string            `json:"smartJoinAttribute,omitempty"`
-	ShardingStrategy   ShardingStrategy  `json:"shardingStrategy,omitempty"`
+	NumberOfShards    int               `json:"numberOfShards,omitempty"`
+	ShardKeys         []string          `json:"shardKeys,omitempty"`
+	ReplicationFactor replicationFactor `json:"replicationFactor,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// Available from 3.6 arangod version.
+	WriteConcern         int              `json:"writeConcern,omitempty"`
+	SmartJoinAttribute   string           `json:"smartJoinAttribute,omitempty"`
+	ShardingStrategy     ShardingStrategy `json:"shardingStrategy,omitempty"`
+	DistributeShardsLike string           `json:"distributeShardsLike,omitempty"`
+	// Available from 3.7 arangod version.
+	UsesRevisionsAsDocumentIds bool                     `json:"usesRevisionsAsDocumentIds,omitempty"`
+	SyncByRevision             bool                     `json:"syncByRevision,omitempty"`
+	Schema                     *CollectionSchemaOptions `json:"schema,omitempty"`
 }
 
 func (p *collectionPropertiesInternal) asExternal() CollectionProperties {
 	return CollectionProperties{
-		CollectionInfo:     p.CollectionInfo,
-		WaitForSync:        p.WaitForSync,
-		DoCompact:          p.DoCompact,
-		JournalSize:        p.JournalSize,
-		KeyOptions:         p.KeyOptions,
-		NumberOfShards:     p.NumberOfShards,
-		ShardKeys:          p.ShardKeys,
-		ReplicationFactor:  int(p.ReplicationFactor),
-		SmartJoinAttribute: p.SmartJoinAttribute,
-		ShardingStrategy:   p.ShardingStrategy,
+		CollectionInfo:             p.CollectionInfo,
+		WaitForSync:                p.WaitForSync,
+		DoCompact:                  p.DoCompact,
+		JournalSize:                p.JournalSize,
+		CacheEnabled:               p.CacheEnabled,
+		KeyOptions:                 p.KeyOptions,
+		NumberOfShards:             p.NumberOfShards,
+		ShardKeys:                  p.ShardKeys,
+		ReplicationFactor:          int(p.ReplicationFactor),
+		MinReplicationFactor:       p.MinReplicationFactor,
+		WriteConcern:               p.WriteConcern,
+		SmartJoinAttribute:         p.SmartJoinAttribute,
+		ShardingStrategy:           p.ShardingStrategy,
+		DistributeShardsLike:       p.DistributeShardsLike,
+		UsesRevisionsAsDocumentIds: p.UsesRevisionsAsDocumentIds,
+		SyncByRevision:             p.SyncByRevision,
+		Schema:                     p.Schema,
 	}
 }
 
 func (p *CollectionProperties) asInternal() collectionPropertiesInternal {
 	return collectionPropertiesInternal{
-		CollectionInfo:     p.CollectionInfo,
-		WaitForSync:        p.WaitForSync,
-		DoCompact:          p.DoCompact,
-		JournalSize:        p.JournalSize,
-		KeyOptions:         p.KeyOptions,
-		NumberOfShards:     p.NumberOfShards,
-		ShardKeys:          p.ShardKeys,
-		ReplicationFactor:  replicationFactor(p.ReplicationFactor),
-		SmartJoinAttribute: p.SmartJoinAttribute,
-		ShardingStrategy:   p.ShardingStrategy,
+		CollectionInfo:       p.CollectionInfo,
+		WaitForSync:          p.WaitForSync,
+		DoCompact:            p.DoCompact,
+		JournalSize:          p.JournalSize,
+		CacheEnabled:         p.CacheEnabled,
+		KeyOptions:           p.KeyOptions,
+		NumberOfShards:       p.NumberOfShards,
+		ShardKeys:            p.ShardKeys,
+		ReplicationFactor:    replicationFactor(p.ReplicationFactor),
+		MinReplicationFactor: p.MinReplicationFactor,
+		WriteConcern:         p.WriteConcern,
+		SmartJoinAttribute:   p.SmartJoinAttribute,
+		ShardingStrategy:     p.ShardingStrategy,
+		Schema:               p.Schema,
 	}
 }
 
@@ -316,12 +337,17 @@ func (p *CollectionProperties) fromInternal(i *collectionPropertiesInternal) {
 	p.WaitForSync = i.WaitForSync
 	p.DoCompact = i.DoCompact
 	p.JournalSize = i.JournalSize
+	p.CacheEnabled = i.CacheEnabled
 	p.KeyOptions = i.KeyOptions
 	p.NumberOfShards = i.NumberOfShards
 	p.ShardKeys = i.ShardKeys
 	p.ReplicationFactor = int(i.ReplicationFactor)
+	p.MinReplicationFactor = i.MinReplicationFactor
+	p.WriteConcern = i.WriteConcern
 	p.SmartJoinAttribute = i.SmartJoinAttribute
 	p.ShardingStrategy = i.ShardingStrategy
+	p.UsesRevisionsAsDocumentIds = i.UsesRevisionsAsDocumentIds
+	p.SyncByRevision = i.SyncByRevision
 }
 
 // MarshalJSON converts CollectionProperties into json
@@ -344,20 +370,34 @@ type setCollectionPropertiesOptionsInternal struct {
 	WaitForSync       *bool             `json:"waitForSync,omitempty"`
 	JournalSize       int64             `json:"journalSize,omitempty"`
 	ReplicationFactor replicationFactor `json:"replicationFactor,omitempty"`
+	CacheEnabled      *bool             `json:"cacheEnabled,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// Available from 3.6 arangod version.
+	WriteConcern int                      `json:"writeConcern,omitempty"`
+	Schema       *CollectionSchemaOptions `json:"schema,omitempty"`
 }
 
 func (p *SetCollectionPropertiesOptions) asInternal() setCollectionPropertiesOptionsInternal {
 	return setCollectionPropertiesOptionsInternal{
-		WaitForSync:       p.WaitForSync,
-		JournalSize:       p.JournalSize,
-		ReplicationFactor: replicationFactor(p.ReplicationFactor),
+		WaitForSync:          p.WaitForSync,
+		JournalSize:          p.JournalSize,
+		CacheEnabled:         p.CacheEnabled,
+		ReplicationFactor:    replicationFactor(p.ReplicationFactor),
+		MinReplicationFactor: p.MinReplicationFactor,
+		WriteConcern:         p.WriteConcern,
+		Schema:               p.Schema,
 	}
 }
 
 func (p *SetCollectionPropertiesOptions) fromInternal(i *setCollectionPropertiesOptionsInternal) {
 	p.WaitForSync = i.WaitForSync
 	p.JournalSize = i.JournalSize
+	p.CacheEnabled = i.CacheEnabled
 	p.ReplicationFactor = int(i.ReplicationFactor)
+	p.MinReplicationFactor = i.MinReplicationFactor
+	p.WriteConcern = i.WriteConcern
+	p.Schema = i.Schema
 }
 
 // MarshalJSON converts SetCollectionPropertiesOptions into json

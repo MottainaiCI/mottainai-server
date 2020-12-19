@@ -336,8 +336,9 @@ func addrMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	if vpack, err := m.MarshalVPack(); err != nil {
 		panic(&MarshalerError{Type: v.Type(), Err: err})
 	} else {
-		// copy VPack into buffer, checking validity.
-		b.buf.Write(vpack)
+		if err = b.AddValue(NewSliceValue(vpack)); err != nil {
+			panic(&MarshalerError{Type: v.Type(), Err: err})
+		}
 	}
 }
 

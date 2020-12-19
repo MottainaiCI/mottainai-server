@@ -1,7 +1,7 @@
 version: '3'
 services:
   mottainai:
-    image: mottainaici/server
+    image: "quay.io/mottainai/server"
     environment:
       - MOTTAINAI_BROKER__TYPE=redis
       - MOTTAINAI_BROKER__BROKER=redis://redis:6379/1

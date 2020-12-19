@@ -1,7 +1,7 @@
 //
 // DISCLAIMER
 //
-// Copyright 2017 ArangoDB GmbH, Cologne, Germany
+// Copyright 2020 ArangoDB GmbH, Cologne, Germany
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,22 +17,31 @@
 //
 // Copyright holder is ArangoDB GmbH, Cologne, Germany
 //
-// Author Ewout Prangsma
+// Author Tomasz Mielech
 //
 
-package http
+package driver
 
 import (
-	"net/http"
-	"net/http/httptrace"
-	"net/url"
+	"context"
 )
 
-// httpRequest implements driver.Request using standard golang http requests.
-type httpRequest interface {
-	// createHTTPRequest creates a golang http.Request based on the configured arguments.
-	createHTTPRequest(endpoint url.URL) (*http.Request, error)
-	// WroteRequest implements the WroteRequest function of an httptrace.
-	// It sets written to true.
-	WroteRequest(httptrace.WroteRequestInfo)
+type FoxxCreateOptions struct {
+	Mount string
+}
+
+type FoxxDeleteOptions struct {
+	Mount    string
+	Teardown bool
+}
+
+type ClientFoxx interface {
+	Foxx() FoxxService
+}
+
+type FoxxService interface {
+	// InstallFoxxService installs a new service at a given mount path.
+	InstallFoxxService(ctx context.Context, zipFile string, options FoxxCreateOptions) error
+	// UninstallFoxxService uninstalls service at a given mount path.
+	UninstallFoxxService(ctx context.Context, options FoxxDeleteOptions) error
 }

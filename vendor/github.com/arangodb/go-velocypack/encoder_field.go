@@ -153,10 +153,16 @@ func typeFields(t reflect.Type) []field {
 				if sf.PkgPath != "" && !sf.Anonymous { // unexported
 					continue
 				}
-				tag := sf.Tag.Get("json")
+
+				tag := sf.Tag.Get("velocypack")
+				if len(tag) == 0 {
+					tag = sf.Tag.Get("json")
+				}
+
 				if tag == "-" {
 					continue
 				}
+
 				name, opts := parseTag(tag)
 				if !isValidTag(name) {
 					name = ""

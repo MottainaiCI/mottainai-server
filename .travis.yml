@@ -24,7 +24,7 @@ before_install:
 script:
   #- make multiarch-build
   #- make build-test
-  - PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make build-test
+  - PATH=/usr/lib/go-1.14/bin:$PATH GOROOT="/usr/lib/go-1.14" GOTOOLDIR="/usr/lib/go-1.14'/pkg/tool/linux_amd64" EXTENSIONS="lxd" make build
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
