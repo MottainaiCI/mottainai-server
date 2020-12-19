@@ -87,6 +87,8 @@ type CollectionInfo struct {
 	Type CollectionType `json:"type,omitempty"`
 	// If true then the collection is a system collection.
 	IsSystem bool `json:"isSystem,omitempty"`
+	// Global unique name for the collection
+	GloballyUniqueId string `json:"globallyUniqueId,omitempty"`
 }
 
 // CollectionProperties contains extended information about a collection.
@@ -99,7 +101,9 @@ type CollectionProperties struct {
 	DoCompact bool `json:"doCompact,omitempty"`
 	// JournalSize is the maximal size setting for journals / datafiles in bytes.
 	JournalSize int64 `json:"journalSize,omitempty"`
-	KeyOptions  struct {
+	// CacheEnabled set cacheEnabled option in collection properties
+	CacheEnabled bool `json:"cacheEnabled,omitempty"`
+	KeyOptions   struct {
 		// Type specifies the type of the key generator. The currently available generators are traditional and autoincrement.
 		Type KeyGeneratorType `json:"type,omitempty"`
 		// AllowUserKeys; if set to true, then it is allowed to supply own key values in the _key attribute of a document.
@@ -116,6 +120,13 @@ type CollectionProperties struct {
 	// ReplicationFactor contains how many copies of each shard are kept on different DBServers.
 	// Only available in cluster setup.
 	ReplicationFactor int `json:"replicationFactor,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// WriteConcern contains how many copies must be available before a collection can be written.
+	// It is required that 1 <= WriteConcern <= ReplicationFactor.
+	// Default is 1. Not available for satellite collections.
+	// Available from 3.6 arangod version.
+	WriteConcern int `json:"writeConcern,omitempty"`
 	// SmartJoinAttribute
 	// See documentation for smart joins.
 	// This requires ArangoDB Enterprise Edition.
@@ -123,6 +134,17 @@ type CollectionProperties struct {
 	// This attribute specifies the name of the sharding strategy to use for the collection.
 	// Can not be changed after creation.
 	ShardingStrategy ShardingStrategy `json:"shardingStrategy,omitempty"`
+	// This attribute specifies that the sharding of a collection follows that of another
+	// one.
+	DistributeShardsLike string `json:"distributeShardsLike,omitempty"`
+	// This attribute specifies if the new format introduced in 3.7 is used for this
+	// collection.
+	UsesRevisionsAsDocumentIds bool `json:"usesRevisionsAsDocumentIds,omitempty"`
+	// The following attribute specifies if the new MerkleTree based sync protocol
+	// can be used on the collection.
+	SyncByRevision bool `json:"syncByRevision,omitempty"`
+	// Schema for collection validation
+	Schema *CollectionSchemaOptions `json:"schema,omitempty"`
 }
 
 const (
@@ -144,6 +166,15 @@ type SetCollectionPropertiesOptions struct {
 	// ReplicationFactor contains how many copies of each shard are kept on different DBServers.
 	// Only available in cluster setup.
 	ReplicationFactor int `json:"replicationFactor,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// WriteConcern contains how many copies must be available before a collection can be written.
+	// Available from 3.6 arangod version.
+	WriteConcern int `json:"writeConcern,omitempty"`
+	// CacheEnabled set cacheEnabled option in collection properties
+	CacheEnabled *bool `json:"cacheEnabled,omitempty"`
+	// Schema for collection validation
+	Schema *CollectionSchemaOptions `json:"schema,omitempty"`
 }
 
 // CollectionStatus indicates the status of a collection.

@@ -52,10 +52,19 @@ type CreateCollectionOptions struct {
 	// before the write operation is reported successful. If a server fails, this is detected automatically
 	// and one of the servers holding copies take over, usually without an error being reported.
 	ReplicationFactor int `json:"replicationFactor,omitempty"`
+	// Deprecated: use 'WriteConcern' instead
+	MinReplicationFactor int `json:"minReplicationFactor,omitempty"`
+	// WriteConcern contains how many copies must be available before a collection can be written.
+	// It is required that 1 <= WriteConcern <= ReplicationFactor.
+	// Default is 1. Not available for satellite collections.
+	// Available from 3.6 arangod version.
+	WriteConcern int `json:"writeConcern,omitempty"`
 	// If true then the data is synchronized to disk before returning from a document create, update, replace or removal operation. (default: false)
 	WaitForSync bool `json:"waitForSync,omitempty"`
 	// Whether or not the collection will be compacted (default is true)
 	DoCompact *bool `json:"doCompact,omitempty"`
+	// CacheEnabled set cacheEnabled option in collection properties
+	CacheEnabled *bool `json:"cacheEnabled,omitempty"`
 	// If true then the collection data is kept in-memory only and not made persistent.
 	// Unloading the collection will cause the collection data to be discarded. Stopping or re-starting the server will also
 	// cause full loss of data in the collection. Setting this option will make the resulting collection be slightly faster
@@ -104,6 +113,8 @@ type CreateCollectionOptions struct {
 	// This attribute specifies the name of the sharding strategy to use for the collection.
 	// Must be one of ShardingStrategy* values.
 	ShardingStrategy ShardingStrategy `json:"shardingStrategy,omitempty"`
+	// Schema for collection validation
+	Schema *CollectionSchemaOptions `json:"schema,omitempty"`
 }
 
 // CollectionType is the type of a collection.

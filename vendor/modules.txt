@@ -76,14 +76,13 @@ github.com/RichardKnop/redsync
 # github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f => github.com/unknwon/com v0.0.0-20181010210213-41959bdd855f
 ## explicit
 github.com/Unknwon/com
-# github.com/arangodb/go-driver v0.0.0-20190408134854-544fae7debeb
+# github.com/arangodb/go-driver v0.0.0-20201202080739-c41c94f2de00
 ## explicit
 github.com/arangodb/go-driver
 github.com/arangodb/go-driver/cluster
 github.com/arangodb/go-driver/http
 github.com/arangodb/go-driver/util
-# github.com/arangodb/go-velocypack v0.0.0-20190129082528-7896a965b4ad
-## explicit
+# github.com/arangodb/go-velocypack v0.0.0-20200318135517-5af53c29c67e
 github.com/arangodb/go-velocypack
 # github.com/aws/aws-sdk-go v1.25.8
 github.com/aws/aws-sdk-go/aws
