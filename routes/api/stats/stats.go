@@ -51,45 +51,40 @@ type Stats struct {
 }
 
 func Info(ctx *context.Context, db *database.Database) {
-
 	ctx.Invoke(func(config *setting.Config) {
 
-		rtasks, e := db.Driver.GetTaskByStatus(db.Config, "running")
-		if e != nil {
-			ctx.ServerError("Failed getting stats", e)
-			return
+		atasks := db.Driver.AllTasks(config)
+
+		rtasks := []agenttasks.Task{}
+		wtasks := []agenttasks.Task{}
+		etasks := []agenttasks.Task{}
+		ftasks := []agenttasks.Task{}
+		stasks := []agenttasks.Task{}
+
+		for _, t := range atasks {
+			switch t.Status {
+			case "running":
+				rtasks = append(rtasks, t)
+			case "waiting":
+				wtasks = append(wtasks, t)
+			case "error":
+				etasks = append(etasks, t)
+			case "failed":
+				ftasks = append(ftasks, t)
+			case "succeded":
+				stasks = append(stasks, t)
+			}
 		}
+
 		running_tasks := len(rtasks)
-		wtasks, e := db.Driver.GetTaskByStatus(db.Config, "waiting")
-		if e != nil {
-			ctx.ServerError("Failed getting stats", e)
-			return
-		}
 		waiting_tasks := len(wtasks)
-		etasks, e := db.Driver.GetTaskByStatus(db.Config, "error")
-		if e != nil {
-			ctx.ServerError("Failed getting stats", e)
-			return
-		}
 		error_tasks := len(etasks)
-		ftasks, e := db.Driver.GetTaskByStatus(db.Config, "failed")
-		if e != nil {
-			ctx.ServerError("Failed getting stats", e)
-			return
-		}
 		failed_tasks := len(ftasks)
-		stasks, e := db.Driver.GetTaskByStatus(db.Config, "success")
-		if e != nil {
-			ctx.ServerError("Failed getting stats", e)
-			return
-		}
 		succeeded_tasks := len(stasks)
 
 		var failed = GetStats(ftasks)
 		var errored = GetStats(etasks)
 		var succeded = GetStats(stasks)
-
-		atasks := db.Driver.AllTasks(config)
 		var created = GetStats(atasks)
 
 		s := &Stats{}
