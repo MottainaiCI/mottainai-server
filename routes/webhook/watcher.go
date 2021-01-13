@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
+	"fmt"
 	"time"
 
 	logrus "github.com/sirupsen/logrus"
@@ -48,6 +49,8 @@ func NewWatcherEvent(eType, eId string, handler WebHookCallbacks) *WatcherEvent 
 		Handler:   handler,
 	}
 }
+
+func (e *WatcherEvent) String() string { return fmt.Sprintf("%s-%s", e.EventType, e.EventId) }
 
 func GetDefaultLogFields(pipelineId, taskId, status, err string, handler WebHookCallbacks) logrus.Fields {
 	ans := handler.GetLogFields(err)
