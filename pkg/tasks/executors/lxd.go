@@ -41,6 +41,8 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	lxd_compose "github.com/MottainaiCI/lxd-compose/pkg/executor"
+	lxd_compose_log "github.com/MottainaiCI/lxd-compose/pkg/logger"
+	lxd_compose_specs "github.com/MottainaiCI/lxd-compose/pkg/specs"
 
 	lxd "github.com/lxc/lxd/client"
 	lxd_api "github.com/lxc/lxd/shared/api"
@@ -68,14 +70,20 @@ func (l *LxdExecutor) Setup(docID string) error {
 	l.TaskExecutor.Setup(docID)
 
 	var err error
-	var configPath string = path.Join(l.Config.GetAgent().BuildPath, "/lxc/config.yml")
+	var configPathDir string = path.Join(l.Config.GetAgent().BuildPath, "/lxc/")
 
 	if len(l.Config.GetAgent().LxdConfigDir) > 0 {
 		// TODO: handle path
-		configPath = path.Join(l.Config.GetAgent().LxdConfigDir, "/config.yml")
+		configPathDir = l.Config.GetAgent().LxdConfigDir
 	}
 
-	waitSleep := 1
+	// Lxd compose code require his config
+	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(l.Config.Viper)
+	lxdc_config.GetLogging().PushProgressBar = true
+	lxdc_logger := lxd_compose_log.NewLxdCLogger(lxdc_config)
+	lxdc_logger.SetAsDefault()
+
+	waitSleep := 0
 
 	sec, okType := l.Config.GetAgent().LxdCacheRegistry["wait_sleep"]
 	if okType {
@@ -86,7 +94,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 
 	l.Executor = lxd_compose.NewLxdCExecutorWithEmitter(
 		l.Config.GetAgent().LxdEndpoint,
-		configPath,
+		configPathDir,
 		[]string{},
 		l.Config.GetAgent().LxdEphemeralContainers,
 		true, // We want commands output
@@ -170,6 +178,7 @@ func (l *LxdExecutor) InitContainer(containerName string, mapping ArtefactMappin
 	if err != nil {
 		return "", err
 	}
+
 	// Create artefactdir on container
 	err = l.Executor.RecursivePushFile(containerName,
 		strings.TrimRight(l.Context.ArtefactDir, "/")+"/", mapping.ArtefactPath)
