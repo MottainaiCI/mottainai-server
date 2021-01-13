@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112230627-63139879098c
+	github.com/MottainaiCI/lxd-compose v0.6.1-0.20210113185245-d744ea2ab9b4
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
 	github.com/RichardKnop/machinery v1.7.1

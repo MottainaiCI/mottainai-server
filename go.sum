@@ -72,6 +72,8 @@ github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112224517-f854b9985b9d h1:yYVK5
 github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112224517-f854b9985b9d/go.mod h1:B8WA0SIUD5fZDp5opXRCPRgnK1kGRCOnIPvgURBRdRA=
 github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112230627-63139879098c h1:jnCMdBCeJNUOFSYYC8mppivuD3V9uOHEQ3dPS2YgUuw=
 github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112230627-63139879098c/go.mod h1:x8LbnfHRpFQ64uHOxf+TB/Zn1lw2Nn0tnOLVvRRTHJA=
+github.com/MottainaiCI/lxd-compose v0.6.1-0.20210113185245-d744ea2ab9b4 h1:YL18bmkNNhaTCnKoakIldKUf2EFWGb4U7edElEOsjPE=
+github.com/MottainaiCI/lxd-compose v0.6.1-0.20210113185245-d744ea2ab9b4/go.mod h1:x8LbnfHRpFQ64uHOxf+TB/Zn1lw2Nn0tnOLVvRRTHJA=
 github.com/MottainaiCI/mottainai-cli v0.0.0-20201020080515-9b8c52d6981f h1:ZGE4+ZVvJUMVF5WIKva1jQMfRM0XlS9rG2xUxMhu2Cs=
 github.com/MottainaiCI/mottainai-cli v0.0.0-20201020080515-9b8c52d6981f/go.mod h1:gIC8uNLKmrb/ygbMlQDlOCjfRixqVq4PyZs4M9JKsrk=
 github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed h1:uxP3Fj4UJI1H5GGeDHik48S6BdqOxFNkWl45Lt5jT0Q=

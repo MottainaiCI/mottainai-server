@@ -37,7 +37,7 @@ github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/Microsoft/hcsshim v0.8.7
 github.com/Microsoft/hcsshim/osversion
-# github.com/MottainaiCI/lxd-compose v0.6.1-0.20210112230627-63139879098c
+# github.com/MottainaiCI/lxd-compose v0.6.1-0.20210113185245-d744ea2ab9b4
 ## explicit
 github.com/MottainaiCI/lxd-compose/pkg/executor
 github.com/MottainaiCI/lxd-compose/pkg/helpers
