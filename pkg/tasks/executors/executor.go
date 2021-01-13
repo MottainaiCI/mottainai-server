@@ -467,7 +467,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 // Implement Write method as io.Writer
 func (t *TaskExecutor) Write(p []byte) (int, error) {
-	t.Report(string(p[0 : len(p)-1]))
+	t.Report(string(p[0:len(p)]))
 	return len(p), nil
 }
 

@@ -26,7 +26,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
@@ -35,22 +34,16 @@ import (
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"container/list"
-	"io"
-	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
+	lxd_compose "github.com/MottainaiCI/lxd-compose/pkg/executor"
+
 	lxd "github.com/lxc/lxd/client"
-	lxd_config "github.com/lxc/lxd/lxc/config"
-	lxd_utils "github.com/lxc/lxd/lxc/utils"
-	lxd_shared "github.com/lxc/lxd/shared"
 	lxd_api "github.com/lxc/lxd/shared/api"
-	"github.com/lxc/lxd/shared/ioprogress"
-	lxd_units "github.com/lxc/lxd/shared/units"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -64,11 +57,7 @@ func NewLxdExecutor(config *setting.Config) *LxdExecutor {
 
 type LxdExecutor struct {
 	*TaskExecutor
-	LxdClient lxd.ContainerServer
-	LxdConfig *lxd_config.Config
-	// Required for handle cancellable task
-	CurrentLocalOperation lxd.Operation
-	RemoteOperation       lxd.RemoteOperation
+	Executor *lxd_compose.LxdCExecutor
 }
 
 func (e *LxdExecutor) Prune() {
@@ -79,7 +68,6 @@ func (l *LxdExecutor) Setup(docID string) error {
 	l.TaskExecutor.Setup(docID)
 
 	var err error
-	var client lxd.ContainerServer
 	var configPath string = path.Join(l.Config.GetAgent().BuildPath, "/lxc/config.yml")
 
 	if len(l.Config.GetAgent().LxdConfigDir) > 0 {
@@ -87,50 +75,31 @@ func (l *LxdExecutor) Setup(docID string) error {
 		configPath = path.Join(l.Config.GetAgent().LxdConfigDir, "/config.yml")
 	}
 
-	l.LxdConfig, err = lxd_config.LoadConfig(configPath)
+	waitSleep := 1
+
+	sec, okType := l.Config.GetAgent().LxdCacheRegistry["wait_sleep"]
+	if okType {
+		if i, e := strconv.Atoi(sec); e == nil && i > 0 {
+			waitSleep = i
+		}
+	}
+
+	l.Executor = lxd_compose.NewLxdCExecutorWithEmitter(
+		l.Config.GetAgent().LxdEndpoint,
+		configPath,
+		[]string{},
+		l.Config.GetAgent().LxdEphemeralContainers,
+		true, // We want commands output
+		true, // We want runtime commands output
+		l,    // LxdExecutor implements LxdCExecutorEmitter
+	)
+
+	l.Executor.WaitSleep = waitSleep
+
+	err = l.Executor.Setup()
 	if err != nil {
-		return (errors.New("Error on load LXD config: " + err.Error()))
+		return (errors.New("Error on setup LXD Executor: " + err.Error()))
 	}
-
-	if len(l.Config.GetAgent().LxdEndpoint) > 0 {
-
-		// Unix socket
-		if strings.HasPrefix(l.Config.GetAgent().LxdEndpoint, "unix:") {
-			client, err = lxd.ConnectLXDUnix(strings.TrimPrefix(strings.TrimPrefix(l.Config.GetAgent().LxdEndpoint, "unix:"), "//"), nil)
-			if err != nil {
-				return errors.New("Endpoint:" + l.Config.GetAgent().LxdEndpoint + " Error: " + err.Error())
-			}
-
-		} else {
-			client, err = l.LxdConfig.GetContainerServer(l.Config.GetAgent().LxdEndpoint)
-			if err != nil {
-				return errors.New("Endpoint:" + l.Config.GetAgent().LxdEndpoint + " Error: " + err.Error())
-			}
-
-			// Force use of local. Is this needed??
-			l.LxdConfig.DefaultRemote = l.Config.GetAgent().LxdEndpoint
-		}
-	} else {
-		if len(l.LxdConfig.DefaultRemote) > 0 {
-			// POST: If is present default I use default as main ContainerServer
-			client, err = l.LxdConfig.GetContainerServer(l.LxdConfig.DefaultRemote)
-		} else {
-			if _, has_local := l.LxdConfig.Remotes["local"]; has_local {
-				client, err = l.LxdConfig.GetContainerServer("local")
-				// POST: I use local if is present
-			} else {
-				// POST: I use default socket connection
-				client, err = lxd.ConnectLXDUnix("", nil)
-			}
-			if err != nil {
-				return (errors.New("Error on create LXD Connector: " + err.Error()))
-			}
-
-			l.LxdConfig.DefaultRemote = "local"
-		}
-	}
-
-	l.LxdClient = client
 
 	return nil
 }
@@ -197,18 +166,18 @@ func (l *LxdExecutor) InitContainer(containerName string, mapping ArtefactMappin
 
 	// Create workdir on container
 	// Inside container I use the same path configured on agent with task id
-	err = l.RecursivePushFile(containerName, localWorkDir, l.Context.RootTaskDir)
+	err = l.Executor.RecursivePushFile(containerName, localWorkDir, l.Context.RootTaskDir)
 	if err != nil {
 		return "", err
 	}
 	// Create artefactdir on container
-	err = l.RecursivePushFile(containerName,
+	err = l.Executor.RecursivePushFile(containerName,
 		strings.TrimRight(l.Context.ArtefactDir, "/")+"/", mapping.ArtefactPath)
 	if err != nil {
 		return "", err
 	}
 	// Create storagedir on container
-	err = l.RecursivePushFile(containerName,
+	err = l.Executor.RecursivePushFile(containerName,
 		strings.TrimRight(l.Context.StorageDir, "/")+"/", mapping.StoragePath)
 	if err != nil {
 		return "", err
@@ -246,14 +215,22 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	l.Report("Completed phase of artefacts download!")
 
 	containerName = l.GetContainerName(&task_info)
+	ephemeral := l.Config.GetAgent().LxdEphemeralContainers
+	if cachedImage {
+		ephemeral = false
+	}
 
 	l.Report(">> Creating container " + containerName + "...")
-	err = l.LaunchContainer(containerName, imageFingerprint, cachedImage)
+	err = l.Executor.LaunchContainerType(
+		containerName, imageFingerprint,
+		l.Config.GetAgent().LxdProfiles,
+		ephemeral,
+	)
 	if err != nil {
 		l.Report("Creating container error: " + err.Error())
 		return 1, err
 	}
-	defer l.CleanUpContainer(containerName, &task_info)
+	defer l.Executor.DeleteContainer(containerName)
 
 	// Push workdir to container
 	var targetHomeDir string
@@ -308,7 +285,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 			}
 
 			// Stop container. I can't stop running lxd exec command
-			err = l.DoAction2Container(exec.Request.ContainerID, "stop")
+			err = l.Executor.DoAction2Container(exec.Request.ContainerID, "stop")
 			if err != nil {
 				l.Report("Error on stop container: " + err.Error())
 				return 1, err
@@ -325,7 +302,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 	l.Report("Container execution terminated")
 
 	// Pull ArtefactDir from container
-	err = l.RecursivePullFile(exec.Request.ContainerID, mapping.ArtefactPath,
+	err = l.Executor.RecursivePullFile(exec.Request.ContainerID, mapping.ArtefactPath,
 		l.Context.ArtefactDir, true)
 	if err != nil {
 		return 1, err
@@ -361,12 +338,12 @@ func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 		return fmt.Errorf("No remote param found under lxd_cache_registry.")
 	}
 
-	if remote == l.LxdConfig.DefaultRemote {
+	if remote == l.Executor.LxdConfig.DefaultRemote {
 		l.Report("Remote server is equal to local. Nothing to push.")
 		return nil
 	}
 
-	image_server, err = l.LxdConfig.GetContainerServer(remote)
+	image_server, err = l.Executor.LxdConfig.GetInstanceServer(remote)
 	if err != nil {
 		return fmt.Errorf("Error on retrieve remote %s: %s", remote, err)
 	}
@@ -385,7 +362,7 @@ func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 		}
 	}
 
-	err = l.CopyImage(fingerprint, l.LxdClient, image_server)
+	err = l.Executor.CopyImage(fingerprint, l.Executor.LxdClient, image_server)
 	if err != nil {
 		return fmt.Errorf("Error on copy image %s: %s", fingerprint, err)
 	}
@@ -395,27 +372,11 @@ func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 
 // Create image on local LXD instance from an active container.
 func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *tasks.Task) (string, error) {
-
 	var description string
-	var err error
-
-	// TODO: Check if enable Expires on image created.
 
 	// Initialize properties for images
 	properties := map[string]string{}
-
-	// Check if there is already a local image with same alias. If yes I drop alias.
-	aliasEntry, _, _ := l.LxdClient.GetImageAlias(aliasName)
-	if aliasEntry != nil {
-		l.Report(fmt.Sprintf(
-			"Found old image %s with alias %s. I drop alias from it.",
-			aliasEntry.Target, aliasName))
-
-		err = l.LxdClient.DeleteImageAlias(aliasName)
-		if err != nil {
-			return "", err
-		}
-	}
+	aliases := []string{aliasName}
 
 	if task.Source != "" {
 		description = fmt.Sprintf("Mottainai generated Image from %s for %s",
@@ -430,90 +391,9 @@ func (l *LxdExecutor) CommitImage(containerName, aliasName string, task *tasks.T
 		properties["directory"] = task.Directory
 	}
 
-	// Reformat aliases
-	alias := lxd_api.ImageAlias{}
-	alias.Name = aliasName
-	aliases := []lxd_api.ImageAlias{alias}
+	compression, _ := l.Config.GetAgent().LxdCacheRegistry["compression_algorithm"]
 
-	compression, okcompression := l.Config.GetAgent().LxdCacheRegistry["compression_algorithm"]
-	if !okcompression {
-		compression = "none"
-	}
-
-	// Create the image
-	req := lxd_api.ImagesPost{
-		Source: &lxd_api.ImagesPostSource{
-			Type: "container",
-			Name: containerName,
-		},
-		// CompressionAlgorithm contains name of the binary called by LXD for compression.
-		// For any customization create custom script that wrap compression tools.
-		CompressionAlgorithm: compression,
-	}
-	req.Properties = properties
-	req.Public = true
-
-	// TODO: Take time and calculate how much time is required for create image
-	l.Report(fmt.Sprintf("Starting creation of Image with alias %s...", aliasName))
-
-	l.CurrentLocalOperation, err = l.LxdClient.CreateImage(req, nil)
-	if err != nil {
-		return "", err
-	}
-
-	err = l.waitOperation(nil, nil)
-	if err != nil {
-		return "", err
-	}
-
-	opAPI := l.CurrentLocalOperation.Get()
-
-	// Grab the fingerprint
-	fingerprint := opAPI.Metadata["fingerprint"].(string)
-
-	// Get the source image
-	_, _, err = l.LxdClient.GetImage(fingerprint)
-	if err != nil {
-		return "", err
-	}
-
-	l.Report(fmt.Sprintf(
-		"For container %s created image %s. Adding alias %s to image.",
-		containerName, fingerprint, aliasName))
-
-	for _, alias := range aliases {
-		aliasPost := lxd_api.ImageAliasesPost{}
-		aliasPost.Name = alias.Name
-		aliasPost.Target = fingerprint
-		err := l.LxdClient.CreateImageAlias(aliasPost)
-		if err != nil {
-			return "", fmt.Errorf("Failed to create alias %s", alias.Name)
-		}
-	}
-
-	return fingerprint, nil
-}
-
-func (l *LxdExecutor) CleanUpContainer(containerName string, task *tasks.Task) error {
-	var err error
-
-	err = l.DoAction2Container(containerName, "stop")
-	if err != nil {
-		l.Report("Error on stop container: " + err.Error())
-		return err
-	}
-
-	if len(task.CacheImage) > 0 && l.Config.GetAgent().LxdEphemeralContainers {
-		// Delete container
-		l.CurrentLocalOperation, err = l.LxdClient.DeleteContainer(containerName)
-		if err != nil {
-			l.Report("Error on delete container: " + err.Error())
-			return err
-		}
-		_ = l.waitOperation(nil, nil)
-	}
-
-	return nil
+	return l.Executor.CreateImageFromContainer(containerName, aliases, properties, compression, true)
 }
 
 func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping ArtefactMapping, task_info *tasks.Task) error {
@@ -541,7 +421,7 @@ func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping Artefac
 		}
 
 		// Stop container for create image.
-		err = l.DoAction2Container(containerName, "stop")
+		err = l.Executor.DoAction2Container(containerName, "stop")
 		if err != nil {
 			l.Report("Error on stop container: " + err.Error())
 			return err
@@ -580,166 +460,6 @@ func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping Artefac
 	return nil
 }
 
-func (l *LxdExecutor) LaunchContainer(name, fingerprint string, cachedImage bool) error {
-
-	var err error
-	var image *lxd_api.Image
-	var profiles []string = []string{}
-	var opInfo *lxd_api.Operation
-
-	if len(l.Config.GetAgent().LxdProfiles) > 0 {
-		for _, profile := range l.Config.GetAgent().LxdProfiles {
-			profiles = append(profiles, profile)
-		}
-	} else {
-		profiles = append(profiles, "default")
-	}
-
-	// Note: Avoid to create devece map for root /. We consider to handle this
-	//       as profile. Same for different storage.
-	devicesMap := map[string]map[string]string{}
-	configMap := map[string]string{}
-
-	// Setup container creation request
-	req := lxd_api.ContainersPost{
-		Name: name,
-	}
-	req.Config = configMap
-	req.Devices = devicesMap
-	req.Profiles = profiles
-
-	if cachedImage {
-		// If cache image is enable i need container when call stop action.
-		req.Ephemeral = false
-	} else {
-		req.Ephemeral = l.Config.GetAgent().LxdEphemeralContainers
-	}
-
-	// Retrieve image info
-	image, _, err = l.LxdClient.GetImage(fingerprint)
-	if err != nil {
-		return err
-	}
-
-	//req.Source.Alias = alias
-
-	// Create the container
-	l.RemoteOperation, err = l.LxdClient.CreateContainerFromImage(l.LxdClient, *image, req)
-	if err != nil {
-		return err
-	}
-	// Watch the background operation
-	progress := lxd_utils.ProgressRenderer{
-		Format: "Retrieving image: %s",
-		Quiet:  false,
-	}
-
-	_, err = l.RemoteOperation.AddHandler(progress.UpdateOp)
-	if err != nil {
-		progress.Done("")
-		return err
-	}
-
-	err = l.waitOperation(nil, &progress)
-	if err != nil {
-		progress.Done("")
-		return err
-	}
-	progress.Done("")
-
-	// Extract the container name
-	opInfo, err = l.RemoteOperation.GetTarget()
-	if err != nil {
-		return err
-	}
-
-	containers, ok := opInfo.Resources["containers"]
-	if !ok || len(containers) == 0 {
-		return fmt.Errorf("didn't get any affected image, container or snapshot from server")
-	}
-
-	l.RemoteOperation = nil
-
-	// Start container
-	return l.DoAction2Container(name, "start")
-}
-
-func (l *LxdExecutor) DoAction2Container(name, action string) error {
-	var err error
-	var container *lxd_api.Container
-	var operation lxd.Operation
-
-	container, _, err = l.LxdClient.GetContainer(name)
-	if err != nil {
-		if action == "stop" {
-			l.Report(fmt.Sprintf("Container %s not found. Already stopped nothing to do.", name))
-			return nil
-		}
-		return err
-	}
-
-	if action == "start" && container.Status == "Started" {
-		l.Report(fmt.Sprintf("Container %s is already started!", name))
-		return nil
-	} else if action == "stop" && container.Status == "Stopped" {
-		l.Report(fmt.Sprintf("Container %s is already stopped!", name))
-		return nil
-	}
-
-	if l.Config.GetGeneral().Debug {
-		// Permit logging with details about profiles and container
-		// configurations only in debug mode.
-		l.Report(fmt.Sprintf(
-			"Trying to execute action %s to container %s: %v",
-			action, name, container,
-		))
-	} else {
-		l.Report(fmt.Sprintf(
-			"Executing action %s to container %s...",
-			action, name,
-		))
-	}
-
-	req := lxd_api.ContainerStatePut{
-		Action:   action,
-		Timeout:  120,
-		Force:    false,
-		Stateful: false,
-	}
-
-	operation, err = l.LxdClient.UpdateContainerState(name, req, "")
-	if err != nil {
-		l.Report("Error on update container state: " + err.Error())
-		return err
-	}
-
-	progress := lxd_utils.ProgressRenderer{
-		Quiet: false,
-	}
-
-	_, err = operation.AddHandler(progress.UpdateOp)
-	if err != nil {
-		l.Report("Error on add handler to progress bar: " + err.Error())
-		progress.Done("")
-		return err
-	}
-
-	err = l.waitOperation(operation, &progress)
-	progress.Done("")
-	if err != nil {
-		l.Report(fmt.Sprintf("Error on stop container %s: %s", name, err))
-		return err
-	}
-
-	if action == "start" {
-		l.Report(fmt.Sprintf("Container %s is started!", name))
-	} else {
-		l.Report(fmt.Sprintf("Container %s is stopped!", name))
-	}
-
-	return nil
-}
-
 func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, error) {
 	var err error
 	var tmp_srv, srv lxd.ImageServer
@@ -747,8 +467,8 @@ func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, 
 	var fingerprint string = ""
 	var srv_name string = ""
 
-	for remote, server := range l.LxdConfig.Remotes {
-		tmp_srv, err = l.LxdConfig.GetImageServer(remote)
+	for remote, server := range l.Executor.LxdConfig.Remotes {
+		tmp_srv, err = l.Executor.LxdConfig.GetImageServer(remote)
 		if err != nil {
 			err = nil
 			l.Report(fmt.Sprintf(
@@ -757,7 +477,7 @@ func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, 
 			))
 			continue
 		}
-		tmp_img, err = l.GetImage(image, tmp_srv)
+		tmp_img, err = l.Executor.GetImage(image, tmp_srv)
 		if err != nil {
 			// POST: No image found with input alias/fingerprint.
 			//       I go ahead to next remote
@@ -789,128 +509,6 @@ func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, 
 	return fingerprint, srv, srv_name, err
 }
 
-// Retrieve Image from alias or fingerprint to a specific remote.
-func (l *LxdExecutor) GetImage(image string, remote lxd.ImageServer) (*lxd_api.Image, error) {
-	var err error
-	var img *lxd_api.Image
-	var aliasEntry *lxd_api.ImageAliasesEntry
-
-	img, _, err = remote.GetImage(image)
-	if err != nil {
-		// POST: no image found with input fingerprint
-		//       Try to search an image as alias.
-
-		// Check if exists an image with input alias
-		aliasEntry, _, err = remote.GetImageAlias(image)
-		if err != nil {
-			img = nil
-		} else {
-			// POST: Find image with alias and so I try to retrieve api.Image
-			//       object with all information.
-			img, _, err = remote.GetImage(aliasEntry.Target)
-		}
-	}
-
-	return img, err
-}
-
-// Delete alias from image of a specific ContainerServer if available
-func (l *LxdExecutor) DeleteImageAliases4Alias(imageAlias string, server lxd.ContainerServer) error {
-	var err error
-	var img *lxd_api.Image
-
-	img, _ = l.GetImage(imageAlias, server)
-	if img != nil {
-		err = l.DeleteImageAliases(img, server)
-	}
-
-	return err
-}
-
-// Delete all local alias defined on input Image to avoid conflict on pull.
-func (l *LxdExecutor) DeleteImageAliases(image *lxd_api.Image, server lxd.ContainerServer) error {
-	for _, alias := range image.Aliases {
-		// Retrieve image with alias
-		aliasEntry, _, _ := server.GetImageAlias(alias.Name)
-		if aliasEntry != nil {
-			// TODO: See how handle correctly this use case
-			l.Report(fmt.Sprintf(
-				"Found old image %s with alias %s. I drop alias from it.",
-				aliasEntry.Target, alias.Name))
-
-			err := server.DeleteImageAlias(alias.Name)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (l *LxdExecutor) CopyImage(imageFingerprint string, remote lxd.ImageServer, to lxd.ContainerServer) error {
-	var err error
-
-	// Get the image information
-	i, _, err := remote.GetImage(imageFingerprint)
-	if err != nil {
-		return err
-	}
-
-	// NOTE: we can't use copy aliases here because
-	//       LXD doesn't handle correctly concurrency copy
-	//       of the same image.
-	//       I use i.Aliases after that image is been copied.
-	copyArgs := &lxd.ImageCopyArgs{
-		Public:     true,
-		AutoUpdate: false,
-	}
-
-	// Ask LXD to copy the image from the remote server
-	// CopyImage return an lxd.RemoteOperation does not implement lxd.Operation
-	// (missing Cancel method) so DownloadImage is not s
-	l.RemoteOperation, err = to.CopyImage(remote, *i, copyArgs)
-	if err != nil {
-		l.Report("Error on create copy image task " + err.Error())
-		return err
-	}
-
-	// Watch the background operation
-	progress := lxd_utils.ProgressRenderer{
-		Format: "Retrieving image: %s",
-		Quiet:  false,
-	}
-
-	_, err = l.RemoteOperation.AddHandler(progress.UpdateOp)
-	if err != nil {
-		progress.Done("")
-		l.RemoteOperation = nil
-		return err
-	}
-
-	err = l.waitOperation(nil, &progress)
-	progress.Done("")
-	l.RemoteOperation = nil
-	if err != nil {
-		l.Report("Error on copy image " + err.Error())
-		return err
-	}
-
-	// Add aliases to images
-	for _, alias := range i.Aliases {
-		// Ignore error for handle parallel fetching.
-		l.AddAlias2Image(i.Fingerprint, alias, l.LxdClient)
-	}
-
-	l.Report(fmt.Sprintf("Image %s copy locally.", imageFingerprint))
-
-	return nil
-}
-
-func (l *LxdExecutor) DownloadImage(imageFingerprint string, remote lxd.ImageServer) error {
-	return l.CopyImage(imageFingerprint, remote, l.LxdClient)
-}
-
 func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 	var err error
 	var imageFingerprint, remote_name string
@@ -931,7 +529,7 @@ func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 	}
 
 	// Check if image is already present locally else we receive an error.
-	image, _, _ := l.LxdClient.GetImage(imageFingerprint)
+	image, _, _ := l.Executor.LxdClient.GetImage(imageFingerprint)
 	if image == nil {
 		// NOTE: In concurrency could be happens that different image that
 		//       share same aliases generate reset of aliases but
@@ -939,284 +537,19 @@ func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 		//       aliases.
 
 		// Delete local image with same target aliases to avoid error on pull.
-		err = l.DeleteImageAliases4Alias(imageAlias, l.LxdClient)
+		err = l.Executor.DeleteImageAliases4Alias(imageAlias, l.Executor.LxdClient)
 
 		// Try to pull image to lxd instance
 		l.Report(fmt.Sprintf(
 			"Try to download image %s from remote %s...",
 			imageFingerprint, remote_name,
 		))
-		err = l.DownloadImage(imageFingerprint, remote)
+		err = l.Executor.DownloadImage(imageFingerprint, remote)
 	} else {
 		l.Report("Image " + imageFingerprint + " already present.")
 	}
 
 	return imageFingerprint, err
-}
-
-// Based on code of lxc client tool https://github.com/lxc/lxd/blob/master/lxc/file.go
-func (l *LxdExecutor) RecursiveMkdir(nameContainer string, dir string, mode *os.FileMode, uid int64, gid int64) error {
-
-	/* special case, every container has a /, we don't need to do anything */
-	if dir == "/" {
-		return nil
-	}
-
-	// Remove trailing "/" e.g. /A/B/C/. Otherwise we will end up with an
-	// empty array entry "" which will confuse the Mkdir() loop below.
-	pclean := filepath.Clean(dir)
-	parts := strings.Split(pclean, "/")
-	i := len(parts)
-
-	for ; i >= 1; i-- {
-		cur := filepath.Join(parts[:i]...)
-		_, resp, err := l.LxdClient.GetContainerFile(nameContainer, cur)
-		if err != nil {
-			continue
-		}
-
-		if resp.Type != "directory" {
-			return fmt.Errorf("%s is not a directory", cur)
-		}
-
-		i++
-		break
-	}
-
-	for ; i <= len(parts); i++ {
-		cur := filepath.Join(parts[:i]...)
-		if cur == "" {
-			continue
-		}
-
-		cur = "/" + cur
-
-		modeArg := -1
-		if mode != nil {
-			modeArg = int(mode.Perm())
-		}
-		args := lxd.ContainerFileArgs{
-			UID:  uid,
-			GID:  gid,
-			Mode: modeArg,
-			Type: "directory",
-		}
-
-		l.Report(fmt.Sprintf("Creating %s (%s)\n", cur, args.Type))
-
-		err := l.LxdClient.CreateContainerFile(nameContainer, cur, args)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Based on code of lxc client tool https://github.com/lxc/lxd/blob/master/lxc/file.go
-func (l *LxdExecutor) RecursivePushFile(nameContainer, source, target string) error {
-
-	// Determine the target mode
-	mode := os.FileMode(0755)
-	// Create directory as root. TODO: see if we can use a specific user.
-	var uid int64 = 0
-	var gid int64 = 0
-	err := l.RecursiveMkdir(nameContainer, target, &mode, uid, gid)
-	if err != nil {
-		return err
-	}
-
-	//source = filepath.Clean(source)
-	//sourceDir, _ := filepath.Split(source)
-	sourceDir := filepath.Clean(source)
-	sourceLen := len(sourceDir)
-
-	sendFile := func(p string, fInfo os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("Failed to walk path for %s: %s", p, err)
-		}
-
-		// Detect unsupported files
-		if !fInfo.Mode().IsRegular() && !fInfo.Mode().IsDir() && fInfo.Mode()&os.ModeSymlink != os.ModeSymlink {
-			return fmt.Errorf("'%s' isn't a supported file type", p)
-		}
-
-		// Prepare for file transfer
-		targetPath := path.Join(target, filepath.ToSlash(p[sourceLen:]))
-		mode, uid, gid := lxd_shared.GetOwnerMode(fInfo)
-		args := lxd.ContainerFileArgs{
-			UID:  int64(uid),
-			GID:  int64(gid),
-			Mode: int(mode.Perm()),
-		}
-
-		var readCloser io.ReadCloser
-
-		if fInfo.IsDir() {
-			// Directory handling
-			args.Type = "directory"
-		} else if fInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
-			// Symlink handling
-			symlinkTarget, err := os.Readlink(p)
-			if err != nil {
-				return err
-			}
-
-			args.Type = "symlink"
-			args.Content = bytes.NewReader([]byte(symlinkTarget))
-			readCloser = ioutil.NopCloser(args.Content)
-		} else {
-			// File handling
-			f, err := os.Open(p)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-
-			args.Type = "file"
-			args.Content = f
-			readCloser = f
-		}
-
-		progress := lxd_utils.ProgressRenderer{
-			Format: fmt.Sprintf("Pushing %s to %s: %%s", p, targetPath),
-			Quiet:  false,
-		}
-
-		if args.Type != "directory" {
-			contentLength, err := args.Content.Seek(0, io.SeekEnd)
-			if err != nil {
-				return err
-			}
-
-			_, err = args.Content.Seek(0, io.SeekStart)
-			if err != nil {
-				return err
-			}
-
-			args.Content = lxd_shared.NewReadSeeker(&ioprogress.ProgressReader{
-				ReadCloser: readCloser,
-				Tracker: &ioprogress.ProgressTracker{
-					Length: contentLength,
-					Handler: func(percent int64, speed int64) {
-
-						l.Report(fmt.Sprintf("%d%% (%s/s)", percent,
-							lxd_units.GetByteSizeString(speed, 2)))
-
-						progress.UpdateProgress(ioprogress.ProgressData{
-							Text: fmt.Sprintf("%d%% (%s/s)", percent,
-								lxd_units.GetByteSizeString(speed, 2))})
-					},
-				},
-			}, args.Content)
-		}
-
-		l.Report(fmt.Sprintf("Pushing %s to %s (%s)\n", p, targetPath, args.Type))
-		err = l.LxdClient.CreateContainerFile(nameContainer, targetPath, args)
-		if err != nil {
-			if args.Type != "directory" {
-				progress.Done("")
-			}
-			return err
-		}
-		if args.Type != "directory" {
-			progress.Done("")
-		}
-		return nil
-	}
-
-	return filepath.Walk(source, sendFile)
-}
-
-// Based on code of lxc client tool https://github.com/lxc/lxd/blob/master/lxc/file.go
-func (l *LxdExecutor) RecursivePullFile(nameContainer string, destPath string, localPath string, localAsTarget bool) error {
-
-	buf, resp, err := l.LxdClient.GetContainerFile(nameContainer, destPath)
-	if err != nil {
-		return err
-	}
-
-	var target string
-	// Default loging is to append tree to target directory
-	if localAsTarget {
-		target = localPath
-	} else {
-		target = filepath.Join(localPath, filepath.Base(destPath))
-	}
-	//target := localPath
-	l.Report(fmt.Sprintf("Pulling %s from %s (%s)\n", target, destPath, resp.Type))
-
-	if resp.Type == "directory" {
-		err := os.MkdirAll(target, os.FileMode(resp.Mode))
-		if err != nil {
-			l.Report(fmt.Sprintf("directory %s is already present. Nothing to do.\n", target))
-		}
-
-		for _, ent := range resp.Entries {
-			nextP := path.Join(destPath, ent)
-
-			err = l.RecursivePullFile(nameContainer, nextP, target, false)
-			if err != nil {
-				return err
-			}
-		}
-	} else if resp.Type == "file" {
-		f, err := os.Create(target)
-		if err != nil {
-			return err
-		}
-
-		defer f.Close()
-
-		err = os.Chmod(target, os.FileMode(resp.Mode))
-		if err != nil {
-			return err
-		}
-
-		progress := lxd_utils.ProgressRenderer{
-			Format: fmt.Sprintf("Pulling %s from %s: %%s", destPath, target),
-			Quiet:  false,
-		}
-
-		writer := &ioprogress.ProgressWriter{
-			WriteCloser: f,
-			Tracker: &ioprogress.ProgressTracker{
-				Handler: func(bytesReceived int64, speed int64) {
-
-					l.Report(fmt.Sprintf("%s (%s/s)\n",
-						lxd_units.GetByteSizeString(bytesReceived, 2),
-						lxd_units.GetByteSizeString(speed, 2)))
-
-					progress.UpdateProgress(ioprogress.ProgressData{
-						Text: fmt.Sprintf("%s (%s/s)",
-							lxd_units.GetByteSizeString(bytesReceived, 2),
-							lxd_units.GetByteSizeString(speed, 2))})
-				},
-			},
-		}
-
-		_, err = io.Copy(writer, buf)
-		progress.Done("")
-		if err != nil {
-			l.Report(fmt.Sprintf("Error on pull file %s", target))
-			return err
-		}
-
-	} else if resp.Type == "symlink" {
-		linkTarget, err := ioutil.ReadAll(buf)
-		if err != nil {
-			return err
-		}
-
-		err = os.Symlink(strings.TrimSpace(string(linkTarget)), target)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("Unknown file type '%s'", resp.Type)
-	}
-
-	return nil
 }
 
 func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir string, task *tasks.Task) (int, error) {
@@ -1229,59 +562,24 @@ func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir strin
 	// Set workdir as HOME
 	env["HOME"] = targetHomeDir
 
-	// Prepare the command
-	req := lxd_api.ContainerExecPost{
-		Command:     instruction.ExecutionCommandList(),
-		WaitForWS:   true,
-		Interactive: false,
-		Environment: env,
-	}
-
-	execArgs := lxd.ContainerExecArgs{
-		// Disable stdin
-		Stdin:   ioutil.NopCloser(bytes.NewReader(nil)),
-		Stdout:  l.TaskExecutor,
-		Stderr:  l.TaskExecutor,
-		Control: nil,
-		//Control:  handler,
-		DataDone: make(chan bool),
-	}
-
-	var err error
-	// Run the command in the container
-	l.CurrentLocalOperation, err = l.LxdClient.ExecContainer(
-		execution.Request.ContainerID, req, &execArgs)
-	if err != nil {
-		l.Report("Error on exec command: " + err.Error())
-		execution.UpdateState("error", err, 1)
-		return 1, err
-	}
-	execution.Status = "running"
-
-	// Wait for the operation to complete
-	err = l.waitOperation(nil, nil)
-	if err != nil {
-		l.Report("Error on waiting execution of commands: " + err.Error())
-		execution.UpdateState("error", err, 1)
-		return 1, err
-	}
-	opAPI := l.CurrentLocalOperation.Get()
-	l.CurrentLocalOperation = nil
-
-	// Wait for any remaining I/O to be flushed
-	<-execArgs.DataDone
+	res, err := l.Executor.RunCommandWithOutput(
+		execution.Request.ContainerID, instruction.ToScript(), env,
+		l, // output writecloser
+		l, // err write closer
+		instruction.EntrypointList(),
+	)
 
 	// NOTE: If I stop a running container for interrupt execution
 	// waitOperation doesn't return error but an empty map as opAPI.
 	// I consider it as an error.
-	if val, ok := opAPI.Metadata["return"]; ok {
-		execution.Result = int(val.(float64))
+	if err == nil {
+		execution.Result = res
 		l.Report(fmt.Sprintf("========> Execution Exit with value (%d)\n",
 			execution.Result))
 
 	} else {
-		l.Report(fmt.Sprintf("========> Execution Interrupted (%v)\n",
-			opAPI.Metadata))
+		l.Report(fmt.Sprintf("========> Execution Interrupted (%s)\n",
+			err.Error()))
 		execution.Result = 1
 		execution.Error = fmt.Errorf("Execution Interrupted")
 	}
@@ -1296,7 +594,7 @@ func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir strin
 
 //
 func (l *LxdExecutor) recursiveListFile(nameContainer string, targetPath string, list *list.List) error {
-	buf, resp, err := l.LxdClient.GetContainerFile(nameContainer, targetPath)
+	buf, resp, err := l.Executor.LxdClient.GetContainerFile(nameContainer, targetPath)
 	if err != nil {
 		return err
 	}
@@ -1336,7 +634,7 @@ func (l *LxdExecutor) DeleteContainerDirRecursive(containerName, dir string) err
 
 	for e := list.Front(); e != nil; e = e.Next() {
 		l.Report(fmt.Sprintf("Removing old cache file %s...", e.Value.(string)))
-		err = l.LxdClient.DeleteContainerFile(containerName, e.Value.(string))
+		err = l.Executor.LxdClient.DeleteContainerFile(containerName, e.Value.(string))
 		if err != nil {
 			l.Report(fmt.Sprintf("ERROR: Error on removing %s: %s",
 				e.Value, err.Error()))
@@ -1366,57 +664,4 @@ func (l *LxdExecutor) GetContainerName(task *tasks.Task) string {
 	}
 
 	return ans
-}
-
-func (l *LxdExecutor) AddAlias2Image(fingerprint string, alias lxd_api.ImageAlias,
-	server lxd.ContainerServer) error {
-	aliasPost := lxd_api.ImageAliasesPost{}
-	aliasPost.Name = alias.Name
-	aliasPost.Description = alias.Description
-	aliasPost.Target = fingerprint
-	return server.CreateImageAlias(aliasPost)
-}
-
-func (l *LxdExecutor) waitOperation(rawOp interface{}, p *lxd_utils.ProgressRenderer) error {
-
-	var op interface{} = rawOp
-	var err error = nil
-
-	// NOTE: currently on ARM we have a weird behavior where the process that waits
-	//       for LXD operation often remain blocked. It seems related to a concurrency
-	//       problem on initializing Golang channel.
-	//       As a workaround, I sleep some seconds before waiting for a response.
-
-	// Retrieve value of sleep before waiting execution of the operation.
-	sec, okType := l.Config.GetAgent().LxdCacheRegistry["wait_sleep"]
-	if !okType || sec == "" {
-		// By default I wait for 1 seconds.
-		time.Sleep(1000 * time.Millisecond)
-	} else if i, e := strconv.Atoi(sec); e == nil && i > 0 {
-		duration, err := time.ParseDuration(fmt.Sprintf("%ds", i))
-		if err == nil {
-			time.Sleep(duration)
-		}
-	}
-
-	// TODO: Verify if could be a valid idea permit to use wait not cancelable.
-	// err = op.Wait()
-
-	if rawOp == nil {
-		if l.CurrentLocalOperation != nil {
-			op = l.CurrentLocalOperation
-		} else if l.RemoteOperation != nil {
-			op = l.RemoteOperation
-		} else {
-			l.Report("WARN: No operations found.")
-		}
-	}
-
-	if p != nil {
-		err = lxd_utils.CancelableWait(op, p)
-	} else {
-		err = lxd_utils.CancelableWait(op, nil)
-	}
-
-	return err
 }
