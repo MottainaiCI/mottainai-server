@@ -463,14 +463,18 @@ web:
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
-		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon, c.AppURL,
+		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon,
+		c.AppURL,
 		c.TemplatePath,
 		c.AccessControlAllowOrigin,
 		c.EmbedWebHookServer,
-		c.AccessToken, c.WebHookGitHubToken,
+		c.AccessToken,
+		c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
+		c.WebHookToken,
+		c.LockPath,
+		c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
 
 	return ans
 }
