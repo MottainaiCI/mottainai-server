@@ -1,0 +1,11 @@
+general:
+  debug: false
+#  lxd_confdir: ./lxd-conf
+  push_progressbar: false
+logging:
+  level: "info"
+# Define the directories list where load
+# environments.
+env_dirs:
+- ./envs/tests
+
