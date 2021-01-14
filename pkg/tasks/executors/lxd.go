@@ -2,7 +2,7 @@
 
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
                          Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
@@ -33,7 +33,6 @@ import (
 
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
-	"container/list"
 	"os"
 	"path"
 	"strings"
@@ -418,13 +417,13 @@ func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping Artefac
 		l.Report("Try to clean artefacts and storage directories from container before create cached image...")
 
 		// Delete old directories of storage and artefacts
-		err = l.DeleteContainerDirRecursive(containerName, mapping.ArtefactPath)
+		err = l.Executor.DeleteContainerDir(containerName, mapping.ArtefactPath)
 		if err != nil {
 			l.Report("WARNING: Error on clean artefacts dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
 		}
 
-		err = l.DeleteContainerDirRecursive(containerName, mapping.StoragePath)
+		err = l.Executor.DeleteContainerDir(containerName, mapping.StoragePath)
 		if err != nil {
 			l.Report("WARNING: Error on clean storage dir on container: " + err.Error())
 			// Ignore error. I'm not sure that is the right thing.
@@ -600,58 +599,6 @@ func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir strin
 	}
 
 	return execution.Result, execution.Error
-}
-
-//
-func (l *LxdExecutor) recursiveListFile(nameContainer string, targetPath string, list *list.List) error {
-	buf, resp, err := l.Executor.LxdClient.GetContainerFile(nameContainer, targetPath)
-	if err != nil {
-		return err
-	}
-	if buf != nil {
-		// Needed to avoid: dial unix /var/lib/lxd/unix.socket: socket: too many open files
-		buf.Close()
-	}
-
-	if resp.Type == "directory" {
-		for _, ent := range resp.Entries {
-			nextP := path.Join(targetPath, ent)
-			err = l.recursiveListFile(nameContainer, nextP, list)
-			if err != nil {
-				return err
-			}
-		}
-		list.PushBack(targetPath)
-	} else if resp.Type == "file" || resp.Type == "symlink" {
-		list.PushFront(targetPath)
-
-	} else {
-		l.Report("Find unsupported file type " + resp.Type + ". Skipped.")
-	}
-
-	return nil
-}
-
-func (l *LxdExecutor) DeleteContainerDirRecursive(containerName, dir string) error {
-	var err error
-	var list *list.List = list.New()
-
-	// Create list of files/directories to remove. (files are pushed before directories)
-	err = l.recursiveListFile(containerName, dir, list)
-	if err != nil {
-		return err
-	}
-
-	for e := list.Front(); e != nil; e = e.Next() {
-		l.Report(fmt.Sprintf("Removing old cache file %s...", e.Value.(string)))
-		err = l.Executor.LxdClient.DeleteContainerFile(containerName, e.Value.(string))
-		if err != nil {
-			l.Report(fmt.Sprintf("ERROR: Error on removing %s: %s",
-				e.Value, err.Error()))
-		}
-	}
-
-	return nil
 }
 
 func (l *LxdExecutor) GetContainerName(task *tasks.Task) string {
