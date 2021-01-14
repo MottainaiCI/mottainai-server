@@ -1,5 +1,5 @@
 # Author: Daniele Rondina, geaaru@sabayonlinux.org
-# Description: Setup NGINX Proxy with custom reverse balancer and web contents.
+# Description: Setup Container to compile and test Mottainai Server code.
 
 version: "1"
 
