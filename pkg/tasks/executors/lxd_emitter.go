@@ -24,7 +24,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package agenttasks
 
 import (
+	"fmt"
 	"io"
+	"reflect"
 
 	lxd_compose "github.com/MottainaiCI/lxd-compose/pkg/executor"
 )
@@ -40,20 +42,35 @@ func (l *LxdExecutor) GetLxdWriterStderr() io.WriteCloser  { return l }
 func (l *LxdExecutor) SetLxdWriterStdout(w io.WriteCloser) {}
 func (l *LxdExecutor) SetLxdWriterStderr(w io.WriteCloser) {}
 
-func (l *LxdExecutor) DebugLog(color bool, args ...interface{}) {
-	l.Report(args...)
+func (l *LxdExecutor) msg2Str(args ...interface{}) string {
+	ans := ""
+	for idx, m := range args {
+		if idx > 0 {
+			ans += " "
+		}
+		// TODO: Investigate on this
+		if reflect.TypeOf(m).Kind() == reflect.Slice {
+			ans += fmt.Sprintf("%v", m.([]interface{})[0])
+		} else {
+			ans += fmt.Sprintf("%v", m)
+		}
+	}
+
+	return ans
 }
 
-func (l *LxdExecutor) InfoLog(color bool, args ...interface{}) {
-	l.Report(args...)
+// I don't need debug/info log from lxd-compose
+func (l *LxdExecutor) DebugLog(color bool, args ...interface{}) {
+	l.Report(l.msg2Str(args))
 }
+func (l *LxdExecutor) InfoLog(color bool, args ...interface{}) {}
 
 func (l *LxdExecutor) WarnLog(color bool, args ...interface{}) {
-	l.Report(args...)
+	l.Report(l.msg2Str(args))
 }
 
 func (l *LxdExecutor) ErrorLog(color bool, args ...interface{}) {
-	l.Report(args...)
+	l.Report(l.msg2Str(args))
 }
 
 func (l *LxdExecutor) Emits(eType lxd_compose.LxdCExecutorEvent, data map[string]interface{}) {}

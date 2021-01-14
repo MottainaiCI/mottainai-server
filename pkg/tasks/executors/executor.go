@@ -29,6 +29,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -271,13 +272,40 @@ func (d *TaskExecutor) ExitStatus(i int) {
 }
 
 func (d *TaskExecutor) Report(v ...interface{}) {
-	for _, val := range v {
+	msg := ""
+	for idx, val := range v {
+		if out, ok := val.(string); ok {
+			if idx > 0 {
+				msg += " " + string(out)
+			} else {
+				msg += string(out)
+			}
+		} else {
+			fmt.Println("Error on convert interface to string for: ", val,
+				reflect.TypeOf(val).String())
+		}
+	}
+	msg += "\n"
+	d.ReportRaw(msg)
+}
+
+func (d *TaskExecutor) ReportRaw(v ...interface{}) {
+	msg := ""
+	for idx, val := range v {
 		if out, ok := val.(string); ok {
 			d.MottainaiClient.AppendTaskOutput(out)
+			if idx > 0 {
+				msg += " " + string(out)
+			} else {
+				msg += string(out)
+			}
+		} else {
+			fmt.Println("Error on convert interface to string for: ", val,
+				reflect.TypeOf(val).String())
 		}
 	}
 	if d.Context.StandardOutput {
-		log.Println(v...)
+		log.Print(msg)
 	}
 }
 
@@ -467,7 +495,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 // Implement Write method as io.Writer
 func (t *TaskExecutor) Write(p []byte) (int, error) {
-	t.Report(string(p[0:len(p)]))
+	t.ReportRaw(string(p[0:len(p)]))
 	return len(p), nil
 }
 

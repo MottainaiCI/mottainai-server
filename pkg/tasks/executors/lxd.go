@@ -80,6 +80,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 	// Lxd compose code require his config
 	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(l.Config.Viper)
 	lxdc_config.GetLogging().PushProgressBar = true
+	lxdc_config.GetLogging().Color = true
 	lxdc_logger := lxd_compose_log.NewLxdCLogger(lxdc_config)
 	lxdc_logger.SetAsDefault()
 
