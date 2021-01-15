@@ -166,6 +166,7 @@ type AgentConfig struct {
 
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
+	LxdDisableLocal        bool              `mapstructure:"lxd_disable_local"`
 	LxdProfiles            []string          `mapstructure:"lxd_profiles"`
 	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers"`
 	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry"`
@@ -315,6 +316,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
 	viper.SetDefault("agent.lxd_ephemeral_containers", true)
+	viper.SetDefault("agent.lxd_disable_local", false)
 	viper.SetDefault("agent.lxd_profiles", []string{})
 	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
 

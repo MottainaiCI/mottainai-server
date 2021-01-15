@@ -103,6 +103,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 	)
 
 	l.Executor.WaitSleep = waitSleep
+	l.Executor.SetLocalDisable(l.Config.GetAgent().LxdDisableLocal)
 
 	err = l.Executor.Setup()
 	if err != nil {
