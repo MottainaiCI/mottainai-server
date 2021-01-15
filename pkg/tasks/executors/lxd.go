@@ -44,7 +44,6 @@ import (
 	lxd_compose_specs "github.com/MottainaiCI/lxd-compose/pkg/specs"
 
 	lxd "github.com/lxc/lxd/client"
-	lxd_api "github.com/lxc/lxd/shared/api"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -103,6 +102,9 @@ func (l *LxdExecutor) Setup(docID string) error {
 	)
 
 	l.Executor.WaitSleep = waitSleep
+	// We use always lxd-compose P2P Mode because we haven't
+	// remote name in task specs
+	l.Executor.SetP2PMode(true)
 	l.Executor.SetLocalDisable(l.Config.GetAgent().LxdDisableLocal)
 
 	err = l.Executor.Setup()
@@ -135,7 +137,7 @@ func (l *LxdExecutor) ResolveCachedImage(task_info tasks.Task) (string, bool, st
 
 			if len(task_info.CacheClean) == 0 {
 
-				if imageFingerprint, _, _, _ = l.FindImage(sharedName); imageFingerprint != "" {
+				if imageFingerprint, _, _, _ = l.Executor.FindImage(sharedName, ""); imageFingerprint != "" {
 					l.Report("Cached image found: " + imageFingerprint + " " + sharedName)
 					if imageFingerprint, err = l.PullImage(imageFingerprint); err != nil {
 						return "", cachedImage, sharedName, err
@@ -470,55 +472,6 @@ func (l *LxdExecutor) HandleCacheImagePush(exec *StateExecution, mapping Artefac
 	return nil
 }
 
-func (l *LxdExecutor) FindImage(image string) (string, lxd.ImageServer, string, error) {
-	var err error
-	var tmp_srv, srv lxd.ImageServer
-	var img, tmp_img *lxd_api.Image
-	var fingerprint string = ""
-	var srv_name string = ""
-
-	for remote, server := range l.Executor.LxdConfig.Remotes {
-		tmp_srv, err = l.Executor.LxdConfig.GetImageServer(remote)
-		if err != nil {
-			err = nil
-			l.Report(fmt.Sprintf(
-				"Error on retrieve ImageServer for remote %s at addr %s",
-				remote, server.Addr,
-			))
-			continue
-		}
-		tmp_img, err = l.Executor.GetImage(image, tmp_srv)
-		if err != nil {
-			// POST: No image found with input alias/fingerprint.
-			//       I go ahead to next remote
-			err = nil
-			continue
-		}
-
-		if img != nil {
-			// POST: A previous image is already found
-			if tmp_img.CreatedAt.After(img.CreatedAt) {
-				img = tmp_img
-				srv = tmp_srv
-				srv_name = remote
-				fingerprint = img.Fingerprint
-			}
-		} else {
-			// POST: first image matched
-			img = tmp_img
-			fingerprint = img.Fingerprint
-			srv = tmp_srv
-			srv_name = remote
-		}
-	}
-
-	if fingerprint == "" {
-		err = fmt.Errorf("No image found with alias or fingerprint %s", image)
-	}
-
-	return fingerprint, srv, srv_name, err
-}
-
 func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 	var err error
 	var imageFingerprint, remote_name string
@@ -527,7 +480,7 @@ func (l *LxdExecutor) PullImage(imageAlias string) (string, error) {
 	l.Report("Searching image: " + imageAlias)
 
 	// Find image hashing id
-	imageFingerprint, remote, remote_name, err = l.FindImage(imageAlias)
+	imageFingerprint, remote, remote_name, err = l.Executor.FindImage(imageAlias, "")
 	if err != nil {
 		return "", err
 	}
