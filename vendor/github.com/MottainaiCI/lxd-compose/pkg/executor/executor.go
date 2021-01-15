@@ -46,7 +46,9 @@ type LxdCExecutor struct {
 	Ephemeral         bool
 	ShowCmdsOutput    bool
 	RuntimeCmdsOutput bool
+	P2PMode           bool
 	WaitSleep         int
+	LocalDisable      bool
 
 	Emitter LxdCExecutorEmitter
 }
@@ -70,6 +72,8 @@ func NewLxdCExecutorWithEmitter(endpoint, configdir string,
 		RuntimeCmdsOutput: runtimeCmdsOutput,
 		WaitSleep:         1,
 		Emitter:           emitter,
+		P2PMode:           false,
+		LocalDisable:      false,
 	}
 }
 
@@ -95,6 +99,10 @@ func getLxcDefaultConfDir() (string, error) {
 
 func (e *LxdCExecutor) GetEmitter() LxdCExecutorEmitter        { return e.Emitter }
 func (e *LxdCExecutor) SetEmitter(emitter LxdCExecutorEmitter) { e.Emitter = emitter }
+func (e *LxdCExecutor) SetP2PMode(m bool)                      { e.P2PMode = m }
+func (e *LxdCExecutor) GetP2PMode() bool                       { return e.P2PMode }
+func (e *LxdCExecutor) SetLocalDisable(v bool)                 { e.LocalDisable = v }
+func (e *LxdCExecutor) GetLocalDisable() bool                  { return e.LocalDisable }
 
 func (e *LxdCExecutor) Setup() error {
 	var client lxd.ContainerServer
@@ -154,6 +162,10 @@ func (e *LxdCExecutor) Setup() error {
 
 			e.LxdConfig.DefaultRemote = "local"
 		}
+	}
+
+	if e.LxdConfig.DefaultRemote == "local" && e.LocalDisable {
+		return errors.New("Using local default remote when lxd_local_disable is disable.")
 	}
 
 	e.LxdClient = client
