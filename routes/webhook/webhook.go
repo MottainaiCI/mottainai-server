@@ -215,9 +215,15 @@ func (h *GitWebHook) PrepareGitDir(db *database.Database) error {
 		return err
 	}
 
-	h.Context.Dir, err = ioutil.TempDir(h.BuildPath, path.Join("webhook_fetch", h.Context.Repo))
+	h.Context.Dir, err = ioutil.TempDir(
+		path.Join(h.BuildPath, "webhook_fetch", h.Context.Repo),
+		h.Context.Repo,
+	)
 	if err != nil {
-		err = errors.New("Failed creating tempdir: " + err.Error())
+		err = errors.New(fmt.Sprintf(
+			"Failed creating tempdir %s: %s",
+			path.Join(h.BuildPath, "webhook_fetch", h.Context.Repo),
+			err.Error()))
 		return err
 	}
 
