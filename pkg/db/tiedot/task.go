@@ -176,7 +176,7 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 }
 
 func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
-	return dbcommon.TaskResult{}, errors.New("no implemented")
+	return dbcommon.TaskResult{}, errors.New("not implemented")
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
@@ -218,9 +218,9 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 }
 
 func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
-	return dbcommon.TaskResult{}, errors.New("no implemented")
+	return dbcommon.TaskResult{}, errors.New("not implemented")
 }
 
 func (d *Database) GetTaskMetrics() (map[string]interface{}, error) {
-	return nil, errors.New("no implemented")
+	return nil, errors.New("not implemented")
 }
