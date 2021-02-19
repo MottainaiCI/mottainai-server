@@ -123,7 +123,7 @@ func Classic(config *setting.Config) *Mottainai {
 
 	// send csrf through header so client can save it
 	csrfopts := csrf.Options{
-		Header: "X-CSRFToken",
+		Header:    "X-CSRFToken",
 		SetHeader: true,
 	}
 

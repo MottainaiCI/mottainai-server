@@ -24,7 +24,7 @@ package arangodb
 
 import (
 	"errors"
-
+	"fmt"
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
@@ -173,7 +173,6 @@ func (d *Database) ListTasks() []dbcommon.DocItem {
 }
 
 func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
-
 	tasks_id := make([]agenttasks.Task, 0)
 	docs, err := d.FindDoc("", "FOR c IN "+TaskColl+" return c")
 	if err != nil {
@@ -187,6 +186,39 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 	}
 
 	return tasks_id
+}
+
+func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (res dbcommon.TaskResult) {
+	sortClause := fmt.Sprintf("SORT c.%s %s", f.Sort, f.SortOrder)
+
+	query :=
+		fmt.Sprintf(
+			"FOR c IN %s %s LIMIT %d, %d RETURN c",
+			TaskColl,
+			sortClause,
+			f.PageIndex*f.PageSize, f.PageSize)
+
+	docs, err := d.FindDocSorted(query)
+	if err != nil {
+		return res
+	}
+
+	countRes, err := d.FindDocSorted(fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+
+	var tasks []agenttasks.Task
+	for _, v := range docs {
+		doc := v.(map[string]interface{})
+		t := agenttasks.NewTaskFromMap(doc)
+		t.ID = doc["_key"].(string)
+		tasks = append(tasks, t)
+	}
+
+	res.Tasks = tasks
+	if i, ok := countRes[0].(float64); ok {
+		res.Total = int(i)
+	}
+
+	return res
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
@@ -226,5 +258,43 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 		t.ID = id
 		res = append(res, t)
 	}
+	return res, nil
+}
+
+func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (res dbcommon.TaskResult, err error) {
+	sortClause := fmt.Sprintf("SORT c.%s %s", f.Sort, f.SortOrder)
+
+	ss :=
+		fmt.Sprintf(
+			"FOR c IN %s %s LIMIT %d, %d RETURN c",
+			TaskColl,
+			sortClause,
+			f.PageIndex*f.PageSize, f.PageSize)
+
+	queryResult, err := d.FindDoc("",
+		fmt.Sprintf("FOR c IN %s FILTER c.owner_id == %s %s LIMIT %d, %d RETURN c",
+			TaskColl, id,
+			ss,
+			f.PageIndex*f.PageSize, f.PageSize),
+	)
+
+	countRes, err := d.FindDoc("", fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+	fmt.Printf("%v\n", countRes)
+
+	if err != nil {
+		return res, err
+	}
+
+	// Query result are document IDs
+	var tasks []agenttasks.Task
+	for id, v := range queryResult {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = id
+		tasks = append(tasks, t)
+	}
+
+	res.Tasks = tasks
+	res.Total = 0
+
 	return res, nil
 }

@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package api
 
 import (
+	client "github.com/MottainaiCI/mottainai-server/routes/api/client"
 	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
 	apisecret "github.com/MottainaiCI/mottainai-server/routes/api/secret"
@@ -32,7 +33,6 @@ import (
 	tasksapi "github.com/MottainaiCI/mottainai-server/routes/api/tasks"
 	apitoken "github.com/MottainaiCI/mottainai-server/routes/api/token"
 	apiwebhook "github.com/MottainaiCI/mottainai-server/routes/api/webhook"
-	client "github.com/MottainaiCI/mottainai-server/routes/api/client"
 
 	userapi "github.com/MottainaiCI/mottainai-server/routes/api/user"
 	macaron "gopkg.in/macaron.v1"

@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	"sort"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -146,12 +147,35 @@ func All(ctx *context.Context, db *database.Database) []task.Task {
 	return all
 }
 
-func ShowAll(ctx *context.Context, db *database.Database) {
-
-	all := All(ctx, db)
+func AllFiltered(ctx *context.Context, db *database.Database) (result dbcommon.TaskResult) {
+	f := dbcommon.CreateTaskFilter(
+		ctx.QueryInt("pageIndex"),
+		ctx.QueryInt("pageSize"),
+		ctx.Query("sort"),
+		ctx.Query("sortOrder"),
+	)
 
 	if ctx.IsLogged {
-		ctx.JSON(200, all)
+		if ctx.User.IsAdmin() {
+			result = db.Driver.AllTasksFiltered(db.Config, f)
+		} else {
+			result, _ = db.Driver.AllUserFiltered(db.Config, ctx.User.ID, f)
+		}
 	}
 
+	return result
+}
+
+func ShowAll(ctx *context.Context, db *database.Database) {
+	if ctx.IsLogged {
+		all := All(ctx, db)
+		ctx.JSON(200, all)
+	}
+}
+
+func ShowAllFiltered(ctx *context.Context, db *database.Database) {
+	if ctx.IsLogged {
+		result := AllFiltered(ctx, db)
+		ctx.JSON(200, result)
+	}
 }
