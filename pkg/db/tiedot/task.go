@@ -175,12 +175,8 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 	return tasks_id
 }
 
-// not implemented
-func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) dbcommon.TaskResult {
-	return dbcommon.TaskResult{
-		Total: 0,
-		Tasks: d.AllTasks(config),
-	}
+func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
+	return dbcommon.TaskResult{}, errors.New("no implemented")
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
@@ -221,11 +217,10 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 	return res, nil
 }
 
-// not implemented
 func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
-	c, err := d.AllUserTask(config, id)
-	return dbcommon.TaskResult{
-		Total: 0,
-		Tasks: c,
-	}, err
+	return dbcommon.TaskResult{}, errors.New("no implemented")
+}
+
+func (d *Database) GetTaskMetrics() (map[string]interface{}, error) {
+	return nil, errors.New("no implemented")
 }

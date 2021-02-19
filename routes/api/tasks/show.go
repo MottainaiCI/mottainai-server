@@ -157,7 +157,7 @@ func AllFiltered(ctx *context.Context, db *database.Database) (result dbcommon.T
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			result = db.Driver.AllTasksFiltered(db.Config, f)
+			result, _ = db.Driver.AllTasksFiltered(db.Config, f)
 		} else {
 			result, _ = db.Driver.AllUserFiltered(db.Config, ctx.User.ID, f)
 		}

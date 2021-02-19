@@ -49,7 +49,8 @@ func CreateTaskFilter(pageIdx int, pageSize int, sort string, sortOrder string) 
 	if f.PageIndex < 0 {
 		f.PageIndex = 0
 	}
-	if f.PageSize == 0 {
+
+	if f.PageSize <= 0 || f.PageSize >= 50 {
 		f.PageSize = 10
 	}
 
