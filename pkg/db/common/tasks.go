@@ -38,7 +38,7 @@ type TaskFilter struct {
 	SortOrder string
 }
 
-func CreateTaskFilter(pageIdx int, pageSize int, sort string, sortOrder string) TaskFilter {
+func CreateTaskFilter(maxPageSize int, pageIdx int, pageSize int, sort string, sortOrder string) TaskFilter {
 	f := TaskFilter{
 		PageIndex: pageIdx,
 		PageSize:  pageSize,
@@ -50,7 +50,7 @@ func CreateTaskFilter(pageIdx int, pageSize int, sort string, sortOrder string) 
 		f.PageIndex = 0
 	}
 
-	if f.PageSize <= 0 || f.PageSize > 50 {
+	if f.PageSize <= 0 || f.PageSize > maxPageSize {
 		f.PageSize = 10
 	}
 
