@@ -104,11 +104,12 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"register": &schema.APIRoute{Path: "/api/nodes/register", Type: "post"},
 	},
 	Task: map[string]schema.Route{
-		"show_all": &schema.APIRoute{Path: "/api/tasks", Type: "get"},
-		"create":   &schema.APIRoute{Path: "/api/tasks", Type: "post"},
-		"start":    &schema.APIRoute{Path: "/api/tasks/start/:id", Type: "get"},
-		"clone":    &schema.APIRoute{Path: "/api/tasks/clone/:id", Type: "get"},
-		"status":   &schema.APIRoute{Path: "/api/tasks/status/:status", Type: "get"},
+		"show_all":          &schema.APIRoute{Path: "/api/tasks", Type: "get"},
+		"show_all_filtered": &schema.APIRoute{Path: "/api/tasks_filtered", Type: "get"},
+		"create":            &schema.APIRoute{Path: "/api/tasks", Type: "post"},
+		"start":             &schema.APIRoute{Path: "/api/tasks/start/:id", Type: "get"},
+		"clone":             &schema.APIRoute{Path: "/api/tasks/clone/:id", Type: "get"},
+		"status":            &schema.APIRoute{Path: "/api/tasks/status/:status", Type: "get"},
 
 		"stop":   &schema.APIRoute{Path: "/api/tasks/stop/:id", Type: "get"},
 		"delete": &schema.APIRoute{Path: "/api/tasks/delete/:id", Type: "get"},

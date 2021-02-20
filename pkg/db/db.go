@@ -142,7 +142,9 @@ type DatabaseDriver interface {
 	GetTaskArtefacts(id string) ([]artefact.Artefact, error)
 	ListTasks() []dbcommon.DocItem
 	AllTasks(config *setting.Config) []agenttasks.Task
+	AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) dbcommon.TaskResult
 	AllUserTask(config *setting.Config, id string) ([]agenttasks.Task, error)
+	AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (dbcommon.TaskResult, error)
 	AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error)
 	GetTaskByStatus(*setting.Config, string) ([]agenttasks.Task, error)
 

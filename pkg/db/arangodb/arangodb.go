@@ -222,6 +222,28 @@ func (d *Database) FindDoc(coll string, searchquery string) (map[string]interfac
 	return res, nil
 }
 
+func (d *Database) FindDocSorted(query string) ([]interface{}, error) {
+	res := make([]interface{}, 0)
+	ctx := context.Background()
+	cursor, err := d.DB().Query(ctx, query, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close()
+	for {
+		var doc interface{}
+		_, err := cursor.ReadDocument(ctx, &doc)
+		if arango.IsNoMoreDocuments(err) {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		res = append(res, doc)
+	}
+
+	return res, nil
+}
+
 func (d *Database) DeleteDoc(coll string, docID string) error {
 	col, err := d.UseCol(coll)
 	if err != nil {
