@@ -325,3 +325,51 @@ func (d *Database) DropColl(coll string) error {
 	}
 	return nil
 }
+
+func (d *Database) Count(collection string) (int, error) {
+	query := fmt.Sprintf(`RETURN LENGTH(%s)`, collection)
+	ctx := context.Background()
+	cursor, err := d.DB().Query(ctx, query, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close()
+	var doc interface{}
+	_, err = cursor.ReadDocument(ctx, &doc)
+	if err != nil {
+		return 0, err
+	}
+	return int(doc.(float64)), nil
+}
+
+func (d *Database) CollectCount(collection string, column string) (map[string]interface{}, error) {
+	query := fmt.Sprintf(`FOR t IN %[1]s
+		COLLECT %[2]s = t.%[2]s WITH COUNT INTO length
+		RETURN {
+			"%[2]s" : %[2]s,
+			"count" : length
+		}
+	`, collection, column)
+
+	res := make(map[string]interface{})
+	ctx := context.Background()
+	cursor, err := d.DB().Query(ctx, query, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close()
+
+	for {
+		var doc interface{}
+		_, err := cursor.ReadDocument(ctx, &doc)
+		if arango.IsNoMoreDocuments(err) {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		row := doc.(map[string]interface{})
+		res[row[column].(string)] = row["count"]
+	}
+
+	return res, nil
+}

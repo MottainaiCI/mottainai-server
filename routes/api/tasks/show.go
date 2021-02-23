@@ -24,6 +24,7 @@ package tasksapi
 
 import (
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"sort"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -147,8 +148,9 @@ func All(ctx *context.Context, db *database.Database) []task.Task {
 	return all
 }
 
-func AllFiltered(ctx *context.Context, db *database.Database) (result dbcommon.TaskResult) {
+func AllFiltered(ctx *context.Context, settings *setting.Config, db *database.Database) (result dbcommon.TaskResult) {
 	f := dbcommon.CreateTaskFilter(
+		settings.GetWeb().MaxPageSize,
 		ctx.QueryInt("pageIndex"),
 		ctx.QueryInt("pageSize"),
 		ctx.Query("sort"),
@@ -157,7 +159,7 @@ func AllFiltered(ctx *context.Context, db *database.Database) (result dbcommon.T
 
 	if ctx.IsLogged {
 		if ctx.User.IsAdmin() {
-			result = db.Driver.AllTasksFiltered(db.Config, f)
+			result, _ = db.Driver.AllTasksFiltered(db.Config, f)
 		} else {
 			result, _ = db.Driver.AllUserFiltered(db.Config, ctx.User.ID, f)
 		}
@@ -173,9 +175,9 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	}
 }
 
-func ShowAllFiltered(ctx *context.Context, db *database.Database) {
+func ShowAllFiltered(ctx *context.Context, db *database.Database, settings *setting.Config) {
 	if ctx.IsLogged {
-		result := AllFiltered(ctx, db)
+		result := AllFiltered(ctx, settings, db)
 		ctx.JSON(200, result)
 	}
 }
