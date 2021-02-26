@@ -1,0 +1,13 @@
+[Unit]
+Description=Mottainai Agent
+After=network-online.target
+
+[Service]
+WorkingDirectory=/srv/mottainai
+ExecStart=/usr/bin/mottainai-agent agent --config /etc/mottainai/mottainai-agent.yaml
+User=mottainai-agent
+Group=mottainai
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=network-online.target

@@ -1,0 +1,181 @@
+# Mottainai Agent Config
+
+general:
+  debug: false
+  # Default (currently not supported. For near future feature)
+  logfile: '/var/log/mottainai/mottainai-server.log'
+  loglevel: 'DEBUG'
+
+  # TLS options
+  # tls_cert:
+  # tls_key
+
+  # Others logrus options / providers
+
+  # Configure max timeout of fetch namespace files
+  # Field is in seconds. 0 means infinite.
+  # client_timeout: 360
+
+#----------------------------------------------
+# Mottainai Server API Server
+#----------------------------------------------
+web:
+  # Define URL of the Web Application.
+  # If Mottainai if under reverse proxy set this param
+  # with relative path related with exposed path. Example: /mottainai
+  url: '/'
+
+  # URL used for share API access address
+  application_url: 'http://127.0.0.1:9090/'
+
+broker:
+
+  # Broker type
+  type: 'amqp'
+
+  # AMQP Broker for Result
+  result_backend: 'amqp://guest:guest@127.0.0.1:5672/'
+  # Address of Request Broker
+  broker: 'amqp://guest:guest@127.0.0.1:5672/'
+  default_queue: "standard"
+  exchange: "jobs"
+  # exchange_type: "direct"
+  # binding_key: "machinery_task"
+
+  results_expire_in: 3600
+
+# Mottainai agent options
+agent:
+
+  # Agent key
+  #agent_key: "xxxxxxx"
+  # API Key
+  #api_key: "xxxxxx"
+
+  # Standalone mode. Agent task only specific task
+  # standalone: False
+
+  # Directory where store building data
+  # build_path: "/srv/mottainai/build/"
+
+  concurrency: 1
+  # Secret Key of the Agent
+  #secret_key: "xxxxxxxx"
+  #executor:
+  # - docker
+  # - lxd
+  # - virtualbox
+
+  # Define Size of private queue
+  # private_queue: 1
+
+  # Define download speed limit. 0 means no limit
+  # download_speed_limit: 0
+  # Define upload speed limit. 0 means no limit
+  # upload_speed_limit: 0
+
+  # Define Queues handled by Agent and number of concurrency tasks
+  # queues:
+  #  iso: 2
+
+  # Cache Registry options where push docker containers images.
+  # cache_registry:
+  #    type: "docker"
+  #    username: "xxxxxx"
+  #    password: "yyyyyyyyy"
+  #    entity: "zzzzz"
+  #    serveraddress: "https://index.docker.io/v1"
+
+  # Define operations executed by Agent Healtcheck
+  health_check_exec:
+     - docker system prune --force --all --volumes
+     # For LXD
+     # - mottainai-lxd-cleanup-zombie-containers
+     # - mottainai-lxd-cleanup-expired-cached-images
+
+  # health_check_clean_path:
+
+  # ----------------------------------
+  # Docker executor options
+  # ----------------------------------
+  # Define Docker CAPS
+  docker_caps:
+    - 'SYS_PTRACE'
+
+  # Define List of CAPS to drop
+  # docker_caps_drop:
+  #   - 'SYS_PTRACE'
+
+  # Docker endpoint
+  docker_endpoint: "unix:///var/run/docker.sock"
+
+  docker_keepimg: True
+  # Enable docker privileged container
+  # docker_privileged: False
+
+  # Enable DID (Docker in Docker)
+  # docker_in_docker: False
+
+  # Define DID mountpoint
+  # docker_in_docker_endpoint: /var/run/docker.sock
+
+  # ----------------------------------
+  # ----------------------------------
+  # LXD executor options
+  # ----------------------------------
+
+  # In the normaly mode this field is not needed
+  # because by default lxd client library try to search
+  # for $LXD_SOCKET, if unset try to use $LXD_DIR/unix.socket and
+  # then to /var/lib/lxd/unix.socket.
+  # If not present and on remotes is set a default agent
+  # try to use it.
+  # lxd_endpoint: ""
+
+  # List of remotes to use are stored on file config.yml
+  # under directory $HOME/.config/lxc/ with certificate to use and
+  # servercerts directory. We use as default path:
+  # build_path + "lxc"
+  # that could be verifies with this command:
+  # LXD_CONF=/srv/mottainai/build/lxc/ lxc remote list
+  #
+  # For use a different path for LXD configuration file
+  # set this param.
+  # lxd_config_dir: "/srv/mottainai/build/lxc/"
+
+  # Maintains container on server after task is ended
+  # lxd_ephemeral_containers: True
+
+  # Define profiles to use
+  lxd_profiles:
+    - 'default'
+
+  # Cache Registry options for LXD images.
+  # For LXD there are two different ways to manage
+  # cache registry:
+  #   * p2p: in this case image downloaded between all
+  #          cluster nodes. Agent search for image with right
+  #          aliases from all configured remotes.
+  #          In this case image created by container it isn't
+  #          pushed to a specific remote and so, this could
+  #          be better for reduce bandwidth or speedup cache image
+  #          creation.
+  #   * server: in this case a specific remote is used
+  #             for register images created by containers
+  #
+  #
+  # lxd_cache_registry:
+  #    Define type of lxd_cache_registry:
+  #    type: "p2p" or "server"
+  #
+  #    This field it is used only if type is equal to server and
+  #    contains name of the remote server to use (with protocol LXD)
+  #    and defined on config.yml file.
+  #    remote: "cache_registry_server_name"
+  #
+  #
+  #    Define binary tool used by LXD for create image from container.
+  #    Instead of use xz could be better pxz that use multiple cores
+  #    for compression.
+  #    compression_algorithm: "none"
+  # ----------------------------------

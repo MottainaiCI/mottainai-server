@@ -1,0 +1,14 @@
+[Unit]
+Description=Mottainai Agent Health Check Service (Instance %i)
+After=network-online.target
+
+[Service]
+WorkingDirectory=/srv/mottainai
+ExecStart=mottainai-agent health -o -c /etc/mottainai/%i.yaml
+Type=oneshot
+# NOTE: We need root for cleanup docker stuff. With LXD is not needed.
+#User=mottainai-agent
+#Group=mottainai
+[Install]
+WantedBy=network-online.target
+
