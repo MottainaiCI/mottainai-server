@@ -380,7 +380,7 @@ func (f *Fetcher) HandleUploadLargeFile(request schema.Request, paramName string
 
 	// XXX: Yeah, this is just a fancier way of reading slowly from kernel buffers, i know.
 	if f.Config.GetAgent().UploadRateLimit != 0 {
-		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.GetAgent().UploadRateLimit, 10))
+		f.AppendTaskOutput("Upload with bandwidth limit of: " + strconv.FormatInt(1024*f.Config.GetAgent().UploadRateLimit, 10) + "\n")
 		reader := flowrate.NewReader(io.Reader(rd), 1024*f.Config.GetAgent().UploadRateLimit)
 		request.Body = reader
 		req, err = request.NewAPIHTTPRequest(baseurl)

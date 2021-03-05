@@ -275,10 +275,10 @@ func (f *Fetcher) StreamOutput(r io.Reader) {
 	go func(reader io.Reader) {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
-			f.AppendTaskOutput(scanner.Text())
+			f.AppendTaskOutput(scanner.Text() + "\n")
 		}
 		if err := scanner.Err(); err != nil {
-			f.AppendTaskOutput("There was an error with the scanner in attached container " + err.Error())
+			f.AppendTaskOutput("There was an error with the scanner in attached container " + err.Error() + "\n")
 		}
 	}(r)
 }

@@ -652,7 +652,7 @@ func (t *Task) AppendBuildLog(s string, artefactPath string, lockPath string) er
 
 		defer file.Close()
 
-		if _, err = file.WriteString(s + "\n"); err != nil {
+		if _, err = file.WriteString(s); err != nil {
 			return err
 		}
 		return nil

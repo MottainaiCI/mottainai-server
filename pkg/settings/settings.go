@@ -78,6 +78,9 @@ type WebConfig struct {
 
 	SessionProvider       string `mapstructure:"session_provider"`
 	SessionProviderConfig string `mapstructure:"session_provider_config"`
+
+	//Pagination
+	MaxPageSize int `mapstructure:"max_page_size"`
 }
 
 type StorageConfig struct {
@@ -166,6 +169,7 @@ type AgentConfig struct {
 
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
+	LxdDisableLocal        bool              `mapstructure:"lxd_disable_local"`
 	LxdProfiles            []string          `mapstructure:"lxd_profiles"`
 	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers"`
 	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry"`
@@ -257,6 +261,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.healthcheck_interval", 800)
 	viper.SetDefault("web.session_provider", "")
 	viper.SetDefault("web.session_provider_config", "")
+	viper.SetDefault("web.max_page_size", 50)
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")
@@ -315,6 +320,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.lxd_endpoint", "")
 	viper.SetDefault("agent.lxd_config_dir", "/srv/mottainai/lxc/")
 	viper.SetDefault("agent.lxd_ephemeral_containers", true)
+	viper.SetDefault("agent.lxd_disable_local", false)
 	viper.SetDefault("agent.lxd_profiles", []string{})
 	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
 
@@ -463,14 +469,18 @@ web:
 `,
 		c.Protocol, c.AppSubURL,
 		c.HTTPAddr, c.HTTPPort,
-		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon, c.AppURL,
+		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon,
+		c.AppURL,
 		c.TemplatePath,
 		c.AccessControlAllowOrigin,
 		c.EmbedWebHookServer,
-		c.AccessToken, c.WebHookGitHubToken,
+		c.AccessToken,
+		c.WebHookGitHubToken,
 		c.WebHookGitHubTokenUser,
 		c.WebHookGitHubSecret,
-		c.LockPath, c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
+		c.WebHookToken,
+		c.LockPath,
+		c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
 
 	return ans
 }

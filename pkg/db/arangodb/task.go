@@ -24,12 +24,11 @@ package arangodb
 
 import (
 	"errors"
-
-	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-
+	"fmt"
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
 var TaskColl = "Tasks"
@@ -96,6 +95,7 @@ func (d *Database) GetTask(config *setting.Config, docID string) (agenttasks.Tas
 	return t, err
 }
 
+// todo: deprecate
 func (d *Database) GetTaskByStatus(config *setting.Config, status string) ([]agenttasks.Task, error) {
 	var res []agenttasks.Task
 
@@ -173,7 +173,6 @@ func (d *Database) ListTasks() []dbcommon.DocItem {
 }
 
 func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
-
 	tasks_id := make([]agenttasks.Task, 0)
 	docs, err := d.FindDoc("", "FOR c IN "+TaskColl+" return c")
 	if err != nil {
@@ -187,6 +186,39 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 	}
 
 	return tasks_id
+}
+
+func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (res dbcommon.TaskResult, err error) {
+	sortClause := fmt.Sprintf("SORT c.%s %s", f.Sort, f.SortOrder)
+
+	query :=
+		fmt.Sprintf(
+			"FOR c IN %s %s LIMIT %d, %d RETURN c",
+			TaskColl,
+			sortClause,
+			f.PageIndex*f.PageSize, f.PageSize)
+
+	docs, err := d.FindDocSorted(query)
+	if err != nil {
+		return res, err
+	}
+
+	countRes, err := d.FindDocSorted(fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+
+	var tasks []agenttasks.Task
+	for _, v := range docs {
+		doc := v.(map[string]interface{})
+		t := agenttasks.NewTaskFromMap(doc)
+		t.ID = doc["_key"].(string)
+		tasks = append(tasks, t)
+	}
+
+	res.Tasks = tasks
+	if i, ok := countRes[0].(float64); ok {
+		res.Total = int(i)
+	}
+
+	return res, nil
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
@@ -227,4 +259,63 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 		res = append(res, t)
 	}
 	return res, nil
+}
+
+func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (res dbcommon.TaskResult, err error) {
+	sortClause := fmt.Sprintf("SORT c.%s %s", f.Sort, f.SortOrder)
+
+	query :=
+		fmt.Sprintf(
+			"FOR c IN %s %s LIMIT %d, %d RETURN c",
+			TaskColl,
+			sortClause,
+			f.PageIndex*f.PageSize, f.PageSize)
+
+	queryResult, err := d.FindDoc("",
+		fmt.Sprintf("FOR c IN %s FILTER c.owner_id == %s %s LIMIT %d, %d RETURN c",
+			TaskColl, id,
+			query,
+			f.PageIndex*f.PageSize, f.PageSize),
+	)
+
+	countRes, err := d.FindDoc("", fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+	fmt.Printf("%v\n", countRes)
+
+	if err != nil {
+		return res, err
+	}
+
+	// Query result are document IDs
+	var tasks []agenttasks.Task
+	for id, v := range queryResult {
+		t := agenttasks.NewTaskFromMap(v.(map[string]interface{}))
+		t.ID = id
+		tasks = append(tasks, t)
+	}
+
+	res.Tasks = tasks
+	res.Total = 0
+
+	return res, nil
+}
+
+func (d *Database) GetTaskMetrics() (map[string]interface{}, error) {
+	statusRes, err := d.CollectCount(TaskColl, "status")
+	if err != nil {
+		return nil, err
+	}
+	resultRes, err := d.CollectCount(TaskColl, "result")
+	if err != nil {
+		return nil, err
+	}
+	total, err := d.Count(TaskColl)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"status": statusRes,
+		"result": resultRes,
+		"total":  total,
+	}, nil
 }

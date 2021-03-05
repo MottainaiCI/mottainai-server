@@ -1,0 +1,13 @@
+# Mottainai CLI Profiles
+# Mottainai CLI - Profiles
+
+profiles:
+  # Define list of yours profiles
+  # <PROFILE_NAME>:
+  #   master: <MOTTAINAI_API_URL>
+  #   apikey: <MOTTAINAI_APIKEY>
+  local:
+    master: http://127.0.0.1:8080
+    apikey: XXXXXXXXXX
+  host:
+    master: http://127.0.0.1:8081

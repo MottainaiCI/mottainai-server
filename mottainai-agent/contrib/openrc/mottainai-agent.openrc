@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+# https://github.com/goose121/initify systemd to openrc conversion perl script.
+#opernrc service unit for mottainai-agent
+
+command=/usr/bin/mottainai-agent
+command_args="agent --config /etc/mottainai/mottainai-agent.yaml"
+pidfile=
+
+name="mottainai-agent.openrc"
+description="Mottainai Agent"

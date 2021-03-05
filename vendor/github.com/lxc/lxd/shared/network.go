@@ -9,13 +9,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strconv"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 
-	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/logger"
 )
 
@@ -180,14 +178,7 @@ func WebsocketSendStream(conn *websocket.Conn, r io.Reader, bufferSize int) chan
 				break
 			}
 
-			w, err := conn.NextWriter(websocket.BinaryMessage)
-			if err != nil {
-				logger.Debugf("Got error getting next writer %s", err)
-				break
-			}
-
-			_, err = w.Write(buf)
-			w.Close()
+			err := conn.WriteMessage(websocket.BinaryMessage, buf)
 			if err != nil {
 				logger.Debugf("Got err writing %s", err)
 				break
@@ -212,12 +203,12 @@ func WebsocketRecvStream(w io.Writer, conn *websocket.Conn) chan bool {
 			}
 
 			if mt == websocket.TextMessage {
-				logger.Debugf("got message barrier")
+				logger.Debugf("Got message barrier")
 				break
 			}
 
 			if err != nil {
-				logger.Debugf("Got error getting next reader %s, %s", err, w)
+				logger.Debugf("Got error getting next reader %s", err)
 				break
 			}
 
@@ -302,19 +293,13 @@ func defaultReader(conn *websocket.Conn, r io.ReadCloser, readDone chan<- bool) 
 		buf, ok := <-in
 		if !ok {
 			r.Close()
-			logger.Debugf("sending write barrier")
+			logger.Debugf("Sending write barrier")
 			conn.WriteMessage(websocket.TextMessage, []byte{})
 			readDone <- true
 			return
 		}
-		w, err := conn.NextWriter(websocket.BinaryMessage)
-		if err != nil {
-			logger.Debugf("Got error getting next writer %s", err)
-			break
-		}
 
-		_, err = w.Write(buf)
-		w.Close()
+		err := conn.WriteMessage(websocket.BinaryMessage, buf)
 		if err != nil {
 			logger.Debugf("Got err writing %s", err)
 			break
@@ -363,6 +348,75 @@ func DefaultWriter(conn *websocket.Conn, w io.WriteCloser, writeDone chan<- bool
 	w.Close()
 }
 
+// WebsocketIO is a wrapper implementing ReadWriteCloser on top of websocket
+type WebsocketIO struct {
+	Conn   *websocket.Conn
+	reader io.Reader
+	mu     sync.Mutex
+}
+
+func (w *WebsocketIO) Read(p []byte) (n int, err error) {
+	for {
+		// First read from this message
+		if w.reader == nil {
+			var mt int
+
+			mt, w.reader, err = w.Conn.NextReader()
+			if err != nil {
+				return -1, err
+			}
+
+			if mt == websocket.CloseMessage {
+				return 0, io.EOF
+			}
+
+			if mt == websocket.TextMessage {
+				return 0, io.EOF
+			}
+		}
+
+		// Perform the read itself
+		n, err := w.reader.Read(p)
+		if err == io.EOF {
+			// At the end of the message, reset reader
+			w.reader = nil
+			return n, nil
+		}
+
+		if err != nil {
+			return -1, err
+		}
+
+		return n, nil
+	}
+}
+
+func (w *WebsocketIO) Write(p []byte) (n int, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	wr, err := w.Conn.NextWriter(websocket.BinaryMessage)
+	if err != nil {
+		return -1, err
+	}
+	defer wr.Close()
+
+	n, err = wr.Write(p)
+	if err != nil {
+		return -1, err
+	}
+
+	return n, nil
+}
+
+// Close sends a control message indicating the stream is finished, but it does not actually close
+// the socket.
+func (w *WebsocketIO) Close() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	// Target expects to get a control message indicating stream is finished.
+	return w.Conn.WriteMessage(websocket.TextMessage, []byte{})
+}
+
 // WebsocketMirror allows mirroring a reader to a websocket and taking the
 // result and writing it to a writer. This function allows for multiple
 // mirrorings and correctly negotiates stream endings. However, it means any
@@ -403,24 +457,20 @@ func WebsocketConsoleMirror(conn *websocket.Conn, w io.WriteCloser, r io.ReadClo
 			buf, ok := <-in
 			if !ok {
 				r.Close()
-				logger.Debugf("sending write barrier")
+				logger.Debugf("Sending write barrier")
+				conn.WriteMessage(websocket.BinaryMessage, []byte("\r"))
 				conn.WriteMessage(websocket.TextMessage, []byte{})
 				readDone <- true
 				return
 			}
-			w, err := conn.NextWriter(websocket.BinaryMessage)
-			if err != nil {
-				logger.Debugf("Got error getting next writer %s", err)
-				break
-			}
 
-			_, err = w.Write(buf)
-			w.Close()
+			err := conn.WriteMessage(websocket.BinaryMessage, buf)
 			if err != nil {
 				logger.Debugf("Got err writing %s", err)
 				break
 			}
 		}
+
 		closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
 		conn.WriteMessage(websocket.CloseMessage, closeMsg)
 		readDone <- true
@@ -447,52 +497,4 @@ func AllocatePort() (int, error) {
 	}
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
-}
-
-func NetworkGetCounters(ifName string) api.NetworkStateCounters {
-	counters := api.NetworkStateCounters{}
-	// Get counters
-	content, err := ioutil.ReadFile("/proc/net/dev")
-	if err == nil {
-		for _, line := range strings.Split(string(content), "\n") {
-			fields := strings.Fields(line)
-
-			if len(fields) != 17 {
-				continue
-			}
-
-			intName := strings.TrimSuffix(fields[0], ":")
-			if intName != ifName {
-				continue
-			}
-
-			rxBytes, err := strconv.ParseInt(fields[1], 10, 64)
-			if err != nil {
-				continue
-			}
-
-			rxPackets, err := strconv.ParseInt(fields[2], 10, 64)
-			if err != nil {
-				continue
-			}
-
-			txBytes, err := strconv.ParseInt(fields[9], 10, 64)
-			if err != nil {
-				continue
-			}
-
-			txPackets, err := strconv.ParseInt(fields[10], 10, 64)
-			if err != nil {
-				continue
-			}
-
-			counters.BytesSent = txBytes
-			counters.BytesReceived = rxBytes
-			counters.PacketsSent = txPackets
-			counters.PacketsReceived = rxPackets
-			break
-		}
-	}
-
-	return counters
 }

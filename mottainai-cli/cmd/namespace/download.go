@@ -1,0 +1,59 @@
+/*
+
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+package namespace
+
+import (
+	"log"
+
+	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	cobra "github.com/spf13/cobra"
+	viper "github.com/spf13/viper"
+)
+
+func newNamespaceDownloadCommand(config *setting.Config) *cobra.Command {
+	var filters []string
+
+	var cmd = &cobra.Command{
+		Use:   "download <namespace> <target> [OPTIONS]",
+		Short: "Download namespace artefacts",
+		Args:  cobra.RangeArgs(2, 2),
+		Run: func(cmd *cobra.Command, args []string) {
+			var v *viper.Viper = config.Viper
+			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher.SetActiveReport(true)
+
+			ns := args[0]
+			target := args[1]
+			if len(ns) == 0 || len(target) == 0 {
+				log.Fatalln("You need to define a namespace and a target")
+			}
+
+			if err := fetcher.DownloadArtefactsFromNamespace(ns, target, filters); err != nil {
+				log.Fatalln(err)
+			}
+		},
+	}
+
+	cmd.Flags().StringArrayVarP(&filters, "filter", "f", []string{},
+		"Define regex rule for filter artefacts to download.")
+	return cmd
+}

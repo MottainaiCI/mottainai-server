@@ -111,7 +111,7 @@ func (fetcher *Fetcher) UploadFile(path, art string) error {
 		// do directory stuff
 		return err
 	case mode.IsRegular():
-		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel)
+		fetcher.AppendTaskOutput("Uploading " + path + " to " + rel + "\n")
 		err = fetcher.UploadArtefactRetry(path, rel, 5)
 	}
 
@@ -131,7 +131,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 	for _, filter := range filters {
 		r, e := regexp.Compile(filter)
 		if e != nil {
-			d.AppendTaskOutput("Failed compiling regex (" + filter + "):" + e.Error())
+			d.AppendTaskOutput("Failed compiling regex (" + filter + "):" + e.Error() + "\n")
 			return err
 		}
 		filterRegexp = append(filterRegexp, r)
@@ -140,14 +140,14 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 	if artefact_type == "namespace" {
 		list, err = d.NamespaceFileList(id)
 		if err != nil {
-			d.AppendTaskOutput("[Download] Failed getting namespace artefact list")
+			d.AppendTaskOutput("[Download] Failed getting namespace artefact list" + "\n")
 			return err
 		}
 		to_download = id
 	} else if artefact_type == "storage" {
 		list, err = d.StorageFileList(id)
 		if err != nil {
-			d.AppendTaskOutput("[Download] Failed getting storage file list")
+			d.AppendTaskOutput("[Download] Failed getting storage file list" + "\n")
 			return err
 		}
 		var storage_data storageci.Storage
@@ -160,7 +160,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 
 		err := d.Handle(req)
 		if err != nil {
-			d.AppendTaskOutput("Downloading failed during retrieveing storage data : " + err.Error())
+			d.AppendTaskOutput("Downloading failed during retrieveing storage data : " + err.Error() + "\n")
 			return err
 		}
 
@@ -169,7 +169,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 	} else if artefact_type == "artefact" {
 		list, err = d.TaskFileList(id)
 		if err != nil {
-			d.AppendTaskOutput("[Download] Failed getting task artefacts list")
+			d.AppendTaskOutput("[Download] Failed getting task artefacts list" + "\n")
 			return err
 		}
 		to_download = id
@@ -177,10 +177,10 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 
 	err = os.MkdirAll(target, os.ModePerm)
 	if err != nil {
-		d.AppendTaskOutput("[Download] Error: " + err.Error())
+		d.AppendTaskOutput("[Download] Error: " + err.Error() + "\n")
 		return err
 	}
-	d.AppendTaskOutput("[Download] " + artefact_type + " artefacts from " + id)
+	d.AppendTaskOutput("[Download] " + artefact_type + " artefacts from " + id + "\n")
 	success := true
 	for _, file := range list {
 		trials := 5
@@ -198,7 +198,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 		}
 
 		if skipped {
-			d.AppendTaskOutput("[Download] File " + file + " filtered.")
+			d.AppendTaskOutput("[Download] File " + file + " filtered." + "\n")
 			continue
 		}
 
@@ -211,18 +211,18 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 			}
 			err := os.MkdirAll(filepath.Join(target, reldir), os.ModePerm)
 			if err != nil {
-				d.AppendTaskOutput("[Download] Error: " + err.Error())
+				d.AppendTaskOutput("[Download] Error: " + err.Error() + "\n")
 				return err
 			}
 			location := d.BaseURL + "/" + artefact_type + "/" + to_download + utils.PathEscape(file)
 
-			d.AppendTaskOutput("[Download]  " + location + " to " + filepath.Join(target, file))
+			d.AppendTaskOutput("[Download]  " + location + " to " + filepath.Join(target, file) + "\n")
 			if ok, err := d.Download(location, filepath.Join(target, file)); !ok {
-				d.AppendTaskOutput("[Download] failed : " + err.Error())
+				d.AppendTaskOutput("[Download] failed : " + err.Error() + "\n")
 				trials--
 			} else {
 				done = false
-				d.AppendTaskOutput("[Download] succeeded ")
+				d.AppendTaskOutput("[Download] succeeded " + "\n")
 			}
 
 		}
@@ -265,7 +265,7 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	body := response.Body
 	if d.Config.GetAgent().DownloadRateLimit != 0 {
 		// KB
-		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.GetAgent().DownloadRateLimit, 10))
+		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.GetAgent().DownloadRateLimit, 10) + "\n")
 		body = flowrate.NewReader(response.Body, 1024*d.Config.GetAgent().DownloadRateLimit)
 	}
 	if !responseSuccess(response) {
@@ -298,7 +298,7 @@ func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) er
 	}
 
 	if err := f.HandleUploadLargeFile(req, "file", fullpath, f.ChunkSize); err != nil {
-		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
+		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error() + "\n")
 		return err
 	}
 	return nil
@@ -309,7 +309,7 @@ func (f *Fetcher) UploadArtefactRetry(fullpath, relativepath string, trials int)
 	err := f.UploadArtefact(fullpath, relativepath)
 	for err != nil && trial < trials {
 		trial++
-		f.AppendTaskOutput("[Upload] Trial " + strconv.Itoa(trial))
+		f.AppendTaskOutput("[Upload] Trial " + strconv.Itoa(trial) + "\n")
 		err = f.UploadArtefact(fullpath, relativepath)
 	}
 	return err
@@ -328,7 +328,7 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	}
 
 	if err := f.HandleUploadLargeFile(req, "file", fullpath, f.ChunkSize); err != nil {
-		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error())
+		f.AppendTaskOutput("[Upload] Error while uploading artefact " + file + ": " + err.Error() + "\n")
 		return err
 	}
 	return nil

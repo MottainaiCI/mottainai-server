@@ -23,15 +23,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package logging
 
 import (
-//  context "github.com/MottainaiCI/mottainai-server/pkg/context"
-  macaron "gopkg.in/macaron.v1"
-  logrus "github.com/sirupsen/logrus"
-
+	//  context "github.com/MottainaiCI/mottainai-server/pkg/context"
+	logrus "github.com/sirupsen/logrus"
+	macaron "gopkg.in/macaron.v1"
 
 	"net/http"
 	"reflect"
 	"time"
 )
+
 var LogTimeFormat = "2006-01-02 15:04:05"
 
 // LoggerInvoker is an inject.FastInvoker wrapper of func(ctx *Context, log *log.Logger).
@@ -47,27 +47,27 @@ func MacaronLogger() macaron.Handler {
 	return func(ctx *macaron.Context, log *Logger) {
 		start := time.Now()
 
-    log.WithFields(logrus.Fields{
-      "component": "web",
-      "method": ctx.Req.Method,
-      "uri": ctx.Req.RequestURI,
-      "from": ctx.RemoteAddr(),
-      "start": start.Format(LogTimeFormat),
-    }).Info("Started")
+		log.WithFields(logrus.Fields{
+			"component": "web",
+			"method":    ctx.Req.Method,
+			"uri":       ctx.Req.RequestURI,
+			"from":      ctx.RemoteAddr(),
+			"start":     start.Format(LogTimeFormat),
+		}).Info("Started")
 
 		rw := ctx.Resp.(macaron.ResponseWriter)
 		ctx.Next()
 
-    log.WithFields(logrus.Fields{
-      "component": "web",
-      "method": ctx.Req.Method,
-      "uri": ctx.Req.RequestURI,
-      "from": ctx.RemoteAddr(),
-      "finish": time.Now().Format(LogTimeFormat),
-      "elapsed" : time.Since(start),
-      "code":rw.Status(),
-      "status": http.StatusText(rw.Status()),
-    }).Info("Completed")
+		log.WithFields(logrus.Fields{
+			"component": "web",
+			"method":    ctx.Req.Method,
+			"uri":       ctx.Req.RequestURI,
+			"from":      ctx.RemoteAddr(),
+			"finish":    time.Now().Format(LogTimeFormat),
+			"elapsed":   time.Since(start),
+			"code":      rw.Status(),
+			"status":    http.StatusText(rw.Status()),
+		}).Info("Completed")
 
 	}
 }

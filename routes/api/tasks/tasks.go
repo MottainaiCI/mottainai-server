@@ -42,6 +42,7 @@ func Setup(m *macaron.Macaron) {
 		bind := binding.Bind
 		m.Group(config.GetWeb().GroupAppPath(), func() {
 			v1.Schema.GetTaskRoute("show_all").ToMacaron(m, ShowAll)
+			v1.Schema.GetTaskRoute("show_all_filtered").ToMacaron(m, ShowAllFiltered)
 			v1.Schema.GetTaskRoute("create").ToMacaron(m, reqSignIn, bind(agenttasks.Task{}), APICreate)
 			v1.Schema.GetTaskRoute("as_json").ToMacaron(m, GetTaskJson) // TEMP: For now, as js  calls aren't with auth
 			v1.Schema.GetTaskRoute("as_yaml").ToMacaron(m, GetTaskYaml) // TEMP: For now, as js  calls aren't with auth

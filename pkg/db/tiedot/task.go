@@ -175,6 +175,10 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 	return tasks_id
 }
 
+func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
+	return dbcommon.TaskResult{}, errors.New("not implemented")
+}
+
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
 	queryResult, err := d.FindDoc(TaskColl, `[{"eq": "`+id+`", "in": ["node_id"]}]`)
 	var res []agenttasks.Task
@@ -211,4 +215,12 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 		res = append(res, t)
 	}
 	return res, nil
+}
+
+func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
+	return dbcommon.TaskResult{}, errors.New("not implemented")
+}
+
+func (d *Database) GetTaskMetrics() (map[string]interface{}, error) {
+	return nil, errors.New("not implemented")
 }

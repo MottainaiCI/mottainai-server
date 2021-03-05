@@ -49,8 +49,12 @@ deps:
 build:
 ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build
+		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+		CGO_ENABLED=0 go build -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
 
 multiarch-build:

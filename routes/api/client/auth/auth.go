@@ -34,7 +34,7 @@ import (
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
-	
+
 	"github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/captcha"
