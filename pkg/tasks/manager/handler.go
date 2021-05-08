@@ -109,6 +109,7 @@ func DockerPlayer(config *setting.Config) func(args ...interface{}) (int, error)
 	}
 }
 
+/*
 func KubernetesPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
 	return func(args ...interface{}) (int, error) {
 		docID, e, err := HandleArgs(args...)
@@ -125,6 +126,7 @@ func KubernetesPlayer(config *setting.Config) func(args ...interface{}) (int, er
 		return player.Start(executor)
 	}
 }
+*/
 
 func LibvirtPlayer(config *setting.Config) func(args ...interface{}) (int, error) {
 	return func(args ...interface{}) (int, error) {
