@@ -59,8 +59,10 @@ func SupportedExecutors(config *setting.Config) *TaskHandler {
 			se["libvirt_vagrant"] = LibvirtPlayer(config)
 		case "virtualbox":
 			se["virtualbox_vagrant"] = VirtualBoxPlayer(config)
-		case "kubernetes":
-			se["kubernetes"] = KubernetesPlayer(config)
+			/*
+				case "kubernetes":
+					se["kubernetes"] = KubernetesPlayer(config)
+			*/
 		case "lxd":
 			se["lxd"] = LxdPlayer(config)
 		}
@@ -80,7 +82,7 @@ func GenDefaultTaskHandler(config *setting.Config) *TaskHandler {
 
 		"docker_execute": DockerPlayer(config),
 		"docker":         DockerPlayer(config),
-		"kubernetes":     KubernetesPlayer(config),
+		//	"kubernetes":     KubernetesPlayer(config),
 
 		"libvirt_execute": LibvirtPlayer(config),
 		"libvirt_vagrant": LibvirtPlayer(config),
