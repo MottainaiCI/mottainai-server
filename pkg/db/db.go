@@ -233,6 +233,9 @@ type DatabaseDriver interface {
 
 	// TODO: See if it's correct expone this as method
 	GetAgent() *anagent.Anagent
+
+	// Queue
+	//Get
 }
 
 // For future, now in PoC state will just support
