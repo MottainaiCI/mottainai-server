@@ -59,7 +59,6 @@ func ShowTasks(ctx *context.Context, db *database.Database) {
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	//tasks := db.ListTasks()
 	nodes := db.Driver.AllNodes()
 
 	ctx.JSON(200, nodes)

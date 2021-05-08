@@ -28,14 +28,17 @@ import (
 )
 
 type Node struct {
-	ID         string `json:"ID"`
-	NodeID     string `form:"nodeid" json:"nodeid"`
-	Key        string `json:"key" form:"key"`
-	User       string `json:"user" form:"user"`
-	Pass       string `json:"pass" form:"pass"`
-	Owner      int    `json:"owner" form:"owner"`
-	Hostname   string `json:"hostname" form:"hostname"`
-	LastReport string `json:"last_report" form:"last_report"`
+	ID             string         `json:"ID"`
+	NodeID         string         `form:"nodeid" json:"nodeid"`
+	Key            string         `json:"key" form:"key"`
+	User           string         `json:"user" form:"user"`
+	Pass           string         `json:"pass" form:"pass"`
+	Owner          int            `json:"owner" form:"owner"`
+	Hostname       string         `json:"hostname" form:"hostname"`
+	LastReport     string         `json:"last_report" form:"last_report"`
+	Queues         map[string]int `json:"queues" form:"queues"`
+	Standalone     bool           `json:"standalone" form:"standalone"`
+	OverrideQueues bool           `json:"override_queues" form:"override_queues"`
 }
 
 func NewFromJson(data []byte) Node {
@@ -54,7 +57,17 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		nodeid      string
 		hostname    string
 		last_report string
+		queues      map[string]int
+		standalone  bool
 	)
+
+	if m, ok := t["queues"].(map[string]int); ok {
+		queues = m
+	}
+
+	if b, ok := t["standalone"].(bool); ok {
+		standalone = b
+	}
 
 	if str, ok := t["user"].(string); ok {
 		user = str
@@ -90,6 +103,8 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		LastReport: last_report,
 		NodeID:     nodeid,
 		ID:         id,
+		Queues:     queues,
+		Standalone: standalone,
 	}
 	return node
 }

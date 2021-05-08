@@ -26,13 +26,12 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
 func Remove(ctx *context.Context, db *database.Database) error {
 
 	id := ctx.Params(":id")
-	node, err := db.Driver.GetNode(id)
+	_, err := db.Driver.GetNode(id)
 	if err != nil {
 		return err // Do not treat it as an error, we have no node with such id.
 	}
@@ -41,11 +40,6 @@ func Remove(ctx *context.Context, db *database.Database) error {
 	if err != nil {
 		return err
 	}
-
-	// RabbitMQ API Client
-	ctx.Invoke(func(rmqc *rabbithole.Client) {
-		_, err = rmqc.DeleteUser(node.User)
-	})
 
 	ctx.APIActionSuccess()
 	return nil

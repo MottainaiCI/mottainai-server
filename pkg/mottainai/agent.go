@@ -30,20 +30,22 @@ import (
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
-	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
+	//taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	logrus "github.com/sirupsen/logrus"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-	machinery "github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/log"
 )
 
 type MottainaiAgent struct {
 	*anagent.Anagent
 	Client client.HttpClient
+
+	ID           string
+	PrivateQueue string
 }
 
 func NewAgent() *MottainaiAgent {
@@ -55,48 +57,63 @@ const MINTIMER = 50
 const R = 3.81199961
 const STEPS = 215
 
-func (m *MottainaiAgent) SetKeepAlive(ID, hostname string) {
-	m.Client.RegisterNode(ID, hostname)
+func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Config) {
+	m.Client.RegisterNode(
+		ID, hostname,
+		config.GetAgent().StandAlone,
+		config.GetAgent().Queues,
+	)
 
 	var tid anagent.TimerID = "keepalive"
 
-	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true, func(a *anagent.Anagent, c *client.Fetcher) {
-		if res, err := c.RegisterNode(ID, hostname); err == nil {
-			d := time.Duration(MINTIMER * time.Second)
-			population := strings.Split(res.Data, ",")
-			if len(population) == 2 {
-				nodes, e := strconv.Atoi(population[0])
-				if e != nil {
-					return
+	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true,
+		func(a *anagent.Anagent, c *client.Fetcher) {
+			queues := config.GetAgent().Queues
+			queues[m.PrivateQueue] = config.GetAgent().PrivateQueue
+
+			res, err := c.RegisterNode(
+				ID, hostname,
+				config.GetAgent().StandAlone,
+				queues,
+			)
+
+			if err == nil {
+				d := time.Duration(MINTIMER * time.Second)
+				population := strings.Split(res.Data, ",")
+				if len(population) == 2 {
+					nodes, e := strconv.Atoi(population[0])
+					if e != nil {
+						return
+					}
+					i, e := strconv.Atoi(population[1])
+					if e != nil {
+						return
+					}
+					// Readjust keepalive timer based on how many nodes are in the cluster.
+					pop := utils.FeatureScaling(float64(i), float64(nodes), 0, 1)
+					scale_factor := float64(nodes)
+					timer := utils.FeatureScaling(
+						utils.LogisticMapSteps(STEPS, R, pop)*scale_factor,
+						float64(nodes),
+						MINTIMER, MAXTIMER,
+					)
+					//fmt.Println("Timer set to", timer)
+					if timer < MAXTIMER && timer > MINTIMER {
+						d = time.Duration(timer) * time.Second
+					}
+					m.GetTimer(tid).After(d)
 				}
-				i, e := strconv.Atoi(population[1])
-				if e != nil {
-					return
-				}
-				// Readjust keepalive timer based on how many nodes are in the cluster.
-				pop := utils.FeatureScaling(float64(i), float64(nodes), 0, 1)
-				scale_factor := float64(nodes)
-				timer := utils.FeatureScaling(utils.LogisticMapSteps(STEPS, R, pop)*scale_factor, float64(nodes), MINTIMER, MAXTIMER)
-				//fmt.Println("Timer set to", timer)
-				if timer < MAXTIMER && timer > MINTIMER {
-					d = time.Duration(timer) * time.Second
-				}
-				m.GetTimer(tid).After(d)
+
+			} else {
+				log.ERROR.Println("Error on register node ", err.Error())
 			}
 
-		}
-
-	})
+		})
 }
 
 func (m *MottainaiAgent) Run() error {
 
-	var defaultWorker *machinery.Worker
-	var is_standalone bool = false
-	server := NewServer()
-
 	m.Invoke(func(config *setting.Config) {
-
 		logger := logging.New()
 		logger.SetupWithConfig(true, config)
 		logger.WithFields(logrus.Fields{
@@ -104,52 +121,30 @@ func (m *MottainaiAgent) Run() error {
 		}).Info("Starting")
 		log.Set(logger)
 		m.Map(logger)
-
-		broker := server.Add(config.GetBroker().BrokerDefaultQueue, config)
-		th := taskmanager.DefaultTaskHandler(config)
+		/*
+			th := taskmanager.DefaultTaskHandler(config)
+			m.Map(th)
+		*/
 		fetcher := client.NewTokenClient(
 			config.GetWeb().AppURL,
 			config.GetAgent().ApiKey, config)
 		m.Client = fetcher
-		m.Map(server)
-		m.Map(th)
 		m.Map(fetcher)
 
 		ID := utils.GenID()
+		m.ID = ID
 		hostname := utils.Hostname()
 		log.INFO.Println("Worker ID: " + ID)
 		log.INFO.Println("Worker Hostname: " + hostname)
 
 		if config.GetAgent().PrivateQueue != 0 {
-			privqueue := hostname + ID
-			b := server.Add(privqueue, config)
-			w := b.NewWorker(privqueue, config.GetAgent().PrivateQueue)
-			log.INFO.Println("Listening on private queue: " + privqueue)
-			go w.Launch()
+			m.PrivateQueue = hostname + ID
+			log.INFO.Println("Listening on private queue: " + m.PrivateQueue)
 		}
 
-		defaultWorker = broker.NewWorker(ID, config.GetAgent().AgentConcurrency)
-		m.SetKeepAlive(ID, hostname)
-
-		for q, concurrent := range config.GetAgent().Queues {
-			log.INFO.Println("Listening on queue ", q, " with concurrency ", concurrent)
-			b := server.Add(q, config)
-			w := b.NewWorker(ID, concurrent)
-			go w.Launch()
-		}
-
-		is_standalone = config.GetAgent().StandAlone
+		m.SetKeepAlive(ID, hostname, config)
 	})
 
-	if is_standalone {
-		m.Start()
-		return errors.New("Agent stopped")
-	}
-
-	go func(w *machinery.Worker, a *MottainaiAgent) {
-		a.Map(w)
-		a.Start()
-	}(defaultWorker, m)
-
-	return defaultWorker.Launch()
+	m.Start()
+	return errors.New("Agent stopped")
 }

@@ -26,8 +26,6 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 )
 
 func APICreate(ctx *context.Context, db *database.Database) error {
@@ -50,12 +48,6 @@ func Create(ctx *context.Context, db *database.Database) (string, error) {
 		"user":  user,
 		"pass":  pass,
 		"key":   key})
-
-	// RabbitMQ API Client
-	ctx.Invoke(func(rmqc *rabbithole.Client) {
-		_, err = rmqc.PutUser(user, rabbithole.UserSettings{Password: pass, Tags: ""})
-		_, err = rmqc.UpdatePermissionsIn("/", user, rabbithole.Permissions{Configure: ".*", Read: ".*", Write: ".*"})
-	})
 
 	return docID, err
 }

@@ -46,7 +46,6 @@ import (
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
-	rabbithole "github.com/michaelklishin/rabbit-hole"
 	macaron "gopkg.in/macaron.v1"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -218,21 +217,7 @@ func (m *Mottainai) Start() error {
 
 	m.SetAutoHead(true)
 
-	server := NewServer()
-
 	m.Invoke(func(config *setting.Config, l *logging.Logger) {
-		server.Add(config.GetBroker().BrokerDefaultQueue, config)
-		if config.GetBroker().Type == "amqp" && config.GetBroker().BrokerURI != "" {
-			rmqc, err := rabbithole.NewClient(
-				config.GetBroker().BrokerURI,
-				config.GetBroker().BrokerUser,
-				config.GetBroker().BrokerPass)
-			if err != nil {
-				panic(err)
-			}
-			m.Map(rmqc)
-		}
-
 		th := taskmanager.DefaultTaskHandler(config)
 		l.WithFields(logrus.Fields{
 			"component": "core",
@@ -241,7 +226,6 @@ func (m *Mottainai) Start() error {
 
 		c := cron.New()
 
-		m.Map(server)
 		m.Map(th)
 		m.Map(c)
 		m.Map(m)
@@ -357,7 +341,6 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 				result = false
 				return
 			}
-			return
 			return
 		}
 
