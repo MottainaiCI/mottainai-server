@@ -3,3 +3,4 @@ mottainai-server
 mottainai-agent/mottainai-agent
 mottainai-cli/mottainai-cli
 release/
+contrib/schemas/mottainai.dia.autosave
