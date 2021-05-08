@@ -24,12 +24,16 @@ package tiedot
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strconv"
 
+	tiedot_data "github.com/HouzuoGuo/tiedot/data"
 	"github.com/HouzuoGuo/tiedot/db"
-	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	"github.com/mudler/anagent"
 
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -39,8 +43,14 @@ type Database struct {
 	DBName string
 }
 
-var Collections = []string{WebHookColl, TaskColl, SecretColl,
-	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
+var Collections = []string{
+	WebHookColl, TaskColl, SecretColl,
+	UserColl, PlansColl, PipelinesColl,
+	NodeColl, NamespaceColl, TokenColl,
+	ArtefactColl, StorageColl, OrganizationColl,
+	SettingColl,
+	QueueColl, NodeQueuesColl,
+}
 
 func New(path string) *Database {
 	return &Database{Anagent: anagent.New(), DBPath: path}
@@ -63,6 +73,8 @@ func (d *Database) Init() {
 	d.IndexPlan()
 	d.IndexTask()
 	d.IndexNode()
+	d.IndexNodeQueue()
+	d.IndexQueue()
 	d.IndexNamespace()
 	d.IndexArtefacts()
 	d.IndexStorage()
@@ -78,8 +90,49 @@ func (d *Database) Init() {
 var MyDbInstance *db.DB
 
 func (d *Database) DB() *db.DB {
+	dbconf := filepath.Join(d.DBPath, "data-config.json")
+
 	if MyDbInstance != nil {
 		return MyDbInstance
+	}
+
+	exists, err := utils.Exists(dbconf)
+	if err != nil {
+		panic(err)
+	}
+
+	if !exists {
+		d.Invoke(func(config *setting.Config) {
+			// POST: Create config file with our settings.
+			conf := tiedot_data.Config{
+				DocMaxRoom:    config.GetDatabase().TiedotDocMaxRoom,
+				ColFileGrowth: config.GetDatabase().TiedotColFileGrowth,
+				PerBucket:     config.GetDatabase().TiedotPerBucket,
+				HTFileGrowth:  config.GetDatabase().TiedotHTFileGrowth,
+				HashBits:      config.GetDatabase().TiedotHashBits,
+			}
+
+			confData, err := json.Marshal(conf)
+			if err != nil {
+				panic(err)
+			}
+
+			if err := os.MkdirAll(d.DBPath, 0700); err != nil {
+				panic(err)
+			}
+
+			f, err := os.OpenFile(dbconf, os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			_, err = f.Write(confData)
+			if err != nil {
+				panic(err)
+			}
+
+		})
 	}
 
 	myDB, err := db.OpenDB(d.DBPath)

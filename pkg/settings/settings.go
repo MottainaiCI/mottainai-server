@@ -101,6 +101,13 @@ type DatabaseConfig struct {
 	Password     string   `mapstructure:"db_password"`
 	CertPath     string   `mapstructure:"db_certpath"`
 	KeyPath      string   `mapstructure:"db_keypath"`
+
+	// Tiedot configs settings
+	TiedotDocMaxRoom    int  `mapstructure:"tiedot_doc_maxroom"`    // DocMaxRoom is the maximum size of a single document that will ever be accepted into database.
+	TiedotColFileGrowth int  `mapstructure:"tiedot_colfile_growth"` // ColFileGrowth is the size (in bytes) to grow collection data file when new documents have to fit in.
+	TiedotPerBucket     int  `mapstructure:"tiedot_per_bucket"`     // PerBucket is the number of entries pre-allocated to each hash table bucket.
+	TiedotHTFileGrowth  int  `mapstructure:"tiedot_htfilegrowth"`   /// HTFileGrowth is the size (in bytes) to grow hash table file to fit in more entries.
+	TiedotHashBits      uint `mapstructure:"tiedot_hashbits"`       // HashBits is the number of bits to consider for hashing indexed key, also determines the initial number of buckets in a hash table file.
 }
 
 type BrokerConfig struct {
@@ -276,6 +283,15 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("db.db_password", "")
 	viper.SetDefault("db.db_certpath", "")
 	viper.SetDefault("db.db_keypath", "")
+
+	// Tiedot default options
+	viper.SetDefault("db.tiedot_doc_maxroom", 2*1048576)
+	//	viper.SetDefault("db.tiedot_colfile_growth", 32*1048576)
+	viper.SetDefault("db.tiedot_colfile_growth", 0.5*1048576)
+	viper.SetDefault("db.tiedot_per_bucket", 1)
+	viper.SetDefault("db.tiedot_htfilegrowth", 0.5*1048576)
+	//viper.SetDefault("db.tiedot_htfilegrowth", 32*1048576)
+	viper.SetDefault("db.tiedot_hashbits", 16)
 
 	viper.SetDefault("broker.handle_signal", true)
 	viper.SetDefault("broker.type", "amqp")
