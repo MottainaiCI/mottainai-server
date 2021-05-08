@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package client
 
 import (
+	"fmt"
+
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -63,13 +65,17 @@ func (d *Fetcher) NodesTask(key string, target interface{}) error {
 	return nil
 }
 
-func (f *Fetcher) RegisterNode(ID, hostname string) (event.APIResponse, error) {
+func (f *Fetcher) RegisterNode(ID, hostname string, standalone bool, queues map[string]int) (event.APIResponse, error) {
+	fmt.Println("QUEUES ", queues)
+	fmt.Println("STANDALONE", standalone)
 	req := schema.Request{
 		Route: v1.Schema.GetNodeRoute("register"),
 		Options: map[string]interface{}{
-			"key":      f.Config.GetAgent().AgentKey,
-			"nodeid":   ID,
-			"hostname": hostname,
+			"key":        f.Config.GetAgent().AgentKey,
+			"nodeid":     ID,
+			"hostname":   hostname,
+			"standalone": standalone,
+			"queues":     queues,
 		},
 	}
 
