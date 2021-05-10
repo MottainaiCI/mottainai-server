@@ -31,7 +31,7 @@ import (
 	executors "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
-	machinery "github.com/RichardKnop/machinery/v1"
+	//	machinery "github.com/RichardKnop/machinery/v1"
 )
 
 type TaskHandler struct {
@@ -164,6 +164,7 @@ func VirtualBoxPlayer(config *setting.Config) func(args ...interface{}) (int, er
 	}
 }
 
+/*
 func (h *TaskHandler) RegisterTasks(m *machinery.Server) {
 	th := DefaultTaskHandler(h.Config)
 	err := m.RegisterTasks(th.Tasks)
@@ -171,6 +172,7 @@ func (h *TaskHandler) RegisterTasks(m *machinery.Server) {
 		panic(err)
 	}
 }
+*/
 
 func (h *TaskHandler) FetchTask(fetcher client.HttpClient) tasks.Task {
 	t, err := tasks.FetchTask(fetcher)
