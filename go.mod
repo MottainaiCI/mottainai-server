@@ -12,7 +12,6 @@ require (
 	github.com/MottainaiCI/lxd-compose v0.6.1-0.20210115070738-09323dad26f0
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
-	github.com/RichardKnop/machinery v1.7.1
 	github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f
 	github.com/arangodb/go-driver v0.0.0-20201202080739-c41c94f2de00
 	github.com/blang/semver v3.5.0+incompatible // indirect
