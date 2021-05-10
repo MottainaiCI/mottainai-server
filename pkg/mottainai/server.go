@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package mottainai
 
+/*
 import (
 	"strconv"
 	"strings"
@@ -360,3 +361,5 @@ func (b *Broker) SendTask(opts *BrokerSendOptions) (*results.AsyncResult, error)
 	return b.Server.SendTask(signature)
 
 }
+
+*/

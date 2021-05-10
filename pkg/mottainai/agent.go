@@ -37,7 +37,7 @@ import (
 	"github.com/mudler/anagent"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-	"github.com/RichardKnop/machinery/v1/log"
+	//	"github.com/RichardKnop/machinery/v1/log"
 )
 
 type MottainaiAgent struct {
@@ -105,7 +105,7 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				}
 
 			} else {
-				log.ERROR.Println("Error on register node ", err.Error())
+				//log.ERROR.Println("Error on register node ", err.Error())
 			}
 
 		})
@@ -119,7 +119,7 @@ func (m *MottainaiAgent) Run() error {
 		logger.WithFields(logrus.Fields{
 			"component": "agent",
 		}).Info("Starting")
-		log.Set(logger)
+		//log.Set(logger)
 		m.Map(logger)
 		/*
 			th := taskmanager.DefaultTaskHandler(config)
@@ -134,12 +134,12 @@ func (m *MottainaiAgent) Run() error {
 		ID := utils.GenID()
 		m.ID = ID
 		hostname := utils.Hostname()
-		log.INFO.Println("Worker ID: " + ID)
-		log.INFO.Println("Worker Hostname: " + hostname)
+		//log.INFO.Println("Worker ID: " + ID)
+		//log.INFO.Println("Worker Hostname: " + hostname)
 
 		if config.GetAgent().PrivateQueue != 0 {
 			m.PrivateQueue = hostname + ID
-			log.INFO.Println("Listening on private queue: " + m.PrivateQueue)
+			//log.INFO.Println("Listening on private queue: " + m.PrivateQueue)
 		}
 
 		m.SetKeepAlive(ID, hostname, config)

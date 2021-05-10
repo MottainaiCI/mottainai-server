@@ -278,8 +278,8 @@ func (m *Mottainai) WrapH(h http.Handler) macaron.Handler {
 func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 	result := true
 	var rerr error
-	m.Invoke(func(d *database.Database, server *MottainaiServer,
-		th *taskmanager.TaskHandler, config *setting.Config, l *logging.Logger) {
+	m.Invoke(func(d *database.Database, th *taskmanager.TaskHandler,
+		config *setting.Config, l *logging.Logger) {
 		pip, err := d.Driver.GetPipeline(config, docID)
 		if err != nil {
 			rerr = err
@@ -296,113 +296,8 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 			return
 		}
 
-		var broker *Broker
-		if len(pip.Queue) > 0 {
-			broker = server.Get(pip.Queue, config)
-			l.WithFields(logrus.Fields{
-				"component":   "core",
-				"queue":       pip.Queue,
-				"pipeline_id": docID,
-			}).Info("Sending pipeline")
-		} else {
-			broker = server.Get(config.GetBroker().BrokerDefaultQueue, config)
-			l.WithFields(logrus.Fields{
-				"component":   "core",
-				"queue":       config.GetBroker().BrokerDefaultQueue,
-				"pipeline_id": docID,
-			}).Info("Sending pipeline")
-		}
-
-		if len(pip.Chord) > 0 {
-			tt := make(map[string]string)
-			for _, m := range pip.Group {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
-			}
-			cc := make(map[string]string)
-			for _, m := range pip.Chord {
-				cc[pip.Tasks[m].ID] = pip.Tasks[m].Type
-			}
-			l.WithFields(logrus.Fields{
-				"component":   "core",
-				"pipeline_id": docID,
-			}).Info("Sending Chord")
-			_, err := broker.SendChord(&BrokerSendOptions{Retry: pip.Trials(), ChordGroup: cc, Group: tt, Concurrency: pip.Concurrency})
-			if err != nil {
-				rerr = err
-				l.WithFields(logrus.Fields{
-					"component":   "core",
-					"pipeline_id": docID,
-					"error":       err.Error(),
-				}).Error("Could not send pipeline")
-				for _, t := range pip.Tasks {
-					m.FailTask(t.ID, "Backend error, could not send task to broker: "+err.Error())
-				}
-
-				result = false
-				return
-			}
-			return
-		}
-
-		if len(pip.Group) > 0 {
-			tt := make(map[string]string)
-			for _, m := range pip.Group {
-				tt[pip.Tasks[m].ID] = pip.Tasks[m].Type
-			}
-			l.WithFields(logrus.Fields{
-				"component":   "core",
-				"pipeline_id": docID,
-			}).Info("Sending Group")
-			_, err := broker.SendGroup(&BrokerSendOptions{Retry: pip.Trials(), Group: tt, Concurrency: pip.Concurrency})
-			if err != nil {
-				rerr = err
-				l.WithFields(logrus.Fields{
-					"component":   "core",
-					"pipeline_id": docID,
-					"error":       err.Error(),
-				}).Error("Error sending group")
-				for _, t := range pip.Tasks {
-					m.FailTask(t.ID, "Backend error, could not send task to broker: "+err.Error())
-				}
-
-				result = false
-				return
-			}
-			return
-		}
-
-		if len(pip.Chain) > 0 {
-			tt := make([]string, 0)
-			for _, m := range pip.Chain {
-				tt = append(tt, fmt.Sprintf("%s,%s", pip.Tasks[m].ID, pip.Tasks[m].Type))
-			}
-			l.WithFields(logrus.Fields{
-				"component":   "core",
-				"pipeline_id": docID,
-			}).Info("Sending Chain")
-			_, err := broker.SendChain(&BrokerSendOptions{Retry: pip.Trials(), Chain: tt, Concurrency: pip.Concurrency})
-			if err != nil {
-				rerr = err
-				l.WithFields(logrus.Fields{
-					"component":   "core",
-					"pipeline_id": docID,
-					"error":       err.Error(),
-				}).Error("Sending Chain")
-				for _, t := range pip.Tasks {
-					m.FailTask(t.ID, "Backend error, could not send task to broker: "+err.Error())
-				}
-
-				result = false
-				return
-			}
-			return
-		}
-
-		l.WithFields(logrus.Fields{
-			"component":   "core",
-			"pipeline_id": docID,
-		}).Info("Pipeline sent")
-
+		rerr = errors.New("NOT IMPLEMENTED")
+		result = false
 	})
 
 	return result, rerr
@@ -536,7 +431,7 @@ func (m *Mottainai) processablePipeline(docID string) error {
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := false
 	var err error
-	m.Invoke(func(d *database.Database, server *MottainaiServer, l *logging.Logger, th *taskmanager.TaskHandler, config *setting.Config) {
+	m.Invoke(func(d *database.Database, l *logging.Logger, th *taskmanager.TaskHandler, config *setting.Config) {
 
 		if err := m.processableTask(docID); err != nil {
 			m.FailTask(docID, err.Error())
@@ -550,45 +445,47 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 		}
 
 		task.ClearBuildLog(config.GetStorage().ArtefactPath)
+		/*
+			q := config.GetBroker().BrokerDefaultQueue
+			if len(task.Queue) > 0 {
+				q = task.Queue
+			}
 
-		q := config.GetBroker().BrokerDefaultQueue
-		if len(task.Queue) > 0 {
-			q = task.Queue
-		}
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"queue":     q,
+			}).Info("Sending task")
+			broker := server.Get(q, config)
 
-		l.WithFields(logrus.Fields{
-			"component": "core",
-			"task_id":   docID,
-			"queue":     q,
-		}).Info("Sending task")
-		broker := server.Get(q, config)
+			d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
 
-		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+				"type":      task.Type,
+			}).Debug("Task")
 
-		l.WithFields(logrus.Fields{
-			"component": "core",
-			"task_id":   docID,
-			"type":      task.Type,
-		}).Debug("Task")
+			if !th.Exists(task.Type) {
+				err = errors.New("Could not send task: Invalid task type")
+				m.FailTask(docID, err.Error())
+				return
+			}
 
-		if !th.Exists(task.Type) {
-			err = errors.New("Could not send task: Invalid task type")
-			m.FailTask(docID, err.Error())
-			return
-		}
+			_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
+			if err != nil {
+				m.FailTask(docID, "Backend error, could not send task to broker: "+err.Error())
+				return
+			}
+			result = true
 
-		_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
-		if err != nil {
-			m.FailTask(docID, "Backend error, could not send task to broker: "+err.Error())
-			return
-		}
-		result = true
-
-		l.WithFields(logrus.Fields{
-			"component": "core",
-			"task_id":   docID,
-		}).Info("Task sent")
+			l.WithFields(logrus.Fields{
+				"component": "core",
+				"task_id":   docID,
+			}).Info("Task sent")
+		*/
 	})
+
 	return result, err
 }
 
