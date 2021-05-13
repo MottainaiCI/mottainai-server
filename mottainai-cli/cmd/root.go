@@ -29,9 +29,11 @@ import (
 
 	namespace "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/namespace"
 	node "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/node"
+	nodequeuecmd "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/nodequeue"
 	pipeline "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/pipeline"
 	plan "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/plan"
 	profile "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/profile"
+	queuecmd "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/queue"
 	secret "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/secret"
 	settingcmd "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/settings"
 	webhookcmd "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/webhook"
@@ -108,6 +110,8 @@ func initCommand(rootCmd *cobra.Command, config *setting.Config) {
 		webhookcmd.NewWebHookCommand(config),
 		secret.NewSecretCommand(config),
 		debug.NewDebugCommand(config),
+		queuecmd.NewQueueCommand(config),
+		nodequeuecmd.NewNodeQueueCommand(config),
 	)
 }
 

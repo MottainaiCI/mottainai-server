@@ -28,11 +28,11 @@ import (
 )
 
 type Queue struct {
-	ID         string `json:"ID"`
-	Qid        string `form:"qid" json:"qid"`
-	Name       string `json:"queue" form:"queue"`
-	Waiting    string `json:"tasks_waiting" form:"waiting_tasks"`
-	InProgress string `json:"tasks_inprogress" form:"tasks_inprogress"`
+	ID         string   `json:"ID"`
+	Qid        string   `form:"qid" json:"qid"`
+	Name       string   `json:"queue" form:"queue"`
+	Waiting    []string `json:"tasks_waiting" form:"waiting_tasks"`
+	InProgress []string `json:"tasks_inprogress" form:"tasks_inprogress"`
 }
 
 func NewFromJson(data []byte) Queue {

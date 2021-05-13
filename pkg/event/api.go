@@ -19,17 +19,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package event
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
+)
 
 // APIResponse represent an API payload response
 type APIResponse struct {
-	ID        string `json:"id"`
-	ObjType   string `json:"type"`
-	Processed string `json:"processed"`
-	Event     string `json:"event"`
-	Error     string `json:"error"`
-	Status    string `json:"status"`
-	Data      string `json:"data"`
+	ID        string `json:"id,omitempty"`
+	ObjType   string `json:"type,omitempty"`
+	Processed string `json:"processed,omitempty"`
+	Event     string `json:"event,omitempty"`
+	Error     string `json:"error,omitempty"`
+	Status    string `json:"status,omitempty"`
+	Data      string `json:"data,omitempty"`
+
+	Request *schema.Request `json:"-"`
 }
 
 // DecodeAPIResponse returns an APIResponse from []byte

@@ -389,7 +389,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 			auth := task_info.PrivKey
 			var s secret.Secret
-			req := schema.Request{
+			req := &schema.Request{
 				Route:   v1.Schema.GetSecretRoute("show"),
 				Target:  &s,
 				Options: map[string]interface{}{"id": task_info.PrivKey},
@@ -400,7 +400,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 				d.Report("Found secret by id.")
 				auth = s.Secret
 			} else {
-				req := schema.Request{
+				req := &schema.Request{
 					Route:   v1.Schema.GetSecretRoute("show_by_name"),
 					Target:  &s,
 					Options: map[string]interface{}{"name": task_info.PrivKey},

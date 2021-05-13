@@ -51,7 +51,7 @@ func newTaskShowCommand(config *setting.Config) *cobra.Command {
 			}
 			var t citasks.Task
 
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("as_json"),
 				Options: map[string]interface{}{
 					":id": id,

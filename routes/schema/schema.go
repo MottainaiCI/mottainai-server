@@ -26,9 +26,16 @@ import (
 	macaron "gopkg.in/macaron.v1"
 )
 
+const (
+	ContentTypeFormUrlEncoded = "application/x-www-form-urlencoded"
+	ContentTypeJson           = "application/json"
+)
+
 type RouteGenerator interface {
 	GetTaskRoute(s string) Route
 	GetNodeRoute(s string) Route
+	GetQueueRoute(s string) Route
+	GetNodeQueueRoute(s string) Route
 	GetWebHookRoute(s string) Route
 	GetSecretRoute(s string) Route
 	GetNamespaceRoute(s string) Route
@@ -43,6 +50,8 @@ type RouteGenerator interface {
 type APIRouteGenerator struct {
 	Task      map[string]Route
 	Node      map[string]Route
+	Queue     map[string]Route
+	NodeQueue map[string]Route
 	WebHook   map[string]Route
 	Secret    map[string]Route
 	Namespace map[string]Route
@@ -146,20 +155,37 @@ func (g *APIRouteGenerator) GetClientRoute(s string) Route {
 	return nil
 }
 
+func (g *APIRouteGenerator) GetQueueRoute(s string) Route {
+	r, ok := g.Queue[s]
+	if ok {
+		return r
+	}
+	return nil
+}
+
+func (g *APIRouteGenerator) GetNodeQueueRoute(s string) Route {
+	r, ok := g.NodeQueue[s]
+	if ok {
+		return r
+	}
+	return nil
+}
+
 type Route interface {
 	InterpolatePath(map[string]interface{}) string
-	NewRequest(string, map[string]string, io.Reader) (*http.Request, error)
-	NewAPIRequest(string, map[string]interface{}, io.Reader) (*http.Request, error)
+	NewRequest(string, map[string]string, string, io.Reader) (*http.Request, error)
+	NewAPIRequest(string, map[string]interface{}, string, io.Reader) (*http.Request, error)
 
 	ToMacaron(*macaron.Macaron, ...macaron.Handler)
 	GetPath() string
 	GetType() string
-	RequireFormEncode() bool
+	GetContentType() string
 	RemoveInterpolations(map[string]interface{}) map[string]interface{}
 }
 type APIRoute struct {
-	Path string
-	Type string
+	Path        string
+	Type        string
+	ContentType string
 }
 
 func (r *APIRoute) GetPath() string {
@@ -168,6 +194,10 @@ func (r *APIRoute) GetPath() string {
 
 func (r *APIRoute) GetType() string {
 	return r.Type
+}
+
+func (r *APIRoute) GetContentType() string {
+	return r.ContentType
 }
 
 func (r *APIRoute) InterpolatePath(opts map[string]interface{}) string {
@@ -197,48 +227,40 @@ func (r *APIRoute) RemoveInterpolations(opts map[string]interface{}) map[string]
 	return res
 }
 
-func (r *APIRoute) NewAPIRequest(baseURL string, interpolate map[string]interface{}, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(strings.ToUpper(r.GetType()), baseURL+r.InterpolatePath(interpolate), body)
+func (r *APIRoute) NewAPIRequest(
+	baseURL string,
+	interpolate map[string]interface{},
+	contentType string,
+	body io.Reader) (*http.Request, error) {
+
+	req, err := http.NewRequest(
+		strings.ToUpper(r.GetType()),
+		baseURL+r.InterpolatePath(interpolate), body,
+	)
+
 	if err != nil {
 		return req, err
 	}
-	if r.RequireFormEncode() {
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	if contentType != "" {
+		req.Header.Add("Content-Type", contentType)
 	}
-	// t := strings.ToUpper(r.GetType())
-	// switch t {
-	// case "POST":
-	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	// case "PUT":
-	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	// case "PATCH":
-	// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	// }
 
 	return req, nil
 }
 
 // DUP for now, it will be removed once we remove all the calls with Interpolations
-func (r *APIRoute) NewRequest(baseURL string, interpolate map[string]string, body io.Reader) (*http.Request, error) {
+func (r *APIRoute) NewRequest(
+	baseURL string,
+	interpolate map[string]string,
+	contentType string,
+	body io.Reader) (*http.Request, error) {
+
 	m := make(map[string]interface{})
 	for k, v := range interpolate {
 		m[k] = interface{}(v)
 	}
-	return r.NewAPIRequest(baseURL, m, body)
-}
-
-func (r *APIRoute) RequireFormEncode() bool {
-	t := strings.ToUpper(r.GetType())
-	switch t {
-	case "POST":
-		return true
-	case "PUT":
-		return true
-	case "PATCH":
-		return true
-	default:
-		return false
-	}
+	return r.NewAPIRequest(baseURL, m, contentType, body)
 }
 
 func (r *APIRoute) ToMacaron(m *macaron.Macaron, v ...macaron.Handler) {

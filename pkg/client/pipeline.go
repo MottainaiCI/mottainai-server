@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) PipelineDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("pipeline_delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -38,7 +38,7 @@ func (f *Fetcher) PipelineDelete(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) PipelineCreate(taskdata map[string]interface{}) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetTaskRoute("create_pipeline"),
 		Options: taskdata,
 	}

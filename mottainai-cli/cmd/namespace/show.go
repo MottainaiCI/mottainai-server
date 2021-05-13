@@ -49,7 +49,7 @@ func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("You need to define a namespace name")
 			}
 
-			req := schema.Request{
+			req := &schema.Request{
 				Route:  v1.Schema.GetNamespaceRoute("show_artefacts"),
 				Target: &tlist,
 				Options: map[string]interface{}{

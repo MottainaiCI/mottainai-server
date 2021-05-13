@@ -28,9 +28,11 @@ import (
 )
 
 type NodeQueues struct {
-	ID       string              `json:"ID"`
-	NodeName string              `json:"node_name" form:"node_name"`
-	Queues   map[string][]string `json:"queues" form:"queues"`
+	ID           string              `json:"ID"`
+	AgentKey     string              `json:"akey" form:"akey"`
+	NodeId       string              `json:"nodeid" form:"nodeid"`
+	Queues       map[string][]string `json:"queues" form:"queues"`
+	CreationDate string              `json:"creation_date"`
 }
 
 func NewNodeQueueFromJson(data []byte) NodeQueues {
@@ -41,21 +43,45 @@ func NewNodeQueueFromJson(data []byte) NodeQueues {
 
 func NewNodeQueuesFromMap(q map[string]interface{}) NodeQueues {
 	var (
-		name   string
-		queues map[string][]string
+		nid  string
+		akey string
+		cd   string
 	)
 
-	if str, ok := q["node_name"].(string); ok {
-		name = str
+	queues := make(map[string][]string, 0)
+
+	if str, ok := q["creation_date"].(string); ok {
+		cd = str
 	}
 
-	if m, ok := q["queues"].(map[string][]string); ok {
-		queues = m
+	if str, ok := q["nodeid"].(string); ok {
+		nid = str
+	}
+
+	if str, ok := q["akey"].(string); ok {
+		akey = str
+	}
+
+	if m, ok := q["queues"].(map[string]interface{}); ok {
+		for k, v := range m {
+			qt := []string{}
+			tasks := v.([]interface{})
+
+			if len(tasks) > 0 {
+				for _, t := range tasks {
+					qt = append(qt, t.(string))
+				}
+			}
+
+			queues[k] = qt
+		}
 	}
 
 	ans := NodeQueues{
-		NodeName: name,
-		Queues:   queues,
+		AgentKey:     akey,
+		NodeId:       nid,
+		Queues:       queues,
+		CreationDate: cd,
 	}
 
 	return ans

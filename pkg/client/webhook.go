@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) WebHookTaskUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
 	data[":id"] = id
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("update_task"),
 		Options: data,
 	}
@@ -38,7 +38,7 @@ func (f *Fetcher) WebHookTaskUpdate(id string, data map[string]interface{}) (eve
 func (f *Fetcher) WebHookPipelineUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
 	data[":id"] = id
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("update_pipeline"),
 		Options: data,
 	}
@@ -48,7 +48,7 @@ func (f *Fetcher) WebHookPipelineUpdate(id string, data map[string]interface{}) 
 
 func (f *Fetcher) WebHookDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -60,7 +60,7 @@ func (f *Fetcher) WebHookDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookDeleteTask(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete_task"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -72,7 +72,7 @@ func (f *Fetcher) WebHookDeleteTask(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookDeletePipeline(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetWebHookRoute("delete_pipeline"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -84,7 +84,7 @@ func (f *Fetcher) WebHookDeletePipeline(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) WebHookEdit(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetWebHookRoute("set_field"),
 		Options: data,
 	}
@@ -94,7 +94,7 @@ func (f *Fetcher) WebHookEdit(data map[string]interface{}) (event.APIResponse, e
 
 func (f *Fetcher) WebHookCreate(t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetWebHookRoute("create"),
 		Options: map[string]interface{}{
 			":type": t,

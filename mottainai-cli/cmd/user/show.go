@@ -55,7 +55,7 @@ func newUserShowCommand(config *setting.Config) *cobra.Command {
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
 			var t *user.User
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetUserRoute("show"),
 				Options: map[string]interface{}{
 					":id": id,

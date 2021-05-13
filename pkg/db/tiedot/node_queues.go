@@ -32,7 +32,8 @@ import (
 var NodeQueuesColl = "NodeQueues"
 
 func (d *Database) IndexNodeQueue() {
-	d.AddIndex(NodeQueuesColl, []string{"node_name"})
+	d.AddIndex(NodeQueuesColl, []string{"akey"})
+	d.AddIndex(NodeQueuesColl, []string{"nodeid"})
 }
 
 func (d *Database) CreateNodeQueues(t map[string]interface{}) (string, error) {
@@ -62,10 +63,69 @@ func (d *Database) GetNodeQueues(docId string) (queues.NodeQueues, error) {
 	return t, err
 }
 
-func (d *Database) GetNodeQueuesByKey(key string) (queues.NodeQueues, error) {
+func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
+	// TODO: add a semaphore
+
+	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := nq.Queues[queue]; !ok {
+		nq.Queues[queue] = []string{}
+	}
+
+	nq.Queues[queue] = append(nq.Queues[queue], taskid)
+
+	err = d.UpdateNodeQueues(nq.ID, map[string]interface{}{
+		"akey":          nq.AgentKey,
+		"nodeid":        nq.NodeId,
+		"queues":        nq.Queues,
+		"creation_date": nq.CreationDate,
+	})
+
+	return err
+}
+
+func (d *Database) DelNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
+	// TODO: Add a semaphore
+
+	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := nq.Queues[queue]; ok {
+		tasks := nq.Queues[queue]
+
+		ntasks := []string{}
+
+		for _, t := range tasks {
+			if t == taskid {
+				continue
+			}
+			ntasks = append(ntasks, t)
+		}
+
+		nq.Queues[queue] = ntasks
+	}
+
+	err = d.UpdateNodeQueues(nq.ID, map[string]interface{}{
+		"akey":          nq.AgentKey,
+		"nodeid":        nq.NodeId,
+		"queues":        nq.Queues,
+		"creation_date": nq.CreationDate,
+	})
+
+	return err
+}
+
+func (d *Database) GetNodeQueuesByKey(agentKey, nodeid string) (queues.NodeQueues, error) {
 	var res []queues.NodeQueues
 
-	queuesFound, err := d.FindDoc(NodeQueuesColl, `[{"eq": "`+key+`", "in": ["node_name"]}]`)
+	queuesFound, err := d.FindDoc(NodeQueuesColl,
+		`{ "n":[{"eq": "`+nodeid+`", "in": ["nodeid"]}, {"eq": "`+agentKey+`", "in": ["akey"]}]}`)
+
 	if err != nil || len(queuesFound) != 1 {
 		return queues.NodeQueues{}, nil
 	}
@@ -86,7 +146,7 @@ func (d *Database) ListNodeQueues() []dbcommon.DocItem {
 	return d.ListDocs(NodeQueuesColl)
 }
 
-func (d *Database) AllNodeQueues() []queues.NodeQueues {
+func (d *Database) AllNodesQueues() []queues.NodeQueues {
 	nodec := d.DB().Use(NodeQueuesColl)
 	node_list := make([]queues.NodeQueues, 0)
 

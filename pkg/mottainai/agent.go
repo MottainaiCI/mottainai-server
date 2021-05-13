@@ -24,6 +24,7 @@ package mottainai
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +54,7 @@ func NewAgent() *MottainaiAgent {
 }
 
 const MAXTIMER = 720
-const MINTIMER = 50
+const MINTIMER = 10
 const R = 3.81199961
 const STEPS = 215
 
@@ -77,7 +78,9 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				queues,
 			)
 
-			if err == nil {
+			fmt.Println("RES ", string(res.Request.ResponseRaw))
+
+			if err == nil && res.Request.Response.StatusCode == 200 && res.Status == "ok" {
 				d := time.Duration(MINTIMER * time.Second)
 				population := strings.Split(res.Data, ",")
 				if len(population) == 2 {
@@ -105,6 +108,18 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				}
 
 			} else {
+				if err != nil {
+					if res.Request != nil && res.Request.Response != nil {
+						fmt.Println(fmt.Sprintf("%s: Error on registrer node: %s",
+							res.Request.Response.Status, err.Error()))
+					} else {
+						fmt.Println(fmt.Sprintf("Error on registrer node: %s",
+							err.Error()))
+					}
+				} else {
+					fmt.Println(fmt.Sprintf("%s: Error on registrer node: %s",
+						res.Request.Response.Status, res.Error))
+				}
 				//log.ERROR.Println("Error on register node ", err.Error())
 			}
 

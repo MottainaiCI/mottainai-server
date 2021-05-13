@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) TokenDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTokenRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -38,7 +38,7 @@ func (f *Fetcher) TokenDelete(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) TokenCreate() (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTokenRoute("create"),
 	}
 

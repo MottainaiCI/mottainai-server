@@ -48,7 +48,7 @@ func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database,
 	opts.Output = ""
 	opts.Result = "none"
 	opts.ExitStatus = ""
-	opts.CreatedTime = time.Now().Format("20060102150405")
+	opts.CreatedTime = time.Now().UTC().Format("20060102150405")
 
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
