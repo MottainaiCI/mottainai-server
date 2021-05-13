@@ -26,6 +26,7 @@ import (
 	client "github.com/MottainaiCI/mottainai-server/routes/api/client"
 	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
+	queuesapi "github.com/MottainaiCI/mottainai-server/routes/api/queues"
 	apisecret "github.com/MottainaiCI/mottainai-server/routes/api/secret"
 	settingsroute "github.com/MottainaiCI/mottainai-server/routes/api/settings"
 	stats "github.com/MottainaiCI/mottainai-server/routes/api/stats"
@@ -50,4 +51,5 @@ func Setup(m *macaron.Macaron) {
 	settingsroute.Setup(m)
 	apiwebhook.Setup(m)
 	apisecret.Setup(m)
+	queuesapi.Setup(m)
 }

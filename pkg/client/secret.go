@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) SecretDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetSecretRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -39,7 +39,7 @@ func (f *Fetcher) SecretDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) SecretEdit(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetSecretRoute("set_field"),
 		Options: data,
 	}
@@ -49,7 +49,7 @@ func (f *Fetcher) SecretEdit(data map[string]interface{}) (event.APIResponse, er
 
 func (f *Fetcher) SecretCreate(t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetSecretRoute("create"),
 		Options: map[string]interface{}{
 			":name": t,

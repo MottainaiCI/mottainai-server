@@ -51,7 +51,9 @@ func Setup(m *macaron.Macaron) {
 			v1.Schema.GetNodeRoute("show_tasks").ToMacaron(m, reqSignIn, reqManager, ShowTasks)
 
 			v1.Schema.GetNodeRoute("delete").ToMacaron(m, reqSignIn, reqManager, Remove)
-			v1.Schema.GetNodeRoute("register").ToMacaron(m, reqSignIn, reqManager, bind(NodeUpdate{}), Register)
+			v1.Schema.GetNodeRoute("register").ToMacaron(
+				m, reqSignIn, reqManager, bind(NodeUpdate{}), Register,
+			)
 		})
 
 	})

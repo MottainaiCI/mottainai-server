@@ -30,6 +30,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
+	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/storage"
@@ -235,7 +236,13 @@ type DatabaseDriver interface {
 	GetAgent() *anagent.Anagent
 
 	// Queue
-	//Get
+	CreateNodeQueues(t map[string]interface{}) (string, error)
+	DeleteNodeQueues(docId string) error
+	AddNodeQueuesTask(akey, nodeid, queue, taskid string) error
+	DelNodeQueuesTask(akey, nodeid, queue, taskid string) error
+	GetNodeQueuesByKey(akey, nodeid string) (queues.NodeQueues, error)
+	GetNodeQueues(docId string) (queues.NodeQueues, error)
+	AllNodesQueues() []queues.NodeQueues
 }
 
 // For future, now in PoC state will just support

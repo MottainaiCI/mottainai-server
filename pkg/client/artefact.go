@@ -45,7 +45,7 @@ import (
 func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 	var fileList []string
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetNamespaceRoute("show_artefacts"),
 		Options: map[string]interface{}{":name": namespace},
 		Target:  &fileList,
@@ -62,7 +62,7 @@ func (d *Fetcher) NamespaceFileList(namespace string) ([]string, error) {
 func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 	var fileList []string
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetStorageRoute("show_artefacts"),
 		Options: map[string]interface{}{":id": storage},
 		Target:  &fileList,
@@ -79,7 +79,7 @@ func (d *Fetcher) StorageFileList(storage string) ([]string, error) {
 func (d *Fetcher) TaskFileList(task string) ([]string, error) {
 	var fileList []string
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetTaskRoute("artefact_list"),
 		Options: map[string]interface{}{":id": task},
 		Target:  &fileList,
@@ -152,7 +152,7 @@ func (d *Fetcher) DownloadArtefactsGeneric(id, target, artefact_type string, fil
 		}
 		var storage_data storageci.Storage
 
-		req := schema.Request{
+		req := &schema.Request{
 			Route:   v1.Schema.GetStorageRoute("show"),
 			Options: map[string]interface{}{":id": id},
 			Target:  &storage_data,
@@ -288,7 +288,7 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetStorageRoute("upload"),
 		Options: map[string]interface{}{
 			"name":      file,
@@ -318,7 +318,7 @@ func (f *Fetcher) UploadArtefactRetry(fullpath, relativepath string, trials int)
 func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("artefact_upload"),
 		Options: map[string]interface{}{
 			"name":   file,
@@ -337,7 +337,7 @@ func (f *Fetcher) UploadArtefact(fullpath, relativepath string) error {
 func (f *Fetcher) UploadNamespaceFile(namespace, fullpath, relativepath string) error {
 	_, file := filepath.Split(fullpath)
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("upload"),
 		Options: map[string]interface{}{
 			"name":      file,

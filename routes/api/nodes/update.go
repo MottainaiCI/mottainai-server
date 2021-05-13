@@ -36,7 +36,7 @@ import (
 )
 
 type NodeUpdate struct {
-	NodeID     string         `form:"nodeid" json:"nodeid"`
+	NodeID     string         `json:"nodeid" form:"nodeid"`
 	Key        string         `json:"key" form:"key"`
 	Hostname   string         `json:"hostname" form:"hostname"`
 	Standalone bool           `json:"standalone" form:"standalone"`
@@ -58,7 +58,7 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	nodefound, err := db.Driver.GetNodeByKey(key)
 	if err != nil {
-		ctx.NotFound()
+		ctx.APIActionFailed("", "", "Node not found", "", 404)
 		return nil
 	}
 

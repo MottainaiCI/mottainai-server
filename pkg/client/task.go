@@ -35,7 +35,7 @@ import (
 )
 
 func (f *Fetcher) TaskLog(id string) ([]byte, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("stream_output"),
 		Options: map[string]interface{}{
 			":id":  id,
@@ -54,7 +54,7 @@ func (f *Fetcher) TaskLog(id string) ([]byte, error) {
 }
 
 func (f *Fetcher) TaskDelete(id string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -65,7 +65,7 @@ func (f *Fetcher) TaskDelete(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) SetTaskField(field, value string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("update_field"),
 		Options: map[string]interface{}{
 			"id":    f.docID,
@@ -79,7 +79,7 @@ func (f *Fetcher) SetTaskField(field, value string) (event.APIResponse, error) {
 
 func (f *Fetcher) SetTaskStatus(status string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("update"),
 		Options: map[string]interface{}{
 			"id":     f.docID,
@@ -102,7 +102,7 @@ func (f *Fetcher) FailTask(e string) {
 }
 
 func (f *Fetcher) StartTask(id string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("start"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -113,7 +113,7 @@ func (f *Fetcher) StartTask(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) StopTask(id string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("stop"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -124,7 +124,7 @@ func (f *Fetcher) StopTask(id string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) CreateTask(taskdata map[string]interface{}) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetTaskRoute("create"),
 		Options: taskdata,
 	}
@@ -134,7 +134,7 @@ func (f *Fetcher) CreateTask(taskdata map[string]interface{}) (event.APIResponse
 
 func (f *Fetcher) CloneTask(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("clone"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -148,7 +148,7 @@ func (f *Fetcher) SetupTask() (event.APIResponse, error) {
 
 	f.SetTaskStatus(setting.TASK_STATE_SETUP)
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("update_node"),
 		Options: map[string]interface{}{
 			"id":  f.docID,
@@ -178,7 +178,7 @@ func (f *Fetcher) SuccessTask() {
 
 func (f *Fetcher) GetTask() ([]byte, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("as_json"),
 		Options: map[string]interface{}{
 			":id": f.docID,
@@ -196,7 +196,7 @@ func (f *Fetcher) GetTask() ([]byte, error) {
 }
 
 func (f *Fetcher) TaskLogArtefact(id string) ([]byte, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("task_log"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -214,7 +214,7 @@ func (f *Fetcher) TaskLogArtefact(id string) ([]byte, error) {
 }
 
 func (f *Fetcher) TaskStream(id, pos string) ([]byte, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("stream_output"),
 		Options: map[string]interface{}{
 			":id":  id,
@@ -233,7 +233,7 @@ func (f *Fetcher) TaskStream(id, pos string) ([]byte, error) {
 }
 
 func (f *Fetcher) AllTasks() ([]byte, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("show_all"),
 	}
 
@@ -248,7 +248,7 @@ func (f *Fetcher) AllTasks() ([]byte, error) {
 }
 
 func (f *Fetcher) SetTaskResult(result string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("update"),
 		Options: map[string]interface{}{
 			"id":     f.docID,
@@ -260,7 +260,7 @@ func (f *Fetcher) SetTaskResult(result string) (event.APIResponse, error) {
 }
 
 func (f *Fetcher) SetTaskOutput(output string) (event.APIResponse, error) {
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("update"),
 		Options: map[string]interface{}{
 			"id":     f.docID,
@@ -288,7 +288,7 @@ func (f *Fetcher) AppendTaskOutput(output string) (event.APIResponse, error) {
 		fmt.Println(output)
 	}
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("append"),
 		Options: map[string]interface{}{
 			"id":     f.docID,

@@ -50,7 +50,7 @@ func newTaskArtefactsCommand(config *setting.Config) *cobra.Command {
 
 			fmt.Println("Artefacts for:", id)
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("artefact_list"),
 				Options: map[string]interface{}{
 					":id": id,

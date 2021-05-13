@@ -51,7 +51,7 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
 			var tlist []citasks.Task
-			req := schema.Request{
+			req := &schema.Request{
 				Route:  v1.Schema.GetTaskRoute("show_all"),
 				Target: &tlist,
 			}

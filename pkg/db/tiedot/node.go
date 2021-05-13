@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
@@ -65,7 +66,7 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
 
 	nodesfound, err := d.FindDoc(NodeColl, `[{"eq": "`+key+`", "in": ["key"]}]`)
 	if err != nil || len(nodesfound) != 1 {
-		return nodes.Node{}, nil
+		return nodes.Node{}, errors.New("Node not found")
 	}
 
 	for docid := range nodesfound {

@@ -60,7 +60,7 @@ func newTaskAttachCommand(config *setting.Config) *cobra.Command {
 				var t citasks.Task
 
 				var err error
-				req := schema.Request{
+				req := &schema.Request{
 					Route: v1.Schema.GetTaskRoute("as_json"),
 					Options: map[string]interface{}{
 						":id": id,

@@ -51,7 +51,7 @@ func newNodeShowCommand(config *setting.Config) *cobra.Command {
 			if len(id) == 0 {
 				log.Fatalln("You need to define a node id")
 			}
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetNodeRoute("show"),
 				Options: map[string]interface{}{
 					":id": id,

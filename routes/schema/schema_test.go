@@ -48,8 +48,6 @@ var _ = Describe("RouteGenerator", func() {
 		It("resolves correctly", func() {
 			Expect(Schema.GetTaskRoute("test").GetPath()).To(Equal("/foo/bar/"))
 			Expect(Schema.GetTaskRoute("test").GetType()).To(Equal("get"))
-			Expect(Schema.GetTaskRoute("test").RequireFormEncode()).To(Equal(false))
-			Expect(Schema.GetTaskRoute("test3").RequireFormEncode()).To(Equal(true))
 			Expect(func() { var _ string = Schema.GetTaskRoute("ff").GetPath() }).To(Panic())
 		})
 		It("successfully writes a GET route to macaron", func() {
@@ -83,7 +81,7 @@ var _ = Describe("RouteGenerator", func() {
 		It("successfully generates interpolated http requests", func() {
 			body := new(bytes.Buffer)
 			var req *http.Request
-			req, err := Schema.GetTaskRoute("test2").NewRequest("http://example.com", map[string]string{":baz": "test"}, body)
+			req, err := Schema.GetTaskRoute("test2").NewRequest("http://example.com", map[string]string{":baz": "test"}, "", body)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(req.Method).To(Equal("GET"))
 			Expect(req.URL.Path).To(Equal("/foo/bar/test"))

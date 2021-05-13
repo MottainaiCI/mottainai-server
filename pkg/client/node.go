@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
@@ -32,7 +34,7 @@ import (
 
 func (d *Fetcher) CreateNode() (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNodeRoute("create"),
 	}
 
@@ -41,7 +43,7 @@ func (d *Fetcher) CreateNode() (event.APIResponse, error) {
 
 func (d *Fetcher) RemoveNode(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetNodeRoute("delete"),
 		Options: map[string]interface{}{":id": id},
 	}
@@ -51,7 +53,7 @@ func (d *Fetcher) RemoveNode(id string) (event.APIResponse, error) {
 
 func (d *Fetcher) NodesTask(key string, target interface{}) error {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetNodeRoute("show_tasks"),
 		Options: map[string]interface{}{":key": key},
 		Target:  target,
@@ -66,18 +68,27 @@ func (d *Fetcher) NodesTask(key string, target interface{}) error {
 }
 
 func (f *Fetcher) RegisterNode(ID, hostname string, standalone bool, queues map[string]int) (event.APIResponse, error) {
+
 	fmt.Println("QUEUES ", queues)
 	fmt.Println("STANDALONE", standalone)
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNodeRoute("register"),
-		Options: map[string]interface{}{
-			"key":        f.Config.GetAgent().AgentKey,
-			"nodeid":     ID,
-			"hostname":   hostname,
-			"standalone": standalone,
-			"queues":     queues,
-		},
 	}
+
+	msg := map[string]interface{}{
+		"key":        f.Config.GetAgent().AgentKey,
+		"nodeid":     ID,
+		"hostname":   hostname,
+		"standalone": standalone,
+		"queues":     queues,
+	}
+
+	b, err := json.Marshal(msg)
+	if err != nil {
+		return event.APIResponse{}, err
+	}
+
+	req.Body = bytes.NewBuffer(b)
 
 	return f.HandleAPIResponse(req)
 }

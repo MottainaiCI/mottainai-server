@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) UserCreate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetUserRoute("create"),
 		Options: data,
 	}
@@ -37,7 +37,7 @@ func (f *Fetcher) UserCreate(data map[string]interface{}) (event.APIResponse, er
 
 func (f *Fetcher) UserRemove(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetUserRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -50,7 +50,7 @@ func (f *Fetcher) UserRemove(id string) (event.APIResponse, error) {
 func (f *Fetcher) UserUpdate(id string, data map[string]interface{}) (event.APIResponse, error) {
 	data[":id"] = id
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetUserRoute("edit"),
 		Options: data,
 	}
@@ -60,7 +60,7 @@ func (f *Fetcher) UserUpdate(id string, data map[string]interface{}) (event.APIR
 
 func (f *Fetcher) UserSet(id, t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetUserRoute("set_" + t),
 		Options: map[string]interface{}{
 			":id": id,
@@ -72,7 +72,7 @@ func (f *Fetcher) UserSet(id, t string) (event.APIResponse, error) {
 
 func (f *Fetcher) UserUnset(id, t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetUserRoute("unset_" + t),
 		Options: map[string]interface{}{
 			":id": id,
