@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodequeue
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -45,6 +46,8 @@ func newNodeQueueListCommand(config *setting.Config) *cobra.Command {
 			var node_table [][]string
 			var v *viper.Viper = config.Viper
 
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+
 			fetcher := client.NewTokenClient(
 				v.GetString("master"), v.GetString("apikey"), config,
 			)
@@ -66,37 +69,45 @@ func newNodeQueueListCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("error:", err)
 			}
 
-			for _, i := range n {
+			if jsonOutput {
+				data, _ := json.Marshal(n)
+				fmt.Println(string(data))
+			} else {
+				for _, i := range n {
 
-				nq := []string{}
-				for k, _ := range i.Queues {
-					nq = append(nq, k)
+					nq := []string{}
+					for k, _ := range i.Queues {
+						nq = append(nq, k)
+					}
+
+					node_table = append(node_table,
+						[]string{
+							i.ID,
+							i.AgentKey,
+							i.NodeId,
+							fmt.Sprintf("%d", len(nq)),
+							i.CreationDate,
+						},
+					)
 				}
 
-				node_table = append(node_table,
-					[]string{
-						i.ID,
-						i.AgentKey,
-						i.NodeId,
-						fmt.Sprintf("%d", len(nq)),
-						i.CreationDate,
-					},
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetBorders(
+					tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false},
 				)
-			}
+				table.SetCenterSeparator("|")
+				table.SetHeader([]string{"ID", "Agent Key", "NodeId", "# Queues", "Creation Date"})
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(
-				tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false},
-			)
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{"ID", "Agent Key", "NodeId", "# Queues", "Creation Date"})
-
-			for _, v := range node_table {
-				table.Append(v)
+				for _, v := range node_table {
+					table.Append(v)
+				}
+				table.Render()
 			}
-			table.Render()
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }

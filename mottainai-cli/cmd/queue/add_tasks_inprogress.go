@@ -24,68 +24,71 @@ import (
 	"log"
 	"os"
 
-	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
-
+	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
-	queues "github.com/MottainaiCI/mottainai-server/pkg/queues"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
-	tablewriter "github.com/olekukonko/tablewriter"
+
 	cobra "github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
 )
 
-func newQueueListCommand(config *setting.Config) *cobra.Command {
+func newQueueAddTaskInProgressCommand(config *setting.Config) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "list [OPTIONS]",
-		Short: "List queues",
+		Use:   "add-task-in-progress [OPTIONS]",
+		Short: "Add task in progress to a queue (dev only)",
 		Args:  cobra.OnlyValidArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			qid, _ := cmd.Flags().GetString("qid")
+			tid, _ := cmd.Flags().GetString("taskid")
+
+			if qid == "" {
+				fmt.Println("Missing queue id field")
+				os.Exit(1)
+			}
+			if tid == "" {
+				fmt.Println("Missing task id field")
+				os.Exit(1)
+			}
+
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var n []queues.Queue
-			var queues_table [][]string
 			var v *viper.Viper = config.Viper
 
 			fetcher := client.NewTokenClient(
 				v.GetString("master"), v.GetString("apikey"), config,
 			)
 
+			qid, _ := cmd.Flags().GetString("qid")
+			tid, _ := cmd.Flags().GetString("taskid")
+
 			req := &schema.Request{
-				Route:  v1.Schema.GetQueueRoute("show_all"),
-				Target: &n,
+				Route: v1.Schema.GetQueueRoute("add_task_in_progress"),
+				Options: map[string]interface{}{
+					":qid": qid,
+					":tid": tid,
+				},
 			}
-			err := fetcher.Handle(req)
+
+			resp, err := fetcher.HandleAPIResponse(req)
 			if err != nil {
+
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+					os.Exit(1)
+				}
+
 				log.Fatalln("error:", err)
 			}
-
-			fmt.Println("RES ", string(req.ResponseRaw))
-
-			for _, i := range n {
-				queues_table = append(queues_table,
-					[]string{
-						i.Qid, i.Name,
-						fmt.Sprintf("%d", len(i.Waiting)),
-						fmt.Sprintf("%d", len(i.InProgress)),
-						i.CreationDate, i.UpdateDate,
-					},
-				)
-			}
-
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{
-				"Queue Id", "Queue Name", "# Waiting Tasks",
-				"# In Progress Tasks", "Creation Date",
-				"Update Date",
-			})
-
-			for _, v := range queues_table {
-				table.Append(v)
-			}
-			table.Render()
+			tools.PrintResponse(resp)
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.String("qid", "", "Queue ID")
+	flags.StringP("taskid", "t", "", "Task ID")
 
 	return cmd
 }

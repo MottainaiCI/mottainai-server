@@ -24,68 +24,47 @@ import (
 	"log"
 	"os"
 
-	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
-
+	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
-	queues "github.com/MottainaiCI/mottainai-server/pkg/queues"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
-	tablewriter "github.com/olekukonko/tablewriter"
+
 	cobra "github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
 )
 
-func newQueueListCommand(config *setting.Config) *cobra.Command {
+func newQueueCreateCommand(config *setting.Config) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "list [OPTIONS]",
-		Short: "List queues",
+		Use:   "create [OPTIONS]",
+		Short: "Create queue (dev only)",
 		Args:  cobra.OnlyValidArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			queue, _ := cmd.Flags().GetString("queue")
+
+			if queue == "" {
+				fmt.Println("Missing queue field")
+				os.Exit(1)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var n []queues.Queue
-			var queues_table [][]string
 			var v *viper.Viper = config.Viper
 
 			fetcher := client.NewTokenClient(
 				v.GetString("master"), v.GetString("apikey"), config,
 			)
 
-			req := &schema.Request{
-				Route:  v1.Schema.GetQueueRoute("show_all"),
-				Target: &n,
-			}
-			err := fetcher.Handle(req)
+			queue, _ := cmd.Flags().GetString("queue")
+
+			resp, err := fetcher.QueueCreate(queue)
 			if err != nil {
 				log.Fatalln("error:", err)
 			}
 
-			fmt.Println("RES ", string(req.ResponseRaw))
-
-			for _, i := range n {
-				queues_table = append(queues_table,
-					[]string{
-						i.Qid, i.Name,
-						fmt.Sprintf("%d", len(i.Waiting)),
-						fmt.Sprintf("%d", len(i.InProgress)),
-						i.CreationDate, i.UpdateDate,
-					},
-				)
-			}
-
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{
-				"Queue Id", "Queue Name", "# Waiting Tasks",
-				"# In Progress Tasks", "Creation Date",
-				"Update Date",
-			})
-
-			for _, v := range queues_table {
-				table.Append(v)
-			}
-			table.Render()
+			tools.PrintResponse(resp)
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.String("queue", "", "Name of the queue to create")
 
 	return cmd
 }
