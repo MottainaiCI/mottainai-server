@@ -39,12 +39,24 @@ type Node struct {
 	Queues         map[string]int `json:"queues" form:"queues"`
 	Standalone     bool           `json:"standalone" form:"standalone"`
 	OverrideQueues bool           `json:"override_queues" form:"override_queues"`
+	Executors      []string       `json:"executors,omitempty" form:"executors"`
+}
+
+type NodeRegisterResponse struct {
+	NumNodes    int  `json:"num_nodes"`
+	Position    int  `json:"position"`
+	TaskInQueue bool `json:"tasks_in_queue"`
 }
 
 func NewFromJson(data []byte) Node {
 	var t Node
 	json.Unmarshal(data, &t)
 	return t
+}
+
+func (resp *NodeRegisterResponse) ToJson() string {
+	data, _ := json.Marshal(resp)
+	return string(data)
 }
 
 func NewNodeFromMap(t map[string]interface{}) Node {
@@ -59,6 +71,7 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		last_report string
 		queues      map[string]int
 		standalone  bool
+		executors   []string
 	)
 
 	if m, ok := t["queues"].(map[string]int); ok {
@@ -90,6 +103,10 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 	if str, ok := t["last_report"].(string); ok {
 		last_report = str
 	}
+	if arr, ok := t["executors"].([]string); ok {
+		executors = arr
+	}
+
 	var id string
 	if str, ok := t["id"].(string); ok {
 		id = str
@@ -105,6 +122,7 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		ID:         id,
 		Queues:     queues,
 		Standalone: standalone,
+		Executors:  executors,
 	}
 	return node
 }

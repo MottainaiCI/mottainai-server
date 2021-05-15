@@ -59,7 +59,7 @@ type HttpClient interface {
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) (event.APIResponse, error)
-	RegisterNode(string, string, bool, map[string]int) (event.APIResponse, error)
+	RegisterNode(string, string, bool, map[string]int, []string) (event.APIResponse, error)
 	Doc(string)
 	SetUploadChunkSize(int)
 	SetupTask() (event.APIResponse, error)
@@ -137,11 +137,14 @@ type HttpClient interface {
 	SecretEdit(data map[string]interface{}) (event.APIResponse, error)
 	SecretCreate(t string) (event.APIResponse, error)
 
-	// Queue methods
+	// NodeQueue methods
 	NodeQueueCreate(agentKey, nodeId string, queues map[string][]string) (event.APIResponse, error)
 	NodeQueueDelete(agentKey, nodeId string) (event.APIResponse, error)
 	NodeQueueAddTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
 	NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
+	// Queue methods
+	QueueCreate(name string) (event.APIResponse, error)
+	QueueDelete(qid string) (event.APIResponse, error)
 }
 
 type Fetcher struct {

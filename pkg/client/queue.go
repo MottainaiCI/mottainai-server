@@ -116,3 +116,25 @@ func (d *Fetcher) NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (even
 	req.Body = bytes.NewBuffer(b)
 	return d.HandleAPIResponse(req)
 }
+
+func (d *Fetcher) QueueCreate(name string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("create"),
+		Options: map[string]interface{}{
+			":name": name,
+		},
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
+func (d *Fetcher) QueueDelete(qid string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("delete"),
+		Options: map[string]interface{}{
+			":qid": qid,
+		},
+	}
+
+	return d.HandleAPIResponse(req)
+}

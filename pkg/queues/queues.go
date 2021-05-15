@@ -28,11 +28,13 @@ import (
 )
 
 type Queue struct {
-	ID         string   `json:"ID"`
-	Qid        string   `form:"qid" json:"qid"`
-	Name       string   `json:"queue" form:"queue"`
-	Waiting    []string `json:"tasks_waiting" form:"waiting_tasks"`
-	InProgress []string `json:"tasks_inprogress" form:"tasks_inprogress"`
+	ID           string   `json:"ID"`
+	Qid          string   `form:"qid" json:"qid"`
+	Name         string   `json:"name" form:"name"`
+	Waiting      []string `json:"tasks_waiting" form:"waiting_tasks"`
+	InProgress   []string `json:"tasks_inprogress" form:"tasks_inprogress"`
+	CreationDate string   `json:"creation_date" form:"creation_date"`
+	UpdateDate   string   `json:"update_date" form:"update_date"`
 }
 
 func NewFromJson(data []byte) Queue {
@@ -46,7 +48,12 @@ func NewQueueFromMap(q map[string]interface{}) Queue {
 	var (
 		qid  string
 		name string
+		cd   string
+		ud   string
 	)
+
+	progress := []string{}
+	waiting := []string{}
 
 	if str, ok := q["qid"].(string); ok {
 		qid = str
@@ -56,9 +63,37 @@ func NewQueueFromMap(q map[string]interface{}) Queue {
 		name = str
 	}
 
+	if str, ok := q["creation_date"].(string); ok {
+		cd = str
+	}
+
+	if str, ok := q["update_date"].(string); ok {
+		ud = str
+	}
+
+	if arr, ok := q["tasks_waiting"].([]interface{}); ok {
+		if len(arr) > 0 {
+			for _, t := range arr {
+				waiting = append(waiting, t.(string))
+			}
+		}
+	}
+
+	if arr, ok := q["tasks_inprogress"].([]interface{}); ok {
+		if len(arr) > 0 {
+			for _, t := range arr {
+				progress = append(progress, t.(string))
+			}
+		}
+	}
+
 	queue := Queue{
-		Qid:  qid,
-		Name: name,
+		Qid:          qid,
+		Name:         name,
+		Waiting:      waiting,
+		InProgress:   progress,
+		CreationDate: cd,
+		UpdateDate:   ud,
 	}
 	return queue
 }

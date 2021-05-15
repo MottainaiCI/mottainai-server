@@ -127,7 +127,7 @@ func (d *Database) GetNodeQueuesByKey(agentKey, nodeid string) (queues.NodeQueue
 		`{ "n":[{"eq": "`+nodeid+`", "in": ["nodeid"]}, {"eq": "`+agentKey+`", "in": ["akey"]}]}`)
 
 	if err != nil || len(queuesFound) != 1 {
-		return queues.NodeQueues{}, nil
+		return queues.NodeQueues{}, err
 	}
 
 	for docid := range queuesFound {

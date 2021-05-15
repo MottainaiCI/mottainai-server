@@ -23,10 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package mottainai
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
@@ -34,6 +33,7 @@ import (
 	//taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	logrus "github.com/sirupsen/logrus"
 
+	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/mudler/anagent"
 
@@ -59,13 +59,17 @@ const R = 3.81199961
 const STEPS = 215
 
 func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Config) {
+	queues := config.GetAgent().Queues
+	queues[m.PrivateQueue] = config.GetAgent().PrivateQueue
 	m.Client.RegisterNode(
 		ID, hostname,
 		config.GetAgent().StandAlone,
 		config.GetAgent().Queues,
+		config.GetAgent().SupportedExecutors,
 	)
 
 	var tid anagent.TimerID = "keepalive"
+	var registerResponse nodes.NodeRegisterResponse
 
 	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true,
 		func(a *anagent.Anagent, c *client.Fetcher) {
@@ -76,35 +80,40 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				ID, hostname,
 				config.GetAgent().StandAlone,
 				queues,
+				config.GetAgent().SupportedExecutors,
 			)
 
 			fmt.Println("RES ", string(res.Request.ResponseRaw))
 
 			if err == nil && res.Request.Response.StatusCode == 200 && res.Status == "ok" {
 				d := time.Duration(MINTIMER * time.Second)
-				population := strings.Split(res.Data, ",")
-				if len(population) == 2 {
-					nodes, e := strconv.Atoi(population[0])
-					if e != nil {
-						return
-					}
-					i, e := strconv.Atoi(population[1])
-					if e != nil {
-						return
-					}
-					// Readjust keepalive timer based on how many nodes are in the cluster.
-					pop := utils.FeatureScaling(float64(i), float64(nodes), 0, 1)
-					scale_factor := float64(nodes)
-					timer := utils.FeatureScaling(
-						utils.LogisticMapSteps(STEPS, R, pop)*scale_factor,
-						float64(nodes),
-						MINTIMER, MAXTIMER,
-					)
-					//fmt.Println("Timer set to", timer)
-					if timer < MAXTIMER && timer > MINTIMER {
-						d = time.Duration(timer) * time.Second
-					}
-					m.GetTimer(tid).After(d)
+
+				// Parse response
+				err = json.Unmarshal([]byte(res.Data), &registerResponse)
+				if err != nil {
+					fmt.Println("Error on parse server response " + err.Error())
+					return
+				}
+				// Readjust keepalive timer based on how many nodes are in the cluster.
+				pop := utils.FeatureScaling(
+					float64(registerResponse.Position),
+					float64(registerResponse.NumNodes), 0, 1,
+				)
+				scale_factor := float64(registerResponse.NumNodes)
+				timer := utils.FeatureScaling(
+					utils.LogisticMapSteps(STEPS, R, pop)*scale_factor,
+					float64(registerResponse.NumNodes),
+					MINTIMER, MAXTIMER,
+				)
+				//fmt.Println("Timer set to", timer)
+				if timer < MAXTIMER && timer > MINTIMER {
+					d = time.Duration(timer) * time.Second
+				}
+				m.GetTimer(tid).After(d)
+
+				if registerResponse.TaskInQueue {
+					// TODO:
+					fmt.Println("TASK TO ELABORATE")
 				}
 
 			} else {
@@ -147,6 +156,10 @@ func (m *MottainaiAgent) Run() error {
 		m.Map(fetcher)
 
 		ID := utils.GenID()
+		if config.GetAgent().ForceAgentId != "" {
+			ID = config.GetAgent().ForceAgentId
+		}
+
 		m.ID = ID
 		hostname := utils.Hostname()
 		//log.INFO.Println("Worker ID: " + ID)

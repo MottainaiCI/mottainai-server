@@ -23,7 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"errors"
 	"strconv"
+	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 
@@ -64,12 +66,32 @@ func (d *Database) GetQueue(docId string) (queues.Queue, error) {
 	return t, err
 }
 
+func (d *Database) GetQueueByQid(qid string) (queues.Queue, error) {
+	var res []queues.Queue
+
+	queuesFound, err := d.FindDoc(QueueColl, `[{"eq": "`+qid+`", "in": ["qid"]}]`)
+	if err != nil || len(queuesFound) != 1 {
+		return queues.Queue{}, err
+	}
+
+	for docid := range queuesFound {
+		q, err := d.GetQueue(docid)
+		q.ID = docid
+		if err != nil {
+			return queues.Queue{}, err
+		}
+		res = append(res, q)
+	}
+
+	return res[0], nil
+}
+
 func (d *Database) GetQueueByKey(name string) (queues.Queue, error) {
 	var res []queues.Queue
 
 	queuesFound, err := d.FindDoc(QueueColl, `[{"eq": "`+name+`", "in": ["name"]}]`)
 	if err != nil || len(queuesFound) != 1 {
-		return queues.Queue{}, nil
+		return queues.Queue{}, err
 	}
 
 	for docid := range queuesFound {
@@ -99,4 +121,151 @@ func (d *Database) AllQueues() []queues.Queue {
 		return true
 	})
 	return queue_list
+}
+
+func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.InProgress
+	ntasks := []string{}
+
+	present := false
+	for _, t := range tasks {
+		if t == taskid {
+			present = true
+			break
+		}
+		ntasks = append(ntasks, t)
+	}
+
+	if present {
+		return errors.New("task already present in queue")
+	}
+
+	ntasks = append(ntasks, taskid)
+
+	m := map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    q.Waiting,
+		"tasks_inprogress": ntasks,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	}
+
+	err = d.UpdateQueue(q.ID, m)
+
+	return err
+}
+
+func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.InProgress
+	ntasks := []string{}
+
+	for _, t := range tasks {
+		if t == taskid {
+			continue
+		}
+
+		ntasks = append(ntasks, t)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    q.Waiting,
+		"tasks_inprogress": ntasks,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	})
+
+	return err
+}
+
+func (d *Database) AddTaskInWaiting2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+	// TODO: add check that the task is not already in waiting
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.Waiting
+	ntasks := []string{}
+
+	present := false
+	for _, t := range tasks {
+		if t == taskid {
+			present = true
+			break
+		}
+		ntasks = append(ntasks, t)
+	}
+
+	if present {
+		return errors.New("task already present in queue")
+	}
+
+	ntasks = append(ntasks, taskid)
+
+	m := map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    ntasks,
+		"tasks_inprogress": q.InProgress,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	}
+
+	err = d.UpdateQueue(q.ID, m)
+
+	return err
+}
+
+func (d *Database) DelTaskInWaiting2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.Waiting
+	ntasks := []string{}
+
+	for _, t := range tasks {
+		if t == taskid {
+			continue
+		}
+
+		ntasks = append(ntasks, t)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    ntasks,
+		"tasks_inprogress": q.InProgress,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	})
+
+	return err
 }

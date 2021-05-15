@@ -235,7 +235,7 @@ type DatabaseDriver interface {
 	// TODO: See if it's correct expone this as method
 	GetAgent() *anagent.Anagent
 
-	// Queue
+	// Node Queues
 	CreateNodeQueues(t map[string]interface{}) (string, error)
 	DeleteNodeQueues(docId string) error
 	AddNodeQueuesTask(akey, nodeid, queue, taskid string) error
@@ -243,6 +243,17 @@ type DatabaseDriver interface {
 	GetNodeQueuesByKey(akey, nodeid string) (queues.NodeQueues, error)
 	GetNodeQueues(docId string) (queues.NodeQueues, error)
 	AllNodesQueues() []queues.NodeQueues
+
+	// Queue
+	AllQueues() []queues.Queue
+	CreateQueue(t map[string]interface{}) (string, error)
+	DeleteQueue(docId string) error
+	GetQueueByQid(qid string) (queues.Queue, error)
+	GetQueueByKey(name string) (queues.Queue, error)
+	AddTaskInProgress2Queue(qid, taskid string) error
+	DelTaskInProgress2Queue(qid, taskid string) error
+	AddTaskInWaiting2Queue(qid, taskid string) error
+	DelTaskInWaiting2Queue(qid, taskid string) error
 }
 
 // For future, now in PoC state will just support

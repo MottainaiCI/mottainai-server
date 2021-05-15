@@ -190,18 +190,34 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 	Queue: map[string]schema.Route{
 		"show_all": &schema.APIRoute{Path: "/api/queues", Type: "get"},
 		"create": &schema.APIRoute{
-			Path:        "/api/queues/add",
+			Path:        "/api/queues/add/:name",
 			Type:        "post",
 			ContentType: schema.ContentTypeJson,
 		},
 		"delete": &schema.APIRoute{
-			Path: "/api/queues/delete/:id",
+			Path: "/api/queues/:qid/delete",
 			Type: "delete",
 		},
 		"show": &schema.APIRoute{
-			Path:        "/api/queues/show/:id",
+			Path:        "/api/queues/:qid/show",
 			Type:        "get",
 			ContentType: schema.ContentTypeJson,
+		},
+		"add_task_in_progress": &schema.APIRoute{
+			Path: "/api/queues/:qid/task-in-progress/:tid",
+			Type: "post",
+		},
+		"del_task_in_progress": &schema.APIRoute{
+			Path: "/api/queues/:qid/task-in-progress/:tid",
+			Type: "delete",
+		},
+		"add_task": &schema.APIRoute{
+			Path: "/api/queues/:qid/task/:tid",
+			Type: "post",
+		},
+		"del_task": &schema.APIRoute{
+			Path: "/api/queues/:qid/task/:tid",
+			Type: "delete",
 		},
 	},
 	Task: map[string]schema.Route{

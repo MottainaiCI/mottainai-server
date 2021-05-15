@@ -24,15 +24,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodesapi
 
 import (
-	"fmt"
-
 	"errors"
-	"strconv"
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 )
 
 type NodeUpdate struct {
@@ -47,8 +46,6 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 	key := nodedata.Key
 	nodeid := nodedata.NodeID
 	hostname := nodedata.Hostname
-
-	fmt.Println("RECEIVED UPDATE ", nodedata)
 
 	if len(key) == 0 {
 		return errors.New("Invalid key")
@@ -84,9 +81,50 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	db.Driver.UpdateNode(nodefound.ID, doc)
 
-	ctx.APIEventData(strings.Join(
-		[]string{strconv.Itoa(len(n)),
-			strconv.Itoa(pos)}, ","),
-	)
+	// Chech if there are tasks in queue
+	task_in_queue := false
+	nq, err := db.Driver.GetNodeQueuesByKey(key, nodeid)
+	if err == nil && nq.ID == "" {
+		// POST: check if we need to create the node queue
+		q := make(map[string][]string, 0)
+
+		for k, _ := range doc["queues"].(map[string]int) {
+			q[k] = []string{}
+		}
+
+		_, err = db.Driver.CreateNodeQueues(map[string]interface{}{
+			"akey":          key,
+			"nodeid":        nodeid,
+			"queues":        q,
+			"creation_date": hb,
+		})
+
+		if err != nil {
+			return errors.New("Error on create node queue: " + err.Error())
+		}
+
+	} else {
+
+		if len(nq.Queues) > 0 {
+			for _, tt := range nq.Queues {
+				if len(tt) > 0 {
+					task_in_queue = true
+					break
+				}
+			}
+		}
+	}
+
+	resp := &nodes.NodeRegisterResponse{
+		NumNodes:    len(n),
+		Position:    pos,
+		TaskInQueue: task_in_queue,
+	}
+
+	ctx.APIEventReport(event.APIResponse{
+		Data:      resp.ToJson(),
+		Processed: "true",
+		Status:    "ok",
+	}, 200)
 	return nil
 }

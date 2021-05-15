@@ -24,8 +24,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package queuesapi
 
 import (
-	"fmt"
-
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -35,7 +33,6 @@ func Show(ctx *context.Context, db *database.Database) {
 
 	id := ctx.Params(":id")
 	queue, err := db.Driver.GetNodeQueues(id)
-	fmt.Println("QUEUE ", queue)
 	if err != nil {
 		ctx.NotFound()
 		return
@@ -46,6 +43,12 @@ func Show(ctx *context.Context, db *database.Database) {
 
 func ShowAll(ctx *context.Context, db *database.Database) {
 	nodes := db.Driver.AllNodesQueues()
+
+	ctx.JSON(200, nodes)
+}
+
+func ShowAllQueues(ctx *context.Context, db *database.Database) {
+	nodes := db.Driver.AllQueues()
 
 	ctx.JSON(200, nodes)
 }
