@@ -167,6 +167,9 @@ github.com/go-macaron/session
 github.com/go-macaron/session/redis
 # github.com/go-openapi/validate v0.19.5
 ## explicit
+# github.com/gofrs/uuid v4.0.0+incompatible
+## explicit
+github.com/gofrs/uuid
 # github.com/gogo/protobuf v1.3.2
 ## explicit
 github.com/gogo/protobuf/proto
