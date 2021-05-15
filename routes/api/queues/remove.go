@@ -25,7 +25,6 @@ package queuesapi
 
 import (
 	"errors"
-	"fmt"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -33,8 +32,6 @@ import (
 )
 
 func Remove(q NodeQueue, ctx *context.Context, db *database.Database) error {
-
-	fmt.Println("DATA", q)
 	doc, err := db.Driver.GetNodeQueuesByKey(q.AgentKey, q.NodeId)
 	if err != nil {
 		return err // Do not treat it as an error, we have no node with such id.
@@ -44,8 +41,74 @@ func Remove(q NodeQueue, ctx *context.Context, db *database.Database) error {
 		return errors.New("Node queue not found")
 	}
 
-	fmt.Println("DOC ", doc)
 	err = db.Driver.DeleteNodeQueues(doc.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func RemoveQueue(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	doc, err := db.Driver.GetQueueByQid(qid)
+	if err != nil {
+		return err // Do not treat it as an error, we have no node with such id.
+	}
+
+	if doc.ID == "" {
+		return errors.New("Queue not found")
+	}
+
+	err = db.Driver.DeleteQueue(doc.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func DelTaskInProgress(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	tid := ctx.Params(":tid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if tid == "" {
+		return errors.New("Invalid task id")
+	}
+
+	err := db.Driver.DelTaskInProgress2Queue(qid, tid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func DelTaskInWaiting(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	tid := ctx.Params(":tid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if tid == "" {
+		return errors.New("Invalid task id")
+	}
+
+	err := db.Driver.DelTaskInWaiting2Queue(qid, tid)
 	if err != nil {
 		return err
 	}

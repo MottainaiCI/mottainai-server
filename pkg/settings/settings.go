@@ -156,6 +156,7 @@ type AgentConfig struct {
 	Queues             map[string]int `mapstructure:"queues"`
 	UploadChunkSize    int            `mapstructure:"upload_chunk_size"`
 	SupportedExecutors []string       `mapstructure:"executor"`
+	ForceAgentId       string         `mapstructure:"force_agent_id"`
 
 	// List of command to execute before execute a task
 	PreTaskHookExec []string `mapstructure:"pre_task_hook_exec"`

@@ -58,9 +58,25 @@ func Setup(m *macaron.Macaron) {
 			v1.Schema.GetNodeQueueRoute("del_task").ToMacaron(
 				m, reqSignIn, reqManager, bind(NodeQueue{}), DelTask,
 			)
-			//v1.Schema.GetNodeQueueRoute("show").ToMacaron(m, reqSignIn, reqManager, Show)
 			v1.Schema.GetNodeQueueRoute("delete").ToMacaron(
 				m, reqSignIn, reqManager, bind(NodeQueue{}), Remove,
+			)
+
+			// Queue actions
+			v1.Schema.GetQueueRoute("show_all").ToMacaron(m, reqSignIn, ShowAllQueues)
+			v1.Schema.GetQueueRoute("create").ToMacaron(m, reqSignIn, reqManager, APIQueueCreate)
+			v1.Schema.GetQueueRoute("delete").ToMacaron(m, reqSignIn, reqManager, RemoveQueue)
+			v1.Schema.GetQueueRoute("add_task_in_progress").ToMacaron(
+				m, reqSignIn, reqManager, AddTaskInProgress,
+			)
+			v1.Schema.GetQueueRoute("del_task_in_progress").ToMacaron(
+				m, reqSignIn, reqManager, DelTaskInProgress,
+			)
+			v1.Schema.GetQueueRoute("add_task").ToMacaron(
+				m, reqSignIn, reqManager, AddTaskInWaiting,
+			)
+			v1.Schema.GetQueueRoute("del_task").ToMacaron(
+				m, reqSignIn, reqManager, DelTaskInWaiting,
 			)
 		})
 

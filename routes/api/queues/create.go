@@ -24,11 +24,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package queuesapi
 
 import (
+	"errors"
 	"time"
 
+	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
-	"github.com/MottainaiCI/mottainai-server/pkg/context"
+	"github.com/gofrs/uuid"
 )
 
 type NodeQueue struct {
@@ -47,6 +49,30 @@ func APICreate(queue NodeQueue, ctx *context.Context, db *database.Database) err
 	return nil
 }
 
+func APIQueueCreate(ctx *context.Context, db *database.Database) error {
+	qid, err := uuid.NewV4()
+	name := ctx.Params(":name")
+	ct := time.Now().UTC().Format("20060102150405")
+
+	if name == "" {
+		return errors.New("Invalid queue name")
+	}
+
+	// TODO: check if the queue is already present
+	_, err = db.Driver.CreateQueue(map[string]interface{}{
+		"qid":              qid.String(),
+		"name":             name,
+		"tasks_waiting":    []string{},
+		"tasks_inprogress": []string{},
+		"creation_date":    ct,
+		"update_date":      ct,
+	})
+
+	ctx.APICreationSuccess(qid.String(), "queue")
+
+	return err
+}
+
 func Create(queue NodeQueue, ctx *context.Context, db *database.Database) (string, error) {
 	// TODO: Add fields check
 
@@ -60,4 +86,46 @@ func Create(queue NodeQueue, ctx *context.Context, db *database.Database) (strin
 	})
 
 	return docID, err
+}
+
+func AddTaskInProgress(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	tid := ctx.Params(":tid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if tid == "" {
+		return errors.New("Invalid task id")
+	}
+
+	err := db.Driver.AddTaskInProgress2Queue(qid, tid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func AddTaskInWaiting(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	tid := ctx.Params(":tid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if tid == "" {
+		return errors.New("Invalid task id")
+	}
+
+	err := db.Driver.AddTaskInWaiting2Queue(qid, tid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
 }

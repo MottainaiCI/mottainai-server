@@ -1,6 +1,8 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
+
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -25,7 +27,6 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
@@ -67,10 +68,10 @@ func (d *Fetcher) NodesTask(key string, target interface{}) error {
 	return nil
 }
 
-func (f *Fetcher) RegisterNode(ID, hostname string, standalone bool, queues map[string]int) (event.APIResponse, error) {
+func (f *Fetcher) RegisterNode(
+	ID, hostname string, standalone bool, queues map[string]int, executors []string,
+) (event.APIResponse, error) {
 
-	fmt.Println("QUEUES ", queues)
-	fmt.Println("STANDALONE", standalone)
 	req := &schema.Request{
 		Route: v1.Schema.GetNodeRoute("register"),
 	}
@@ -81,6 +82,10 @@ func (f *Fetcher) RegisterNode(ID, hostname string, standalone bool, queues map[
 		"hostname":   hostname,
 		"standalone": standalone,
 		"queues":     queues,
+	}
+
+	if len(executors) > 0 {
+		msg["executors"] = executors
 	}
 
 	b, err := json.Marshal(msg)
