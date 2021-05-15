@@ -53,6 +53,13 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
 
+build-cli:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+endif
+
 build:
 ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build
