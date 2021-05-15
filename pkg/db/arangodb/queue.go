@@ -1,0 +1,227 @@
+/*
+
+Copyright (C) 2021  Daniele Rondina <geaaru@sabayonlinux.org>
+Credits goes also to Gogs authors, some code portions and re-implemented design
+are also coming from the Gogs project, which is using the go-macaron framework
+and was really source of ispiration. Kudos to them!
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+package arangodb
+
+import (
+	"errors"
+	"time"
+
+	"github.com/MottainaiCI/mottainai-server/pkg/queues"
+
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+)
+
+var QueueColl = "Queues"
+
+func (d *Database) IndexQueue() {
+	d.AddIndex(QueueColl, []string{"qid"})
+	d.AddIndex(QueueColl, []string{"name"})
+}
+
+func (d *Database) CreateQueue(t map[string]interface{}) (string, error) {
+	return d.InsertDoc(QueueColl, t)
+}
+
+func (d *Database) InsertQueue(q *queues.Queue) (string, error) {
+	return d.CreateQueue(q.ToMap())
+}
+
+func (d *Database) DeleteQueue(docId string) error {
+	return d.DeleteDoc(QueueColl, docId)
+}
+
+func (d *Database) UpdateQueue(docId string, t map[string]interface{}) error {
+	return d.UpdateDoc(QueueColl, docId, t)
+}
+
+func (d *Database) GetQueue(docId string) (queues.Queue, error) {
+	doc, err := d.GetDoc(QueueColl, docId)
+	if err != nil {
+		return queues.Queue{}, err
+	}
+
+	t := queues.NewQueueFromMap(doc)
+	t.ID = docId
+	return t, err
+}
+
+func (d *Database) GetQueueByQid(name string) (queues.Queue, error) {
+	return queues.Queue{}, errors.New("Not implemented")
+}
+
+func (d *Database) GetQueueByKey(name string) (queues.Queue, error) {
+	return queues.Queue{}, errors.New("Not implemented")
+}
+
+func (d *Database) ListQueues() []dbcommon.DocItem {
+	return d.ListDocs(QueueColl)
+}
+
+func (d *Database) AllQueues() []queues.Queue {
+	// TODO
+	return []queues.Queue{}
+}
+
+func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.InProgress
+	ntasks := []string{}
+
+	present := false
+	for _, t := range tasks {
+		if t == taskid {
+			present = true
+			break
+		}
+		ntasks = append(ntasks, t)
+	}
+
+	if present {
+		return errors.New("task already present in queue")
+	}
+
+	ntasks = append(ntasks, taskid)
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    q.Waiting,
+		"tasks_inprogress": ntasks,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	})
+
+	return err
+}
+
+func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.InProgress
+	ntasks := []string{}
+
+	for _, t := range tasks {
+		if t == taskid {
+			continue
+		}
+
+		ntasks = append(ntasks, t)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    q.Waiting,
+		"tasks_inprogress": ntasks,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	})
+
+	return err
+}
+
+func (d *Database) AddTaskInWaiting2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.Waiting
+	ntasks := []string{}
+
+	present := false
+	for _, t := range tasks {
+		if t == taskid {
+			present = true
+			break
+		}
+		ntasks = append(ntasks, t)
+	}
+
+	if present {
+		return errors.New("task already present in queue")
+	}
+
+	ntasks = append(ntasks, taskid)
+
+	m := map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    ntasks,
+		"tasks_inprogress": q.InProgress,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	}
+
+	err = d.UpdateQueue(q.ID, m)
+
+	return err
+}
+
+func (d *Database) DelTaskInWaiting2Queue(qid, taskid string) error {
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	tasks := q.Waiting
+	ntasks := []string{}
+
+	for _, t := range tasks {
+		if t == taskid {
+			continue
+		}
+
+		ntasks = append(ntasks, t)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"qid":              q.Qid,
+		"name":             q.Name,
+		"tasks_waiting":    ntasks,
+		"tasks_inprogress": q.InProgress,
+		"creation_date":    q.CreationDate,
+		"update_date":      ud,
+	})
+
+	return err
+}
