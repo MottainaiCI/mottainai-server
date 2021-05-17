@@ -162,7 +162,10 @@ agent:
   concurrency: 1
   # Secret Key of the Agent
   #secret_key: "xxxxxxxx"
-  #executor: 'docker|lxd|qemu'
+  #executor:
+  #  - lxd
+  #  - virtualbox
+  #  - docker
 
   # Define Size of private queue
   # private_queue: 1
