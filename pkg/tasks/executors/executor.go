@@ -514,7 +514,8 @@ func (t *TaskExecutor) Close() error {
 
 	fetcher := t.MottainaiClient
 	if t.Context.Qid != "" {
-		res, err := fetcher.QueueDelTaskInProgress(t.Context.Qid, t.Context.DocID)
+		_, err := fetcher.QueueDelTaskInProgress(t.Context.Qid, t.Context.DocID)
+		return err
 	}
 
 	return nil
