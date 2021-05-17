@@ -168,8 +168,8 @@ func NewTaskFromJson(data []byte) Task {
 	return t
 }
 
-func FetchTask(fetcher client.HttpClient) (Task, error) {
-	task_data, err := fetcher.GetTask()
+func FetchTask(fetcher client.HttpClient, tid string) (Task, error) {
+	task_data, err := fetcher.GetTask(tid)
 
 	if err != nil {
 		return Task{}, err
@@ -498,9 +498,9 @@ func (t *Task) Reset() {
 	t.Result = setting.TASK_RESULT_UNKNOWN
 	t.Status = ""
 	t.ExitStatus = ""
-	t.CreatedTime = time.Now().Format("20060102150405")
+	t.CreatedTime = time.Now().UTC().Format("20060102150405")
 	t.EndTime = ""
-	t.UpdatedTime = ""
+	t.UpdatedTime = time.Now().UTC().Format("20060102150405")
 	t.Owner = ""
 	t.Node = ""
 	t.StartTime = ""

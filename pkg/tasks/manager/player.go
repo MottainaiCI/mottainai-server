@@ -24,6 +24,7 @@ package agenttasks
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	executors "github.com/MottainaiCI/mottainai-server/pkg/tasks/executors"
@@ -31,10 +32,16 @@ import (
 
 const SETUP_ERROR_MESSAGE = "Setup phase error: "
 
-type Player struct{ TaskID string }
+type Player struct {
+	TaskID       string
+	NodeUniqueId string
+}
 
-func NewPlayer(taskid string) *Player {
-	return &Player{TaskID: taskid}
+func NewPlayer(taskid, nid string) *Player {
+	return &Player{
+		TaskID:       taskid,
+		NodeUniqueId: nid,
+	}
 }
 
 func (p *Player) EarlyFail(e executors.Executor, TaskID, reason string) {
@@ -65,6 +72,7 @@ func (p *Player) Start(e executors.Executor) (int, error) {
 		//if err.Error() == ABORT_EXECUTION_ERROR {
 		//		return 0, nil
 		//	}
+		fmt.Println("Task in error")
 		errmsg := "Play phase error (Exit with: " + strconv.Itoa(res) + ") : " + err.Error()
 		e.Fail(errmsg)
 		return res, errors.New(errmsg)

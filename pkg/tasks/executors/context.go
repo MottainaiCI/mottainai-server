@@ -34,6 +34,7 @@ type ExecutorContext struct {
 	DocID                                                          string
 	TargetArtefactDir, TargetStorageDir                            string
 	StandardOutput                                                 bool
+	Qid                                                            string
 }
 
 func (ctx *ExecutorContext) ContainerPath(p ...string) string {

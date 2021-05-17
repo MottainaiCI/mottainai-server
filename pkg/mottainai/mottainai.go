@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
@@ -46,6 +47,7 @@ import (
 	cron "github.com/robfig/cron"
 
 	"github.com/go-macaron/captcha"
+	"github.com/gofrs/uuid"
 	macaron "gopkg.in/macaron.v1"
 
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -444,46 +446,63 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			return
 		}
 
-		task.ClearBuildLog(config.GetStorage().ArtefactPath)
-		/*
-			q := config.GetBroker().BrokerDefaultQueue
-			if len(task.Queue) > 0 {
-				q = task.Queue
-			}
+		if !th.Exists(task.Type) {
+			err = errors.New("Could not send task: Invalid task type")
+			m.FailTask(docID, err.Error())
+			return
+		}
 
-			l.WithFields(logrus.Fields{
-				"component": "core",
-				"task_id":   docID,
-				"queue":     q,
-			}).Info("Sending task")
-			broker := server.Get(q, config)
+		// Check if exists the queue
+		q, err := d.Driver.GetQueueByKey(task.Queue)
+		if err != nil {
+			err = errors.New("Failed on retrieve queue data")
+			return
 
-			d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+		} else if q.Qid == "" {
+			// POST: create the queue
+			ct := time.Now().UTC().Format("20060102150405")
+			qid, _ := uuid.NewV4()
 
-			l.WithFields(logrus.Fields{
-				"component": "core",
-				"task_id":   docID,
-				"type":      task.Type,
-			}).Debug("Task")
+			_, err = d.Driver.CreateQueue(map[string]interface{}{
+				"qid":              qid.String(),
+				"name":             task.Queue,
+				"tasks_waiting":    []string{docID},
+				"tasks_inprogress": []string{},
+				"creation_date":    ct,
+				"update_date":      ct,
+			})
 
-			if !th.Exists(task.Type) {
-				err = errors.New("Could not send task: Invalid task type")
-				m.FailTask(docID, err.Error())
-				return
-			}
-
-			_, err = broker.SendTask(&BrokerSendOptions{Retry: task.Trials(), Delayed: task.Delayed, Type: task.Type, TaskID: docID})
 			if err != nil {
-				m.FailTask(docID, "Backend error, could not send task to broker: "+err.Error())
+				err = errors.New("Error on create the task queue: " + err.Error())
 				return
 			}
-			result = true
+		} else {
+			// POST: add task to the queue
+			err = d.Driver.AddTaskInWaiting2Queue(q.Qid, docID)
+			if err != nil {
+				err = errors.New("Error on add task in queue: " + err.Error())
+				return
+			}
+		}
 
-			l.WithFields(logrus.Fields{
-				"component": "core",
-				"task_id":   docID,
-			}).Info("Task sent")
-		*/
+		task.ClearBuildLog(config.GetStorage().ArtefactPath)
+
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"task_id":   docID,
+			"queue":     task.Queue,
+		}).Info("Sending task")
+
+		d.Driver.UpdateTask(docID, map[string]interface{}{"status": "waiting", "result": "none"})
+
+		l.WithFields(logrus.Fields{
+			"component": "core",
+			"task_id":   docID,
+			"type":      task.Type,
+		}).Debug("Task")
+
+		//
+
 	})
 
 	return result, err

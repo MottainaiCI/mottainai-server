@@ -25,7 +25,6 @@ package nodesapi
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -59,7 +58,7 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 		return nil
 	}
 
-	hb := time.Now().Format("20060102150405")
+	hb := time.Now().UTC().Format("20060102150405")
 	doc := map[string]interface{}{
 		"nodeid":      nodeid,
 		"hostname":    hostname,
@@ -103,6 +102,8 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 			return errors.New("Error on create node queue: " + err.Error())
 		}
 
+	} else if err != nil {
+		return err
 	} else {
 
 		if len(nq.Queues) > 0 {
@@ -116,9 +117,10 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 	}
 
 	resp := &nodes.NodeRegisterResponse{
-		NumNodes:    len(n),
-		Position:    pos,
-		TaskInQueue: task_in_queue,
+		NumNodes:     len(n),
+		Position:     pos,
+		TaskInQueue:  task_in_queue,
+		NodeUniqueId: nq.ID,
 	}
 
 	ctx.APIEventReport(event.APIResponse{

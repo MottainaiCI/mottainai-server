@@ -1,5 +1,3 @@
-// +build lxd
-
 /*
 
 Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
@@ -203,7 +201,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	var cachedImage bool = false
 	var err error
 
-	task_info, err := tasks.FetchTask(l.MottainaiClient)
+	task_info, err := tasks.FetchTask(l.MottainaiClient, docId)
 	if err != nil {
 		return 1, err
 	}
@@ -283,7 +281,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
-		task_info, err = tasks.FetchTask(l.MottainaiClient)
+		task_info, err = tasks.FetchTask(l.MottainaiClient, l.Context.DocID)
 		if err != nil {
 			l.Report(err.Error())
 			return 0, nil

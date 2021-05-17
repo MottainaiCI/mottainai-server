@@ -132,8 +132,8 @@ func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 		c.Doc(id)
 		th := taskmanager.DefaultTaskHandler(config)
-		task_info := th.FetchTask(c)
-		if th.Err != nil {
+		task_info, err := th.FetchTask(c, id)
+		if err != nil {
 			//log.INFO.Println("Error fetching task: " + th.Err.Error())
 			return
 		}

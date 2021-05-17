@@ -24,6 +24,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package queuesapi
 
 import (
+	"errors"
+
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -42,13 +44,52 @@ func Show(ctx *context.Context, db *database.Database) {
 }
 
 func ShowAll(ctx *context.Context, db *database.Database) {
-	nodes := db.Driver.AllNodesQueues()
+	queues := db.Driver.AllNodesQueues()
 
-	ctx.JSON(200, nodes)
+	ctx.JSON(200, queues)
 }
 
 func ShowAllQueues(ctx *context.Context, db *database.Database) {
-	nodes := db.Driver.AllQueues()
+	queues := db.Driver.AllQueues()
 
-	ctx.JSON(200, nodes)
+	ctx.JSON(200, queues)
+}
+
+func GetQid(ctx *context.Context, db *database.Database) error {
+	q := ctx.Params(":name")
+
+	if q == "" {
+		return errors.New("Invalid queue name")
+	}
+
+	queue, err := db.Driver.GetQueueByKey(q)
+	if err != nil {
+		return err
+	}
+
+	ctx.JSON(200, queue.Qid)
+
+	return nil
+}
+
+func ShowNode(queue NodeQueue, ctx *context.Context, db *database.Database) error {
+	if queue.AgentKey == "" {
+		return errors.New("Invalid agent key")
+	}
+
+	if queue.NodeId == "" {
+		return errors.New("Invalid node id")
+	}
+
+	nq, err := db.Driver.GetNodeQueuesByKey(queue.AgentKey, queue.NodeId)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+	ctx.JSON(200, nq)
+
+	return nil
 }

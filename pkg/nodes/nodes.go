@@ -43,9 +43,10 @@ type Node struct {
 }
 
 type NodeRegisterResponse struct {
-	NumNodes    int  `json:"num_nodes"`
-	Position    int  `json:"position"`
-	TaskInQueue bool `json:"tasks_in_queue"`
+	NumNodes     int    `json:"num_nodes"`
+	Position     int    `json:"position"`
+	TaskInQueue  bool   `json:"tasks_in_queue"`
+	NodeUniqueId string `json:"node_uid"`
 }
 
 func NewFromJson(data []byte) Node {

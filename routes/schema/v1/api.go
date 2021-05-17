@@ -186,6 +186,11 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Type:        "get",
 			ContentType: schema.ContentTypeJson,
 		},
+		"show_byagent": &schema.APIRoute{
+			Path:        "/api/nodequeues/shownode/:nodeid",
+			Type:        "get",
+			ContentType: schema.ContentTypeJson,
+		},
 	},
 	Queue: map[string]schema.Route{
 		"show_all": &schema.APIRoute{Path: "/api/queues", Type: "get"},
@@ -218,6 +223,11 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"del_task": &schema.APIRoute{
 			Path: "/api/queues/:qid/task/:tid",
 			Type: "delete",
+		},
+		"get_qid": &schema.APIRoute{
+			Path:        "/api/queues/:name",
+			Type:        "get",
+			ContentType: schema.ContentTypeJson,
 		},
 	},
 	Task: map[string]schema.Route{

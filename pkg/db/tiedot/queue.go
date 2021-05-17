@@ -148,12 +148,22 @@ func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
 		return errors.New("task already present in queue")
 	}
 
+	// Check if task is in waiting. If yes i will drop it.
+	tasks = q.Waiting
+	wtasks := []string{}
+	for _, t := range tasks {
+		if t == taskid {
+			continue
+		}
+		wtasks = append(wtasks, t)
+	}
+
 	ntasks = append(ntasks, taskid)
 
 	m := map[string]interface{}{
 		"qid":              q.Qid,
 		"name":             q.Name,
-		"tasks_waiting":    q.Waiting,
+		"tasks_waiting":    wtasks,
 		"tasks_inprogress": ntasks,
 		"creation_date":    q.CreationDate,
 		"update_date":      ud,
@@ -165,6 +175,7 @@ func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
 }
 
 func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
+
 	ud := time.Now().UTC().Format("20060102150405")
 	// TODO: add a semaphore
 
