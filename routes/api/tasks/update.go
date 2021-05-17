@@ -162,7 +162,7 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) e
 	if len(f.Result) > 0 {
 		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			"result":   f.Result,
-			"end_time": time.Now().Format("20060102150405"),
+			"end_time": time.Now().UTC().Format("20060102150405"),
 		})
 	}
 
