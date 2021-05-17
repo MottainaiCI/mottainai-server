@@ -1,5 +1,3 @@
-// +build !lxd
-
 /*
 
 Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
@@ -29,7 +27,6 @@ import (
 )
 
 func SupportedExecutors(config *setting.Config) *TaskHandler {
-
 	se := map[string]interface{}{}
 
 	for _, ex := range config.GetAgent().SupportedExecutors {
@@ -40,6 +37,8 @@ func SupportedExecutors(config *setting.Config) *TaskHandler {
 			se["libvirt_vagrant"] = LibvirtPlayer(config)
 		case "virtualbox":
 			se["virtualbox_vagrant"] = VirtualBoxPlayer(config)
+		case "lxd":
+			se["lxd"] = LxdPlayer(config)
 			/*
 				case "kubernetes":
 					se["kubernetes"] = KubernetesPlayer(config)
@@ -47,8 +46,6 @@ func SupportedExecutors(config *setting.Config) *TaskHandler {
 		}
 
 	}
-	se["error"] = HandleErr(config)
-	se["success"] = NoOP(config)
 
 	return &TaskHandler{Tasks: se, Config: config}
 }
@@ -69,8 +66,7 @@ func GenDefaultTaskHandler(config *setting.Config) *TaskHandler {
 		"virtualbox_execute": VirtualBoxPlayer(config),
 		"virtualbox_vagrant": VirtualBoxPlayer(config),
 
-		"error":   HandleErr(config),
-		"success": NoOP(config),
+		"lxd": LxdPlayer(config),
 	},
 		Config: config,
 	}

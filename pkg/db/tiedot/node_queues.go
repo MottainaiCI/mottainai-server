@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tiedot
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
@@ -93,6 +94,10 @@ func (d *Database) DelNodeQueuesTask(agentKey, nodeid, queue, taskid string) err
 	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
 	if err != nil {
 		return err
+	}
+
+	if nq.ID == "" {
+		return errors.New("Node queue not found")
 	}
 
 	if _, ok := nq.Queues[queue]; ok {

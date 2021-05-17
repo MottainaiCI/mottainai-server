@@ -51,16 +51,3 @@ func AddTask(queue NodeQueue, ctx *context.Context, db *database.Database) error
 	ctx.APIActionSuccess()
 	return nil
 }
-
-func DelTask(queue NodeQueue, ctx *context.Context, db *database.Database) error {
-	q := ctx.Params(":queue")
-	tid := ctx.Params(":tid")
-
-	err := db.Driver.DelNodeQueuesTask(queue.AgentKey, queue.NodeId, q, tid)
-	if err != nil {
-		return err
-	}
-
-	ctx.APIActionSuccess()
-	return nil
-}

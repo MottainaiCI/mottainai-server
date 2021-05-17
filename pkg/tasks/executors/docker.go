@@ -151,7 +151,7 @@ func (d *DockerExecutor) AttachContainerReport(container *docker.Container) {
 }
 
 func (d *DockerExecutor) Play(docID string) (int, error) {
-	task_info, err := tasks.FetchTask(d.MottainaiClient)
+	task_info, err := tasks.FetchTask(d.MottainaiClient, docID)
 	if err != nil {
 		return 1, err
 	}
@@ -227,12 +227,12 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 }
 
 func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int, error) {
-	starttime := time.Now()
+	starttime := time.Now().UTC()
 
 	for {
 		time.Sleep(1 * time.Second)
-		now := time.Now()
-		task_info, err := tasks.FetchTask(d.MottainaiClient)
+		now := time.Now().UTC()
+		task_info, err := tasks.FetchTask(d.MottainaiClient, d.Context.DocID)
 		if err != nil {
 			//fetcher.SetTaskResult("error")
 			//fetcher.SetTaskStatus("done")

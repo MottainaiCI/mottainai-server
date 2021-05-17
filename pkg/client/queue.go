@@ -28,6 +28,7 @@ import (
 	"encoding/json"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	queues "github.com/MottainaiCI/mottainai-server/pkg/queues"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 )
@@ -114,6 +115,7 @@ func (d *Fetcher) NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (even
 	}
 
 	req.Body = bytes.NewBuffer(b)
+
 	return d.HandleAPIResponse(req)
 }
 
@@ -137,4 +139,57 @@ func (d *Fetcher) QueueDelete(qid string) (event.APIResponse, error) {
 	}
 
 	return d.HandleAPIResponse(req)
+}
+
+func (d *Fetcher) QueueGetQid(name string) (string, error) {
+	var qid string
+
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("get_qid"),
+		Options: map[string]interface{}{
+			":name": name,
+		},
+		Target: &qid,
+	}
+
+	err := d.Handle(req)
+	return qid, err
+}
+
+func (d *Fetcher) QueueAddTaskInProgress(qid, taskid string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("add_task_in_progress"),
+		Options: map[string]interface{}{
+			":qid": qid,
+			":tid": taskid,
+		},
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
+func (d *Fetcher) QueueDelTaskInProgress(qid, taskid string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("del_task_in_progress"),
+		Options: map[string]interface{}{
+			":qid": qid,
+			":tid": taskid,
+		},
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
+func (d *Fetcher) NodeQueueGetTasks(id string) (queues.NodeQueues, error) {
+	var n queues.NodeQueues
+	req := &schema.Request{
+		Route: v1.Schema.GetNodeQueueRoute("show"),
+		Options: map[string]interface{}{
+			":id": id,
+		},
+		Target: &n,
+	}
+	err := d.Handle(req)
+
+	return n, err
 }

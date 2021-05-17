@@ -201,7 +201,7 @@ func (c *Context) SubURLRedirect(location string, status ...int) {
 }
 
 func (c *Context) ServeContent(name string, r io.ReadSeeker, params ...interface{}) {
-	modtime := time.Now()
+	modtime := time.Now().UTC()
 	for _, p := range params {
 		switch v := p.(type) {
 		case time.Time:
@@ -233,7 +233,7 @@ func Contexter() macaron.Handler {
 			Link:    ctx.Req.URL.Path,
 		}
 		c.Data["Link"] = c.Link
-		c.Data["PageStartTime"] = time.Now()
+		c.Data["PageStartTime"] = time.Now().UTC()
 
 		if len(config.GetWeb().AccessControlAllowOrigin) > 0 {
 			// Set CORS headers for browser-based git clients

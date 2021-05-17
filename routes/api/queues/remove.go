@@ -116,3 +116,32 @@ func DelTaskInWaiting(ctx *context.Context, db *database.Database) error {
 	ctx.APIActionSuccess()
 	return nil
 }
+
+func DelTask(queue NodeQueue, ctx *context.Context, db *database.Database) error {
+	q := ctx.Params(":queue")
+	tid := ctx.Params(":tid")
+
+	if q == "" {
+		return errors.New("Invalid queue")
+	}
+
+	if tid == "" {
+		return errors.New("Invalid task id")
+	}
+
+	if queue.AgentKey == "" {
+		return errors.New("Invalid agent key")
+	}
+
+	if queue.NodeId == "" {
+		return errors.New("Invalid node id")
+	}
+
+	err := db.Driver.DelNodeQueuesTask(queue.AgentKey, queue.NodeId, q, tid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}

@@ -30,7 +30,7 @@ import (
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
-	//taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
+	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	logrus "github.com/sirupsen/logrus"
 
 	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
@@ -46,6 +46,7 @@ type MottainaiAgent struct {
 	Client client.HttpClient
 
 	ID           string
+	Hostname     string
 	PrivateQueue string
 }
 
@@ -72,7 +73,7 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 	var registerResponse nodes.NodeRegisterResponse
 
 	m.Timer(tid, time.Now(), time.Duration(MINTIMER*time.Second), true,
-		func(a *anagent.Anagent, c *client.Fetcher) {
+		func(a *anagent.Anagent, c *client.Fetcher, tm *taskmanager.TaskManager) {
 			queues := config.GetAgent().Queues
 			queues[m.PrivateQueue] = config.GetAgent().PrivateQueue
 
@@ -112,8 +113,19 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				m.GetTimer(tid).After(d)
 
 				if registerResponse.TaskInQueue {
-					// TODO:
-					fmt.Println("TASK TO ELABORATE")
+					tm.NodeUniqueId = registerResponse.NodeUniqueId
+					tm.NodeId = ID
+					err := tm.GetTasks()
+					if err != nil {
+						fmt.Println("Unexpected error on process tasks: " + err.Error())
+					}
+				} else {
+					// Check for expired tasks
+					emptyMap := make(map[string][]string, 0)
+					err := tm.AnalyzeQueues(emptyMap)
+					if err != nil {
+						fmt.Println("Unexpected error on process tasks: " + err.Error())
+					}
 				}
 
 			} else {
@@ -145,10 +157,8 @@ func (m *MottainaiAgent) Run() error {
 		}).Info("Starting")
 		//log.Set(logger)
 		m.Map(logger)
-		/*
-			th := taskmanager.DefaultTaskHandler(config)
-			m.Map(th)
-		*/
+		tm := taskmanager.NewTaskManager(config)
+		m.Map(tm)
 		fetcher := client.NewTokenClient(
 			config.GetWeb().AppURL,
 			config.GetAgent().ApiKey, config)
@@ -161,16 +171,16 @@ func (m *MottainaiAgent) Run() error {
 		}
 
 		m.ID = ID
-		hostname := utils.Hostname()
+		m.Hostname = utils.Hostname()
 		//log.INFO.Println("Worker ID: " + ID)
 		//log.INFO.Println("Worker Hostname: " + hostname)
 
 		if config.GetAgent().PrivateQueue != 0 {
-			m.PrivateQueue = hostname + ID
+			m.PrivateQueue = m.Hostname + ID
 			//log.INFO.Println("Listening on private queue: " + m.PrivateQueue)
 		}
 
-		m.SetKeepAlive(ID, hostname, config)
+		m.SetKeepAlive(ID, m.Hostname, config)
 	})
 
 	m.Start()

@@ -40,6 +40,7 @@ import (
 	"github.com/mxk/go-flowrate/flowrate"
 
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
+	queues "github.com/MottainaiCI/mottainai-server/pkg/queues"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
@@ -51,7 +52,7 @@ var _ HttpClient = &Fetcher{}
 type HttpClient interface {
 	AppendTaskOutput(string) (event.APIResponse, error)
 
-	GetTask() ([]byte, error)
+	GetTask(string) ([]byte, error)
 	AbortTask()
 	DownloadArtefactsFromTask(string, string, []string) error
 	DownloadArtefactsFromNamespace(string, string, []string) error
@@ -142,9 +143,14 @@ type HttpClient interface {
 	NodeQueueDelete(agentKey, nodeId string) (event.APIResponse, error)
 	NodeQueueAddTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
 	NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
+	NodeQueueGetTasks(id string) (queues.NodeQueues, error)
+
 	// Queue methods
 	QueueCreate(name string) (event.APIResponse, error)
 	QueueDelete(qid string) (event.APIResponse, error)
+	QueueGetQid(name string) (string, error)
+	QueueAddTaskInProgress(qid, taskid string) (event.APIResponse, error)
+	QueueDelTaskInProgress(qid, taskid string) (event.APIResponse, error)
 }
 
 type Fetcher struct {

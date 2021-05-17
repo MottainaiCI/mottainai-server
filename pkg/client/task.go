@@ -176,12 +176,12 @@ func (f *Fetcher) SuccessTask() {
 	f.FinishTask()
 }
 
-func (f *Fetcher) GetTask() ([]byte, error) {
+func (f *Fetcher) GetTask(tid string) ([]byte, error) {
 
 	req := &schema.Request{
 		Route: v1.Schema.GetTaskRoute("as_json"),
 		Options: map[string]interface{}{
-			":id": f.docID,
+			":id": tid,
 		},
 	}
 
