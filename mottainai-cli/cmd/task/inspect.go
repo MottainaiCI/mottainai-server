@@ -47,7 +47,7 @@ func newTaskInspectCommand(config *setting.Config) *cobra.Command {
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 			fetcher.SetBaseURL(v.GetString("master"))
 
-			task_info, err := citasks.FetchTask(fetcher)
+			task_info, err := citasks.FetchTask(fetcher, id)
 			if err != nil {
 				fmt.Println("Error: " + err.Error())
 			}

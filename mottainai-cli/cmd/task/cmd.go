@@ -38,7 +38,6 @@ func NewTaskCommand(config *setting.Config) *cobra.Command {
 		newTaskCloneCommand(config),
 		newTaskCreateCommand(config),
 		newTaskDownloadCommand(config),
-		newTaskExecuteCommand(config),
 		newTaskListCommand(config),
 		newTaskLogCommand(config),
 		newTaskRemoveCommand(config),
