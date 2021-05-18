@@ -58,8 +58,6 @@ func newQueueListCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("error:", err)
 			}
 
-			fmt.Println("RES ", string(req.ResponseRaw))
-
 			for _, i := range n {
 				queues_table = append(queues_table,
 					[]string{
