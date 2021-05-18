@@ -30,16 +30,16 @@ import (
 	"path"
 	"time"
 
+	context "github.com/MottainaiCI/mottainai-server/pkg/context"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	static "github.com/MottainaiCI/mottainai-server/pkg/static"
+	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	template "github.com/MottainaiCI/mottainai-server/pkg/template"
 	logrus "github.com/sirupsen/logrus"
 
-	context "github.com/MottainaiCI/mottainai-server/pkg/context"
-	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-	static "github.com/MottainaiCI/mottainai-server/pkg/static"
-
-	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
@@ -49,8 +49,6 @@ import (
 	"github.com/go-macaron/captcha"
 	"github.com/gofrs/uuid"
 	macaron "gopkg.in/macaron.v1"
-
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 )
 
 type Mottainai struct {

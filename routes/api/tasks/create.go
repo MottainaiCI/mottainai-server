@@ -29,6 +29,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -42,13 +43,16 @@ func APICreate(m *mottainai.Mottainai, ctx *context.Context, db *database.Databa
 	return nil
 }
 
-func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
+func Create(m *mottainai.Mottainai, ctx *context.Context,
+	db *database.Database, opts agenttasks.Task) (string, error) {
+
 	opts.Reset()
 
 	opts.Output = ""
 	opts.Result = "none"
 	opts.ExitStatus = ""
 	opts.CreatedTime = time.Now().UTC().Format("20060102150405")
+	opts.UpdatedTime = opts.UpdatedTime
 
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
@@ -56,6 +60,19 @@ func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database,
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
 		return "", errors.New("More permissions required")
+	}
+
+	if opts.Queue == "" {
+		// Retrieve default queue.
+		defaultQueue, _ := db.Driver.GetSettingByKey(
+			setting.SYSTEM_TASKS_DEFAULT_QUEUE,
+		)
+
+		if defaultQueue.Value == "" {
+			opts.Queue = "general"
+		} else {
+			opts.Queue = defaultQueue.Value
+		}
 	}
 
 	docID, err := db.Driver.InsertTask(&opts)
