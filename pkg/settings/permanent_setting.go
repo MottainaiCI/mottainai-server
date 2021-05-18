@@ -36,3 +36,5 @@ const SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND = "system.namespace.protect_overw
 // done from external compoenent or reverse proxy and permit
 // to validate only user and ignore password
 const SYSTEM_SIGNIN_ONLY_USERVALIDATION = "system.signin_useronly_validation"
+
+const SYSTEM_TASKS_DEFAULT_QUEUE = "system.tasks.default_queue"
