@@ -76,58 +76,6 @@ web:
   # session_provider: redis
   # session_provider_config: addr=127.0.0.1:6379,prefix=mottainai:sessions:
 
-broker:
-
-  # Broker type
-  type: 'amqp'
-
-  # AMQP Broker for Result
-  result_backend: 'amqp://guest:guest@127.0.0.1:5672/'
-  # Address of Request Broker
-  broker: 'amqp://guest:guest@127.0.0.1:5672/'
-  default_queue: "standard"
-  exchange: "jobs"
-  # exchange_type: "direct"
-  # binding_key: "machinery_task"
-
-  # broker api management (if available)
-  mgmt_uri: 'http://127.0.0.1:18080'
-  user: 'guest'
-  pass: 'guest'
-
-  results_expire_in: 3600
-
-  # Broker Redis options:
-
-  # Maximum number of idle connections in the pool.
-  # max_idle: 3
-
-  # Maximum number of connections allocated by the pool at a given time.
-  # When zero, there is no limit on the number of connections in the pool.
-  # max_active: 10
-
-  # Close connections after remaining idle for this duration in seconds. If the value
-  # is zero, then idle connections are not closed. Applications should set
-  # the timeout to a value less than the server's timeout.
-  # idle_timeout: 240
-
-  # read_timeout specifies the timeout in seconds for reading a single command reply.
-  # read_timeout: 15
-
-  # write_timeout specifies the timeout in seconds for writing a single command.
-  # write_timeout: 15
-
-  # It specifies the period in milliseconds when polling redis for delayed tasks
-  # delayed_tasks_poll_period: 10000
-
-  # connect_timeout specifies the timeout in seconds for connecting to the Redis server when
-  # no DialNetDial option is specified.
-  # connect_timeout: 15
-
-  # If Wait is true and the pool is at the MaxActive limit, then Get() waits
-  # for a connection to be returned to the pool before returning.
-  # wait: false
-
 db:
   engine: 'tiedot'
 
