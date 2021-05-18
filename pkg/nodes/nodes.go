@@ -128,6 +128,21 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 	return node
 }
 
+func (t *Node) HasQueue(queue string) bool {
+	ans := false
+
+	if len(t.Queues) > 0 {
+		for q, _ := range t.Queues {
+			if q == queue {
+				ans = true
+				break
+			}
+		}
+	}
+
+	return ans
+}
+
 func (t *Node) ToMap() map[string]interface{} {
 
 	ts := make(map[string]interface{})
