@@ -53,6 +53,13 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
 
+build-scheduler:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+endif
+
 build-cli:
 ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
@@ -60,16 +67,14 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
 endif
 
-build:
+build-server:
 ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build
-		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
-		CGO_ENABLED=0 go build -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
+
+build: build-server build-cli build-agent build-scheduler
 
 multiarch-build:
 ifeq ($(EXTENSIONS),)
