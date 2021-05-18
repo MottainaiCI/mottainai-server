@@ -28,22 +28,6 @@ web:
   # URL used for share API access address
   application_url: 'http://127.0.0.1:9090/'
 
-broker:
-
-  # Broker type
-  type: 'amqp'
-
-  # AMQP Broker for Result
-  result_backend: 'amqp://guest:guest@127.0.0.1:5672/'
-  # Address of Request Broker
-  broker: 'amqp://guest:guest@127.0.0.1:5672/'
-  default_queue: "standard"
-  exchange: "jobs"
-  # exchange_type: "direct"
-  # binding_key: "machinery_task"
-
-  results_expire_in: 3600
-
 # Mottainai agent options
 agent:
 
