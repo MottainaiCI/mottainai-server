@@ -147,6 +147,11 @@ func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context
 
 func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
 
+	t, err := db.Driver.GetTask(db.Config, f.Id)
+	if err != nil {
+		return errors.New("Task not found")
+	}
+
 	if len(f.Status) > 0 {
 		db.Driver.UpdateTask(f.Id, map[string]interface{}{
 			"status": f.Status,
@@ -166,10 +171,6 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) e
 		})
 	}
 
-	t, err := db.Driver.GetTask(db.Config, f.Id)
-	if err != nil {
-		return errors.New("Task not found")
-	}
 	t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
 	SyncTaskLastUpdate(f.Id, db)
 	ctx.APIActionSuccess()
