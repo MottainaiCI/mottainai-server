@@ -245,7 +245,7 @@ type DatabaseDriver interface {
 	AllNodesQueues() []queues.NodeQueues
 
 	// Queue
-	AllQueues() []queues.Queue
+	AllQueues([]string) []queues.Queue
 	CreateQueue(t map[string]interface{}) (string, error)
 	DeleteQueue(docId string) error
 	GetQueueByQid(qid string) (queues.Queue, error)

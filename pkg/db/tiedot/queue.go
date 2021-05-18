@@ -25,14 +25,17 @@ package tiedot
 import (
 	"errors"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 var QueueColl = "Queues"
+var QueueMutex sync.Mutex = sync.Mutex{}
 
 func (d *Database) IndexQueue() {
 	d.AddIndex(QueueColl, []string{"qid"})
@@ -110,12 +113,15 @@ func (d *Database) ListQueues() []dbcommon.DocItem {
 	return d.ListDocs(QueueColl)
 }
 
-func (d *Database) AllQueues() []queues.Queue {
+func (d *Database) AllQueues(filter []string) []queues.Queue {
 	queuec := d.DB().Use(QueueColl)
 	queue_list := make([]queues.Queue, 0)
 
 	queuec.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := queues.NewFromJson(docContent)
+		if len(filter) > 0 && !utils.ArrayContainsString(filter, t.Name) {
+			return true
+		}
 		t.ID = strconv.Itoa(id)
 		queue_list = append(queue_list, t)
 		return true
@@ -124,8 +130,10 @@ func (d *Database) AllQueues() []queues.Queue {
 }
 
 func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
 	ud := time.Now().UTC().Format("20060102150405")
-	// TODO: add a semaphore
 
 	q, err := d.GetQueueByQid(qid)
 	if err != nil {
@@ -175,6 +183,8 @@ func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
 }
 
 func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
 
 	ud := time.Now().UTC().Format("20060102150405")
 	// TODO: add a semaphore
@@ -208,6 +218,9 @@ func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
 }
 
 func (d *Database) AddTaskInWaiting2Queue(qid, taskid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
 	ud := time.Now().UTC().Format("20060102150405")
 	// TODO: add a semaphore
 	// TODO: add check that the task is not already in waiting
@@ -250,6 +263,9 @@ func (d *Database) AddTaskInWaiting2Queue(qid, taskid string) error {
 }
 
 func (d *Database) DelTaskInWaiting2Queue(qid, taskid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
 	ud := time.Now().UTC().Format("20060102150405")
 	// TODO: add a semaphore
 

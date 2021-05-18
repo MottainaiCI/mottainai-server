@@ -77,7 +77,7 @@ func (d *Database) ListQueues() []dbcommon.DocItem {
 	return d.ListDocs(QueueColl)
 }
 
-func (d *Database) AllQueues() []queues.Queue {
+func (d *Database) AllQueues(filter []string) []queues.Queue {
 	// TODO
 	return []queues.Queue{}
 }
