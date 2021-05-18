@@ -1,6 +1,8 @@
 /*
 
-Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
+
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -38,7 +40,6 @@ import (
 	"github.com/mudler/anagent"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-	//	"github.com/RichardKnop/machinery/v1/log"
 )
 
 type MottainaiAgent struct {
@@ -83,8 +84,6 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				queues,
 				config.GetAgent().SupportedExecutors,
 			)
-
-			fmt.Println("RES ", string(res.Request.ResponseRaw))
 
 			if err == nil && res.Request.Response.StatusCode == 200 && res.Status == "ok" {
 				d := time.Duration(MINTIMER * time.Second)
