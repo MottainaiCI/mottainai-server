@@ -27,7 +27,6 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/template"
 )
@@ -40,10 +39,6 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	template.TemplatePreview(ctx, "nodes", db.Config)
 }
 
-type BrokerConfig struct {
-	Type, DefaultQueue, Broker, ResultBackend, Exchange string
-}
-
 func Show(ctx *context.Context, db *database.Database) {
 	id := ctx.Params(":id")
 
@@ -52,7 +47,6 @@ func Show(ctx *context.Context, db *database.Database) {
 		ctx.NotFound()
 		return
 	}
-	//p_queue := node.Hostname + node.NodeID
 
 	ctx.Data["Node"] = node
 	tasks, _ := db.Driver.AllNodeTask(db.Config, node.ID)
@@ -67,24 +61,6 @@ func Show(ctx *context.Context, db *database.Database) {
 	})
 
 	ctx.Data["Tasks"] = tasks
-	if ctx.CheckUserOrManager() {
-		apikeys, err := db.Driver.GetTokensByUserID(ctx.User.ID)
-		if err != nil {
-			ctx.ServerError("Failed finding token", err)
-			return
-		}
-		if len(apikeys) != 0 {
-			ctx.Data["EphemeralApiKey"] = apikeys[0].Key
-		}
-		ctx.Invoke(func(config *setting.Config) {
-			ctx.Data["EphemeralBrokerSettings"] = &BrokerConfig{DefaultQueue: config.GetBroker().BrokerDefaultQueue,
-				ResultBackend: config.GetBroker().BrokerResultBackend,
-				Broker:        config.GetBroker().Broker,
-				Exchange:      config.GetBroker().BrokerExchange,
-				Type:          config.GetBroker().Type,
-			}
-		})
-	}
 
 	template.TemplatePreview(ctx, "nodes/show", db.Config)
 }

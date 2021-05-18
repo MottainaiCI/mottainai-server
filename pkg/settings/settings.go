@@ -110,39 +110,6 @@ type DatabaseConfig struct {
 	TiedotHashBits      uint `mapstructure:"tiedot_hashbits"`       // HashBits is the number of bits to consider for hashing indexed key, also determines the initial number of buckets in a hash table file.
 }
 
-type BrokerConfig struct {
-	Type string `mapstructure:"type"`
-
-	ResultsExpireIn int `mapstructure:"results_expire_in"`
-
-	HandleSignal bool `mapstructure:"handle_signal"`
-
-	/* Broker Settings */
-	Broker              string `mapstructure:"broker"`
-	BrokerDefaultQueue  string `mapstructure:"default_queue"`
-	BrokerResultBackend string `mapstructure:"result_backend"`
-	BrokerURI           string `mapstructure:"mgmt_uri"`
-	BrokerPass          string `mapstructure:"pass"`
-	BrokerUser          string `mapstructure:"user"`
-	BrokerExchange      string `mapstructure:"exchange"`
-	BrokerExchangeType  string `mapstructure:"exchange_type"`
-	BrokerBindingKey    string `mapstructure:"binding_key"`
-
-	// Redis
-	MaxIdle                int  `mapstructure:"max_idle"`
-	MaxActive              int  `mapstructure:"max_active"`
-	IdleTimeout            int  `mapstructure:"idle_timeout"`
-	Wait                   bool `mapstructure:"wait"`
-	ReadTimeout            int  `mapstructure:"read_timeout"`
-	WriteTimeout           int  `mapstructure:"write_timeout"`
-	ConnectTimeout         int  `mapstructure:"connect_timeout"`
-	DelayedTasksPollPeriod int  `mapstructure:"delayed_tasks_poll_period"`
-
-	// DynamoDB
-	TaskStatesTable string `mapstructure:"task_states_table"`
-	GroupMetasTable string `mapstructure:"group_metas_table"`
-}
-
 type AgentConfig struct {
 	SecretKey          string         `mapstructure:"secret_key"`
 	BuildPath          string         `mapstructure:"build_path"`
@@ -204,7 +171,6 @@ type Config struct {
 	Web      WebConfig      `mapstructure:"web"`
 	Storage  StorageConfig  `mapstructure:"storage"`
 	Database DatabaseConfig `mapstructure:"db"`
-	Broker   BrokerConfig   `mapstructure:"broker"`
 	Agent    AgentConfig    `mapstructure:"agent"`
 }
 
@@ -218,10 +184,6 @@ func (c *Config) GetStorage() *StorageConfig {
 
 func (c *Config) GetDatabase() *DatabaseConfig {
 	return &c.Database
-}
-
-func (c *Config) GetBroker() *BrokerConfig {
-	return &c.Broker
 }
 
 func (c *Config) GetAgent() *AgentConfig {
@@ -532,48 +494,6 @@ db:
 	return ans
 }
 
-func (c *BrokerConfig) String() string {
-	var ans string = fmt.Sprintf(`
-broker:
-  handle_signal: %v
-  type: %s
-  results_expire_in: %d
-  broker: %s
-  default_queue: %s
-  result_backend: %s
-  mgmt_uri: %s
-  pass: %s
-  user: %s
-  exchange: %s
-  exchange_type: %s
-  binding_key: %s
-
-  // Redis only
-  max_idle: %d
-  max_active: %d
-  idle_timeout: %d
-  wait: %v
-  read_timeout: %d
-  write_timeout: %d
-  connect_timeout: %d
-  delayed_tasks_poll_period: %d
-
-  // DynamoDB only
-  task_states_table: %s
-  group_metas_table: %s
-`,
-		c.HandleSignal, c.Type, c.ResultsExpireIn, c.Broker,
-		c.BrokerDefaultQueue, c.BrokerResultBackend,
-		c.BrokerURI, c.BrokerPass,
-		c.BrokerUser, c.BrokerExchange,
-		c.BrokerExchangeType, c.BrokerBindingKey,
-		c.MaxIdle, c.MaxActive, c.IdleTimeout,
-		c.Wait, c.ReadTimeout, c.WriteTimeout,
-		c.ConnectTimeout, c.DelayedTasksPollPeriod, c.TaskStatesTable, c.GroupMetasTable)
-
-	return ans
-}
-
 func (c *AgentConfig) String() string {
 	var ans string = fmt.Sprintf(`
 agent:
@@ -654,12 +574,9 @@ configfile: %s
 %s
 
 %s
-
-%s
 `,
 		c.Viper.Get("config"),
 		c.Web.String(),
-		c.Broker.String(),
 		c.Storage.String(),
 		c.Agent.String(),
 		c.Database.String(),
