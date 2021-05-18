@@ -66,7 +66,9 @@ func Setup(m *macaron.Macaron) {
 			)
 
 			// Queue actions
-			v1.Schema.GetQueueRoute("show_all").ToMacaron(m, reqSignIn, ShowAllQueues)
+			v1.Schema.GetQueueRoute("show_all").ToMacaron(
+				m, reqSignIn, bind(QueueFilter{}), ShowAllQueues,
+			)
 			v1.Schema.GetQueueRoute("get_qid").ToMacaron(m, reqSignIn, GetQid)
 			v1.Schema.GetQueueRoute("create").ToMacaron(m, reqSignIn, reqManager, APIQueueCreate)
 			v1.Schema.GetQueueRoute("delete").ToMacaron(m, reqSignIn, reqManager, RemoveQueue)
