@@ -31,6 +31,10 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
 
+type QueueFilter struct {
+	Queues []string `json:"queues,omitempty"`
+}
+
 func Show(ctx *context.Context, db *database.Database) {
 
 	id := ctx.Params(":id")
@@ -49,8 +53,8 @@ func ShowAll(ctx *context.Context, db *database.Database) {
 	ctx.JSON(200, queues)
 }
 
-func ShowAllQueues(ctx *context.Context, db *database.Database) {
-	queues := db.Driver.AllQueues()
+func ShowAllQueues(filter QueueFilter, ctx *context.Context, db *database.Database) {
+	queues := db.Driver.AllQueues(filter.Queues)
 
 	ctx.JSON(200, queues)
 }
