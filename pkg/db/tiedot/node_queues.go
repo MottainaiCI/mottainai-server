@@ -24,6 +24,7 @@ package tiedot
 import (
 	"errors"
 	"strconv"
+	"sync"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 
@@ -31,6 +32,7 @@ import (
 )
 
 var NodeQueuesColl = "NodeQueues"
+var NodeQueuesMutex = sync.Mutex{}
 
 func (d *Database) IndexNodeQueue() {
 	d.AddIndex(NodeQueuesColl, []string{"akey"})
@@ -65,7 +67,8 @@ func (d *Database) GetNodeQueues(docId string) (queues.NodeQueues, error) {
 }
 
 func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
-	// TODO: add a semaphore
+	NodeQueuesMutex.Lock()
+	defer NodeQueuesMutex.Unlock()
 
 	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
 	if err != nil {
@@ -89,7 +92,8 @@ func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) err
 }
 
 func (d *Database) DelNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
-	// TODO: Add a semaphore
+	NodeQueuesMutex.Lock()
+	defer NodeQueuesMutex.Unlock()
 
 	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
 	if err != nil {
