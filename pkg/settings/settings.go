@@ -24,10 +24,10 @@ package setting
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	v "github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -41,137 +41,137 @@ const (
 
 // Web UI Settings
 type WebConfig struct {
-	Protocol  string `mapstructure:"protocol"`
-	AppSubURL string `mapstructure:"url"`
-	HTTPAddr  string `mapstructure:"listenaddress"`
-	HTTPPort  string `mapstructure:"port"`
+	Protocol  string `mapstructure:"protocol" json:"protocol,omitempty" yaml:"protocol,omitempty"`
+	AppSubURL string `mapstructure:"url" json:"url,omitempty" yaml:"url,omitempty"`
+	HTTPAddr  string `mapstructure:"listenaddress" json:"listenaddress,omitempty" yaml:"listenaddress,omitempty"`
+	HTTPPort  string `mapstructure:"port" json:"port,omitempty" yaml:"port,omitempty"`
 
-	AppName              string `mapstructure:"application_name"`
-	AppBrandingLogo      string `mapstructure:"application_branding_logo"`
-	AppBrandingLogoSmall string `mapstructure:"application_branding_logo_small"`
-	AppBrandingFavicon   string `mapstructure:"application_branding_favicon"`
+	AppName              string `mapstructure:"application_name" json:"application_name,omitempty" yaml:"application_name,omitempty"`
+	AppBrandingLogo      string `mapstructure:"application_branding_logo" json:"application_branding_logo,omitempty" yaml:"application_branding_logo,omitempty"`
+	AppBrandingLogoSmall string `mapstructure:"application_branding_logo_small" json:"application_branding_logo_small,omitempty" yaml:"application_branding_logo_small,omitempty"`
+	AppBrandingFavicon   string `mapstructure:"application_branding_favicon" json:"application_branding_favicon,omitempty" yaml:"application_branding_favicon,omitempty"`
 
 	// TODO: TO rename in API URL
-	AppURL string `mapstructure:"application_url"`
+	AppURL string `mapstructure:"application_url" json:"application_url,omitempty" yaml:"application_url,omitempty"`
 
 	// Replate old custom_path
-	TemplatePath string `mapstructure:"template_path"`
+	TemplatePath string `mapstructure:"template_path" json:"template_path,omitempty" yaml:"template_path,omitempty"`
 
-	StaticRootPath string `mapstructure:"root_path"`
+	StaticRootPath string `mapstructure:"root_path" json:"root_path,omitempty" yaml:"root_path,omitempty"`
 
-	AccessControlAllowOrigin string `mapstructure:"access_control_allow_origin"`
+	AccessControlAllowOrigin string `mapstructure:"access_control_allow_origin" json:"access_control_allow_origin,omitempty" yaml:"access_control_allow_origin,omitempty"`
 
 	// WebHook Parameters
-	EmbedWebHookServer     bool   `mapstructure:"embed_webhookserver"`
-	AccessToken            string `mapstructure:"access_token"`
-	WebHookGitHubToken     string `mapstructure:"github_token"`
-	WebHookGitHubTokenUser string `mapstructure:"github_token_user"`
-	WebHookGitHubSecret    string `mapstructure:"github_secret"`
-	WebHookToken           string `mapstructure:"webhook_token"`
+	EmbedWebHookServer     bool   `mapstructure:"embed_webhookserver" json:"embed_webhookserver,omitempty" yaml;"embed_webhookserver,omitempty"`
+	AccessToken            string `mapstructure:"access_token" json:"access_token,omitempty" yaml:"access_token,omitempty"`
+	WebHookGitHubToken     string `mapstructure:"github_token" json:"github_token,omitempty" yaml:"github_token,omitempty"`
+	WebHookGitHubTokenUser string `mapstructure:"github_token_user" json:"github_token_user,omitempty" yaml:"github_token_user,omitempty"`
+	WebHookGitHubSecret    string `mapstructure:"github_secret" json:"github_secret,omitempty" yaml:"github_secret,omitempty"`
+	WebHookToken           string `mapstructure:"webhook_token" json:"webhook_token,omitempty" yaml:"webhook_token,omitempty"`
 
-	LockPath     string `mapstructure:"lock_path"`
-	UploadTmpDir string `mapstructure:"upload_tmpdir"`
+	LockPath     string `mapstructure:"lock_path" json:"lock_path,omitempty" yaml:"lock_path,omitempty"`
+	UploadTmpDir string `mapstructure:"upload_tmpdir" json:"upload_tmpdir,omitempty" yaml:"upload_tmpdir,omitempty"`
 
-	HealthCheckInterval int `mapstructure:"healthcheck_interval"`
-	TaskDeadline        int `mapstructure:"task_deadline"`
-	NodeDeadline        int `mapstructure:"node_deadline"`
+	HealthCheckInterval int `mapstructure:"healthcheck_interval" json:"healthcheck_interval,omitempty" yaml:"healthcheck_interval,omitempty"`
+	TaskDeadline        int `mapstructure:"task_deadline" json:"task_deadline,omitempty" yaml:"task_deadline,omitempty"`
+	NodeDeadline        int `mapstructure:"node_deadline" json:"node_deadline,omitempty" yaml:"node_deadline,omitempty"`
 
-	SessionProvider       string `mapstructure:"session_provider"`
-	SessionProviderConfig string `mapstructure:"session_provider_config"`
+	SessionProvider       string `mapstructure:"session_provider" json:"session_provider,omitempty" yaml:"session_provider,omitempty"`
+	SessionProviderConfig string `mapstructure:"session_provider_config" json:"session_provider_config,omitempty" yaml:"session_provider_config,omitempty"`
 
 	//Pagination
-	MaxPageSize int `mapstructure:"max_page_size"`
+	MaxPageSize int `mapstructure:"max_page_size" json:"max_page_size,omitempty" yaml:"max_page_size,omitempty"`
 }
 
 type StorageConfig struct {
-	Type string `mapstructure:"type"`
+	Type string `mapstructure:"type" json:"type" yaml:"type"`
 
-	ArtefactPath  string `mapstructure:"artefact_path"`
-	NamespacePath string `mapstructure:"namespace_path"`
-	StoragePath   string `mapstructure:"storage_path"`
+	ArtefactPath  string `mapstructure:"artefact_path" json:"artefact_path,omitempty" yaml:"artefact_path,omitempty"`
+	NamespacePath string `mapstructure:"namespace_path" json:"namespace_path,omitempty" yaml:"namespace_path,omitempty"`
+	StoragePath   string `mapstructure:"storage_path" json:"storage_path,omitempty" yaml:"storage_path,omitempty"`
 }
 
 type DatabaseConfig struct {
-	DBEngine string `mapstructure:"engine"`
-	DBPath   string `mapstructure:"db_path"`
+	DBEngine string `mapstructure:"engine" json:"engine" yaml:"engine"`
+	DBPath   string `mapstructure:"db_path" json:"db_path,omitempty" yaml:"db_path,omitempty"`
 
-	Endpoints    []string `mapstructure:"db_endpoints"`
-	User         string   `mapstructure:"db_user"`
-	DatabaseName string   `mapstructure:"db_name"`
-	Password     string   `mapstructure:"db_password"`
-	CertPath     string   `mapstructure:"db_certpath"`
-	KeyPath      string   `mapstructure:"db_keypath"`
+	Endpoints    []string `mapstructure:"db_endpoints" json:"db_endpoints,omitempty" yaml:"db_endpoints,omitempty"`
+	User         string   `mapstructure:"db_user" json:"db_user,omitempty" yaml:"db_user,omitempty"`
+	DatabaseName string   `mapstructure:"db_name" json:"db_name,omitempty" yaml:"db_name,omitempty"`
+	Password     string   `mapstructure:"db_password" json:"db_password,omitempty" yaml:"db_password,omitempty"`
+	CertPath     string   `mapstructure:"db_certpath" json:"db_certpath,omitempty" yaml:"db_certpath,omitempty"`
+	KeyPath      string   `mapstructure:"db_keypath" json:"db_keypath,omitempty" yaml:"db_keypath,omitempty"`
 
 	// Tiedot configs settings
-	TiedotDocMaxRoom    int  `mapstructure:"tiedot_doc_maxroom"`    // DocMaxRoom is the maximum size of a single document that will ever be accepted into database.
-	TiedotColFileGrowth int  `mapstructure:"tiedot_colfile_growth"` // ColFileGrowth is the size (in bytes) to grow collection data file when new documents have to fit in.
-	TiedotPerBucket     int  `mapstructure:"tiedot_per_bucket"`     // PerBucket is the number of entries pre-allocated to each hash table bucket.
-	TiedotHTFileGrowth  int  `mapstructure:"tiedot_htfilegrowth"`   /// HTFileGrowth is the size (in bytes) to grow hash table file to fit in more entries.
-	TiedotHashBits      uint `mapstructure:"tiedot_hashbits"`       // HashBits is the number of bits to consider for hashing indexed key, also determines the initial number of buckets in a hash table file.
+	TiedotDocMaxRoom    int  `mapstructure:"tiedot_doc_maxroom" json:"tiedot_doc_maxroom,omitempty" yaml:"tiedot_doc_maxroom,omitempty"`          // DocMaxRoom is the maximum size of a single document that will ever be accepted into database.
+	TiedotColFileGrowth int  `mapstructure:"tiedot_colfile_growth" json:"tiedot_colfile_growth,omitempty" yaml:"tiedot_colfile_growth,omitempty"` // ColFileGrowth is the size (in bytes) to grow collection data file when new documents have to fit in.
+	TiedotPerBucket     int  `mapstructure:"tiedot_per_bucket" json:"tiedot_per_bucket,omitempty" yaml:"tiedot_per_bucket,omitempty"`             // PerBucket is the number of entries pre-allocated to each hash table bucket.
+	TiedotHTFileGrowth  int  `mapstructure:"tiedot_htfilegrowth" json:"tiedot_htfilegrowth,omitempty" yaml:"tiedot_htfilegrowth,omitempty"`       /// HTFileGrowth is the size (in bytes) to grow hash table file to fit in more entries.
+	TiedotHashBits      uint `mapstructure:"tiedot_hashbits" json:"tiedot_hashbits,omitempty" yaml:"tiedot_hashbits,omitempty"`                   // HashBits is the number of bits to consider for hashing indexed key, also determines the initial number of buckets in a hash table file.
 }
 
 type AgentConfig struct {
-	SecretKey          string         `mapstructure:"secret_key"`
-	BuildPath          string         `mapstructure:"build_path"`
-	AgentConcurrency   int            `mapstructure:"concurrency"`
-	AgentKey           string         `mapstructure:"agent_key"`
-	ApiKey             string         `mapstructure:"api_key"`
-	PrivateQueue       int            `mapstructure:"private_queue"`
-	StandAlone         bool           `mapstructure:"standalone"`
-	DownloadRateLimit  int64          `mapstructure:"download_speed_limit"`
-	UploadRateLimit    int64          `mapstructure:"upload_speed_limit"`
-	Queues             map[string]int `mapstructure:"queues"`
-	UploadChunkSize    int            `mapstructure:"upload_chunk_size"`
-	SupportedExecutors []string       `mapstructure:"executor"`
-	ForceAgentId       string         `mapstructure:"force_agent_id"`
+	SecretKey          string         `mapstructure:"secret_key" json:"secret_key,omitempty" yaml:"secret_key,omitempty"`
+	BuildPath          string         `mapstructure:"build_path" json:"build_path" yaml:"build_path"`
+	AgentConcurrency   int            `mapstructure:"concurrency" json:"concurrency,omitempty" yaml:"concurrency,omitempty"`
+	AgentKey           string         `mapstructure:"agent_key" json:"agent_key" yaml:"agent_key"`
+	ApiKey             string         `mapstructure:"api_key" json:"api_key" yaml:"api_key"`
+	PrivateQueue       int            `mapstructure:"private_queue" json:"private_queue,omitempty" yaml:"private_queue,omitempty"`
+	StandAlone         bool           `mapstructure:"standalone" json:"standalone,omitempty" yaml:"standalone,omitempty"`
+	DownloadRateLimit  int64          `mapstructure:"download_speed_limit" json:"download_speed_limit,omitempty" yaml:"download_speed_limit,omitempty"`
+	UploadRateLimit    int64          `mapstructure:"upload_speed_limit" json:"upload_speed_limit,omitempty" yaml:"upload_speed_limit,omitempty"`
+	Queues             map[string]int `mapstructure:"queues" json:"queues,omitempty" yaml:"queues,omitempty"`
+	UploadChunkSize    int            `mapstructure:"upload_chunk_size" json:"upload_chunk_size,omitempty" yaml:"upload_chunk_size,omitempty"`
+	SupportedExecutors []string       `mapstructure:"executor" json:"executor,omitempty" yaml:"executor,omitempty"`
+	ForceAgentId       string         `mapstructure:"force_agent_id" json:"force_agent_id,omitempty" yaml:"force_agent_id,omitempty"`
 
 	// List of command to execute before execute a task
-	PreTaskHookExec []string `mapstructure:"pre_task_hook_exec"`
+	PreTaskHookExec []string `mapstructure:"pre_task_hook_exec" json:"pre_task_hook_exec,omitempty" yaml:"pre_task_hook_exec,omitempty"`
 
-	DockerEndpoint    string   `mapstructure:"docker_endpoint"`
-	DockerKeepImg     bool     `mapstructure:"docker_keepimg"`
-	DockerPriviledged bool     `mapstructure:"docker_privileged"`
-	DockerInDocker    bool     `mapstructure:"docker_in_docker"`
-	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint"`
-	DockerCaps        []string `mapstructure:"docker_caps"`
-	DockerCapsDrop    []string `mapstructure:"docker_caps_drop"`
-	DefaultTaskQuota  string   `mapstructure:"default_task_quota"`
+	DockerEndpoint    string   `mapstructure:"docker_endpoint" json:"docker_endpoint,omitempty" yaml:"docker_endpoint,omitempty"`
+	DockerKeepImg     bool     `mapstructure:"docker_keepimg" json:"docker_keepimg,omitempty" yaml:"docker_keepimg,omitempty"`
+	DockerPriviledged bool     `mapstructure:"docker_privileged" json:"docker_privileged,omitempty" yaml:"docker_privileged,omitempty"`
+	DockerInDocker    bool     `mapstructure:"docker_in_docker" json:"docker_in_docker,omitempty" yaml:"docker_in_docker,omitempty"`
+	DockerEndpointDiD string   `mapstructure:"docker_in_docker_endpoint" json:"docker_in_docker_endpoint,omitempty" yaml:"docker_in_docker_endpoint,omitempty"`
+	DockerCaps        []string `mapstructure:"docker_caps" json:"docker_caps,omitempty" yaml:"docker_caps,omitempty"`
+	DockerCapsDrop    []string `mapstructure:"docker_caps_drop" json:"docker_caps_drop,omitempty" yaml:"docker_caps_drop,omitempty"`
+	DefaultTaskQuota  string   `mapstructure:"default_task_quota" json:"default_task_quota,omitempty" yaml:"default_task_quota,omitempty"`
 
-	KubeConfigPath   string `mapstructure:"kubeconfig"`
-	KubeNamespace    string `mapstructure:"kube_namespace"`
-	KubeStorageClass string `mapstructure:"kube_storageclass"`
-	KubeDropletImage string `mapstructure:"kube_droplet_image"`
+	KubeConfigPath   string `mapstructure:"kubeconfig" json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty"`
+	KubeNamespace    string `mapstructure:"kube_namespace" json:"kube_namespace,omitempty" yaml:"kube_namespace,omitempty"`
+	KubeStorageClass string `mapstructure:"kube_storageclass" json:"kube_storageclass,omitempty" yaml:"kube_storageclass,omitempty"`
+	KubeDropletImage string `mapstructure:"kube_droplet_image" json:"kube_droplet_image,omitempty" yaml:"kube_droplet_image,omitempty"`
 
-	LxdEndpoint            string            `mapstructure:"lxd_endpoint"`
-	LxdConfigDir           string            `mapstructure:"lxd_config_dir"`
-	LxdDisableLocal        bool              `mapstructure:"lxd_disable_local"`
-	LxdProfiles            []string          `mapstructure:"lxd_profiles"`
-	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers"`
-	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry"`
+	LxdEndpoint            string            `mapstructure:"lxd_endpoint" json:"lxd_endpoint,omitempty" yaml:"lxd_endpoint,omitempty"`
+	LxdConfigDir           string            `mapstructure:"lxd_config_dir" json:"lxd_config_dir,omitempty" yaml:"lxd_config_dir,omitempty"`
+	LxdDisableLocal        bool              `mapstructure:"lxd_disable_local" json:"lxd_disable_local,omitempty" yaml:"lxd_disable_local,omitempty"`
+	LxdProfiles            []string          `mapstructure:"lxd_profiles" json:"lxd_profiles,omitempty" yaml:"lxd_profiles,omitempty"`
+	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers" json:"lxd_ephemeral_containers,omitempty" yaml:"lxd_ephemeral_containers,omitempty"`
+	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry" json:"lxd_cache_registry,omitempty" yaml:"lxd_cache_registry,omitempty"`
 
-	CacheRegistryCredentials map[string]string `mapstructure:"cache_registry"`
+	CacheRegistryCredentials map[string]string `mapstructure:"cache_registry" json:"cache_registry,omitempty" yaml:"cache_registry,omitempty"`
 
-	HealthCheckExec      []string `mapstructure:"health_check_exec"`
-	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path"`
+	HealthCheckExec      []string `mapstructure:"health_check_exec" json:"health_check_exec,omitempty" yaml:"health_check_exec,omitempty"`
+	HealthCheckCleanPath []string `mapstructure:"health_check_clean_path" json:"health_check_clean_path,omitempty" yaml:"health_check_clean_path,omitempty"`
 }
 
 type GeneralConfig struct {
-	Debug         bool   `mapstructure:"debug"`
-	LogFile       string `mapstructure:"logfile"`
-	LogLevel      string `mapstructure:"loglevel"`
-	TLSCert       string `mapstructure:"tls_cert"`
-	TLSKey        string `mapstructure:"tls_key"`
-	ClientTimeout int    `mapstructure:"client_timeout"`
+	Debug         bool   `mapstructure:"debug" json:"debug,omitempty" yaml:"debug,omitempty"`
+	LogFile       string `mapstructure:"logfile" json:"logfile,omitempty" yaml:"logfile,omitempty"`
+	LogLevel      string `mapstructure:"loglevel" json:"loglevel,omitempty" yaml:"loglevel,omitempty" `
+	TLSCert       string `mapstructure:"tls_cert" json:"tls_cert,omitempty" yaml:"tls_cert,omitempty"`
+	TLSKey        string `mapstructure:"tls_key" json:"tls_key,omitempty" yaml:"tls_key,omitempty"`
+	ClientTimeout int    `mapstructure:"client_timeout" json:"client_timeout,omitempty" yaml:"client_timeout,omitempty"`
 }
 
 type Config struct {
-	Viper *v.Viper
+	Viper *v.Viper `json:"-" yaml:"-"`
 
-	General  GeneralConfig  `mapstructure:"general"`
-	Web      WebConfig      `mapstructure:"web"`
-	Storage  StorageConfig  `mapstructure:"storage"`
-	Database DatabaseConfig `mapstructure:"db"`
-	Agent    AgentConfig    `mapstructure:"agent"`
+	General  GeneralConfig  `mapstructure:"general" json:"general,omitempty" yaml:"general,omitempty"`
+	Web      WebConfig      `mapstructure:"web" json:"web,omitempty" yaml:"web,omitempty"`
+	Storage  StorageConfig  `mapstructure:"storage" json:"storage,omitempty" yaml:"storage,omitempty"`
+	Database DatabaseConfig `mapstructure:"db" json:"db,omitempty" yaml:"db,omitempty"`
+	Agent    AgentConfig    `mapstructure:"agent" json:"agent,omitempty" yaml:"agent,omitempty"`
 }
 
 func (c *Config) GetWeb() *WebConfig {
@@ -403,171 +403,25 @@ func (c *WebConfig) GroupAppPath() string {
 }
 
 func (c *WebConfig) String() string {
-	var ans string = fmt.Sprintf(`
-web:
-  protocol: %s
-  url: %s
-  listenaddress: %s
-  port: %s
-  application_name: %s
-  application_branding_logo: %s
-  application_branding_logo_small: %s
-  application_branding_favicon: %s
-
-  application_url: %s
-
-  template_path: %s
-
-  access_control_allow_origin: %s
-
-  embed_webhookserver: %v
-  access_token: %s
-  github_token: %s
-  github_token_user: %s
-  github_secret: %s
-  webhook_token: %s
-
-  lock_path: %s
-
-  task_deadline: %d
-  node_deadline: %d
-  healthcheck_interval: %d
-`,
-		c.Protocol, c.AppSubURL,
-		c.HTTPAddr, c.HTTPPort,
-		c.AppName, c.AppBrandingLogo, c.AppBrandingLogoSmall, c.AppBrandingFavicon,
-		c.AppURL,
-		c.TemplatePath,
-		c.AccessControlAllowOrigin,
-		c.EmbedWebHookServer,
-		c.AccessToken,
-		c.WebHookGitHubToken,
-		c.WebHookGitHubTokenUser,
-		c.WebHookGitHubSecret,
-		c.WebHookToken,
-		c.LockPath,
-		c.TaskDeadline, c.NodeDeadline, c.HealthCheckInterval)
-
-	return ans
-}
-
-func (c *StorageConfig) String() string {
-	var ans string = fmt.Sprintf(`
-storage:
-  type: %s
-  artefact_path: %s
-  namespace_path: %s
-  storage_path: %s
-`,
-		c.Type, c.ArtefactPath,
-		c.NamespacePath, c.StoragePath)
-
-	return ans
-}
-
-func (c *DatabaseConfig) String() string {
-	var ans string = fmt.Sprintf(`
-db:
-  engine: %s
-  db_path: %s
-  db_endpoints: %s
-  db_name: %s
-  db_password: ****
-  db_certpath: %s
-  db_keypath: %s
-  db_user: %s
-`,
-		c.DBEngine, c.DBPath, c.Endpoints, c.DatabaseName, c.CertPath, c.KeyPath, c.User)
-	return ans
-}
-
-func (c *AgentConfig) String() string {
-	var ans string = fmt.Sprintf(`
-agent:
-  secret_key: %s
-  build_path: %s
-  concurrency: %d
-  agent_key: %s
-  api_key: %s
-  private_queue: %d
-  standalone: %t
-  download_speed_limit: %d
-  upload_speed_limit: %d
-  queues: %v
-  upload_chunk_size: %d
-
-  docker_endpoint: %s
-  docker_keepimg: %t
-  docker_privileged: %t
-  docker_in_docker: %t
-  docker_in_docker_endpoint: %s
-  docker_caps: %s
-  docker_caps_drop: %s
-
-  lxd_endpoint: %s
-  lxd_config_dir: %s
-  lxd_profiles: %s
-  lxd_ephemeral_containers: %t
-  lxd_cache_registry: %s
-
-  cache_registry: %s
-  health_check_exec: %s
-  health_check_clean_path: %s
-
-  pre_task_hook_exec: %s
-`, c.SecretKey, c.BuildPath,
-		c.AgentConcurrency, c.AgentKey, c.ApiKey,
-		c.PrivateQueue, c.StandAlone, c.DownloadRateLimit,
-		c.UploadRateLimit, c.Queues, c.UploadChunkSize,
-		c.DockerEndpoint, c.DockerKeepImg,
-		c.DockerPriviledged, c.DockerInDocker,
-		c.DockerEndpointDiD, c.DockerCaps, c.DockerCapsDrop,
-		c.LxdEndpoint, c.LxdConfigDir, c.LxdProfiles, c.LxdEphemeralContainers,
-		c.LxdCacheRegistry, c.CacheRegistryCredentials,
-		c.HealthCheckExec, c.HealthCheckCleanPath,
-		c.PreTaskHookExec)
-
-	return ans
+	data, _ := yaml.Marshal(c)
+	return string(data)
 }
 
 func (c *GeneralConfig) String() string {
-	var ans string = fmt.Sprintf(`
-general:
-  debug: %t
-  logfile: %s
-  loglevel: %s
-  tls_cert: %s
-  tls_key: ***********************
-  client_timeout: %d
-`,
-		c.Debug, c.LogFile, c.LogLevel,
-		c.TLSCert, c.ClientTimeout)
+	data, _ := yaml.Marshal(c)
+	return string(data)
+}
 
-	return ans
+func (c *AgentConfig) String() string {
+	data, _ := yaml.Marshal(c)
+	return string(data)
 }
 
 func (c *Config) String() string {
-	// TODO: Currently I don't find a way to create a json from
-	//       with viper to a io.Writer (or string)
-	var ans string = fmt.Sprintf(`
-configfile: %s
+	data, _ := c.Yaml()
+	return string(data)
+}
 
-%s
-
-%s
-
-%s
-
-%s
-
-%s
-`,
-		c.Viper.Get("config"),
-		c.Web.String(),
-		c.Storage.String(),
-		c.Agent.String(),
-		c.Database.String(),
-		c.General.String())
-
-	return ans
+func (c *Config) Yaml() ([]byte, error) {
+	return yaml.Marshal(c)
 }
