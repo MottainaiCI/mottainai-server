@@ -24,6 +24,7 @@ package arangodb
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 
@@ -31,9 +32,11 @@ import (
 )
 
 var NodeQueuesColl = "NodeQueues"
+var NodeQueuesMutex = sync.Mutex{}
 
 func (d *Database) IndexNodeQueue() {
 	d.AddIndex(NodeQueuesColl, []string{"akey"})
+	d.AddIndex(NodeQueuesColl, []string{"nodeid"})
 }
 
 func (d *Database) CreateNodeQueues(t map[string]interface{}) (string, error) {
@@ -53,15 +56,20 @@ func (d *Database) UpdateNodeQueues(docId string, t map[string]interface{}) erro
 }
 
 func (d *Database) GetNodeQueues(docId string) (queues.NodeQueues, error) {
-	return queues.NodeQueues{}, errors.New("Not implemented")
-}
+	doc, err := d.GetDoc(NodeQueuesColl, docId)
+	if err != nil {
+		return queues.NodeQueues{}, err
+	}
 
-func (d *Database) GetNodeQueuesByKey(agentKey, nodeid string) (queues.NodeQueues, error) {
-	return queues.NodeQueues{}, errors.New("Not implemented")
+	t := queues.NewNodeQueuesFromMap(doc)
+	t.ID = docId
+	return t, err
 }
 
 func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
-	// TODO: add a semaphore
+	NodeQueuesMutex.Lock()
+	defer NodeQueuesMutex.Unlock()
+
 	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
 	if err != nil {
 		return err
@@ -84,11 +92,16 @@ func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) err
 }
 
 func (d *Database) DelNodeQueuesTask(agentKey, nodeid, queue, taskid string) error {
-	// TODO: Add a semaphore
+	NodeQueuesMutex.Lock()
+	defer NodeQueuesMutex.Unlock()
 
 	nq, err := d.GetNodeQueuesByKey(agentKey, nodeid)
 	if err != nil {
 		return err
+	}
+
+	if nq.ID == "" {
+		return errors.New("Node queue not found")
 	}
 
 	if _, ok := nq.Queues[queue]; ok {
@@ -116,10 +129,43 @@ func (d *Database) DelNodeQueuesTask(agentKey, nodeid, queue, taskid string) err
 	return err
 }
 
+func (d *Database) GetNodeQueuesByKey(agentKey, nodeid string) (queues.NodeQueues, error) {
+	var res []queues.NodeQueues
+
+	queryResult, err := d.FindDoc("",
+		`FOR c IN `+NodeQueuesColl+`
+		FILTER c.nodeid == "`+nodeid+` AND c.akey == "`+agentKey+`"
+		RETURN c`)
+
+	if err != nil || len(queryResult) != 1 {
+		return queues.NodeQueues{}, err
+	}
+
+	for id, doc := range queryResult {
+		n := queues.NewNodeQueuesFromMap(doc.(map[string]interface{}))
+		n.ID = id
+		res = append(res, n)
+	}
+	return res[0], nil
+}
+
 func (d *Database) ListNodeQueues() []dbcommon.DocItem {
 	return d.ListDocs(NodeQueuesColl)
 }
 
 func (d *Database) AllNodesQueues() []queues.NodeQueues {
-	return []queues.NodeQueues{}
+	queue_list := make([]queues.NodeQueues, 0)
+
+	docs, err := d.FindDoc("", "FOR c IN "+NodeQueuesColl+" return c")
+	if err != nil {
+		return []queues.NodeQueues{}
+	}
+
+	for id, doc := range docs {
+		t := queues.NewNodeQueuesFromMap(doc.(map[string]interface{}))
+		t.ID = id
+		queue_list = append(queue_list, t)
+	}
+
+	return queue_list
 }

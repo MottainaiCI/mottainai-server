@@ -29,6 +29,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	utils "github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
 var QueueColl = "Queues"
@@ -65,12 +66,44 @@ func (d *Database) GetQueue(docId string) (queues.Queue, error) {
 	return t, err
 }
 
-func (d *Database) GetQueueByQid(name string) (queues.Queue, error) {
-	return queues.Queue{}, errors.New("Not implemented")
+func (d *Database) GetQueueByQid(qid string) (queues.Queue, error) {
+	var res []queues.Queue
+
+	queryResult, err := d.FindDoc("",
+		`FOR c IN `+QueueColl+`
+		FILTER c.qid == "`+qid+`"
+		RETURN c`)
+
+	if err != nil || len(queryResult) != 1 {
+		return queues.Queue{}, err
+	}
+
+	for id, doc := range queryResult {
+		n := queues.NewQueueFromMap(doc.(map[string]interface{}))
+		n.ID = id
+		res = append(res, n)
+	}
+	return res[0], nil
 }
 
 func (d *Database) GetQueueByKey(name string) (queues.Queue, error) {
-	return queues.Queue{}, errors.New("Not implemented")
+	var res []queues.Queue
+
+	queryResult, err := d.FindDoc("",
+		`FOR c IN `+QueueColl+`
+		FILTER c.name == "`+name+`"
+		RETURN c`)
+
+	if err != nil || len(queryResult) != 1 {
+		return queues.Queue{}, err
+	}
+
+	for id, doc := range queryResult {
+		n := queues.NewQueueFromMap(doc.(map[string]interface{}))
+		n.ID = id
+		res = append(res, n)
+	}
+	return res[0], nil
 }
 
 func (d *Database) ListQueues() []dbcommon.DocItem {
@@ -78,8 +111,23 @@ func (d *Database) ListQueues() []dbcommon.DocItem {
 }
 
 func (d *Database) AllQueues(filter []string) []queues.Queue {
-	// TODO
-	return []queues.Queue{}
+	queue_list := make([]queues.Queue, 0)
+
+	docs, err := d.FindDoc("", "FOR c IN "+QueueColl+" return c")
+	if err != nil {
+		return []queues.Queue{}
+	}
+
+	for id, doc := range docs {
+		t := queues.NewQueueFromMap(doc.(map[string]interface{}))
+		if len(filter) > 0 && !utils.ArrayContainsString(filter, t.Name) {
+			continue
+		}
+		t.ID = id
+		queue_list = append(queue_list, t)
+	}
+
+	return queue_list
 }
 
 func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
