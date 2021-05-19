@@ -68,6 +68,7 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 		config.GetAgent().StandAlone,
 		config.GetAgent().Queues,
 		config.GetAgent().SupportedExecutors,
+		config.GetAgent().AgentConcurrency,
 	)
 
 	var tid anagent.TimerID = "keepalive"
@@ -83,6 +84,7 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				config.GetAgent().StandAlone,
 				queues,
 				config.GetAgent().SupportedExecutors,
+				config.GetAgent().AgentConcurrency,
 			)
 
 			if err == nil && res.Request.Response.StatusCode == 200 && res.Status == "ok" {
