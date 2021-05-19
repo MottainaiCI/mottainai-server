@@ -38,6 +38,7 @@ type Node struct {
 	LastReport     string         `json:"last_report" form:"last_report"`
 	Queues         map[string]int `json:"queues" form:"queues"`
 	Standalone     bool           `json:"standalone" form:"standalone"`
+	Concurrency    int            `json:"concurrency" form:"concurrency"`
 	OverrideQueues bool           `json:"override_queues" form:"override_queues"`
 	Executors      []string       `json:"executors,omitempty" form:"executors"`
 }
@@ -73,6 +74,7 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		queues      map[string]int
 		standalone  bool
 		executors   []string
+		concurrency int
 	)
 
 	if m, ok := t["queues"].(map[string]int); ok {
@@ -108,22 +110,27 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 		executors = arr
 	}
 
+	if c, ok := t["concurrency"].(int); ok {
+		concurrency = c
+	}
+
 	var id string
 	if str, ok := t["id"].(string); ok {
 		id = str
 	}
 	node := Node{
-		Owner:      owner,
-		Pass:       pass,
-		Key:        key,
-		User:       user,
-		Hostname:   hostname,
-		LastReport: last_report,
-		NodeID:     nodeid,
-		ID:         id,
-		Queues:     queues,
-		Standalone: standalone,
-		Executors:  executors,
+		Owner:       owner,
+		Pass:        pass,
+		Key:         key,
+		User:        user,
+		Hostname:    hostname,
+		LastReport:  last_report,
+		NodeID:      nodeid,
+		ID:          id,
+		Queues:      queues,
+		Standalone:  standalone,
+		Executors:   executors,
+		Concurrency: concurrency,
 	}
 	return node
 }
