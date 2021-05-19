@@ -34,11 +34,12 @@ import (
 )
 
 type NodeUpdate struct {
-	NodeID     string         `json:"nodeid" form:"nodeid"`
-	Key        string         `json:"key" form:"key"`
-	Hostname   string         `json:"hostname" form:"hostname"`
-	Standalone bool           `json:"standalone" form:"standalone"`
-	Queues     map[string]int `json:"queues" form:"queues"`
+	NodeID      string         `json:"nodeid" form:"nodeid"`
+	Key         string         `json:"key" form:"key"`
+	Hostname    string         `json:"hostname" form:"hostname"`
+	Standalone  bool           `json:"standalone" form:"standalone"`
+	Queues      map[string]int `json:"queues" form:"queues"`
+	Concurrency int            `json:"concurrency" form:"concurrency"`
 }
 
 func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) error {
@@ -68,6 +69,7 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	if !nodefound.OverrideQueues {
 		doc["queues"] = nodedata.Queues
+		doc["concurrency"] = nodedata.Concurrency
 	}
 
 	// Find my position between nodes

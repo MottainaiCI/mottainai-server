@@ -70,6 +70,7 @@ func (d *Fetcher) NodesTask(key string, target interface{}) error {
 
 func (f *Fetcher) RegisterNode(
 	ID, hostname string, standalone bool, queues map[string]int, executors []string,
+	concurrency int,
 ) (event.APIResponse, error) {
 
 	req := &schema.Request{
@@ -77,11 +78,12 @@ func (f *Fetcher) RegisterNode(
 	}
 
 	msg := map[string]interface{}{
-		"key":        f.Config.GetAgent().AgentKey,
-		"nodeid":     ID,
-		"hostname":   hostname,
-		"standalone": standalone,
-		"queues":     queues,
+		"key":         f.Config.GetAgent().AgentKey,
+		"nodeid":      ID,
+		"hostname":    hostname,
+		"standalone":  standalone,
+		"queues":      queues,
+		"concurrency": concurrency,
 	}
 
 	if len(executors) > 0 {

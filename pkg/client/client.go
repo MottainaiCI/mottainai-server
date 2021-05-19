@@ -60,7 +60,7 @@ type HttpClient interface {
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) (event.APIResponse, error)
-	RegisterNode(string, string, bool, map[string]int, []string) (event.APIResponse, error)
+	RegisterNode(string, string, bool, map[string]int, []string, int) (event.APIResponse, error)
 	Doc(string)
 	SetUploadChunkSize(int)
 	SetupTask() (event.APIResponse, error)
