@@ -35,8 +35,6 @@ func newPrintCommand(config *s.Config) *cobra.Command {
 		Short: "Show configuration params",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-
-			fmt.Println("Configurations:")
 			fmt.Println(config)
 		},
 	}

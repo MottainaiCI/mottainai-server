@@ -51,8 +51,6 @@ func initConfig(config *setting.Config) {
 	replacer := strings.NewReplacer(".", "__")
 	config.Viper.SetEnvKeyReplacer(replacer)
 	config.Viper.SetTypeByDefaultValue(true)
-
-	//config.Unmarshal()
 }
 
 func initCommand(rootCmd *cobra.Command, config *setting.Config) {
@@ -74,6 +72,7 @@ func initCommand(rootCmd *cobra.Command, config *setting.Config) {
 
 	rootCmd.AddCommand(
 		newPrintCommand(config),
+		newDaemonCommand(config),
 	)
 }
 

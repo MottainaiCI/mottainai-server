@@ -27,6 +27,7 @@ import (
 )
 
 type TaskScheduler interface {
+	Setup() error
 	RetrieveDefaultQueue() error
 	RetrieveNodes() error
 	GetQueues() ([]queues.Queue, error)
