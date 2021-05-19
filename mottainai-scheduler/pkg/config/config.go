@@ -36,10 +36,10 @@ const (
 )
 
 type Config struct {
-	Viper *v.Viper
+	Viper *v.Viper `yaml:"-" json:"-"`
 
 	General   setting.GeneralConfig `mapstructure:"general" json:"general" yaml:"general"`
-	Scheduler SchedulerConfig       `mapstructure:"scheduler json:"scheduler" yaml:"scheduler""`
+	Scheduler SchedulerConfig       `mapstructure:"scheduler" json:"scheduler" yaml:"scheduler"`
 	Web       WebConfig             `mapstructure:"web" json:"web" yaml:"web"`
 }
 
@@ -47,8 +47,10 @@ type SchedulerConfig struct {
 	ApiKey string   `mapstructure:"api_key" json:"api_key,omitempty" yaml:"api_key,omitempty"`
 	Queues []string `mapstructure:"queues" json:"queues,omitempty" yaml:"queues,omitempty"`
 
-	ScheduleTimerSec    int `mapstructure:"schedule_timer_sec,omitempty" json:"schedule_timer_sec,omitempty" yaml:"schedule_timer_sec,omitempty"`
-	AgentDeadTimeoutSec int `mapstructure:"agent_dead_timeout,omitempty json:"agent_dead_timeout,omitempty" yaml:"schedule_timer_sec,omitempty"`
+	ScheduleTimerSec         int `mapstructure:"schedule_timer_sec" json:"schedule_timer_sec,omitempty" yaml:"schedule_timer_sec,omitempty"`
+	AgentDeadTimeoutSec      int `mapstructure:"agent_dead_timeout" json:"agent_dead_timeout,omitempty" yaml:"agent_dead_timeout,omitempty"`
+	SyncDefaultQueueTimerSec int `mapstructure:"sync_default_queue_sec" json:"sync_default_queue_sec,omitempty" yaml:"sync_default_queue_sec,omitempty"`
+	SyncNodesTimerSec        int `mapstructure:"sync_nodes_sec" json:"sync_nodes_sec,omitempty" yaml:"sync_nodes_sec,omitempty"`
 }
 
 type WebConfig struct {
@@ -89,6 +91,10 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("scheduler.queues", []string{})
 	viper.SetDefault("scheduler.schedule_timer_sec", 5)
 	viper.SetDefault("scheduler.agent_dead_timeout", 1200)
+	// Check default queue name every hour
+	viper.SetDefault("scheduler.sync_default_queue_sec", 3600)
+	// Align list of nodes every 10min
+	viper.SetDefault("scheduler.sync_nodes_sec", 600)
 
 	viper.SetDefault("general.tls_cert", "")
 	viper.SetDefault("general.tls_key", "")
@@ -127,6 +133,7 @@ func (c *Config) ToMottainaiConfig() *setting.Config {
 	cfg := setting.NewConfig(c.Viper)
 	cfg.General = c.General
 	cfg.GetWeb().AppURL = c.Web.AppURL
+	cfg.GetWeb().AppSubURL = "/"
 
 	return cfg
 }

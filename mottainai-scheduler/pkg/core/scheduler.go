@@ -24,10 +24,12 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	setting "github.com/MottainaiCI/mottainai-server/mottainai-scheduler/pkg/config"
 	"github.com/MottainaiCI/mottainai-server/mottainai-scheduler/pkg/scheduler"
+	specs "github.com/MottainaiCI/mottainai-server/mottainai-scheduler/pkg/specs"
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
@@ -48,18 +50,67 @@ func NewScheduler() *MottainaiScheduler {
 	return &MottainaiScheduler{Anagent: anagent.New()}
 }
 
-func (m *MottainaiScheduler) InitializeTimer(config *setting.Config) {
+func (m *MottainaiScheduler) InitializeTimer(config *setting.Config, sched specs.TaskScheduler) error {
 	var tid anagent.TimerID = "keepalive"
 
-	m.Timer(
-		tid, time.Now(),
-		time.Duration(config.GetScheduler().ScheduleTimerSec*time.Second),
+	err := sched.Setup()
+	if err != nil {
+		msg := "Something goes wrong with scheduler setup: " + err.Error()
+		return errors.New(msg)
+	}
+
+	duration, err := time.ParseDuration(fmt.Sprintf("%ds", config.GetScheduler().ScheduleTimerSec))
+	if err != nil {
+		return errors.New("Error on parse scheduler timer seconds: " + err.Error())
+	}
+
+	dSyncDflQueue, err := time.ParseDuration(
+		fmt.Sprintf("%ds", config.GetScheduler().SyncDefaultQueueTimerSec),
+	)
+	if err != nil {
+		return errors.New("Error on parse sync_default_queue_sec value: " + err.Error())
+	}
+
+	dSyncNodes, err := time.ParseDuration(
+		fmt.Sprintf("%ds", config.GetScheduler().SyncNodesTimerSec),
+	)
+	if err != nil {
+		return errors.New("Error on parse sync_nodes_sec value: " + err.Error())
+	}
+
+	m.Timer(tid, time.Now(), duration,
 		true,
-		func(a *anagent.Anagent, c *client.Fetcher) {
+		func(a *anagent.Anagent) {
+
+			err = sched.Schedule()
+			if err != nil {
+				fmt.Println("Error on schedule tasks " + err.Error())
+			}
 		})
+
+	m.Timer("align_nodes", time.Now(), dSyncNodes,
+		true,
+		func(a *anagent.Anagent) {
+			err = sched.RetrieveNodes()
+			if err != nil {
+				fmt.Println("Error on retrieve nodes " + err.Error())
+			}
+		})
+
+	m.Timer("sync_default_queue", time.Now().Add(dSyncDflQueue), dSyncDflQueue,
+		true,
+		func(a *anagent.Anagent) {
+			err = sched.RetrieveDefaultQueue()
+			if err != nil {
+				fmt.Println("Error on retrieve default queue " + err.Error())
+			}
+		})
+
+	return nil
 }
 
 func (m *MottainaiScheduler) Run() error {
+	var err error
 
 	m.Invoke(func(config *setting.Config) {
 		mcfg := config.ToMottainaiConfig()
@@ -71,14 +122,19 @@ func (m *MottainaiScheduler) Run() error {
 		m.Map(logger)
 
 		// Create Scheduler
-		s := scheduler.NewDefaultTaskScheduler(config, m)
+		s := scheduler.NewDefaultTaskScheduler(config, m.Anagent)
 		m.Map(s)
 
 		m.ID = utils.GenID()
 		m.Hostname = utils.Hostname()
 
-		m.InitializeTimer(config)
+		err = m.InitializeTimer(config, s)
 	})
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 
 	m.Start()
 	return errors.New("Scheduler stopped")

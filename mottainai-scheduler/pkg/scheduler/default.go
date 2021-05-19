@@ -59,7 +59,7 @@ func NewDefaultTaskScheduler(config *setting.Config, agent *anagent.Anagent) *De
 		Config:       config,
 		Scheduler:    agent,
 		DefaultQueue: "general",
-		Agents:       []nodes.Node{},
+		Agents:       make(map[string]nodes.Node, 0),
 		Mutex:        sync.Mutex{},
 	}
 
@@ -73,6 +73,21 @@ func NewDefaultTaskScheduler(config *setting.Config, agent *anagent.Anagent) *De
 	ans.Fetcher = fetcher
 
 	return ans
+}
+
+func (s *DefaultTaskScheduler) Setup() error {
+	// Initialize list of the nodes
+	err := s.RetrieveNodes()
+	if err != nil {
+		return err
+	}
+
+	err = s.RetrieveDefaultQueue()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *DefaultTaskScheduler) RetrieveDefaultQueue() error {
@@ -208,7 +223,7 @@ func (s *DefaultTaskScheduler) Schedule() error {
 		return err
 	}
 
-	if len(taskmap) > 0 {
+	if len(tasksmap) > 0 {
 		for nodeid, m := range tasksmap {
 
 			akey := s.Agents[nodeid].Key
@@ -250,14 +265,14 @@ func (s *DefaultTaskScheduler) Schedule() error {
 func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string, error) {
 	ans := make(map[string]map[string][]string, 0)
 
-	queues, err := s.GetQueues()
+	allQueues, err := s.GetQueues()
 	if err != nil {
 		return ans, err
 	}
 
 	queuesWithTasks := []queues.Queue{}
 	// Identify queues with tasks in waiting
-	for _, q := range queues {
+	for _, q := range allQueues {
 		if len(q.Waiting) > 0 {
 			queuesWithTasks = append(queuesWithTasks, q)
 		}
@@ -265,6 +280,7 @@ func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string
 
 	if len(queuesWithTasks) == 0 {
 		// Nothing to do
+		fmt.Println("No tasks available. Nothing to do.")
 		return ans, nil
 	}
 
@@ -284,8 +300,15 @@ func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string
 
 		if len(m) > 0 {
 			for idnode, tasks := range m {
+				if _, ok := ans[idnode]; !ok {
+					ans[idnode] = make(map[string][]string, 0)
+				}
 				ans[idnode][fmt.Sprintf("%s|%s", q.Name, q.Qid)] = tasks
 			}
+		} else {
+			fmt.Println(fmt.Sprintf(
+				"No agents available for queue %s. I will try later.",
+				q.Name))
 		}
 	}
 
@@ -294,6 +317,11 @@ func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string
 
 func (s *DefaultTaskScheduler) elaborateQueue(queue queues.Queue, nodeQueues []queues.NodeQueues) (map[string][]string, error) {
 	ans := make(map[string][]string, 0)
+
+	isDefaultQueue := false
+	if queue.Name == s.DefaultQueue {
+		isDefaultQueue = true
+	}
 
 	// Retrieve the list of agents with the specified queues
 	validAgents := []specs.NodeSlots{}
@@ -311,6 +339,25 @@ func (s *DefaultTaskScheduler) elaborateQueue(queue queues.Queue, nodeQueues []q
 			} else if len(tt) < maxTasks {
 				slot.AvailableSlot = maxTasks - len(tt)
 				validAgents = append(validAgents, slot)
+			}
+		} else if isDefaultQueue {
+			slot := specs.NodeSlots{
+				Key: nodeKey,
+			}
+			// POST:Push the task only
+			if !s.Agents[nodeKey].Standalone {
+				// Check if there are already task in queue
+				if qtasks, ok := node.Queues[queue.Name]; ok {
+					if len(qtasks) < s.Agents[nodeKey].Concurrency {
+						slot.AvailableSlot = s.Agents[nodeKey].Concurrency - len(qtasks)
+						validAgents = append(validAgents, slot)
+					}
+				} else {
+					// POST: the node doesn't contains queue tasks for the
+					//       default queue
+					slot.AvailableSlot = s.Agents[nodeKey].Concurrency
+					validAgents = append(validAgents, slot)
+				}
 			}
 		}
 	}
@@ -337,8 +384,6 @@ func (s *DefaultTaskScheduler) elaborateQueue(queue queues.Queue, nodeQueues []q
 			}
 		}
 	}
-
-	fmt.Println("FOR QUEUE ", queue, " : ", ans)
 
 	return ans, nil
 }
