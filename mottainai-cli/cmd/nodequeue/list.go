@@ -63,7 +63,6 @@ func newNodeQueueListCommand(config *setting.Config) *cobra.Command {
 				if req.Response != nil {
 					fmt.Println("ERROR: ", req.Response.StatusCode)
 					fmt.Println(string(req.ResponseRaw))
-					os.Exit(1)
 				}
 
 				log.Fatalln("error:", err)
