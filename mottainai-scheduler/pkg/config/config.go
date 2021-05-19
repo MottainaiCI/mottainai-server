@@ -44,8 +44,9 @@ type Config struct {
 }
 
 type SchedulerConfig struct {
-	ApiKey string   `mapstructure:"api_key" json:"api_key,omitempty" yaml:"api_key,omitempty"`
-	Queues []string `mapstructure:"queues" json:"queues,omitempty" yaml:"queues,omitempty"`
+	ApiKey         string   `mapstructure:"api_key" json:"api_key,omitempty" yaml:"api_key,omitempty"`
+	Queues         []string `mapstructure:"queues" json:"queues,omitempty" yaml:"queues,omitempty"`
+	ExcludedQueues []string `mapstructure:"excluded_queues" json:"excluded_queues,omitempty" yaml:"excluded_queues,omitempty"`
 
 	ScheduleTimerSec         int `mapstructure:"schedule_timer_sec" json:"schedule_timer_sec,omitempty" yaml:"schedule_timer_sec,omitempty"`
 	AgentDeadTimeoutSec      int `mapstructure:"agent_dead_timeout" json:"agent_dead_timeout,omitempty" yaml:"agent_dead_timeout,omitempty"`
@@ -89,6 +90,7 @@ func GenDefault(viper *v.Viper) {
 
 	viper.SetDefault("scheduler.api_key", "")
 	viper.SetDefault("scheduler.queues", []string{})
+	viper.SetDefault("scheduler.excluded_queues", []string{})
 	viper.SetDefault("scheduler.schedule_timer_sec", 5)
 	viper.SetDefault("scheduler.agent_dead_timeout", 1200)
 	// Check default queue name every hour

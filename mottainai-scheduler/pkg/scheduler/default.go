@@ -37,6 +37,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 	msetting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
@@ -185,6 +186,17 @@ func (s *DefaultTaskScheduler) GetQueues() ([]queues.Queue, error) {
 	err := s.Fetcher.Handle(req)
 	if err != nil {
 		return n, err
+	}
+
+	if len(s.Config.GetScheduler().ExcludedQueues) > 0 && len(n) > 0 {
+		filtered := []queues.Queue{}
+		for _, q := range n {
+			if utils.ArrayContainsString(s.Config.GetScheduler().ExcludedQueues, q.Name) {
+				continue
+			}
+			filtered = append(filtered, q)
+		}
+		n = filtered
 	}
 
 	return n, nil
