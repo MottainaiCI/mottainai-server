@@ -41,8 +41,12 @@ type Database struct {
 	CertPath, KeyPath        string
 }
 
-var Collections = []string{WebHookColl, TaskColl, SecretColl,
-	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
+var Collections = []string{
+	WebHookColl, TaskColl, SecretColl,
+	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl,
+	TokenColl, ArtefactColl, StorageColl, OrganizationColl,
+	SettingColl, QueueColl, NodeQueuesColl,
+}
 
 func New(db, u, p, cp, kp string, e []string) *Database {
 	return &Database{Anagent: anagent.New(), Database: db, Endpoints: e, CertPath: cp, KeyPath: kp, DBUser: u, DBPass: p}
@@ -90,6 +94,8 @@ func (d *Database) Init() {
 	d.IndexPipeline()
 	d.IndexSecret()
 	d.IndexWebHook()
+	d.IndexNodeQueue()
+	d.IndexQueue()
 }
 
 func (d *Database) AddIndex(coll string, i []string) error {
