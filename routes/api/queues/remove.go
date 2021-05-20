@@ -145,3 +145,45 @@ func DelTask(queue NodeQueue, ctx *context.Context, db *database.Database) error
 	ctx.APIActionSuccess()
 	return nil
 }
+
+func DelPipelineInWaiting(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	pid := ctx.Params(":pid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if pid == "" {
+		return errors.New("Invalid pipeline id")
+	}
+
+	err := db.Driver.DelPipelineInWaiting2Queue(qid, pid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func DelPipelineInProgress(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	pid := ctx.Params(":pid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if pid == "" {
+		return errors.New("Invalid pipeline id")
+	}
+
+	err := db.Driver.DelPipelineInProgress2Queue(qid, pid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}

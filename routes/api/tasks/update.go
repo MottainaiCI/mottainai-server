@@ -24,9 +24,11 @@ package tasksapi
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	logrus "github.com/sirupsen/logrus"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -34,19 +36,19 @@ import (
 )
 
 type UpdateTaskForm struct {
-	Id         string `form:"id" binding:"Required"`
-	Status     string `form:"status"`
-	Result     string `form:"result"`
-	Output     string `form:"output"`
-	ExitStatus string `form:"exit_status"`
-	Field      string `form:"field"`
-	Value      string `form:"value"`
-	Key        string ` form:"key"`
+	Id        string `form:"id" binding:"Required"`
+	Status    string `form:"status"`
+	Result    string `form:"result"`
+	Output    string `form:"output"`
+	xitStatus string `form:"exit_status"`
+	Field     string `form:"field"`
+	Value     string `form:"value"`
+	Key       string ` form:"key"`
 }
 
 func SyncTaskLastUpdate(id string, db *database.Database) {
 	db.Driver.UpdateTask(id, map[string]interface{}{
-		"last_update_time": time.Now().Format("20060102150405"),
+		"last_update_time": time.Now().UTC().Format("20060102150405"),
 	})
 }
 
@@ -107,9 +109,9 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 		return err
 	}
 	db.Driver.UpdateTask(f.Id, map[string]interface{}{
-		"node_id": node.ID,
+		"node_id":          node.ID,
+		"last_update_time": time.Now().UTC().Format("20060102150405"),
 	})
-	SyncTaskLastUpdate(f.Id, db)
 
 	ctx.APIActionSuccess()
 
@@ -146,33 +148,77 @@ func AppendToTask(logger *logging.Logger, f UpdateTaskForm, ctx *context.Context
 }
 
 func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) error {
-
 	t, err := db.Driver.GetTask(db.Config, f.Id)
 	if err != nil {
 		return errors.New("Task not found")
 	}
 
+	upd := map[string]interface{}{}
+	updtime := time.Now().UTC().Format("20060102150405")
+
 	if len(f.Status) > 0 {
-		db.Driver.UpdateTask(f.Id, map[string]interface{}{
-			"status": f.Status,
-		})
+		upd["status"] = f.Status
+		if f.Status == setting.TASK_STATE_RUNNING {
+			upd["start_time"] = updtime
+		}
 	}
 
 	if len(f.Output) > 0 {
-		db.Driver.UpdateTask(f.Id, map[string]interface{}{
-			"output": f.Output,
-		})
+		upd["output"] = f.Output
 	}
 
 	if len(f.Result) > 0 {
-		db.Driver.UpdateTask(f.Id, map[string]interface{}{
-			"result":   f.Result,
-			"end_time": time.Now().UTC().Format("20060102150405"),
-		})
+		upd["result"] = f.Result
+		upd["end_time"] = updtime
 	}
 
-	t.HandleStatus(db.Config.GetStorage().NamespacePath, db.Config.GetStorage().ArtefactPath)
-	SyncTaskLastUpdate(f.Id, db)
+	if len(upd) > 0 {
+		upd["last_update_time"] = updtime
+		db.Driver.UpdateTask(f.Id, upd)
+
+		t.HandleStatus(
+			db.Config.GetStorage().NamespacePath,
+			db.Config.GetStorage().ArtefactPath,
+		)
+	}
+
+	if f.Status == setting.TASK_STATE_RUNNING && t.PipelineID != "" {
+		// Retrieve pipeline
+		pipeline, err := db.Driver.GetPipeline(db.Config, t.PipelineID)
+		if err == nil && pipeline.ID != "" {
+			// Check if the pipeline is already in queue as in progress
+			queue, err := db.Driver.GetQueueByKey(pipeline.Queue)
+			if err != nil {
+				fmt.Println("Error on retrieve queue data for queue " + pipeline.Queue +
+					": " + err.Error())
+			} else {
+				if queue.Qid == "" {
+					fmt.Println("Error on retrieve queue data for queue " + pipeline.Queue + ".")
+				} else if !queue.HasPipelineRunning(t.PipelineID) {
+					err = db.Driver.AddPipelineInWaiting2Queue(queue.Qid, t.PipelineID)
+					if err != nil {
+						fmt.Println("Error on add pipeline " + t.PipelineID +
+							" in the waiting queue for queue " + queue.Qid)
+					}
+
+					// Update start time of the pipeline
+					err = db.Driver.UpdatePipeline(t.PipelineID, map[string]interface{}{
+						"start_time": updtime,
+					})
+					if err != nil {
+						fmt.Println("Error on update pipeline start time " + err.Error())
+					}
+				}
+			}
+
+		} else if err != nil {
+			// else ignoring invalid pipeline
+			fmt.Println("Error on retrieve pipeline data for task " +
+				t.ID + ": " + err.Error())
+		}
+
+	}
+
 	ctx.APIActionSuccess()
 	return nil
 }
