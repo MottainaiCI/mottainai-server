@@ -296,3 +296,163 @@ func (d *Database) DelTaskInWaiting2Queue(qid, taskid string) error {
 
 	return err
 }
+
+func (d *Database) AddPipelineInProgress2Queue(qid, pipelineid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
+	ud := time.Now().UTC().Format("20060102150405")
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	pipelines := q.PipelinesInProgress
+	npipelines := []string{}
+
+	present := false
+	for _, p := range pipelines {
+		if p == pipelineid {
+			present = true
+			break
+		}
+		npipelines = append(npipelines, p)
+	}
+
+	if present {
+		return errors.New("pipeline already present in queue")
+	}
+
+	// Check if task is in waiting. If yes i will drop it.
+	pipelines = q.PipelinesWaiting
+	wpipelines := []string{}
+	for _, p := range pipelines {
+		if p == pipelineid {
+			continue
+		}
+		wpipelines = append(wpipelines, p)
+	}
+
+	npipelines = append(npipelines, pipelineid)
+
+	m := map[string]interface{}{
+		"qid":  q.Qid,
+		"name": q.Name,
+		//		"tasks_waiting":        q.Waiting,
+		//		"tasks_inprogress":     q.InProgress,
+		"pipelines_inprogress": npipelines,
+		"pipelines_waiting":    wpipelines,
+		"creation_date":        q.CreationDate,
+		"update_date":          ud,
+	}
+
+	err = d.UpdateQueue(q.ID, m)
+
+	return err
+}
+
+func (d *Database) DelPipelineInProgress2Queue(qid, pipelineid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	pipelines := q.PipelinesInProgress
+	npipelines := []string{}
+
+	for _, p := range pipelines {
+		if p == pipelineid {
+			continue
+		}
+
+		npipelines = append(npipelines, p)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"pipelines_inprogress": npipelines,
+		"update_date":          ud,
+	})
+
+	return err
+}
+
+func (d *Database) AddPipelineInWaiting2Queue(qid, pipelineid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
+	ud := time.Now().UTC().Format("20060102150405")
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	pipelines := q.PipelinesWaiting
+	npipelines := []string{}
+
+	present := false
+	for _, p := range pipelines {
+		if p == pipelineid {
+			present = true
+			break
+		}
+		npipelines = append(npipelines, p)
+	}
+
+	if present {
+		return errors.New("pipeline already present in queue")
+	}
+
+	npipelines = append(npipelines, pipelineid)
+
+	m := map[string]interface{}{
+		"qid":  q.Qid,
+		"name": q.Name,
+		//		"tasks_waiting":        q.Waiting,
+		//		"tasks_inprogress":     q.InProgress,
+		"pipelines_waiting": npipelines,
+		"update_date":       ud,
+	}
+
+	err = d.UpdateQueue(q.ID, m)
+
+	return err
+}
+
+func (d *Database) DelPipelineInWaiting2Queue(qid, pipelineid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	pipelines := q.PipelinesWaiting
+	npipelines := []string{}
+
+	for _, p := range pipelines {
+		if p == pipelineid {
+			continue
+		}
+
+		npipelines = append(npipelines, p)
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"pipelines_waiting": npipelines,
+		"update_date":       ud,
+	})
+
+	return err
+}

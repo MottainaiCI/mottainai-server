@@ -28,13 +28,15 @@ import (
 )
 
 type Queue struct {
-	ID           string   `json:"ID"`
-	Qid          string   `form:"qid" json:"qid"`
-	Name         string   `json:"name" form:"name"`
-	Waiting      []string `json:"tasks_waiting" form:"waiting_tasks"`
-	InProgress   []string `json:"tasks_inprogress" form:"tasks_inprogress"`
-	CreationDate string   `json:"creation_date" form:"creation_date"`
-	UpdateDate   string   `json:"update_date" form:"update_date"`
+	ID                  string   `json:"ID"`
+	Qid                 string   `form:"qid" json:"qid"`
+	Name                string   `json:"name" form:"name"`
+	Waiting             []string `json:"tasks_waiting" form:"waiting_tasks"`
+	InProgress          []string `json:"tasks_inprogress" form:"tasks_inprogress"`
+	PipelinesInProgress []string `json:"pipelines_inprogress,omitempty" form:"pipelines_inprogress"`
+	PipelinesWaiting    []string `json:"pipelines_waiting,omitempty" form:"pipelines_waiting"`
+	CreationDate        string   `json:"creation_date" form:"creation_date"`
+	UpdateDate          string   `json:"update_date" form:"update_date"`
 }
 
 func NewFromJson(data []byte) Queue {
@@ -54,6 +56,8 @@ func NewQueueFromMap(q map[string]interface{}) Queue {
 
 	progress := []string{}
 	waiting := []string{}
+	pipelineInProgress := []string{}
+	pipelineWaiting := []string{}
 
 	if str, ok := q["qid"].(string); ok {
 		qid = str
@@ -87,13 +91,31 @@ func NewQueueFromMap(q map[string]interface{}) Queue {
 		}
 	}
 
+	if arr, ok := q["pipelines_inprogress"].([]interface{}); ok {
+		if len(arr) > 0 {
+			for _, t := range arr {
+				pipelineInProgress = append(pipelineInProgress, t.(string))
+			}
+		}
+	}
+
+	if arr, ok := q["pipelines_waiting"].([]interface{}); ok {
+		if len(arr) > 0 {
+			for _, t := range arr {
+				pipelineWaiting = append(pipelineWaiting, t.(string))
+			}
+		}
+	}
+
 	queue := Queue{
-		Qid:          qid,
-		Name:         name,
-		Waiting:      waiting,
-		InProgress:   progress,
-		CreationDate: cd,
-		UpdateDate:   ud,
+		Qid:                 qid,
+		Name:                name,
+		Waiting:             waiting,
+		InProgress:          progress,
+		PipelinesWaiting:    pipelineWaiting,
+		PipelinesInProgress: pipelineInProgress,
+		CreationDate:        cd,
+		UpdateDate:          ud,
 	}
 	return queue
 }
@@ -112,4 +134,37 @@ func (t *Queue) ToMap() map[string]interface{} {
 	}
 
 	return ts
+}
+
+func (q *Queue) HasPipelineRunning(pid string) bool {
+	ans := false
+	for _, p := range q.PipelinesInProgress {
+		if p == pid {
+			ans = true
+			break
+		}
+	}
+	return ans
+}
+
+func (q *Queue) HasTaskInWaiting(tid string) bool {
+	ans := false
+	for _, t := range q.Waiting {
+		if t == tid {
+			ans = true
+			break
+		}
+	}
+	return ans
+}
+
+func (q *Queue) HasTaskInRunning(tid string) bool {
+	ans := false
+	for _, t := range q.InProgress {
+		if t == tid {
+			ans = true
+			break
+		}
+	}
+	return ans
 }

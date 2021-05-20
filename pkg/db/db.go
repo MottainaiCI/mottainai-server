@@ -254,6 +254,10 @@ type DatabaseDriver interface {
 	DelTaskInProgress2Queue(qid, taskid string) error
 	AddTaskInWaiting2Queue(qid, taskid string) error
 	DelTaskInWaiting2Queue(qid, taskid string) error
+	AddPipelineInProgress2Queue(qid, pipelineid string) error
+	DelPipelineInProgress2Queue(qid, pipelineid string) error
+	AddPipelineInWaiting2Queue(qid, pipelineid string) error
+	DelPipelineInWaiting2Queue(qid, pipelineid string) error
 }
 
 // For future, now in PoC state will just support
