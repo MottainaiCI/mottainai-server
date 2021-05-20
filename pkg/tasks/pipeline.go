@@ -36,21 +36,22 @@ import (
 type Pipeline struct {
 	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
 
-	Chain []string        `json:"chain" form:"chain"`
-	Chord []string        `json:"chord" form:"chord"`
-	Group []string        `json:"group" form:"group"`
+	Chain []string        `json:"chain,omitempty" form:"chain"`
+	Chord []string        `json:"chord,omitempty" form:"chord"`
+	Group []string        `json:"group,omitempty" form:"group"`
 	Tasks map[string]Task `json:"tasks" form:"tasks"`
 
-	Queue string `json:"queue" form:"queue"`
+	Queue string `json:"queue" form:"queue,omitempty"`
 	//Status       string   `json:"status" form:"status"`
 	//Result       string   `json:"result" form:"result"`
-	Retry string `json:"retry" form:"retry"`
+	Retry string `json:"retry" form:"retry,omitempty"`
 
 	Owner       string `json:"pipeline_owner_id" form:"pipeline_owner_id"`
 	Name        string `json:"pipeline_name" form:"pipeline_name"`
 	CreatedTime string `json:"created_time" form:"created_time"`
-	StartTime   string `json:"start_time" form:"start_time"`
-	EndTime     string `json:"end_time" form:"end_time"`
+	StartTime   string `json:"start_time,omitempty" form:"start_time"`
+	EndTime     string `json:"end_time,omitempty" form:"end_time"`
+	UpdateTime  string `json:"update_time" form:"update_time"`
 	Concurrency string `json:"concurrency" form:"concurrency"`
 }
 
