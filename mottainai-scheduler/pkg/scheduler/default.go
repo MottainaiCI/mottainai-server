@@ -37,6 +37,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 	msetting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -264,7 +265,8 @@ func (s *DefaultTaskScheduler) Schedule() error {
 						return err
 					}
 					if resp.Status == "ko" {
-						return errors.New("Error on delete task " + tid + " from queue " + fields[0])
+						return errors.New("Error on delete task " + tid +
+							" from queue " + fields[0])
 					}
 				}
 			}
@@ -285,14 +287,14 @@ func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string
 	queuesWithTasks := []queues.Queue{}
 	// Identify queues with tasks in waiting
 	for _, q := range allQueues {
-		if len(q.Waiting) > 0 {
+		if len(q.Waiting) > 0 || len(q.PipelinesInProgress) > 0 {
 			queuesWithTasks = append(queuesWithTasks, q)
 		}
 	}
 
 	if len(queuesWithTasks) == 0 {
 		// Nothing to do
-		fmt.Println("No tasks available. Nothing to do.")
+		fmt.Println("No tasks or pipeline available. Nothing to do.")
 		return ans, nil
 	}
 
@@ -303,28 +305,254 @@ func (s *DefaultTaskScheduler) GetTasks2Inject() (map[string]map[string][]string
 	}
 
 	for _, q := range queuesWithTasks {
-		m, err := s.elaborateQueue(q, nodeQueues)
-		if err != nil {
-			fmt.Println(fmt.Sprintf("Error on elaborate queue %s: %s",
-				q, err.Error()))
-			continue
+		if len(q.Waiting) > 0 {
+			m, err := s.elaborateQueue(q, nodeQueues)
+			if err != nil {
+				fmt.Println(fmt.Sprintf("Error on elaborate queue %s: %s",
+					q, err.Error()))
+				continue
+			}
+
+			if len(m) > 0 {
+				for idnode, tasks := range m {
+					if _, ok := ans[idnode]; !ok {
+						ans[idnode] = make(map[string][]string, 0)
+					}
+					ans[idnode][fmt.Sprintf("%s|%s", q.Name, q.Qid)] = tasks
+				}
+			} else {
+				fmt.Println(fmt.Sprintf(
+					"No agents available for queue %s. I will try later.",
+					q.Name))
+			}
 		}
 
-		if len(m) > 0 {
-			for idnode, tasks := range m {
-				if _, ok := ans[idnode]; !ok {
-					ans[idnode] = make(map[string][]string, 0)
+		if len(q.PipelinesInProgress) > 0 {
+			for _, pid := range q.PipelinesInProgress {
+				err = s.AnalyzePipeline(pid, q)
+				if err != nil {
+					fmt.Println("Error on analyze pipeline " + pid + ": " + err.Error())
 				}
-				ans[idnode][fmt.Sprintf("%s|%s", q.Name, q.Qid)] = tasks
 			}
-		} else {
-			fmt.Println(fmt.Sprintf(
-				"No agents available for queue %s. I will try later.",
-				q.Name))
 		}
+
 	}
 
 	return ans, nil
+}
+
+func (s *DefaultTaskScheduler) FailTask(tid, errmsg string) error {
+
+	req := &schema.Request{
+		Route: v1.Schema.GetTaskRoute("update"),
+		Options: map[string]interface{}{
+			"id":     tid,
+			"result": msetting.TASK_RESULT_FAILED,
+			"status": msetting.TASK_STATE_DONE,
+		},
+	}
+
+	_, err := s.Fetcher.HandleAPIResponse(req)
+	if err != nil {
+		return err
+	}
+
+	req = &schema.Request{
+		Route: v1.Schema.GetTaskRoute("append"),
+		Options: map[string]interface{}{
+			"id":     tid,
+			"output": errmsg,
+		},
+	}
+
+	_, err = s.Fetcher.HandleAPIResponse(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *DefaultTaskScheduler) addTask2Queue(qid, tid string) error {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("add_task"),
+		Options: map[string]interface{}{
+			":qid": qid,
+			":tid": tid,
+		},
+	}
+
+	_, err := s.Fetcher.HandleAPIResponse(req)
+
+	return err
+}
+
+func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error {
+	allTasksDone := true
+	var p tasks.Pipeline
+
+	// Retrieve pipeline data
+	req := &schema.Request{
+		Route: v1.Schema.GetTaskRoute("pipeline_show"),
+		Options: map[string]interface{}{
+			":id": pid,
+		},
+		Target: &p,
+	}
+
+	err := s.Fetcher.Handle(req)
+	if err != nil {
+		return err
+	}
+
+	if len(p.Chain) > 0 {
+		// POST: Chain pipeline
+		// I need check if there is a new task to inject
+		pipelineInError := false
+
+		for _, t := range p.Chain {
+
+			if pipelineInError {
+				// POST: set the task in error
+				err = s.FailTask(p.Tasks[t].ID,
+					"Task in error a cause to errors with other "+
+						"tasks of the pipeline: "+err.Error())
+			}
+
+			if p.Tasks[t].Status == msetting.TASK_STATE_RUNNING {
+				// POST: nothing to do. we wait for the end.
+				allTasksDone = false
+				break
+			}
+
+			if p.Tasks[t].Status == msetting.TASK_STATE_STOPPED ||
+				p.Tasks[t].Status == msetting.TASK_STATE_ASK_STOP ||
+				(p.Tasks[t].Status == msetting.TASK_STATE_DONE &&
+					(p.Tasks[t].Result == msetting.TASK_RESULT_ERROR ||
+						p.Tasks[t].Result == msetting.TASK_RESULT_FAILED)) {
+				pipelineInError = true
+				allTasksDone = false
+				continue
+			}
+
+			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
+				allTasksDone = false
+				if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
+					!q.HasTaskInWaiting(p.Tasks[t].ID) {
+					// POST: The task
+					err = s.addTask2Queue(q.Qid, p.Tasks[t].ID)
+					if err != nil {
+						fmt.Println("Error on add task " + p.Tasks[t].ID +
+							" in queue " + q.Qid)
+					}
+				}
+				break
+			}
+
+		}
+
+	} else if len(p.Chord) > 0 {
+		// POST: Chord pipeline
+		//       I need wait for all tasks in group before run
+		//       the finals tasks.
+
+		pipelineInError := false
+
+		for _, t := range p.Group {
+			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
+				allTasksDone = false
+				break
+			} else if p.Tasks[t].Result == msetting.TASK_RESULT_FAILED ||
+				p.Tasks[t].Result == msetting.TASK_RESULT_ERROR {
+				pipelineInError = true
+				break
+			}
+		}
+
+		if pipelineInError {
+			// POST: Set in error all chord tasks
+			for _, t := range p.Chord {
+				err = s.FailTask(p.Tasks[t].ID,
+					"Task in error a cause to errors with other "+
+						"tasks of the pipeline: "+err.Error())
+			}
+		} else if allTasksDone {
+			// POST: we need run the chord tasks
+
+			for _, t := range p.Chord {
+
+				if pipelineInError {
+					// POST: set the task in error
+					err = s.FailTask(p.Tasks[t].ID,
+						"Task in error a cause to errors with other "+
+							"tasks of the pipeline: "+err.Error())
+				}
+
+				if p.Tasks[t].Status == msetting.TASK_STATE_RUNNING {
+					// POST: nothing to do. we wait for the end.
+					allTasksDone = false
+					break
+				}
+
+				if p.Tasks[t].Status == msetting.TASK_STATE_STOPPED ||
+					p.Tasks[t].Status == msetting.TASK_STATE_ASK_STOP ||
+					(p.Tasks[t].Status == msetting.TASK_STATE_DONE &&
+						(p.Tasks[t].Result == msetting.TASK_RESULT_ERROR ||
+							p.Tasks[t].Result == msetting.TASK_RESULT_FAILED)) {
+					pipelineInError = true
+					allTasksDone = false
+					continue
+				}
+
+				if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
+					allTasksDone = false
+					if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
+						!q.HasTaskInWaiting(p.Tasks[t].ID) {
+						// POST: The task
+						err = s.addTask2Queue(q.Qid, p.Tasks[t].ID)
+						if err != nil {
+							fmt.Println("Error on add task " + p.Tasks[t].ID +
+								" in queue " + q.Qid)
+						}
+					}
+					break
+				}
+			}
+		}
+
+	} else {
+		// POST: Groups pipeline
+		//       If all tasks are completed i can delete the pipeline from the queue
+
+		for _, t := range p.Group {
+			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
+				allTasksDone = false
+				break
+			}
+		}
+
+	}
+
+	if allTasksDone {
+		req := &schema.Request{
+			Route: v1.Schema.GetQueueRoute("del_pipeline_in_progress"),
+			Options: map[string]interface{}{
+				":qid": q.Qid,
+				":pid": pid,
+			},
+		}
+
+		_, err := s.Fetcher.HandleAPIResponse(req)
+		if err != nil {
+			if req.Response != nil {
+				fmt.Println("ERROR: ", req.Response.StatusCode)
+				fmt.Println(string(req.ResponseRaw))
+			}
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *DefaultTaskScheduler) elaborateQueue(queue queues.Queue, nodeQueues []queues.NodeQueues) (map[string][]string, error) {
