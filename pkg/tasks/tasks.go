@@ -737,7 +737,9 @@ func (t *Task) OnFailure() {
 
 func (t *Task) OnSuccess(namespacePath string, artefactPath string) {
 	if len(t.TagNamespace) > 0 {
-		ns := namespace.NewFromMap(map[string]interface{}{"name": t.TagNamespace, "path": t.TagNamespace})
+		ns := namespace.NewFromMap(map[string]interface{}{
+			"name": t.TagNamespace, "path": t.TagNamespace,
+		})
 		if t.IsPublishAppendMode() {
 			ns.Append(t.ID, namespacePath, artefactPath)
 		} else {
