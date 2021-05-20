@@ -40,6 +40,10 @@ func NewQueueCommand(config *setting.Config) *cobra.Command {
 		newQueueAddTaskInWaitingCommand(config),
 		newQueueDelTaskInWaitingCommand(config),
 		newQueueGetQidCommand(config),
+		newQueueAddPipelineInWaitingCommand(config),
+		newQueueDelPipelineInWaitingCommand(config),
+		newQueueAddPipelineInProgressCommand(config),
+		newQueueDelPipelineInProgressCommand(config),
 	)
 
 	return cmd
