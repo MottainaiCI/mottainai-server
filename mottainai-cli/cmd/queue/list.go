@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package queue
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -45,6 +46,8 @@ func newQueueListCommand(config *setting.Config) *cobra.Command {
 			var queues_table [][]string
 			var v *viper.Viper = config.Viper
 
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+
 			fetcher := client.NewTokenClient(
 				v.GetString("master"), v.GetString("apikey"), config,
 			)
@@ -58,32 +61,45 @@ func newQueueListCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("error:", err)
 			}
 
-			for _, i := range n {
-				queues_table = append(queues_table,
-					[]string{
-						i.Qid, i.Name,
-						fmt.Sprintf("%d", len(i.Waiting)),
-						fmt.Sprintf("%d", len(i.InProgress)),
-						i.CreationDate, i.UpdateDate,
-					},
-				)
-			}
+			if jsonOutput {
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{
-				"Queue Id", "Queue Name", "# Waiting Tasks",
-				"# In Progress Tasks", "Creation Date",
-				"Update Date",
-			})
+				data, _ := json.Marshal(n)
+				fmt.Println(string(data))
+			} else {
 
-			for _, v := range queues_table {
-				table.Append(v)
+				for _, i := range n {
+					queues_table = append(queues_table,
+						[]string{
+							i.Qid, i.Name,
+							fmt.Sprintf("%d", len(i.Waiting)),
+							fmt.Sprintf("%d", len(i.InProgress)),
+							fmt.Sprintf("%d", len(i.PipelinesWaiting)),
+							fmt.Sprintf("%d", len(i.PipelinesInProgress)),
+							i.CreationDate, i.UpdateDate,
+						},
+					)
+				}
+
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+				table.SetCenterSeparator("|")
+				table.SetHeader([]string{
+					"Queue Id", "Queue Name",
+					"# Waiting Tasks", "# In Progress Tasks",
+					"# Waiting Pipelines", "# In Progress Pipelines",
+					"Creation Date", "Update Date",
+				})
+
+				for _, v := range queues_table {
+					table.Append(v)
+				}
+				table.Render()
 			}
-			table.Render()
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }
