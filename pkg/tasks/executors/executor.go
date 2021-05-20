@@ -33,7 +33,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -353,9 +352,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 	fetcher.SetupTask()
 	d.Report("Node: " + ID + " ( " + hostname + " ) ")
-	fetcher.SetTaskField("nodeid", ID)
 	fetcher.RunTask()
-	fetcher.SetTaskField("start_time", time.Now().UTC().Format("20060102150405"))
 	fetcher.QueueAddTaskInProgress(qid, task_info.ID)
 	d.Report("> Build started!\n")
 
