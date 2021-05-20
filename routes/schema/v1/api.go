@@ -229,6 +229,22 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Type:        "get",
 			ContentType: schema.ContentTypeJson,
 		},
+		"add_pipeline_in_progress": &schema.APIRoute{
+			Path: "/api/queues/:qid/pipeline-in-progress/:pid",
+			Type: "post",
+		},
+		"del_pipeline_in_progress": &schema.APIRoute{
+			Path: "/api/queues/:qid/pipeline-in-progress/:pid",
+			Type: "delete",
+		},
+		"add_pipeline": &schema.APIRoute{
+			Path: "/api/queues/:qid/pipeline/:pid",
+			Type: "post",
+		},
+		"del_pipeline": &schema.APIRoute{
+			Path: "/api/queues/:qid/pipeline/:pid",
+			Type: "delete",
+		},
 	},
 	Task: map[string]schema.Route{
 		"show_all":          &schema.APIRoute{Path: "/api/tasks", Type: "get"},

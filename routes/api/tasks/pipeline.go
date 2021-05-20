@@ -94,7 +94,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) (*task.Pipeline, 
 	}
 
 	if !ctx.CheckPipelinePermissions(&pip) {
-		return &task.Pipeline{}, errors.New("Moar permissions are required for this user")
+		return &task.Pipeline{}, errors.New("More permissions are required for this user")
 	}
 
 	for k, t := range pip.Tasks {
@@ -139,6 +139,21 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 	opts := o.Pipeline
 	opts.Tasks = tasks
 	opts.Reset()
+
+	// Retrieve default queue
+	defaultQueue := "general"
+	df, _ := db.Driver.GetSettingByKey(
+		setting.SYSTEM_TASKS_DEFAULT_QUEUE,
+	)
+
+	if df.Value != "" {
+		defaultQueue = df.Value
+	}
+
+	if opts.Queue == "" {
+		opts.Queue = defaultQueue
+	}
+
 	// XX: aggiornare i task!
 	for i, t := range opts.Tasks {
 		f := opts.Tasks[i]
@@ -151,6 +166,10 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 			return nil
 		}
 		f.Status = setting.TASK_STATE_WAIT
+
+		if f.Queue == "" {
+			f.Queue = defaultQueue
+		}
 
 		id, err := db.Driver.CreateTask(f.ToMap())
 		if err != nil {

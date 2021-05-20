@@ -129,3 +129,45 @@ func AddTaskInWaiting(ctx *context.Context, db *database.Database) error {
 	ctx.APIActionSuccess()
 	return nil
 }
+
+func AddPipelineInProgress(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	pid := ctx.Params(":pid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if pid == "" {
+		return errors.New("Invalid pipeline id")
+	}
+
+	err := db.Driver.AddPipelineInProgress2Queue(qid, pid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
+func AddPipelineInWaiting(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+	pid := ctx.Params(":pid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	if pid == "" {
+		return errors.New("Invalid pipeline id")
+	}
+
+	err := db.Driver.AddPipelineInWaiting2Queue(qid, pid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
