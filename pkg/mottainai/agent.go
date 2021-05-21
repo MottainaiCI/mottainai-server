@@ -28,6 +28,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
@@ -149,6 +152,20 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 }
 
 func (m *MottainaiAgent) Run() error {
+
+	signalChannel := make(chan os.Signal, 2)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		sig := <-signalChannel
+		switch sig {
+		case os.Interrupt:
+			fmt.Println("Received SIGINT event. Shutdown.")
+		case syscall.SIGTERM:
+			fmt.Println("Received SIGTERM event. Shutdown.")
+		}
+
+		m.Stop()
+	}()
 
 	m.Invoke(func(config *setting.Config) {
 		logger := logging.New()
