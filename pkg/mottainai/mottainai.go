@@ -35,6 +35,7 @@ import (
 	logging "github.com/MottainaiCI/mottainai-server/pkg/logging"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	static "github.com/MottainaiCI/mottainai-server/pkg/static"
+	agenttask "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	template "github.com/MottainaiCI/mottainai-server/pkg/template"
 	logrus "github.com/sirupsen/logrus"
@@ -290,6 +291,7 @@ func (m *Mottainai) ProcessPipeline(docID string) (bool, error) {
 		if len(pip.Chain) > 0 {
 			// POST: Chain pipeline
 			//       In this this i send only the first task
+			fmt.Println("Processing chain pipeline " + pip.ID)
 
 			_, err := m.SendTask(pip.Tasks[pip.Chain[0]].ID)
 			if err != nil {
@@ -373,6 +375,72 @@ func (m *Mottainai) processableTask(docID string) error {
 	return resultError
 }
 
+func (m *Mottainai) CreateTask(task *agenttask.Task) error {
+	var ans error
+	m.Invoke(func(db *database.Database) {
+		if task.Queue == "" {
+			// Retrieve default queue.
+			defaultQueue, _ := db.Driver.GetSettingByKey(
+				setting.SYSTEM_TASKS_DEFAULT_QUEUE,
+			)
+
+			if defaultQueue.Value == "" {
+				task.Queue = "general"
+			} else {
+				task.Queue = defaultQueue.Value
+			}
+		}
+
+		docID, err := db.Driver.InsertTask(task)
+		if err != nil {
+			ans = err
+			return
+		}
+
+		task.ID = docID
+	})
+
+	return ans
+}
+
+func (m *Mottainai) PrepareTaskQueue(task agenttask.Task) (string, error) {
+	var ansErr error
+	var ansQid string
+
+	m.Invoke(func(d *database.Database) {
+		// Check if exists the queue
+		q, err := d.Driver.GetQueueByKey(task.Queue)
+		if err != nil {
+			ansErr = errors.New("Failed on retrieve queue data")
+			return
+
+		} else if q.Qid == "" {
+			// POST: create the queue
+			ct := time.Now().UTC().Format("20060102150405")
+			qid, _ := uuid.NewV4()
+
+			_, err = d.Driver.CreateQueue(map[string]interface{}{
+				"qid":              qid.String(),
+				"name":             task.Queue,
+				"tasks_waiting":    []string{task.ID},
+				"tasks_inprogress": []string{},
+				"creation_date":    ct,
+				"update_date":      ct,
+			})
+
+			if err != nil {
+				ansErr = errors.New("Error on create the task queue: " + err.Error())
+				return
+			}
+			ansQid = qid.String()
+		} else {
+			ansQid = q.Qid
+		}
+	})
+
+	return ansQid, ansErr
+}
+
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := false
 	var err error
@@ -395,37 +463,16 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			return
 		}
 
-		// Check if exists the queue
-		q, err := d.Driver.GetQueueByKey(task.Queue)
+		qid, err := m.PrepareTaskQueue(task)
 		if err != nil {
-			err = errors.New("Failed on retrieve queue data")
 			return
+		}
 
-		} else if q.Qid == "" {
-			// POST: create the queue
-			ct := time.Now().UTC().Format("20060102150405")
-			qid, _ := uuid.NewV4()
-
-			_, err = d.Driver.CreateQueue(map[string]interface{}{
-				"qid":              qid.String(),
-				"name":             task.Queue,
-				"tasks_waiting":    []string{docID},
-				"tasks_inprogress": []string{},
-				"creation_date":    ct,
-				"update_date":      ct,
-			})
-
-			if err != nil {
-				err = errors.New("Error on create the task queue: " + err.Error())
-				return
-			}
-		} else {
-			// POST: add task to the queue
-			err = d.Driver.AddTaskInWaiting2Queue(q.Qid, docID)
-			if err != nil {
-				err = errors.New("Error on add task in queue: " + err.Error())
-				return
-			}
+		// POST: add task to the queue
+		err = d.Driver.AddTaskInWaiting2Queue(qid, docID)
+		if err != nil {
+			err = errors.New("Error on add task in queue: " + err.Error())
+			return
 		}
 
 		task.ClearBuildLog(config.GetStorage().ArtefactPath)
