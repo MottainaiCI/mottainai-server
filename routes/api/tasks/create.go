@@ -24,12 +24,11 @@ package tasksapi
 
 import (
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -47,12 +46,7 @@ func Create(m *mottainai.Mottainai, ctx *context.Context,
 	db *database.Database, opts agenttasks.Task) (string, error) {
 
 	opts.Reset()
-
-	opts.Output = ""
 	opts.Result = "none"
-	opts.ExitStatus = ""
-	opts.CreatedTime = time.Now().UTC().Format("20060102150405")
-	opts.UpdatedTime = opts.UpdatedTime
 
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
@@ -62,28 +56,19 @@ func Create(m *mottainai.Mottainai, ctx *context.Context,
 		return "", errors.New("More permissions required")
 	}
 
-	if opts.Queue == "" {
-		// Retrieve default queue.
-		defaultQueue, _ := db.Driver.GetSettingByKey(
-			setting.SYSTEM_TASKS_DEFAULT_QUEUE,
-		)
-
-		if defaultQueue.Value == "" {
-			opts.Queue = "general"
-		} else {
-			opts.Queue = defaultQueue.Value
-		}
-	}
-
-	docID, err := db.Driver.InsertTask(&opts)
+	err := m.CreateTask(&opts)
 	if err != nil {
 		return "", err
 	}
 
-	if _, err := m.SendTask(docID); err != nil {
+	fmt.Println(fmt.Sprintf(
+		"Created task %s for queue %s.", opts.ID, opts.Queue,
+	))
+
+	if _, err := m.SendTask(opts.ID); err != nil {
 		return "", err
 	}
-	return docID, nil
+	return opts.ID, nil
 }
 
 func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *database.Database) (string, error) {

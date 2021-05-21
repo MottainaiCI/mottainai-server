@@ -174,12 +174,16 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) e
 
 	if len(upd) > 0 {
 		upd["last_update_time"] = updtime
+
+		fmt.Println(fmt.Sprintf("Task %s update: %s", f.Id, upd))
 		db.Driver.UpdateTask(f.Id, upd)
 
 		t.HandleStatus(
 			db.Config.GetStorage().NamespacePath,
 			db.Config.GetStorage().ArtefactPath,
 		)
+	} else {
+		fmt.Println(fmt.Sprintf("For Task %s no updates received", f.Id))
 	}
 
 	if f.Status == setting.TASK_STATE_RUNNING && t.PipelineID != "" {
@@ -195,7 +199,7 @@ func UpdateTask(f UpdateTaskForm, ctx *context.Context, db *database.Database) e
 				if queue.Qid == "" {
 					fmt.Println("Error on retrieve queue data for queue " + pipeline.Queue + ".")
 				} else if !queue.HasPipelineRunning(t.PipelineID) {
-					err = db.Driver.AddPipelineInWaiting2Queue(queue.Qid, t.PipelineID)
+					err = db.Driver.AddPipelineInProgress2Queue(queue.Qid, t.PipelineID)
 					if err != nil {
 						fmt.Println("Error on add pipeline " + t.PipelineID +
 							" in the waiting queue for queue " + queue.Qid)

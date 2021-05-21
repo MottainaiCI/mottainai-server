@@ -71,6 +71,7 @@ func Setup(m *macaron.Macaron) {
 			v1.Schema.GetTaskRoute("pipeline_delete").ToMacaron(m, reqSignIn, PipelineDelete)
 			v1.Schema.GetTaskRoute("pipeline_show").ToMacaron(m, reqSignIn, APIPipelineShow)
 			v1.Schema.GetTaskRoute("pipeline_as_yaml").ToMacaron(m, reqSignIn, PipelineYaml)
+			v1.Schema.GetTaskRoute("pipeline_completed").ToMacaron(m, reqSignIn, PipelineCompleted)
 		})
 	})
 }

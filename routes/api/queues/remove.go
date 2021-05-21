@@ -25,6 +25,7 @@ package queuesapi
 
 import (
 	"errors"
+	"fmt"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -88,9 +89,13 @@ func DelTaskInProgress(ctx *context.Context, db *database.Database) error {
 	}
 
 	err := db.Driver.DelTaskInProgress2Queue(qid, tid)
+
 	if err != nil {
+		fmt.Println(fmt.Sprintf("Error on remove task %s from queue %s: %s.",
+			tid, qid, err.Error()))
 		return err
 	}
+	fmt.Println(fmt.Sprintf("Removed task %s from queue %s.", tid, qid))
 
 	ctx.APIActionSuccess()
 	return nil
@@ -139,9 +144,13 @@ func DelTask(queue NodeQueue, ctx *context.Context, db *database.Database) error
 
 	err := db.Driver.DelNodeQueuesTask(queue.AgentKey, queue.NodeId, q, tid)
 	if err != nil {
+		fmt.Println(fmt.Sprintf("Error on remove task %s from node queue %s (%s, %s): %s.",
+			tid, q, queue.AgentKey, queue.NodeId, err.Error()))
 		return err
 	}
 
+	fmt.Println(fmt.Sprintf("Removed task %s from node queue %s (%s, %s).",
+		tid, q, queue.AgentKey, queue.NodeId))
 	ctx.APIActionSuccess()
 	return nil
 }
