@@ -25,6 +25,7 @@ package agenttasks
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/client"
@@ -46,6 +47,8 @@ type TaskManager struct {
 	RunningTasks  map[string]int64
 	ExpiringTasks map[string]int64
 	ClosingPhase  bool
+
+	Mutex sync.Mutex
 }
 
 func NewTaskManager(config *setting.Config) *TaskManager {
@@ -58,6 +61,7 @@ func NewTaskManager(config *setting.Config) *TaskManager {
 		RunningTasks:  make(map[string]int64, 0),
 		ExpiringTasks: make(map[string]int64, 0),
 		ClosingPhase:  false,
+		Mutex:         sync.Mutex{},
 	}
 
 	return ans
@@ -73,6 +77,9 @@ func (tm *TaskManager) GetTasks() error {
 }
 
 func (tm *TaskManager) AnalyzeQueues(queues map[string][]string) error {
+	tm.Mutex.Lock()
+	defer tm.Mutex.Unlock()
+
 	mtasks := make(map[string]int, 0)
 
 	// If the queues are empty we cleanup all running tasks
@@ -89,10 +96,10 @@ func (tm *TaskManager) AnalyzeQueues(queues map[string][]string) error {
 
 	} else {
 
-		for _, tasks := range queues {
+		for qname, tasks := range queues {
 			for _, t := range tasks {
 				mtasks[t] = 1
-				err := tm.HandleTask(t)
+				err := tm.HandleTask(t, qname)
 				if err != nil {
 					fmt.Println("ERROR ON PROCESSING TASK ", t)
 				}
@@ -143,16 +150,17 @@ func (tm *TaskManager) AnalyzeQueues(queues map[string][]string) error {
 	return nil
 }
 
-func (tm *TaskManager) HandleTask(tid string) error {
+func (tm *TaskManager) HandleTask(tid, qname string) error {
 	// Check if the task is already running
 	if _, ok := tm.RunningTasks[tid]; ok {
-		fmt.Println("Task is already running. Nothing to do.")
+		fmt.Println(fmt.Sprintf("Task %s is already running. Nothing to do.",
+			tid))
 		return nil
 	}
 
 	// Check if the task is already been executed
 	if _, ok := tm.ExpiringTasks[tid]; ok {
-		fmt.Println("Task already executed. Nothing to do.")
+		fmt.Println(fmt.Sprintf("Task %s already executed. Nothing to do.", tid))
 		return nil
 	}
 
@@ -167,6 +175,26 @@ func (tm *TaskManager) HandleTask(tid string) error {
 		msg := "Unexpected task related to type " + task_info.Type + " not supported."
 		fmt.Println(msg)
 		// TODO: probably se set the task in failure
+		return errors.New(msg)
+	}
+
+	if task_info.Queue != qname {
+		msg := fmt.Sprintf(
+			"Unexpected task of the queue %s assigned to queue %s. I delete it from node queue.",
+			task_info.Queue, qname)
+		fmt.Println(msg)
+
+		_, err_del := tm.Fetcher.NodeQueueDelTask(
+			tm.Players.Config.GetAgent().AgentKey,
+			tm.NodeId,
+			qname,
+			task_info.ID,
+		)
+		if err_del != nil {
+			fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
+				task_info.ID, err_del.Error()))
+		}
+
 		return errors.New(msg)
 	}
 
@@ -194,13 +222,22 @@ func (tm *TaskManager) RunPlayer(task_info tasks.Task) error {
 		tm.Players.HandleSuccess(task_info.ID, res)
 	}
 
+	fmt.Println(
+		fmt.Sprintf("Task %s completed with result %d!",
+			task_info.ID, res))
+
 	// I run close here because on retries i will call
 	// Close() only one time.
-	executor.Close()
+	err = executor.Close()
+	if err != nil {
+		fmt.Println(
+			fmt.Sprintf("Error on delete task %s from queue: %s.",
+				task_info.ID, err.Error()))
+	}
 
 	// TODO: handle error
 
-	_, err_del := tm.Fetcher.NodeQueueDelTask(
+	apires, err_del := tm.Fetcher.NodeQueueDelTask(
 		tm.Players.Config.GetAgent().AgentKey,
 		tm.NodeId,
 		task_info.Queue,
@@ -210,6 +247,10 @@ func (tm *TaskManager) RunPlayer(task_info tasks.Task) error {
 		fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
 			task_info.ID, err_del.Error()))
 	}
+
+	fmt.Println(
+		fmt.Sprintf("On delete task %s from node queue %s: %s - %s",
+			task_info.ID, task_info.Queue, apires.Processed, apires.Status))
 
 	return err
 }
