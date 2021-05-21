@@ -404,10 +404,8 @@ func (d *Database) AddPipelineInWaiting2Queue(qid, pipelineid string) error {
 	npipelines = append(npipelines, pipelineid)
 
 	m := map[string]interface{}{
-		"qid":  q.Qid,
-		"name": q.Name,
-		//		"tasks_waiting":        q.Waiting,
-		//		"tasks_inprogress":     q.InProgress,
+		"qid":               q.Qid,
+		"name":              q.Name,
 		"pipelines_waiting": npipelines,
 		"update_date":       ud,
 	}
@@ -443,6 +441,29 @@ func (d *Database) DelPipelineInWaiting2Queue(qid, pipelineid string) error {
 	err = d.UpdateQueue(q.ID, map[string]interface{}{
 		"pipelines_waiting": npipelines,
 		"update_date":       ud,
+	})
+
+	return err
+}
+
+func (d *Database) ResetQueueByQid(qid string) error {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
+	ud := time.Now().UTC().Format("20060102150405")
+	// TODO: add a semaphore
+
+	q, err := d.GetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	err = d.UpdateQueue(q.ID, map[string]interface{}{
+		"pipelines_waiting":    []string{},
+		"pipelines_inprogress": []string{},
+		"tasks_inprogress":     []string{},
+		"tasks_waiting":        []string{},
+		"update_date":          ud,
 	})
 
 	return err

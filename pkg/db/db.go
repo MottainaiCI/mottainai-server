@@ -248,6 +248,7 @@ type DatabaseDriver interface {
 	AllQueues([]string) []queues.Queue
 	CreateQueue(t map[string]interface{}) (string, error)
 	DeleteQueue(docId string) error
+	ResetQueueByQid(qid string) error
 	GetQueueByQid(qid string) (queues.Queue, error)
 	GetQueueByKey(name string) (queues.Queue, error)
 	AddTaskInProgress2Queue(qid, taskid string) error
