@@ -245,6 +245,10 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Path: "/api/queues/:qid/pipeline/:pid",
 			Type: "delete",
 		},
+		"reset": &schema.APIRoute{
+			Path: "/api/queues/:qid/reset",
+			Type: "post",
+		},
 	},
 	Task: map[string]schema.Route{
 		"show_all":          &schema.APIRoute{Path: "/api/tasks", Type: "get"},
@@ -300,6 +304,11 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 		"pipeline_delete":  &schema.APIRoute{Path: "/api/tasks/pipelines/delete/:id", Type: "get"},
 		"pipeline_show":    &schema.APIRoute{Path: "/api/tasks/pipeline/:id", Type: "get"},
 		"pipeline_as_yaml": &schema.APIRoute{Path: "/api/tasks/pipeline/:id.yaml", Type: "get"},
+		"pipeline_completed": &schema.APIRoute{
+			Path: "/api/tasks/pipeline/:id/completed",
+			Type: "post",
+		},
+
 		"artefact_upload": &schema.APIRoute{
 			Path:        "/api/tasks/artefact/upload",
 			Type:        "post",
