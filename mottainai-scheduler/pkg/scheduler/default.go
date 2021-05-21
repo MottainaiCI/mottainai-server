@@ -373,8 +373,28 @@ func (s *DefaultTaskScheduler) FailTask(tid, errmsg string) error {
 	return nil
 }
 
-func (s *DefaultTaskScheduler) addTask2Queue(qid, tid string) error {
+func (s *DefaultTaskScheduler) addTask2Queue(tid, queue string) error {
+	var qid string
+
+	if queue == "" {
+		queue = s.DefaultQueue
+	}
+
+	// Retrieve qid of the queue
 	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("get_qid"),
+		Options: map[string]interface{}{
+			":name": queue,
+		},
+		Target: &qid,
+	}
+
+	err := s.Fetcher.Handle(req)
+	if err != nil {
+		return err
+	}
+
+	req = &schema.Request{
 		Route: v1.Schema.GetQueueRoute("add_task"),
 		Options: map[string]interface{}{
 			":qid": qid,
@@ -382,7 +402,7 @@ func (s *DefaultTaskScheduler) addTask2Queue(qid, tid string) error {
 		},
 	}
 
-	_, err := s.Fetcher.HandleAPIResponse(req)
+	_, err = s.Fetcher.HandleAPIResponse(req)
 
 	return err
 }
@@ -416,7 +436,7 @@ func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error
 				// POST: set the task in error
 				err = s.FailTask(p.Tasks[t].ID,
 					"Task in error a cause to errors with other "+
-						"tasks of the pipeline: "+err.Error())
+						"tasks of the pipeline")
 			}
 
 			if p.Tasks[t].Status == msetting.TASK_STATE_RUNNING {
@@ -440,11 +460,14 @@ func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error
 				if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
 					!q.HasTaskInWaiting(p.Tasks[t].ID) {
 					// POST: The task
-					err = s.addTask2Queue(q.Qid, p.Tasks[t].ID)
+					err = s.addTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
 					if err != nil {
 						fmt.Println("Error on add task " + p.Tasks[t].ID +
-							" in queue " + q.Qid)
+							" in queue " + p.Tasks[t].Queue)
 					}
+
+					fmt.Println(fmt.Sprintf("For pipeline %s added task %s to queue (%s).",
+						p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
 				}
 				break
 			}
@@ -459,7 +482,7 @@ func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error
 		pipelineInError := false
 
 		for _, t := range p.Group {
-			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
+			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT || p.Tasks[t].Status == msetting.TASK_STATE_RUNNING {
 				allTasksDone = false
 				break
 			} else if p.Tasks[t].Result == msetting.TASK_RESULT_FAILED ||
@@ -509,11 +532,16 @@ func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error
 					if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
 						!q.HasTaskInWaiting(p.Tasks[t].ID) {
 						// POST: The task
-						err = s.addTask2Queue(q.Qid, p.Tasks[t].ID)
+						err = s.addTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
 						if err != nil {
 							fmt.Println("Error on add task " + p.Tasks[t].ID +
-								" in queue " + q.Qid)
+								" in queue " + p.Tasks[t].Queue)
 						}
+
+						fmt.Println(fmt.Sprintf(
+							"For pipeline %s added task %s to queue (%s).",
+							p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
+
 					}
 					break
 				}
@@ -543,6 +571,23 @@ func (s *DefaultTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error
 		}
 
 		_, err := s.Fetcher.HandleAPIResponse(req)
+		if err != nil {
+			if req.Response != nil {
+				fmt.Println("ERROR: ", req.Response.StatusCode)
+				fmt.Println(string(req.ResponseRaw))
+			}
+			return err
+		}
+
+		// Update end time of the pipeline
+		req = &schema.Request{
+			Route: v1.Schema.GetTaskRoute("pipeline_completed"),
+			Options: map[string]interface{}{
+				":id": pid,
+			},
+		}
+
+		_, err = s.Fetcher.HandleAPIResponse(req)
 		if err != nil {
 			if req.Response != nil {
 				fmt.Println("ERROR: ", req.Response.StatusCode)
