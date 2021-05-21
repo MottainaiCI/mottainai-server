@@ -17,7 +17,7 @@ LIBEXECDIR ?= /usr/libexec
 SYSCONFDIR ?= /etc
 LOCKDIR ?= /var/lock
 LIBDIR ?= /var/lib
-EXTENSIONS ?= lxd
+EXTENSIONS ?=
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 all: deps multiarch-build install
