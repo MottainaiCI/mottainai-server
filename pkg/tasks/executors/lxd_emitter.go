@@ -1,5 +1,3 @@
-// +build lxd
-
 /*
 
 Copyright (C) 2017-2021  Daniele Rondina <geaaru@sabayonlinux.org>
