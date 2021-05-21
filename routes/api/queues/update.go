@@ -51,3 +51,19 @@ func AddTask(queue NodeQueue, ctx *context.Context, db *database.Database) error
 	ctx.APIActionSuccess()
 	return nil
 }
+
+func ResetQueue(ctx *context.Context, db *database.Database) error {
+	qid := ctx.Params(":qid")
+
+	if qid == "" {
+		return errors.New("Invalid queue id")
+	}
+
+	err := db.Driver.ResetQueueByQid(qid)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}

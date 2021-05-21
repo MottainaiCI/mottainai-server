@@ -84,6 +84,9 @@ func Setup(m *macaron.Macaron) {
 			v1.Schema.GetQueueRoute("del_task").ToMacaron(
 				m, reqSignIn, reqManager, DelTaskInWaiting,
 			)
+			v1.Schema.GetQueueRoute("reset").ToMacaron(
+				m, reqSignIn, reqManager, ResetQueue,
+			)
 			// Pipeline API
 			v1.Schema.GetQueueRoute("add_pipeline_in_progress").ToMacaron(
 				m, reqSignIn, reqManager, AddPipelineInProgress,
