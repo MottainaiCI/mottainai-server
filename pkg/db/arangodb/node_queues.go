@@ -134,7 +134,7 @@ func (d *Database) GetNodeQueuesByKey(agentKey, nodeid string) (queues.NodeQueue
 
 	queryResult, err := d.FindDoc("",
 		`FOR c IN `+NodeQueuesColl+`
-		FILTER c.nodeid == "`+nodeid+` AND c.akey == "`+agentKey+`"
+		FILTER c.nodeid == "`+nodeid+`" AND c.akey == "`+agentKey+`"
 		RETURN c`)
 
 	if err != nil || len(queryResult) != 1 {
