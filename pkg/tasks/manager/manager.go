@@ -102,6 +102,7 @@ func (tm *TaskManager) AnalyzeQueues(queues map[string][]string) error {
 				err := tm.HandleTask(t, qname)
 				if err != nil {
 					fmt.Println("ERROR ON PROCESSING TASK ", t)
+					tm.Players.HandleErr(err.Error(), t)
 				}
 			}
 		}
@@ -171,9 +172,45 @@ func (tm *TaskManager) HandleTask(tid, qname string) error {
 		return err
 	}
 
+	if task_info.ID == "" {
+		msg := fmt.Sprintf("No data found for the task %s. I consider it removed.", tid)
+		fmt.Println(msg)
+
+		_, err_del := tm.Fetcher.NodeQueueDelTask(
+			tm.Players.Config.GetAgent().AgentKey,
+			tm.NodeId,
+			qname,
+			tid,
+		)
+		if err_del != nil {
+			fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
+				tid, err_del.Error()))
+		}
+
+		fmt.Println(fmt.Sprintf("Deleted task %s from the node queue %s.",
+			tid, qname))
+
+		return errors.New(msg)
+	}
+
 	if !tm.Players.Exists(task_info.Type) {
 		msg := "Unexpected task related to type " + task_info.Type + " not supported."
 		fmt.Println(msg)
+
+		_, err_del := tm.Fetcher.NodeQueueDelTask(
+			tm.Players.Config.GetAgent().AgentKey,
+			tm.NodeId,
+			qname,
+			task_info.ID,
+		)
+		if err_del != nil {
+			fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
+				task_info.ID, err_del.Error()))
+		}
+
+		fmt.Println(fmt.Sprintf("Deleted task %s from the node queue %s.",
+			task_info.ID, qname))
+
 		// TODO: probably se set the task in failure
 		return errors.New(msg)
 	}
@@ -194,6 +231,9 @@ func (tm *TaskManager) HandleTask(tid, qname string) error {
 			fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
 				task_info.ID, err_del.Error()))
 		}
+
+		fmt.Println(fmt.Sprintf("Deleted task %s from the node queue %s.",
+			task_info.ID, qname))
 
 		return errors.New(msg)
 	}
