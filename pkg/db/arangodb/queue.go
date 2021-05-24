@@ -163,11 +163,7 @@ func (d *Database) AddTaskInProgress2Queue(qid, taskid string) error {
 	ntasks = append(ntasks, taskid)
 
 	err = d.UpdateQueue(q.ID, map[string]interface{}{
-		"qid":              q.Qid,
-		"name":             q.Name,
-		"tasks_waiting":    q.Waiting,
 		"tasks_inprogress": ntasks,
-		"creation_date":    q.CreationDate,
 		"update_date":      ud,
 	})
 
@@ -198,11 +194,7 @@ func (d *Database) DelTaskInProgress2Queue(qid, taskid string) error {
 	}
 
 	err = d.UpdateQueue(q.ID, map[string]interface{}{
-		"qid":              q.Qid,
-		"name":             q.Name,
-		"tasks_waiting":    q.Waiting,
 		"tasks_inprogress": ntasks,
-		"creation_date":    q.CreationDate,
 		"update_date":      ud,
 	})
 
@@ -240,12 +232,8 @@ func (d *Database) AddTaskInWaiting2Queue(qid, taskid string) error {
 	ntasks = append(ntasks, taskid)
 
 	m := map[string]interface{}{
-		"qid":              q.Qid,
-		"name":             q.Name,
-		"tasks_waiting":    ntasks,
-		"tasks_inprogress": q.InProgress,
-		"creation_date":    q.CreationDate,
-		"update_date":      ud,
+		"tasks_waiting": ntasks,
+		"update_date":   ud,
 	}
 
 	err = d.UpdateQueue(q.ID, m)
@@ -277,12 +265,8 @@ func (d *Database) DelTaskInWaiting2Queue(qid, taskid string) error {
 	}
 
 	err = d.UpdateQueue(q.ID, map[string]interface{}{
-		"qid":              q.Qid,
-		"name":             q.Name,
-		"tasks_waiting":    ntasks,
-		"tasks_inprogress": q.InProgress,
-		"creation_date":    q.CreationDate,
-		"update_date":      ud,
+		"tasks_waiting": ntasks,
+		"update_date":   ud,
 	})
 
 	return err
@@ -328,13 +312,8 @@ func (d *Database) AddPipelineInProgress2Queue(qid, pipelineid string) error {
 	npipelines = append(npipelines, pipelineid)
 
 	m := map[string]interface{}{
-		"qid":  q.Qid,
-		"name": q.Name,
-		//		"tasks_waiting":        q.Waiting,
-		//		"tasks_inprogress":     q.InProgress,
 		"pipelines_inprogress": npipelines,
 		"pipelines_waiting":    wpipelines,
-		"creation_date":        q.CreationDate,
 		"update_date":          ud,
 	}
 
