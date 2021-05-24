@@ -73,8 +73,18 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 	}
 
 	// Find my position between nodes
+
+	activeNodes := []nodes.Node{}
+
+	for _, i := range n {
+		if i.LastReport == "" {
+			continue
+		}
+		activeNodes = append(activeNodes, i)
+	}
+
 	var pos int
-	for p, i := range n {
+	for p, i := range activeNodes {
 		if i.ID == nodefound.ID {
 			pos = p
 		}
@@ -119,7 +129,7 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 	}
 
 	resp := &nodes.NodeRegisterResponse{
-		NumNodes:     len(n),
+		NumNodes:     len(activeNodes),
 		Position:     pos,
 		TaskInQueue:  task_in_queue,
 		NodeUniqueId: nq.ID,
