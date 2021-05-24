@@ -4,8 +4,8 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=/srv/mottainai
-ExecStart=/usr/bin/mottainai-scheduler scheduler --config /etc/mottainai/mottainai-scheduler.yaml
-User=mottainai-server
+ExecStart=/usr/bin/mottainai-scheduler daemon --config /etc/mottainai/mottainai-scheduler.yaml
+User=mottainai-agent
 Group=mottainai
 Restart=always
 RestartSec=3
