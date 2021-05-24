@@ -55,6 +55,11 @@ func newSettingListCommand(config *setting.Config) *cobra.Command {
 
 			err := fetcher.Handle(req)
 			if err != nil {
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+				}
+
 				log.Fatalln("error:", err)
 			}
 
