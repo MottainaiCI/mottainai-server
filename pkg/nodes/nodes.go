@@ -79,6 +79,13 @@ func NewNodeFromMap(t map[string]interface{}) Node {
 
 	if m, ok := t["queues"].(map[string]int); ok {
 		queues = m
+		// TODO: temporary workaround to handle record returned by Arangodb
+		//       we need a better solution.
+	} else if m, ok := t["queues"].(map[string]interface{}); ok {
+		queues = make(map[string]int, 0)
+		for k, v := range m {
+			queues[k] = int(v.(float64))
+		}
 	}
 
 	if b, ok := t["standalone"].(bool); ok {
@@ -161,7 +168,6 @@ func (t *Node) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
