@@ -252,6 +252,8 @@ func (s *DefaultTaskScheduler) Schedule() error {
 						return err
 					}
 
+					fmt.Println("Assigned task " + tid + " to agent " + nid + ".")
+
 					// Remote task from queue to avoid reinjection
 					req := &schema.Request{
 						Route: v1.Schema.GetQueueRoute("del_task"),
