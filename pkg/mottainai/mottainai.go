@@ -422,7 +422,7 @@ func (m *Mottainai) PrepareTaskQueue(task agenttask.Task) (string, error) {
 			_, err = d.Driver.CreateQueue(map[string]interface{}{
 				"qid":              qid.String(),
 				"name":             task.Queue,
-				"tasks_waiting":    []string{task.ID},
+				"tasks_waiting":    []string{},
 				"tasks_inprogress": []string{},
 				"creation_date":    ct,
 				"update_date":      ct,
@@ -474,6 +474,7 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 			err = errors.New("Error on add task in queue: " + err.Error())
 			return
 		}
+		fmt.Println(fmt.Sprintf("Added waiting task %s in queue %s.", docID, qid))
 
 		task.ClearBuildLog(config.GetStorage().ArtefactPath)
 
