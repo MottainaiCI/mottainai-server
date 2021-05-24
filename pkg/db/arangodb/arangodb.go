@@ -283,11 +283,13 @@ func (d *Database) GetDoc(coll string, docID string) (map[string]interface{}, er
 
 func (d *Database) UpdateDoc(coll string, docID string, t map[string]interface{}) error {
 
-	old, _ := d.GetDoc(coll, docID)
-	for k, v := range t {
-		old[k] = v
-	}
-	return d.ReplaceDoc(coll, docID, old)
+	/*
+		old, _ := d.GetDoc(coll, docID)
+		for k, v := range t {
+			old[k] = v
+		}
+	*/
+	return d.ReplaceDoc(coll, docID, t)
 }
 
 func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{}) error {
