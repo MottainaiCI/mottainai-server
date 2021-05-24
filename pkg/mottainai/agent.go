@@ -58,9 +58,10 @@ func NewAgent() *MottainaiAgent {
 	return &MottainaiAgent{Anagent: anagent.New()}
 }
 
-const MAXTIMER = 720
-const MINTIMER = 10
+const MAXTIMER = 70
+const MINTIMER = 5
 const R = 3.81199961
+
 const STEPS = 215
 
 func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Config) {
@@ -97,8 +98,10 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 				err = json.Unmarshal([]byte(res.Data), &registerResponse)
 				if err != nil {
 					fmt.Println("Error on parse server response " + err.Error())
+					m.GetTimer(tid).After(d)
 					return
 				}
+
 				// Readjust keepalive timer based on how many nodes are in the cluster.
 				pop := utils.FeatureScaling(
 					float64(registerResponse.Position),
@@ -110,7 +113,6 @@ func (m *MottainaiAgent) SetKeepAlive(ID, hostname string, config *setting.Confi
 					float64(registerResponse.NumNodes),
 					MINTIMER, MAXTIMER,
 				)
-				//fmt.Println("Timer set to", timer)
 				if timer < MAXTIMER && timer > MINTIMER {
 					d = time.Duration(timer) * time.Second
 				}
@@ -190,8 +192,9 @@ func (m *MottainaiAgent) Run() error {
 
 		m.ID = ID
 		m.Hostname = utils.Hostname()
-		//log.INFO.Println("Worker ID: " + ID)
-		//log.INFO.Println("Worker Hostname: " + hostname)
+
+		fmt.Println("Worker ID: " + ID)
+		fmt.Println("Worker Hostname: " + m.Hostname)
 
 		if config.GetAgent().PrivateQueue != 0 {
 			m.PrivateQueue = m.Hostname + ID
