@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -74,6 +76,13 @@ func ArtefactList(ctx *context.Context, db *database.Database) error {
 
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) error {
 
+	if uf.TaskID == "" {
+		return errors.New("Invalid artefact without task id")
+	}
+
+	fmt.Println(fmt.Sprintf("[%s] Receiving artefact %s for path %s.",
+		uf.TaskID, uf.Name, uf.Path))
+
 	file, err := uf.FileUpload.Open()
 	if err != nil {
 		return err
@@ -83,6 +92,10 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	task, err := db.Driver.GetTask(db.Config, uf.TaskID)
 	if err != nil {
 		return err
+	}
+
+	if task.ID == "" {
+		return errors.New("Invalid task id")
 	}
 
 	if !ctx.CheckTaskPermissions(&task) {
