@@ -96,8 +96,12 @@ func PlanDeleteById(id string, db *database.Database, m *mottainai.Mottainai, ct
 		return err
 	}
 
+	if plan.ID == "" {
+		return errors.New("Invalid plan id")
+	}
+
 	if !ctx.CheckNamespaceBelongs(plan.TagNamespace) || !ctx.CheckPlanPermissions(&plan) {
-		return errors.New("Moar permissions are required for this user")
+		return errors.New("More permissions are required for this user")
 	}
 
 	err = db.Driver.DeletePlan(id)
