@@ -106,7 +106,10 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	var f *os.File
 	ctx.Invoke(func(config *setting.Config) {
 		os.MkdirAll(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path), os.ModePerm)
-		f, err = os.OpenFile(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		f, err = os.OpenFile(
+			filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name),
+			os.O_WRONLY|os.O_CREATE, os.ModePerm,
+		)
 	})
 
 	if err != nil {
@@ -114,7 +117,12 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	}
 
 	defer f.Close()
-	io.Copy(f, file)
+	_, err = io.Copy(f, file)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("[%s] Error on copy file %s: %s.",
+			task.ID, uf.Name, err.Error()))
+		return err
+	}
 
 	db.Driver.CreateArtefact(map[string]interface{}{
 		"name": uf.Name,
