@@ -26,6 +26,7 @@ import (
 	"errors"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -56,6 +57,21 @@ func PlannedTask(ctx *context.Context, db *database.Database) error {
 
 func Plan(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *database.Database, opts agenttasks.Plan) error {
 	opts.Reset()
+
+	// Assign default task queue if not defined
+	if opts.Queue == "" {
+		// Retrieve default queue.
+		defaultQueue, _ := db.Driver.GetSettingByKey(
+			setting.SYSTEM_TASKS_DEFAULT_QUEUE,
+		)
+
+		if defaultQueue.Value == "" {
+			opts.Queue = "general"
+		} else {
+			opts.Queue = defaultQueue.Value
+		}
+	}
+
 	fields := opts.ToMap()
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) || !ctx.CheckPlanPermissions(&opts) {
