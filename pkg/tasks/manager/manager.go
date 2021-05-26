@@ -25,6 +25,7 @@ package agenttasks
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -246,16 +247,49 @@ func (tm *TaskManager) HandleTask(tid, qname string) error {
 }
 
 func (tm *TaskManager) RunPlayer(task_info tasks.Task) error {
+	var err error
 	var fn func(string, string) (*Player, executors.Executor)
+	retry := 0
+	res := 1
 
 	fn = tm.Players.Handler(task_info.Type)
 
 	// TODO: handle this with a better way and WaitGroup
 	player, executor := fn(task_info.ID, tm.NodeUniqueId)
 
-	res, err := player.Start(executor)
+	if task_info.Retry != "" {
+		i, err := strconv.Atoi(task_info.Retry)
+		if err != nil {
+			executor.Report(
+				"Found invalid retry value: " + err.Error() + ". Ignoring it.",
+			)
+		} else if i < 5 {
+			retry = i
+		}
+	}
 
-	// TODO: handle retry
+	for r := 0; retry >= 0; retry-- {
+
+		if r > 0 {
+			executor.Report(
+				fmt.Sprintf(
+					"\n===================================================\n"+
+						">>> Previous running exiting with %d. Retry %d...\n"+
+						"===================================================\n",
+					res, r,
+				),
+			)
+		}
+		r++
+
+		res, err = player.Start(executor)
+
+		if res == 0 || err != nil {
+			break
+		}
+
+	}
+
 	if err != nil {
 		tm.Players.HandleErr(err.Error(), task_info.ID)
 	} else {
