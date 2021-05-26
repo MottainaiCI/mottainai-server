@@ -42,6 +42,7 @@ import (
 	lxd_compose_specs "github.com/MottainaiCI/lxd-compose/pkg/specs"
 
 	lxd "github.com/lxc/lxd/client"
+	viper "github.com/spf13/viper"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -74,7 +75,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 	}
 
 	// Lxd compose code require his config
-	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(l.Config.Viper)
+	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(viper.New())
 	lxdc_config.GetLogging().PushProgressBar = true
 	lxdc_config.GetLogging().Color = true
 	lxdc_logger := lxd_compose_log.NewLxdCLogger(lxdc_config)
