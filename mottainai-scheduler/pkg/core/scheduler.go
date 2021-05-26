@@ -122,7 +122,7 @@ func (m *MottainaiScheduler) Run() error {
 		m.Map(logger)
 
 		// Create Scheduler
-		s := scheduler.NewDefaultTaskScheduler(config, m.Anagent)
+		s := scheduler.NewSimpleTaskScheduler(config, m.Anagent)
 		m.Map(s)
 
 		m.ID = utils.GenID()
