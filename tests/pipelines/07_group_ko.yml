@@ -1,0 +1,40 @@
+# Authors: Sabayon Team
+#          geaaru@sabayonlinux.org
+
+pipeline_name: "Test Pipeline Group KO"
+
+group:
+  - test1
+  - test2
+  - test3
+  - test4
+
+tasks:
+
+  test1: &group_task
+    script:
+      - source /etc/profile
+      # temporary: Sleep for LXD
+      - sleep 4
+      - eval '[ -z "$MOTTAINAI_PIPELINE_ID" ] && exit 1 || echo "MOTTAINAI_PIPELINE_ID = $MOTTAINAI_PIPELINE_ID"'
+      - echo "WAKE UP"
+    queue: "lxd"
+    type: lxd
+    image: ubuntu/16.04
+    name: "Test pipeline1 (test)"
+
+  test2:
+    <<: *group_task
+    name: "Test pipeline2 (test)"
+    script:
+      - echo "Task failed"
+      - exit 1
+
+  test3:
+    <<: *group_task
+    name: "Test pipeline3 (test)"
+
+  test4:
+    <<: *group_task
+    name: "Test pipeline4 (test)"
+
