@@ -79,14 +79,25 @@ func (d *Database) AddNodeQueuesTask(agentKey, nodeid, queue, taskid string) err
 		nq.Queues[queue] = []string{}
 	}
 
-	nq.Queues[queue] = append(nq.Queues[queue], taskid)
+	// Check if the task is already present.
+	task2Add := true
+	for _, t := range nq.Queues[queue] {
+		if t == taskid {
+			task2Add = false
+			break
+		}
+	}
 
-	err = d.UpdateNodeQueues(nq.ID, map[string]interface{}{
-		"akey":          nq.AgentKey,
-		"nodeid":        nq.NodeId,
-		"queues":        nq.Queues,
-		"creation_date": nq.CreationDate,
-	})
+	if task2Add {
+		nq.Queues[queue] = append(nq.Queues[queue], taskid)
+
+		err = d.UpdateNodeQueues(nq.ID, map[string]interface{}{
+			"akey":          nq.AgentKey,
+			"nodeid":        nq.NodeId,
+			"queues":        nq.Queues,
+			"creation_date": nq.CreationDate,
+		})
+	}
 
 	return err
 }
