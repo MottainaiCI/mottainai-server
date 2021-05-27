@@ -295,17 +295,22 @@ func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queue
 
 			if pipelineInError {
 
-				errMsg := "."
-				if errGroup != nil {
-					errMsg = fmt.Sprintf(": %s", errGroup.Error())
-				} else if errChord != nil {
-					errMsg = fmt.Sprintf(": %s", errChord.Error())
-				}
+				if p.Tasks[t].Result != msetting.TASK_RESULT_FAILED &&
+					p.Tasks[t].Result != msetting.TASK_RESULT_ERROR {
+					errMsg := "."
+					if errGroup != nil {
+						errMsg = fmt.Sprintf(": %s", errGroup.Error())
+					} else if errChord != nil {
+						errMsg = fmt.Sprintf(": %s", errChord.Error())
+					}
 
-				// POST: set the task in error
-				err = s.FailTask(p.Tasks[t].ID, p.Tasks[t].Queue,
-					"Task in error a cause to errors with other "+
-						"tasks of the pipeline"+errMsg)
+					// POST: set the task in error
+					err = s.FailTask(p.Tasks[t].ID, p.Tasks[t].Queue,
+						"Task in error a cause to errors with other "+
+							"tasks of the pipeline"+errMsg)
+				}
+				// else I already set the task in error.
+
 				continue
 			}
 
