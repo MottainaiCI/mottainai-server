@@ -1,6 +1,8 @@
 /*
 
-Copyright (C) 2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2018-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
+
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -198,9 +200,6 @@ func (m *Mottainai) listenAddr() string {
 	})
 
 	return ans
-}
-func (m *Mottainai) Url() string {
-	return m.url()
 }
 
 func (m *Mottainai) url() string {

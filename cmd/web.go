@@ -23,6 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	s "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes"
@@ -36,11 +39,31 @@ func newWebCommand(config *s.Config) *cobra.Command {
 		Short: "Start web server",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+
+			setupAdmin, _ := cmd.Flags().GetBool("setup-admin-user")
+
 			m := mottainai.Classic(config)
 			routes.SetupWebUI(m)
+
+			if setupAdmin {
+				err := m.SetupAdminUser()
+				if err != nil {
+					fmt.Println("Error on setup admin user: " + err.Error())
+					os.Exit(1)
+				}
+			}
+
 			m.Start()
 		},
 	}
 
+	flags := cmd.Flags()
+	flags.Bool("setup-admin-user", false, `Automatically create the admin user if no users are present.
+
+Use variables:
+MOTTAINAI_ADMIN_USER
+MOTTAINAI_ADMIN_PASS
+MOTTAINAI_ADMIN_EMAIL
+`)
 	return cmd
 }
