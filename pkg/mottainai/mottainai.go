@@ -443,7 +443,8 @@ func (m *Mottainai) PrepareTaskQueue(task agenttask.Task) (string, error) {
 func (m *Mottainai) SendTask(docID string) (bool, error) {
 	result := false
 	var err error
-	m.Invoke(func(d *database.Database, l *logging.Logger, th *taskmanager.TaskHandler, config *setting.Config) {
+	m.Invoke(func(d *database.Database, l *logging.Logger,
+		th *taskmanager.TaskHandler, config *setting.Config) {
 
 		if err := m.processableTask(docID); err != nil {
 			m.FailTask(docID, err.Error())
@@ -464,6 +465,8 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 
 		qid, err := m.PrepareTaskQueue(task)
 		if err != nil {
+			fmt.Println("Error on prepare task queue " + err.Error())
+			m.FailTask(docID, err.Error())
 			return
 		}
 
@@ -471,6 +474,7 @@ func (m *Mottainai) SendTask(docID string) (bool, error) {
 		err = d.Driver.AddTaskInWaiting2Queue(qid, docID)
 		if err != nil {
 			err = errors.New("Error on add task in queue: " + err.Error())
+			m.FailTask(docID, err.Error())
 			return
 		}
 		fmt.Println(fmt.Sprintf("Added waiting task %s in queue %s.", docID, qid))
@@ -513,8 +517,34 @@ func (m *Mottainai) LoadPlans() {
 			c.AddFunc(plan.Planned, func() {
 				plan, _ := d.Driver.GetPlan(config, id)
 				plan.Task.Reset()
-				docID, _ := d.Driver.CreateTask(plan.Task.ToMap())
-				m.SendTask(docID)
+
+				err := m.CreateTask(plan.Task)
+				if err != nil {
+					fmt.Println(fmt.Sprintf(
+						"For plan %s error on create the task: %s",
+						plan.ID, err.Error(),
+					))
+					return
+				}
+
+				qid, err := m.PrepareTaskQueue(*plan.Task)
+				if err != nil {
+					fmt.Println(fmt.Sprintf(
+						"For plan %s error on prepare task queue for task %s: %s",
+						plan.ID, plan.Task.ID, err.Error()))
+				}
+
+				fmt.Println(fmt.Sprintf(
+					"For plan %s created task %s for queue %s (%s).",
+					plan.ID, plan.Task.ID, qid, plan.Task.Queue))
+
+				_, err = m.SendTask(plan.Task.ID)
+				if err != nil {
+					fmt.Println(fmt.Sprintf(
+						"For plan %s error on send task %s: %s",
+						plan.ID, plan.Task.ID, err.Error()))
+				}
+
 			})
 		}
 
