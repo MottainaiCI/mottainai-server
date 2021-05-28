@@ -78,26 +78,29 @@ func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *d
 		return "", err
 	}
 
+	if task.ID == "" {
+		return "", errors.New("Invalid task id")
+	}
+
 	if !ctx.CheckNamespaceBelongs(task.TagNamespace) {
 		ctx.NoPermission()
 		return "", nil
 	}
 
-	docID, err := db.Driver.CloneTask(db.Config, id)
-	if err != nil {
-		return "", err
-	}
-
 	if ctx.IsLogged {
-		db.Driver.UpdateTask(docID, map[string]interface{}{
-			"owner_id": ctx.User.ID,
-		})
+		task.Owner = ctx.User.ID
+	}
+	task.ID = ""
+
+	err = m.CreateTask(&task)
+	if err != nil {
+		return "", errors.New("Error on create task " + err.Error())
 	}
 
-	if _, err := m.SendTask(docID); err != nil {
+	if _, err := m.SendTask(task.ID); err != nil {
 		return "", err
 	}
-	return docID, nil
+	return task.ID, nil
 }
 
 func CloneTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {

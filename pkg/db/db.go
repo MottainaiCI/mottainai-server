@@ -136,7 +136,6 @@ type DatabaseDriver interface {
 	// Tasks
 	InsertTask(t *agenttasks.Task) (string, error)
 	CreateTask(t map[string]interface{}) (string, error)
-	CloneTask(config *setting.Config, t string) (string, error)
 	DeleteTask(config *setting.Config, docID string) error
 	UpdateTask(docID string, t map[string]interface{}) error
 	GetTask(config *setting.Config, docID string) (agenttasks.Task, error)
