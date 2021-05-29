@@ -46,6 +46,14 @@ deps:
 	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/gomega/...
 
+build-exporter:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+endif
+
+
 build-agent:
 ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build -o ./mottainai-agent/mottainai-agent ./mottainai-agent
@@ -74,7 +82,7 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
 endif
 
-build: build-server build-cli build-agent build-scheduler
+build: build-server build-cli build-agent build-scheduler build-exporter
 
 multiarch-build:
 ifeq ($(EXTENSIONS),)
