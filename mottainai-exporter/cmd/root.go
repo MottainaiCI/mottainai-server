@@ -37,7 +37,7 @@ Copyright (c) 2017-2021 Mottainai
 
 `
 	exporterExamples = `
-$> mottainai-exporter run --target-dir -c /etc/mottainai/mottainai-server.yml /mybackups/
+$> mottainai-exporter run -c /etc/mottainai/mottainai-server.yml --target-dir /mybackups/
 
 `
 )
