@@ -53,6 +53,12 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
 endif
 
+build-importer:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+endif
 
 build-agent:
 ifeq ($(EXTENSIONS),)
@@ -82,7 +88,7 @@ else
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
 endif
 
-build: build-server build-cli build-agent build-scheduler build-exporter
+build: build-server build-cli build-agent build-scheduler build-exporter build-importer
 
 multiarch-build:
 ifeq ($(EXTENSIONS),)
