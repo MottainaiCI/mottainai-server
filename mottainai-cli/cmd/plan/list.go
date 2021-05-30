@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package plan
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -49,6 +50,9 @@ func newPlanListCommand(config *setting.Config) *cobra.Command {
 			var quiet bool
 			var v *viper.Viper = config.Viper
 
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+			quiet, _ = cmd.Flags().GetBool("quiet")
+
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
 			req := &schema.Request{
@@ -62,35 +66,44 @@ func newPlanListCommand(config *setting.Config) *cobra.Command {
 				return tlist[i].CreatedTime > tlist[j].CreatedTime
 			})
 
-			quiet, err = cmd.Flags().GetBool("quiet")
 			tools.CheckError(err)
 
-			if quiet {
-				for _, i := range tlist {
-					fmt.Println(i.ID)
+			if jsonOutput {
+				data, _ := json.Marshal(tlist)
+				fmt.Println(string(data))
+			} else {
+				if quiet {
+					for _, i := range tlist {
+						fmt.Println(i.ID)
+					}
+					return
 				}
-				return
-			}
 
-			for _, i := range tlist {
-				task_table = append(task_table, []string{i.ID, i.Planned, i.Namespace, i.TagNamespace, i.Source, i.Directory})
-			}
+				for _, i := range tlist {
+					task_table = append(task_table, []string{i.ID, i.Planned, i.Namespace, i.TagNamespace, i.Source, i.Directory})
+				}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{"ID", "Planned", "From Namespace", "Tag to", "Source", "Dir"})
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetBorders(tablewriter.Border{
+					Left: true, Top: false, Right: true, Bottom: false,
+				})
+				table.SetCenterSeparator("|")
+				table.SetHeader([]string{
+					"ID", "Planned", "From Namespace", "Tag to", "Source", "Dir",
+				})
 
-			for _, v := range task_table {
-				table.Append(v)
+				for _, v := range task_table {
+					table.Append(v)
+				}
+				table.Render()
 			}
-			table.Render()
 
 		},
 	}
 
 	var flags = cmd.Flags()
 	flags.BoolP("quiet", "q", false, "Quiet Output")
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }
