@@ -35,6 +35,7 @@ import (
 	"time"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"github.com/mudler/anagent"
@@ -91,36 +92,36 @@ func (m *MottainaiExporter) Export(targetDir string, withDateDir bool) error {
 
 	m.Invoke(func(d *database.Database, config *setting.Config) {
 
-		for _, c := range GetMottainaiEntities() {
+		for _, c := range entities.GetMottainaiEntities() {
 
 			targetFile := filepath.Join(targetDir, fmt.Sprintf("%s.json", c))
 			var data []byte
 
 			// TODO, converter in memory marshal to reader/writer.
 			switch c {
-			case "webhook":
+			case entities.Webhooks:
 				data, err = json.Marshal(d.Driver.AllWebHooks())
-			case "tasks":
+			case entities.Tasks:
 				data, err = json.Marshal(d.Driver.AllTasks(config))
-			case "secrets":
+			case entities.Secrets:
 				data, err = json.Marshal(d.Driver.AllSecrets())
-			case "users":
+			case entities.Users:
 				data, err = json.Marshal(d.Driver.AllUsers())
-			case "plans":
+			case entities.Plans:
 				data, err = json.Marshal(d.Driver.AllPlans(config))
-			case "pipelines":
+			case entities.Pipelines:
 				data, err = json.Marshal(d.Driver.AllPipelines(config))
-			case "nodes":
+			case entities.Nodes:
 				data, err = json.Marshal(d.Driver.AllNodes())
-			case "namespaces":
+			case entities.Namespaces:
 				data, err = json.Marshal(d.Driver.AllNamespaces())
-			case "tokens":
+			case entities.Tokens:
 				data, err = json.Marshal(d.Driver.AllTokens())
-			case "artefacts":
+			case entities.Artefacts:
 				data, err = json.Marshal(d.Driver.AllStorages())
-			case "organizations":
+			case entities.Organizations:
 				data, err = json.Marshal(d.Driver.AllOrganizations())
-			case "settings":
+			case entities.Settings:
 				data, err = json.Marshal(d.Driver.AllSettings())
 			default:
 				// POST: ignoring queues and nodeques. They are created automatically.
