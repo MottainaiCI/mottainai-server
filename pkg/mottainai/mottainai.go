@@ -30,6 +30,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 	"time"
 
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -55,10 +56,14 @@ import (
 
 type Mottainai struct {
 	*macaron.Macaron
+	Mutex sync.Mutex
 }
 
 func New() *Mottainai {
-	return &Mottainai{Macaron: macaron.New()}
+	return &Mottainai{
+		Macaron: macaron.New(),
+		Mutex:   sync.Mutex{},
+	}
 }
 
 func Classic(config *setting.Config) *Mottainai {
@@ -407,10 +412,15 @@ func (m *Mottainai) PrepareTaskQueue(task agenttask.Task) (string, error) {
 	var ansQid string
 
 	m.Invoke(func(d *database.Database) {
+
+		// We need ensure mutual exclusion on queue creation.
+		m.Mutex.Lock()
+		defer m.Mutex.Unlock()
+
 		// Check if exists the queue
 		q, err := d.Driver.GetQueueByKey(task.Queue)
 		if err != nil {
-			ansErr = errors.New("Failed on retrieve queue data")
+			ansErr = errors.New("Failed on retrieve queue data: " + err.Error())
 			return
 
 		} else if q.Qid == "" {
