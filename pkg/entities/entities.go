@@ -22,6 +22,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package entities
 
+import (
+	"errors"
+)
+
 type MottainaiEntity string
 
 const (
@@ -60,6 +64,47 @@ func GetMottainaiEntities() []MottainaiEntity {
 		Queues,
 		NodeQueues,
 	}
+}
+
+func NewMottainaiEntity(e string) (MottainaiEntity, error) {
+	var ans MottainaiEntity
+	var err error = nil
+
+	switch e {
+	case "webhooks":
+		ans = Webhooks
+	case "tasks":
+		ans = Tasks
+	case "secrets":
+		ans = Secrets
+	case "users":
+		ans = Users
+	case "plans":
+		ans = Plans
+	case "pipelines":
+		ans = Pipelines
+	case "nodes":
+		ans = Nodes
+	case "namespaces":
+		ans = Namespaces
+	case "tokens":
+		ans = Tokens
+	case "artefacts":
+		ans = Artefacts
+	case "storages":
+		ans = Storages
+	case "organizations":
+		ans = Organizations
+	case "settings":
+		ans = Settings
+	case "queues":
+		ans = Queues
+	case "nodequeues":
+		ans = NodeQueues
+	default:
+		err = errors.New("Invalid entity string")
+	}
+	return ans, err
 }
 
 func (e *MottainaiEntity) String() string {
