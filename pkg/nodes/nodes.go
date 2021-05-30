@@ -29,7 +29,7 @@ import (
 
 type Node struct {
 	ID             string         `json:"ID"`
-	NodeID         string         `form:"nodeid" json:"nodeid"`
+	NodeID         string         `json:"nodeid" form:"nodeid"`
 	Key            string         `json:"key" form:"key"`
 	User           string         `json:"user" form:"user"`
 	Pass           string         `json:"pass" form:"pass"`
