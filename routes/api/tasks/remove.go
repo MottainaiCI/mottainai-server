@@ -59,14 +59,16 @@ func Delete(ctx *context.Context, db *database.Database) error {
 	if task.Status == setting.TASK_STATE_WAIT && task.Queue != "" {
 		// Retrieve the queue id
 		q, err := db.Driver.GetQueueByKey(task.Queue)
-		if err != nil || q.Qid == "" {
-			return errors.New("Error on retrieve queue id")
+		if err != nil {
+			return errors.New("Error on retrieve queue id: " + err.Error())
 		}
 
-		// Remove task from queue
-		err = db.Driver.DelTaskInWaiting2Queue(q.Qid, task.ID)
-		if err != nil {
-			return errors.New("Error on delete task from the queue: " + err.Error())
+		if q.Qid != "" {
+			// Remove task from queue
+			err = db.Driver.DelTaskInWaiting2Queue(q.Qid, task.ID)
+			if err != nil {
+				return errors.New("Error on delete task from the queue: " + err.Error())
+			}
 		}
 	}
 
