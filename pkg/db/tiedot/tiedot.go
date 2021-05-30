@@ -33,6 +33,7 @@ import (
 	"github.com/mudler/anagent"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
@@ -48,8 +49,43 @@ var Collections = []string{
 	UserColl, PlansColl, PipelinesColl,
 	NodeColl, NamespaceColl, TokenColl,
 	ArtefactColl, StorageColl, OrganizationColl,
-	SettingColl,
-	QueueColl, NodeQueuesColl,
+	SettingColl, QueueColl, NodeQueuesColl,
+}
+
+func (d *Database) GetCollectionName(entity entities.MottainaiEntity) (ans string) {
+	switch entity {
+	case entities.Webhooks:
+		ans = WebHookColl
+	case entities.Tasks:
+		ans = TaskColl
+	case entities.Secrets:
+		ans = SecretColl
+	case entities.Users:
+		ans = UserColl
+	case entities.Plans:
+		ans = PlansColl
+	case entities.Pipelines:
+		ans = PipelinesColl
+	case entities.Nodes:
+		ans = NodeColl
+	case entities.Namespaces:
+		ans = NamespaceColl
+	case entities.Tokens:
+		ans = TokenColl
+	case entities.Artefacts:
+		ans = ArtefactColl
+	case entities.Storages:
+		ans = StorageColl
+	case entities.Organizations:
+		ans = OrganizationColl
+	case entities.Settings:
+		ans = SettingColl
+	case entities.Queues:
+		ans = QueueColl
+	case entities.NodeQueues:
+		ans = NodeQueuesColl
+	}
+	return
 }
 
 func New(path string) *Database {
@@ -160,6 +196,14 @@ func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, err
 
 	id, err := d.DB().Use(coll).Insert(t)
 	return strconv.Itoa(id), err
+}
+
+func (d *Database) RestoreDoc(coll, id string, t map[string]interface{}) error {
+	idi, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+	return d.DB().Use(coll).InsertRecovery(idi, t)
 }
 
 func (d *Database) FindDoc(coll string, searchquery string) (map[string]interface{}, error) {

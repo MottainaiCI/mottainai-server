@@ -1,6 +1,7 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -41,12 +42,16 @@ import (
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	tiedot "github.com/MottainaiCI/mottainai-server/pkg/db/tiedot"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
+
 	anagent "github.com/mudler/anagent"
 )
 
 type DatabaseDriver interface {
 	Init()
+	GetCollectionName(entities.MottainaiEntity) string
 	InsertDoc(string, map[string]interface{}) (string, error)
+	RestoreDoc(string, string, map[string]interface{}) error
 	FindDoc(string, string) (map[string]interface{}, error)
 	DeleteDoc(string, string) error
 	UpdateDoc(string, string, map[string]interface{}) error
