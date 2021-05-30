@@ -1,0 +1,19 @@
+{
+  "script": [
+    "export LC_ALL=en_US.UTF-8",
+    "pwd",
+    "ip a",
+    "ls -l .",
+    "echo $VAR1",
+    "exit 1"
+  ],
+  "type": "lxd",
+  "retry": "1",
+  "name": "Test LXD",
+  "image": "ubuntu/16.04",
+  "artefact_path": "artifacts",
+  "environment": [
+    "VAR1=1"
+  ],
+  "planned": "@every 10m"
+}
