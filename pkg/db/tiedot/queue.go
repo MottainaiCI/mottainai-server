@@ -43,6 +43,9 @@ func (d *Database) IndexQueue() {
 }
 
 func (d *Database) CreateQueue(t map[string]interface{}) (string, error) {
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
+
 	return d.InsertDoc(QueueColl, t)
 }
 
@@ -91,6 +94,9 @@ func (d *Database) GetQueueByQid(qid string) (queues.Queue, error) {
 
 func (d *Database) GetQueueByKey(name string) (queues.Queue, error) {
 	var res []queues.Queue
+
+	QueueMutex.Lock()
+	defer QueueMutex.Unlock()
 
 	queuesFound, err := d.FindDoc(QueueColl, `[{"eq": "`+name+`", "in": ["name"]}]`)
 	if err != nil || len(queuesFound) != 1 {
