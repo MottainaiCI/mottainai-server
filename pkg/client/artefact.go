@@ -247,9 +247,8 @@ func responseSuccess(resp *http.Response) bool {
 		return false
 	}
 }
-func (d *Fetcher) Download(url, where string) (bool, error) {
-	fileName := where
 
+func (d *Fetcher) DownloadResource(url string, dst io.Writer, rateLimit int64) (bool, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return false, err
@@ -263,13 +262,28 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	}
 	defer response.Body.Close()
 	body := response.Body
-	if d.Config.GetAgent().DownloadRateLimit != 0 {
-		// KB
-		d.AppendTaskOutput("Download with bandwidth limit of: " + strconv.FormatInt(1024*d.Config.GetAgent().DownloadRateLimit, 10) + "\n")
-		body = flowrate.NewReader(response.Body, 1024*d.Config.GetAgent().DownloadRateLimit)
+	if rateLimit != 0 {
+		body = flowrate.NewReader(response.Body, 1024*rateLimit)
 	}
+
 	if !responseSuccess(response) {
 		return false, errors.New("Error: " + response.Status)
+	}
+
+	_, err = io.Copy(dst, body)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (d *Fetcher) Download(url, where string) (bool, error) {
+	fileName := where
+
+	if d.Config.GetAgent().DownloadRateLimit != 0 {
+		// KB
+		d.AppendTaskOutput("Download with bandwidth limit of: " +
+			strconv.FormatInt(1024*d.Config.GetAgent().DownloadRateLimit, 10) + "\n")
 	}
 
 	output, err := os.Create(fileName)
@@ -278,11 +292,7 @@ func (d *Fetcher) Download(url, where string) (bool, error) {
 	}
 	defer output.Close()
 
-	_, err = io.Copy(output, body)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return d.DownloadResource(url, output, d.Config.GetAgent().DownloadRateLimit)
 }
 
 func (f *Fetcher) UploadStorageFile(storageid, fullpath, relativepath string) error {

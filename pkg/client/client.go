@@ -57,6 +57,7 @@ type HttpClient interface {
 	DownloadArtefactsFromTask(string, string, []string) error
 	DownloadArtefactsFromNamespace(string, string, []string) error
 	DownloadArtefactsFromStorage(string, string) error
+	DownloadResource(string, io.Writer, int64) (bool, error)
 	UploadFile(string, string) error
 	FailTask(string)
 	SetTaskField(string, string) (event.APIResponse, error)
