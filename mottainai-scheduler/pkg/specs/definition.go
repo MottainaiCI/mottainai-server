@@ -32,7 +32,7 @@ type TaskScheduler interface {
 	RetrieveNodes() error
 	GetQueues() ([]queues.Queue, error)
 	GetTasks2Inject() (map[string]map[string][]string, error)
-	AnalyzePipeline(string, queues.Queue) error
+	AnalyzePipeline(string, queues.Queue, []queues.Queue) error
 
 	Schedule() error
 }

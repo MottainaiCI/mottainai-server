@@ -154,7 +154,7 @@ func (s *SimpleTaskScheduler) GetTasks2Inject() (map[string]map[string][]string,
 					"Analyzing pipeline %s of the queue %s",
 					pid, q.Name,
 				))
-				err = s.AnalyzePipeline(pid, q)
+				err = s.AnalyzePipeline(pid, q, allQueues)
 				if err != nil {
 					fmt.Println("Error on analyze pipeline " + pid + ": " + err.Error())
 				}
@@ -166,7 +166,7 @@ func (s *SimpleTaskScheduler) GetTasks2Inject() (map[string]map[string][]string,
 	return ans, nil
 }
 
-func (s *SimpleTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error {
+func (s *SimpleTaskScheduler) AnalyzePipeline(pid string, q queues.Queue, allQueues []queues.Queue) error {
 	allTasksDone := true
 	var p tasks.Pipeline
 
@@ -185,13 +185,13 @@ func (s *SimpleTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error 
 	}
 
 	if len(p.Chain) > 0 {
-		allTasksDone, err = s.elaboratePipelineChain(&p, q)
+		allTasksDone, err = s.elaboratePipelineChain(&p, q, allQueues)
 
 	} else if len(p.Chord) > 0 {
 		// POST: Chord pipeline
 		//       I need wait for all tasks in group before run
 		//       the finals tasks.
-		allTasksDone, err = s.elaboratePipelineChord(&p, q)
+		allTasksDone, err = s.elaboratePipelineChord(&p, q, allQueues)
 
 	} else {
 		// POST: Groups pipeline
@@ -253,7 +253,7 @@ func (s *SimpleTaskScheduler) AnalyzePipeline(pid string, q queues.Queue) error 
 	return nil
 }
 
-func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queues.Queue) (bool, error) {
+func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queues.Queue, allQueues []queues.Queue) (bool, error) {
 	var err error
 	var errGroup error
 	var errChord error
@@ -334,8 +334,9 @@ func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queue
 
 			if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
 				allTasksDone = false
-				if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
-					!q.HasTaskInWaiting(p.Tasks[t].ID) {
+				if p.Tasks[t].Queue == q.Name &&
+					!q.HasTaskInWaiting(p.Tasks[t].ID) &&
+					!q.HasTaskInRunning(p.Tasks[t].ID) {
 					// POST: The task
 					err = s.AddTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
 					if err != nil {
@@ -347,6 +348,29 @@ func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queue
 						"For pipeline %s added task %s to queue (%s).",
 						p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
 
+				} else if p.Tasks[t].Queue != q.Name {
+
+					// Retrieve queue data
+					var qTask *queues.Queue = nil
+
+					for idx, qT := range allQueues {
+						if qT.Name == p.Tasks[t].Queue {
+							qTask = &allQueues[idx]
+							break
+						}
+					}
+
+					if qTask == nil || (!qTask.HasTaskInWaiting(p.Tasks[t].ID) && !qTask.HasTaskInRunning(p.Tasks[t].ID)) {
+						// POST: If qTask is nil means that the queue is not present yet.
+						err = s.AddTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
+						if err != nil {
+							fmt.Println("Error on add task " + p.Tasks[t].ID +
+								" in queue " + p.Tasks[t].Queue)
+						} else {
+							fmt.Println(fmt.Sprintf("For pipeline %s added task %s to queue (%s).",
+								p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
+						}
+					}
 				}
 				break
 			}
@@ -356,7 +380,7 @@ func (s *DefaultTaskScheduler) elaboratePipelineChord(p *tasks.Pipeline, q queue
 	return allTasksDone, err
 }
 
-func (s *DefaultTaskScheduler) elaboratePipelineChain(p *tasks.Pipeline, q queues.Queue) (bool, error) {
+func (s *DefaultTaskScheduler) elaboratePipelineChain(p *tasks.Pipeline, q queues.Queue, allQueues []queues.Queue) (bool, error) {
 	var err error
 
 	allTasksDone := true
@@ -398,8 +422,10 @@ func (s *DefaultTaskScheduler) elaboratePipelineChain(p *tasks.Pipeline, q queue
 
 		if p.Tasks[t].Status == msetting.TASK_STATE_WAIT {
 			allTasksDone = false
-			if !q.HasTaskInWaiting(p.Tasks[t].ID) &&
-				!q.HasTaskInWaiting(p.Tasks[t].ID) {
+
+			if p.Tasks[t].Queue == q.Name &&
+				!q.HasTaskInWaiting(p.Tasks[t].ID) &&
+				!q.HasTaskInRunning(p.Tasks[t].ID) {
 				// POST: The task
 				err = s.AddTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
 				if err != nil {
@@ -409,6 +435,29 @@ func (s *DefaultTaskScheduler) elaboratePipelineChain(p *tasks.Pipeline, q queue
 					fmt.Println(fmt.Sprintf("For pipeline %s added task %s to queue (%s).",
 						p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
 				}
+			} else if p.Tasks[t].Queue != q.Name {
+				// Retrieve queue data
+				var qTask *queues.Queue = nil
+
+				for idx, qT := range allQueues {
+					if qT.Name == p.Tasks[t].Queue {
+						qTask = &allQueues[idx]
+						break
+					}
+				}
+
+				if qTask == nil || (!qTask.HasTaskInWaiting(p.Tasks[t].ID) && !qTask.HasTaskInRunning(p.Tasks[t].ID)) {
+					// POST: If qTask is nil means that the queue is not present yet.
+					err = s.AddTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
+					if err != nil {
+						fmt.Println("Error on add task " + p.Tasks[t].ID +
+							" in queue " + p.Tasks[t].Queue)
+					} else {
+						fmt.Println(fmt.Sprintf("For pipeline %s added task %s to queue (%s).",
+							p.ID, p.Tasks[t].ID, p.Tasks[t].Queue))
+					}
+				}
+
 			}
 			break
 		}
