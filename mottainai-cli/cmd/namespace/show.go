@@ -21,11 +21,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespace
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
-	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -38,17 +40,22 @@ func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
 		Use:   "show <namespace> [OPTIONS]",
 		Short: "Show artefacts belonging to namespace",
 		Args:  cobra.RangeArgs(1, 1),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				log.Fatalln("You need to define a namespace name")
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var tlist []string
 			var v *viper.Viper = config.Viper
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+
+			fetcher := client.NewTokenClient(
+				v.GetString("master"), v.GetString("apikey"), config,
+			)
 
 			ns := args[0]
-			if len(ns) == 0 {
-				log.Fatalln("You need to define a namespace name")
-			}
-
 			req := &schema.Request{
 				Route:  v1.Schema.GetNamespaceRoute("show_artefacts"),
 				Target: &tlist,
@@ -57,13 +64,30 @@ func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
 				},
 			}
 			err := fetcher.Handle(req)
-			tools.CheckError(err)
+			if err != nil {
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+					os.Exit(1)
+				}
 
-			for _, i := range tlist {
-				log.Println("- " + i)
+				log.Fatalln("error:", err)
+			}
+
+			if jsonOutput {
+				data, _ := json.Marshal(tlist)
+				fmt.Println(string(data))
+			} else {
+
+				for _, i := range tlist {
+					fmt.Println("- " + i)
+				}
 			}
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }
