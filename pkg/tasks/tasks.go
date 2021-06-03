@@ -89,6 +89,8 @@ type Task struct {
 	TimeOut     float64  `json:"timeout" form:"timeout"`
 	Binds       []string `json:"binds" form:"binds"`
 	Environment []string `json:"environment" form:"environment"`
+	// Temporary using string until move form away from API
+	DisablePushOnFailure string `json:"disable_push_on_failure" form:"disable_push_on_failure"`
 
 	Quota string `json:"quota" form:"quota"`
 }
@@ -180,39 +182,40 @@ func FetchTask(fetcher client.HttpClient, tid string) (Task, error) {
 func NewTaskFromMap(t map[string]interface{}) Task {
 
 	var (
-		source            string
-		script            []string
-		directory         string
-		namespace         string
-		commit            string
-		tasktype          string
-		output            string
-		image             string
-		status            string
-		result            string
-		exit_status       string
-		created_time      string
-		start_time        string
-		end_time          string
-		last_update_time  string
-		storage           string
-		storage_path      string
-		artefact_path     string
-		quota             string
-		root_task         string
-		prune             string
-		namespace_merged  string
-		tag_namespace     string
-		name              string
-		cache_image       string
-		cache_clean       string
-		queue             string
-		owner, node       string
-		privkey           string
-		environment       []string
-		binds             []string
-		namespace_filters []string
-		artefact_pfilters []string
+		source               string
+		script               []string
+		directory            string
+		namespace            string
+		commit               string
+		tasktype             string
+		output               string
+		image                string
+		status               string
+		result               string
+		exit_status          string
+		created_time         string
+		start_time           string
+		end_time             string
+		last_update_time     string
+		storage              string
+		storage_path         string
+		artefact_path        string
+		quota                string
+		root_task            string
+		prune                string
+		namespace_merged     string
+		tag_namespace        string
+		name                 string
+		cache_image          string
+		cache_clean          string
+		queue                string
+		owner, node          string
+		privkey              string
+		environment          []string
+		binds                []string
+		namespace_filters    []string
+		artefact_pfilters    []string
+		disablePushOnFailure string
 	)
 
 	binds = make([]string, 0)
@@ -378,48 +381,54 @@ func NewTaskFromMap(t map[string]interface{}) Task {
 	if str, ok := t["retry"].(string); ok {
 		retry = str
 	}
+
+	if f, ok := t["dsable_push_on_failure"].(string); ok {
+		disablePushOnFailure = f
+	}
+
 	task := Task{
-		Retry:               retry,
-		ID:                  id,
-		PipelineID:          pipelineId,
-		Queue:               queue,
-		Source:              source,
-		PrivKey:             privkey,
-		Script:              script,
-		Quota:               quota,
-		Delayed:             delayed,
-		Directory:           directory,
-		Type:                tasktype,
-		Namespace:           namespace,
-		NamespaceFilters:    namespace_filters,
-		Commit:              commit,
-		Name:                name,
-		Entrypoint:          entrypoint,
-		Output:              output,
-		PublishMode:         publish,
-		Result:              result,
-		Status:              status,
-		Storage:             storage,
-		StoragePath:         storage_path,
-		ArtefactPath:        artefact_path,
-		ArtefactPushFilters: artefact_pfilters,
-		Image:               image,
-		ExitStatus:          exit_status,
-		CreatedTime:         created_time,
-		StartTime:           start_time,
-		EndTime:             end_time,
-		UpdatedTime:         last_update_time,
-		RootTask:            root_task,
-		NamespaceMerged:     namespace_merged,
-		TagNamespace:        tag_namespace,
-		Node:                node,
-		Prune:               prune,
-		CacheImage:          cache_image,
-		Environment:         environment,
-		Binds:               binds,
-		CacheClean:          cache_clean,
-		Owner:               owner,
-		TimeOut:             timeout,
+		Retry:                retry,
+		ID:                   id,
+		PipelineID:           pipelineId,
+		Queue:                queue,
+		Source:               source,
+		PrivKey:              privkey,
+		Script:               script,
+		Quota:                quota,
+		Delayed:              delayed,
+		Directory:            directory,
+		Type:                 tasktype,
+		Namespace:            namespace,
+		NamespaceFilters:     namespace_filters,
+		Commit:               commit,
+		Name:                 name,
+		Entrypoint:           entrypoint,
+		Output:               output,
+		PublishMode:          publish,
+		Result:               result,
+		Status:               status,
+		Storage:              storage,
+		StoragePath:          storage_path,
+		ArtefactPath:         artefact_path,
+		ArtefactPushFilters:  artefact_pfilters,
+		Image:                image,
+		ExitStatus:           exit_status,
+		CreatedTime:          created_time,
+		StartTime:            start_time,
+		EndTime:              end_time,
+		UpdatedTime:          last_update_time,
+		RootTask:             root_task,
+		NamespaceMerged:      namespace_merged,
+		TagNamespace:         tag_namespace,
+		Node:                 node,
+		Prune:                prune,
+		CacheImage:           cache_image,
+		Environment:          environment,
+		Binds:                binds,
+		CacheClean:           cache_clean,
+		Owner:                owner,
+		TimeOut:              timeout,
+		DisablePushOnFailure: disablePushOnFailure,
 	}
 	return task
 }
@@ -690,6 +699,15 @@ func (t *Task) IsSuccess() bool {
 
 	return false
 }
+
+func (t *Task) IsDisablePushOnFailure() bool {
+	if t.DisablePushOnFailure == "" || t.DisablePushOnFailure == "true" || t.DisablePushOnFailure == "yes" {
+		return true
+	}
+	return false
+}
+
+func (t *Task) PushOnFailure() bool { return !t.IsDisablePushOnFailure() }
 
 func (t *Task) IsNamespaceMerged() bool {
 	if t.NamespaceMerged == "" || t.NamespaceMerged == "true" || t.NamespaceMerged == "yes" {

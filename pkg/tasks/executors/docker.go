@@ -253,12 +253,15 @@ func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int,
 		if c_data.State.Running == false {
 			d.Report("Container execution terminated")
 
-			d.Report("Upload of artifacts starts")
-			err := d.UploadArtefacts(mapping.ArtefactPath)
-			if err != nil {
-				return 1, err
+			if (c_data.State.ExitCode != 0 && task_info.PushOnFailure()) ||
+				c_data.State.ExitCode == 0 {
+				d.Report("Upload of artifacts starts")
+				err := d.UploadArtefacts(mapping.ArtefactPath)
+				if err != nil {
+					return 1, err
+				}
+				d.Report("Upload of artifacts terminated")
 			}
-			d.Report("Upload of artifacts terminated")
 
 			d.HandleCacheImagePush(req, task_info)
 

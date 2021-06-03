@@ -321,9 +321,11 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		}
 		d.Report(out)
 		if res.Error != nil {
-			err = d.UploadArtefacts(d.Context.ArtefactDir)
-			if err != nil {
-				return 1, err
+			if task_info.PushOnFailure() {
+				err = d.UploadArtefacts(d.Context.ArtefactDir)
+				if err != nil {
+					return 1, err
+				}
 			}
 
 			d.Report(res.Error)
