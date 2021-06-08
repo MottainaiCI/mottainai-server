@@ -332,6 +332,21 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Type:        "post",
 			ContentType: schema.ContentTypeFormUrlEncoded,
 		},
+		"auth_int_github": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github",
+			Type:        "get",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
+		"auth_int_github_callback": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github_callback",
+			Type:        "post",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
+		"auth_int_github_logout": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github_logout",
+			Type:        "post",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
 		"auth_user":     &schema.APIRoute{Path: "/api/v1/client/auth/user", Type: "get"},
 		"captcha_new":   &schema.APIRoute{Path: "/api/v1/client/captcha/new", Type: "get"},
 		"captcha_image": &schema.APIRoute{Path: "/api/v1/client/captcha/image/:id", Type: "get"},

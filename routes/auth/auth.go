@@ -239,7 +239,7 @@ func Setup(m *macaron.Macaron) {
 			goth.UseProviders(
 				github.New(config.GetWeb().WebHookGitHubToken,
 					config.GetWeb().WebHookGitHubSecret,
-					config.GetWeb().BuildAbsURL("/auth/github/callback")),
+					config.GetWeb().WebHookGitHubCallback),
 			)
 
 			m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)

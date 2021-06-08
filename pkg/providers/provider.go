@@ -59,6 +59,20 @@ func BeginAuthHandler(ctx *context.Context) {
 	http.Redirect(res, req, url, http.StatusTemporaryRedirect)
 }
 
+func GetGithubUrl(ctx *context.Context) {
+	githubUrl, err := GetAuthURL(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, map[string]interface{}{
+		"url": githubUrl,
+	})
+}
+
 // SetState sets the state string associated with the given request.
 // If no state string is associated with the request, one will be generated.
 // This state is sent to the provider and can be retrieved during the
