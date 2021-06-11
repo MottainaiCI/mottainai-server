@@ -77,7 +77,13 @@ func newTaskAttachCommand(config *setting.Config) *cobra.Command {
 						tools.CheckError(err)
 						tools.PrintBuff(buff)
 					} else {
-						fmt.Println("Build status: " + t.Status + " Can't attach to any live stream.")
+						if t.Status == "none" || t.Status == "waiting" {
+							// Sleeping...
+							fmt.Println("Task not running... sleeping.")
+							continue
+						} else {
+							fmt.Println("Build status: " + t.Status + " Can't attach to any live stream.")
+						}
 					}
 					return
 				}
