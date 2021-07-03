@@ -45,12 +45,21 @@ type User struct {
 	Password string `json:"password" form:"password"`
 	Admin    string `json:"is_admin" form:"is_admin"`
 	Manager  string `json:"is_manager" form:"is_manager"`
+
+	// Integrations
+	GithubState   string `json:"github_state" form:"github_state"`
+	GothicSession string `json:"gothic_session" form:"gothic_session"`
 }
 
 type UserForm struct {
 	Name     string `form:"name"`
 	Email    string `form:"email"`
 	Password string `form:"password"`
+}
+
+func (u *User) StoreGithubIntegrationState(state string, session string) {
+	u.GithubState = state
+	u.GothicSession = session
 }
 
 func (u *User) AddIdentity(t string, i *Identity) {

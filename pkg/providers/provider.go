@@ -25,6 +25,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	"github.com/MottainaiCI/mottainai-server/pkg/user"
 	"io"
 	"net/http"
 	"net/url"
@@ -45,11 +47,11 @@ for the requested provider.
 
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
-func BeginAuthHandler(ctx *context.Context) {
+func BeginAuthHandler(ctx *context.Context, db *database.Database) {
 
 	res := ctx.Resp
 	req := ctx.Req.Request
-	url, err := GetAuthURL(ctx)
+	url, err := GetAuthURL(ctx, db)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(res, err)
@@ -59,8 +61,8 @@ func BeginAuthHandler(ctx *context.Context) {
 	http.Redirect(res, req, url, http.StatusTemporaryRedirect)
 }
 
-func GetGithubUrl(ctx *context.Context) {
-	githubUrl, err := GetAuthURL(ctx)
+func GetGithubUrl(ctx *context.Context, db *database.Database) {
+	githubUrl, err := GetAuthURL(ctx, db)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
@@ -113,9 +115,8 @@ as either "provider" or ":provider".
 I would recommend using the BeginAuthHandler instead of doing all of these steps
 yourself, but that's entirely up to you.
 */
-func GetAuthURL(ctx *context.Context) (string, error) {
-
-	res := ctx.Resp
+func GetAuthURL(ctx *context.Context, db *database.Database) (string, error) {
+	//res := ctx.Resp
 	req := ctx.Req.Request
 	providerName, err := GetProviderName(req)
 	if err != nil {
@@ -126,7 +127,9 @@ func GetAuthURL(ctx *context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sess, err := provider.BeginAuth(SetState(req))
+
+	state := SetState(req)
+	sess, err := provider.BeginAuth(state)
 	if err != nil {
 		return "", err
 	}
@@ -135,8 +138,10 @@ func GetAuthURL(ctx *context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = StoreInSession(ctx, providerName, sess.Marshal(), req, res)
 
+	//err = StoreInSession(ctx, providerName, sess.Marshal())
+
+	err = StoreState(ctx, db, state, sess.Marshal())
 	if err != nil {
 		return "", err
 	}
@@ -153,7 +158,7 @@ as either "provider" or ":provider".
 
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
-var CompleteUserAuth = func(ctx *context.Context) (goth.User, error) {
+var CompleteUserAuth = func(ctx *context.Context, db *database.Database) (user.User, goth.User, error) {
 
 	res := ctx.Resp
 	req := ctx.Req.Request
@@ -161,49 +166,48 @@ var CompleteUserAuth = func(ctx *context.Context) (goth.User, error) {
 
 	providerName, err := GetProviderName(req)
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
 	}
 
 	provider, err := goth.GetProvider(providerName)
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
 	}
 
-	value, err := GetFromSession(ctx, providerName, req)
+	u, err := GetUserFromState(db, req)
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
 	}
 
-	sess, err := provider.UnmarshalSession(value)
+	sess, err := provider.UnmarshalSession(u.GothicSession)
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
 	}
 
-	err = validateState(req, sess)
-	if err != nil {
-		return goth.User{}, err
-	}
-
-	user, err := provider.FetchUser(sess)
+	_, err = provider.FetchUser(sess)
 	if err == nil {
 		// user can be found with existing session data
-		return user, err
+		return user.User{}, goth.User{}, err
 	}
 
 	// get new token and retry fetch
 	_, err = sess.Authorize(provider, req.URL.Query())
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
 	}
 
-	err = StoreInSession(ctx, providerName, sess.Marshal(), req, res)
-
+	err = StoreInSession(ctx, providerName, sess.Marshal())
 	if err != nil {
-		return goth.User{}, err
+		return user.User{}, goth.User{}, err
+	}
+
+	err = ClearState(u, db)
+	if err != nil {
+		return user.User{}, goth.User{}, err
 	}
 
 	gu, err := provider.FetchUser(sess)
-	return gu, err
+	return u, gu, err
 }
 
 // validateState ensures that the state token param from the original
@@ -262,17 +266,35 @@ func getProviderName(req *http.Request) (string, error) {
 }
 
 // StoreInSession stores a specified key/value pair in the session.
-func StoreInSession(ctx *context.Context, key string, value string, req *http.Request, res http.ResponseWriter) error {
+func StoreInSession(ctx *context.Context, key string, value string) error {
 	return ctx.Session.Set(key, value)
 }
 
-// GetFromSession retrieves a previously-stored value from the session.
-// If no value has previously been stored at the specified key, it will return an error.
-func GetFromSession(ctx *context.Context, key string, req *http.Request) (string, error) {
-	value := ctx.Session.Get(key)
+// StoreState stores the generated state key on the user document
+func StoreState(ctx *context.Context, db *database.Database, state string, gothSession string) error {
+	u, err := db.Driver.GetUser(ctx.User.ID)
 
-	if _, ok := value.(string); !ok {
-		return "", errors.New("No value")
+	if err != nil {
+		return err
 	}
-	return value.(string), nil
+
+	u.StoreGithubIntegrationState(state, gothSession)
+	return db.Driver.UpdateUser(ctx.User.ID, u.ToMap())
+}
+
+func GetUserFromState(db *database.Database, req *http.Request) (user.User, error) {
+	urlState := req.URL.Query().Get("state")
+	u, err := db.Driver.GetUserByGithubState(urlState)
+
+	if err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
+}
+
+func ClearState(user user.User, db *database.Database) error {
+	user.GithubState = ""
+	user.GothicSession = ""
+	return db.Driver.UpdateUser(user.ID, user.ToMap())
 }

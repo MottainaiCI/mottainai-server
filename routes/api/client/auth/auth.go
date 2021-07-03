@@ -206,11 +206,11 @@ func (f *SignUp) Validate(ctx *macaron.Context, errs binding.Errors) binding.Err
 }
 
 type UserResp struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Admin   string `json:"is_admin"`
-	Manager string `json:"is_manager"`
+	ID         string                   `json:"id"`
+	Name       string                   `json:"name"`
+	Email      string                   `json:"email"`
+	Admin      string                   `json:"is_admin"`
+	Manager    string                   `json:"is_manager"`
 	Identities map[string]user.Identity `json:"identities"`
 }
 
@@ -358,9 +358,8 @@ func Setup(m *macaron.Macaron) {
 		v1.Schema.GetClientRoute("auth_user").ToMacaron(m, reqSignIn, User)
 		v1.Schema.GetClientRoute("auth_logout").ToMacaron(m, reqSignIn, Logout)
 
-		v1.Schema.GetClientRoute("auth_int_github").ToMacaron(m, reqSignIn, GithubIntegrationUrl)
-		v1.Schema.GetClientRoute("auth_int_github_callback").ToMacaron(m, reqSignIn, GithubAuthCallback)
-		v1.Schema.GetClientRoute("auth_int_github_logout").ToMacaron(m, reqSignIn, GithubLogout)
+		v1.Schema.GetClientRoute("auth_int_github").ToMacaron(m, RequiresIntegrationSetting, reqSignIn, GithubIntegrationUrl)
+		v1.Schema.GetClientRoute("auth_int_github_logout").ToMacaron(m, RequiresIntegrationSetting, reqSignIn, GithubLogout)
 
 		v1.Schema.GetClientRoute("captcha_new").ToMacaron(m, CaptchaNew)
 		v1.Schema.GetClientRoute("captcha_image").ToMacaron(m, captcha.Captchaer(captcha.Options{

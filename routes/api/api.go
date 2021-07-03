@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package api
 
 import (
+	"github.com/MottainaiCI/mottainai-server/routes/api/callbacks"
 	client "github.com/MottainaiCI/mottainai-server/routes/api/client"
 	namespacesapi "github.com/MottainaiCI/mottainai-server/routes/api/namespaces"
 	nodesapi "github.com/MottainaiCI/mottainai-server/routes/api/nodes"
@@ -52,4 +53,5 @@ func Setup(m *macaron.Macaron) {
 	apiwebhook.Setup(m)
 	apisecret.Setup(m)
 	queuesapi.Setup(m)
+	callbacks.Setup(m)
 }

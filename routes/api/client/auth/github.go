@@ -29,11 +29,7 @@ import (
 	gothic "github.com/MottainaiCI/mottainai-server/pkg/providers"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
-	"github.com/go-macaron/session"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	ciuser "github.com/MottainaiCI/mottainai-server/pkg/user"
-
 	"net/http"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -42,31 +38,7 @@ import (
 func GithubIntegrationUrl(c *context.Context, db *database.Database) error {
 	if c.IsLogged {
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		gothic.GetGithubUrl(c)
-		return nil
-	}
-	return errors.New("user not logged in")
-}
-
-func GithubAuthCallback(s session.Store, c *context.Context, db *database.Database) error {
-	if c.IsLogged {
-		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		user, err := gothic.CompleteUserAuth(c)
-		if err != nil {
-			return err
-		}
-		u, err := db.Driver.GetUser(c.User.ID)
-
-		if err != nil {
-			return err
-		}
-
-		u.AddIdentity("github", &ciuser.Identity{ID: user.UserID, Provider: "github"})
-		err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
-		if err != nil {
-			return err
-		}
-		c.JSON(200, "")
+		gothic.GetGithubUrl(c, db)
 		return nil
 	}
 	return errors.New("user not logged in")

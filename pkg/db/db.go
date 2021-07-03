@@ -174,6 +174,7 @@ type DatabaseDriver interface {
 	SignIn(name, password string) (user.User, error)
 	GetUserByName(name string) (user.User, error)
 	GetUserByEmail(email string) (user.User, error)
+	GetUserByGithubState(state string) (user.User, error)
 	GetUsersByEmail(email string) ([]user.User, error)
 	GetUsersByName(name string) ([]user.User, error)
 	// TODO: To replace with a specific collection to index search

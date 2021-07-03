@@ -159,6 +159,17 @@ func (d *Database) GetUsersByName(name string) ([]user.User, error) {
 	return d.GetUsersByField("name", name)
 }
 
+func (d *Database) GetUserByGithubState(state string) (user.User, error) {
+	res, err := d.GetUsersByField("github_state", state)
+	if err != nil {
+		return user.User{}, err
+	} else if len(res) == 0 {
+		return user.User{}, errors.New("no user found")
+	} else {
+		return res[0], nil
+	}
+}
+
 // TODO: To replace with a specific collection to index search
 func (d *Database) GetUserByIdentity(identity_type, id string) (user.User, error) {
 	all := d.AllUsers()

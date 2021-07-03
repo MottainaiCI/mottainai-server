@@ -154,7 +154,7 @@ func CreateUser(ctx *context.Context, db *database.Database, opts UserForm) {
 	if opts.Manager {
 		manager = "yes"
 	}
-	var u *user.User = &user.User{
+	var u = &user.User{
 		Name:     opts.Name,
 		Email:    opts.Email,
 		Password: opts.Password,
