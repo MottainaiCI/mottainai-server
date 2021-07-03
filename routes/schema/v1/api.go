@@ -353,5 +353,12 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 
 		// dashboard
 		"dashboard_stats": &schema.APIRoute{Path: "/api/v1/client/dashboard/stats", Type: "get"},
+
+		// users
+		"users_show_all":      &schema.APIRoute{Path: "/api/v1/client/users/list", Type: "get"},
+		"users_show":          &schema.APIRoute{Path: "/api/v1/client/users/show/:id", Type: "get"},
+		"users_create":        &schema.APIRoute{Path: "/api/v1/client/users/create", Type: "post"},
+		"users_delete":        &schema.APIRoute{Path: "/api/v1/client/users/delete/:id", Type: "post"},
+		"users_edit":          &schema.APIRoute{ Path: "/api/v1/client/users/edit/:id", Type: "post"},
 	},
 }
