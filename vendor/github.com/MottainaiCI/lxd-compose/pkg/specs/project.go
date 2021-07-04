@@ -23,6 +23,7 @@ package specs
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/ghodss/yaml"
 	"github.com/icza/dyno"
@@ -38,16 +39,16 @@ func (p *LxdCProject) Init() {
 	}
 }
 
+func (p *LxdCProject) GetGroups() *[]LxdCGroup { return &p.Groups }
+func (p *LxdCProject) GetDescription() string  { return p.Description }
+func (p *LxdCProject) GetName() string         { return p.Name }
+
 func (p *LxdCProject) AddGroup(grp *LxdCGroup) {
 	p.Groups = append(p.Groups, *grp)
 }
 
 func (p *LxdCProject) AddEnvironment(e *LxdCEnvVars) {
 	p.Environments = append(p.Environments, *e)
-}
-
-func (p *LxdCProject) GetName() string {
-	return p.Name
 }
 
 func (p *LxdCProject) GetEnvsMap() (map[string]string, error) {
@@ -114,6 +115,10 @@ func (p *LxdCProject) Sanitize() *LxdCProjectSanitized {
 	}
 }
 
+func (p *LxdCProjectSanitized) GetName() string         { return p.Name }
+func (p *LxdCProjectSanitized) GetDescription() string  { return p.Description }
+func (p *LxdCProjectSanitized) GetGroups() *[]LxdCGroup { return &p.Groups }
+
 func (p *LxdCProject) GetNodesPrefix() string { return p.NodesPrefix }
 
 func (p *LxdCProject) SetNodesPrefix(prefix string) {
@@ -121,4 +126,20 @@ func (p *LxdCProject) SetNodesPrefix(prefix string) {
 	for idx, _ := range p.Groups {
 		p.Groups[idx].SetNodesPrefix(prefix)
 	}
+}
+
+func (p *LxdCProject) LoadEnvVarsFile(file string) error {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	evars, err := EnvVarsFromYaml(content)
+	if err != nil {
+		return err
+	}
+
+	p.AddEnvironment(evars)
+
+	return nil
 }

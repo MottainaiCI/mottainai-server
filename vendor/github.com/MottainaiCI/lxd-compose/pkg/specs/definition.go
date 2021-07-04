@@ -22,15 +22,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package specs
 
 type LxdCEnvironment struct {
-	Version      string `json:"version,omitempty" yaml:"version,omitempty"`
-	File         string `json:"-" yaml:"-"`
-	LxdConfigDir string `json:"lxd_config_dir,omitempty" yaml:"lxd_config_dir,omitempty"`
+	Version string `json:"version,omitempty" yaml:"version,omitempty"`
+	File    string `json:"-" yaml:"-"`
 
 	TemplateEngine LxdCTemplateEngine `json:"template_engine,omitempty" yaml:"template_engine,omitempty"`
 
 	Projects []LxdCProject `json:"projects" yaml:"projects"`
 
-	Profiles []LxdCProfile `json:"profiles,omitempty" yaml:"profiles,omitempty"`
+	Commands             []LxdCCommand `json:"commands,omitempty" yaml:"commands,omitempty"`
+	IncludeCommandsFiles []string      `json:"include_commands_files,omitempty" yaml:"include_commands_files,omitempty"`
+
+	Profiles             []LxdCProfile `json:"profiles,omitempty" yaml:"profiles,omitempty"`
+	IncludeProfilesFiles []string      `json:"include_profiles_files,omitempty" yaml:"include_profiles_files,omitempty"`
+	Networks             []LxdCNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
+	IncludeNetworkFiles  []string      `json:"include_networks_files,omitempty" yaml:"include_networks_files,omitempty"`
 }
 
 type LxdCProfile struct {
@@ -38,6 +43,13 @@ type LxdCProfile struct {
 	Description string                       `json:"description" yaml:"description"`
 	Config      map[string]string            `json:"config" yaml:"config"`
 	Devices     map[string]map[string]string `json:"devices" yaml:"devices"`
+}
+
+type LxdCNetwork struct {
+	Name        string            `json:"name" yaml:"name"`
+	Type        string            `json:"type" yaml:"type"`
+	Description string            `json:"description" yaml:"description"`
+	Config      map[string]string `json:"config" yaml:"config"`
 }
 
 type LxdCHook struct {
@@ -48,6 +60,7 @@ type LxdCHook struct {
 	Err2Var    string   `json:"err2var,omitempty" yaml:"err2var,omitempty"`
 	Entrypoint []string `json:"entrypoint,omitempty" yaml:"entrypoint,omitempty"`
 	Flags      []string `json:"flags,omitempty" yaml:"flags,omitempty"`
+	Disable    bool     `json:"disable,omitempty" yaml:"disable,omitempty"`
 }
 
 type LxdCTemplateEngine struct {
@@ -131,4 +144,24 @@ type LxdCConfigTemplate struct {
 type LxdCSyncResource struct {
 	Source      string `json:"source" yaml:"source"`
 	Destination string `json:"dst" yaml:"dst"`
+}
+
+type LxdCCommand struct {
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Project     string `json:"project" yaml:"project"`
+	ApplyAlias  bool   `json:"apply_alias,omitempty" yaml:"apply_alias,omitempty"`
+
+	SkipSync bool `json:"skip_sync,omitempty" yaml:"skip_sync,omitempty"`
+
+	NodesPrefix string `json:"nodes_prefix,omitempty" yaml:"nodes_prefix,omitempty"`
+
+	EnableFlags  []string `json:"enable_flags,omitempty" yaml:"enable_flags,omitempty"`
+	DisableFlags []string `json:"disable_flags,omitempty" yaml:"disable_flags,omitempty"`
+
+	EnableGroups  []string `json:"enable_groups,omitempty" yaml:"enable_groups,omitempty"`
+	DisableGroups []string `json:"disable_groups,omitempty" yaml:"disable_groups,omitempty"`
+
+	Envs     LxdCEnvVars `json:"envs,omitempty" yaml:"envs,omitempty"`
+	VarFiles []string    `json:"vars_files,omitempty" yaml:"vars_files,omitempty"`
 }

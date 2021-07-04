@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 )
@@ -42,7 +44,7 @@ func (r *ProtocolSimpleStreams) GetImageFingerprints() ([]string, error) {
 func (r *ProtocolSimpleStreams) GetImage(fingerprint string) (*api.Image, string, error) {
 	image, err := r.ssClient.GetImage(fingerprint)
 	if err != nil {
-		return nil, "", err
+		return nil, "", errors.Wrapf(err, "Failed getting image")
 	}
 
 	return image, "", err
@@ -81,7 +83,10 @@ func (r *ProtocolSimpleStreams) GetImageFile(fingerprint string, req ImageFileRe
 	// Download function
 	download := func(path string, filename string, hash string, target io.WriteSeeker) (int64, error) {
 		// Try over http
-		url := fmt.Sprintf("http://%s/%s", strings.TrimPrefix(r.httpHost, "https://"), path)
+		url, err := shared.JoinUrls(fmt.Sprintf("http://%s", strings.TrimPrefix(r.httpHost, "https://")), path)
+		if err != nil {
+			return -1, err
+		}
 
 		size, err := shared.DownloadFileHash(r.http, r.httpUserAgent, req.ProgressHandler, req.Canceler, filename, url, hash, sha256.New(), target)
 		if err != nil {
@@ -91,7 +96,11 @@ func (r *ProtocolSimpleStreams) GetImageFile(fingerprint string, req ImageFileRe
 			}
 
 			// Try over https
-			url = fmt.Sprintf("%s/%s", r.httpHost, path)
+			url, err := shared.JoinUrls(r.httpHost, path)
+			if err != nil {
+				return -1, err
+			}
+
 			size, err = shared.DownloadFileHash(r.http, r.httpUserAgent, req.ProgressHandler, req.Canceler, filename, url, hash, sha256.New(), target)
 			if err != nil {
 				return -1, err

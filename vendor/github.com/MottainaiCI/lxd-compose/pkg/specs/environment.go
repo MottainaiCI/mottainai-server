@@ -23,6 +23,7 @@ package specs
 
 import (
 	"errors"
+	"path"
 
 	"gopkg.in/yaml.v2"
 )
@@ -33,6 +34,13 @@ func EnvironmentFromYaml(data []byte, file string) (*LxdCEnvironment, error) {
 		return nil, err
 	}
 	ans.File = file
+
+	if ans.Commands == nil {
+		ans.Commands = []LxdCCommand{}
+	}
+	if ans.IncludeCommandsFiles == nil {
+		ans.IncludeCommandsFiles = []string{}
+	}
 
 	for idx, _ := range ans.Projects {
 		ans.Projects[idx].Init()
@@ -59,6 +67,24 @@ func (e *LxdCEnvironment) GetProfiles() *[]LxdCProfile {
 	return &e.Profiles
 }
 
+func (e *LxdCEnvironment) GetCommands() *[]LxdCCommand {
+	return &e.Commands
+}
+
+func (e *LxdCEnvironment) GetCommand(name string) (*LxdCCommand, error) {
+	for idx, cmd := range e.Commands {
+		if cmd.Name == name {
+			return &e.Commands[idx], nil
+		}
+	}
+
+	return nil, errors.New("Command + " + name + " not available.")
+}
+
+func (e *LxdCEnvironment) AddCommand(cmd *LxdCCommand) {
+	e.Commands = append(e.Commands, *cmd)
+}
+
 func (e *LxdCEnvironment) GetProfile(name string) (LxdCProfile, error) {
 	ans := LxdCProfile{}
 
@@ -69,4 +95,37 @@ func (e *LxdCEnvironment) GetProfile(name string) (LxdCProfile, error) {
 	}
 
 	return ans, errors.New("Profile " + name + " not available.")
+}
+
+func (e *LxdCEnvironment) GetNetworks() *[]LxdCNetwork {
+	return &e.Networks
+}
+
+func (e *LxdCEnvironment) GetNetwork(name string) (LxdCNetwork, error) {
+	ans := LxdCNetwork{}
+
+	for _, net := range e.Networks {
+		if net.Name == name {
+			return net, nil
+		}
+	}
+
+	return ans, errors.New("Network " + name + " not available.")
+}
+
+func (e *LxdCEnvironment) AddNetwork(network *LxdCNetwork) {
+	e.Networks = append(e.Networks, *network)
+}
+
+func (e *LxdCEnvironment) GetBaseFile() string {
+	ans := ""
+	if e.File != "" {
+		ans = path.Base(e.File)
+	}
+
+	return ans
+}
+
+func (e *LxdCEnvironment) AddProfile(profile *LxdCProfile) {
+	e.Profiles = append(e.Profiles, *profile)
 }

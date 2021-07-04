@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/osarch"
@@ -98,7 +100,11 @@ func (s *SimpleStreams) cachedDownload(path string) ([]byte, error) {
 	}
 
 	// Download from the source
-	uri := fmt.Sprintf("%s/%s", strings.TrimRight(s.url, "/"), strings.TrimLeft(path, "/"))
+	uri, err := shared.JoinUrls(s.url, path)
+	if err != nil {
+		return nil, err
+	}
+
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -148,7 +154,8 @@ func (s *SimpleStreams) parseStream() (*Stream, error) {
 		return s.cachedStream, nil
 	}
 
-	body, err := s.cachedDownload("streams/v1/index.json")
+	path := "streams/v1/index.json"
+	body, err := s.cachedDownload(path)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +164,7 @@ func (s *SimpleStreams) parseStream() (*Stream, error) {
 	stream := Stream{}
 	err = json.Unmarshal(body, &stream)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed decoding stream JSON from %q", path)
 	}
 
 	s.cachedStream = &stream
@@ -179,7 +186,7 @@ func (s *SimpleStreams) parseProducts(path string) (*Products, error) {
 	products := Products{}
 	err = json.Unmarshal(body, &products)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed decoding products JSON from %q", path)
 	}
 
 	s.cachedProducts[path] = &products
@@ -277,7 +284,7 @@ func (s *SimpleStreams) getImages() ([]api.Image, []extendedAlias, error) {
 	// Load the stream data
 	stream, err := s.parseStream()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrapf(err, "Failed parsing stream")
 	}
 
 	// Iterate through the various indices
@@ -294,7 +301,7 @@ func (s *SimpleStreams) getImages() ([]api.Image, []extendedAlias, error) {
 
 		products, err := s.parseProducts(entry.Path)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.Wrapf(err, "Failed parsing products")
 		}
 
 		streamImages, _ := products.ToLXD()
@@ -304,7 +311,7 @@ func (s *SimpleStreams) getImages() ([]api.Image, []extendedAlias, error) {
 	// Setup the aliases
 	images, aliases, err := s.applyAliases(images)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrapf(err, "Failed applying aliases")
 	}
 
 	s.cachedImages = images
