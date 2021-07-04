@@ -363,7 +363,7 @@ func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{
 
 	ctx := context.Background()
 
-	_, err = col.UpdateDocument(ctx, docID, t)
+	_, err = col.ReplaceDocument(ctx, docID, t)
 	if err != nil {
 		return err
 	}

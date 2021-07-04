@@ -118,6 +118,31 @@ func (d *Database) GetUserByName(name string) (user.User, error) {
 	}
 }
 
+func (d *Database) GetUserByGithubState(state string) (user.User, error) {
+
+	var res []user.User
+
+	queryResult, err := d.FindDoc(UserColl, `[{"eq": "`+state+`", "in": ["github_state"]}]`)
+	if err != nil {
+		return user.User{}, err
+	}
+
+	for docid := range queryResult {
+		u, err := d.GetUser(docid)
+		u.ID = docid
+		if err != nil {
+			return user.User{}, err
+		}
+		res = append(res, u)
+	}
+
+	if len(res) == 0 {
+		return user.User{}, errors.New("no user found")
+	} else {
+		return res[0], nil
+	}
+}
+
 func (d *Database) GetUserByEmail(email string) (user.User, error) {
 	res, err := d.GetUsersByEmail(email)
 	if err != nil {

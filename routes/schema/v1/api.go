@@ -315,6 +315,9 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			ContentType: schema.ContentTypeFormUrlEncoded,
 		},
 	},
+	Callbacks: map[string]schema.Route{
+		"cb_int_gh": &schema.APIRoute{Path: "/callbacks/integrations/github", Type: "get"},
+	},
 	Client: map[string]schema.Route{
 		// auth
 		"auth_register": &schema.APIRoute{
@@ -332,11 +335,33 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Type:        "post",
 			ContentType: schema.ContentTypeFormUrlEncoded,
 		},
+		"auth_int_github": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github",
+			Type:        "get",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
+		"auth_int_github_callback": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github_callback",
+			Type:        "post",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
+		"auth_int_github_logout": &schema.APIRoute{
+			Path:        "/api/v1/client/auth/int/github_logout",
+			Type:        "post",
+			ContentType: schema.ContentTypeFormUrlEncoded,
+		},
 		"auth_user":     &schema.APIRoute{Path: "/api/v1/client/auth/user", Type: "get"},
 		"captcha_new":   &schema.APIRoute{Path: "/api/v1/client/captcha/new", Type: "get"},
 		"captcha_image": &schema.APIRoute{Path: "/api/v1/client/captcha/image/:id", Type: "get"},
 
 		// dashboard
 		"dashboard_stats": &schema.APIRoute{Path: "/api/v1/client/dashboard/stats", Type: "get"},
+
+		// users
+		"users_show_all": &schema.APIRoute{Path: "/api/v1/client/users/list", Type: "get"},
+		"users_show":     &schema.APIRoute{Path: "/api/v1/client/users/show/:id", Type: "get"},
+		"users_create":   &schema.APIRoute{Path: "/api/v1/client/users/create", Type: "post"},
+		"users_delete":   &schema.APIRoute{Path: "/api/v1/client/users/delete/:id", Type: "post"},
+		"users_edit":     &schema.APIRoute{Path: "/api/v1/client/users/edit/:id", Type: "post"},
 	},
 }

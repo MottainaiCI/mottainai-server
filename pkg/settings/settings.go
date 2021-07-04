@@ -67,6 +67,7 @@ type WebConfig struct {
 	WebHookGitHubToken     string `mapstructure:"github_token" json:"github_token,omitempty" yaml:"github_token,omitempty"`
 	WebHookGitHubTokenUser string `mapstructure:"github_token_user" json:"github_token_user,omitempty" yaml:"github_token_user,omitempty"`
 	WebHookGitHubSecret    string `mapstructure:"github_secret" json:"github_secret,omitempty" yaml:"github_secret,omitempty"`
+	WebHookGitHubCallback  string `mapstructure:"github_callback" json:"github_callback,omitempty" yaml:"github_callback,omitempty"`
 	WebHookToken           string `mapstructure:"webhook_token" json:"webhook_token,omitempty" yaml:"webhook_token,omitempty"`
 
 	LockPath     string `mapstructure:"lock_path" json:"lock_path,omitempty" yaml:"lock_path,omitempty"`

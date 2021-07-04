@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -29,18 +29,22 @@ import (
 	gothic "github.com/MottainaiCI/mottainai-server/pkg/providers"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
-	"github.com/go-macaron/session"
-
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
-	ciuser "github.com/MottainaiCI/mottainai-server/pkg/user"
-
 	"net/http"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 )
 
+func GithubIntegrationUrl(c *context.Context, db *database.Database) error {
+	if c.IsLogged {
+		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
+		gothic.GetGithubUrl(c, db)
+		return nil
+	}
+	return errors.New("user not logged in")
+}
+
 func GithubLogout(c *context.Context, db *database.Database) error {
-	c.Session.Delete("github")
 	if c.IsLogged {
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
 		u, err := db.Driver.GetUser(c.User.ID)
@@ -52,42 +56,10 @@ func GithubLogout(c *context.Context, db *database.Database) error {
 		if err != nil {
 			return err
 		}
-		u.Password = ""
-		c.Data["User"] = u
-		c.Success(SHOW)
+		c.JSON(200, "")
 		return nil
 	}
-	return errors.New("User not logged")
-}
-
-func GithubLogin(c *context.Context, db *database.Database) error {
-	// try to get the user without re-authenticating
-	if c.IsLogged {
-		//c.Session.Set("provider", interface{})
-		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		if _, gothUser, err := gothic.CompleteUserAuth(c, db); err == nil {
-			u, err := db.Driver.GetUser(c.User.ID)
-
-			if err != nil {
-				return err
-			}
-
-			u.AddIdentity("github", &ciuser.Identity{ID: gothUser.UserID, Provider: "github"})
-			err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
-			if err != nil {
-				return err
-			}
-			u.Password = ""
-			c.Data["User"] = u
-			c.Success(SHOW)
-			return nil
-		} else {
-			gothic.BeginAuthHandler(c, db)
-			return nil
-		}
-
-	}
-	return errors.New("User not logged")
+	return errors.New("user not logged in")
 }
 
 // TODO: factor out in unique require check function from DB settings.
@@ -104,33 +76,4 @@ func RequiresIntegrationSetting(c *context.Context, db *database.Database) error
 		}
 	}
 	return nil
-}
-func GithubAuthCallback(s session.Store, c *context.Context, db *database.Database) error {
-
-	if c.IsLogged {
-
-		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		_, user, err := gothic.CompleteUserAuth(c, db)
-		if err != nil {
-			return err
-		}
-		u, err := db.Driver.GetUser(c.User.ID)
-
-		if err != nil {
-			return err
-		}
-
-		u.AddIdentity("github", &ciuser.Identity{ID: user.UserID, Provider: "github"})
-		err = db.Driver.UpdateUser(c.User.ID, u.ToMap())
-		if err != nil {
-			return err
-		}
-		u.Password = ""
-		c.Data["User"] = u
-		c.Success(SHOW)
-		return nil
-	}
-
-	return errors.New("User not logged")
-
 }

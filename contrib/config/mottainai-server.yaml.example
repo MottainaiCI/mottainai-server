@@ -67,6 +67,9 @@ web:
   # github_token_user: 'xxx'
   # github_secret: 'xxxx'
   # webhook_token: 'xxxxx'
+  # Do not change `/integrations/github/callback` as that's the route
+  # the dashboard is configured to handle the callback
+  # github_callback: "http://url_to_mottainai_server/callbacks/integrations/github"
 
   # Session store
   # If no option is provided, in-memory store is used by default i.e.
