@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
                          Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
@@ -37,7 +37,7 @@ import (
 
 const (
 	srvName = `Mottainai CLI
-Copyright (c) 2017-2018 Mottainai
+Copyright (c) 2017-2021 Mottainai
 
 Mottainai - Task/Job Build Service`
 
