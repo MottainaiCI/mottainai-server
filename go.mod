@@ -17,6 +17,7 @@ require (
 	github.com/codegangsta/inject v0.0.0-20140425184007-37d7f8432a3e // indirect
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible // indirect
+	github.com/couchbaselabs/go-couchbase v0.0.0-20190708161019-23e7ca2ce2b7 // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd // indirect
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200417035958-130b0bc6032c+incompatible // indirect
@@ -32,12 +33,11 @@ require (
 	github.com/frankban/quicktest v1.11.2 // indirect
 	github.com/fsouza/go-dockerclient v1.6.5
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-macaron/binding v0.0.0-20170611065819-ac54ee249c27
-	github.com/go-macaron/cache v0.0.0-20151013081102-561735312776
-	github.com/go-macaron/captcha v0.0.0-20180716114251-d2857f392769
-	github.com/go-macaron/csrf v0.0.0-20190131233648-3751b136073c
-	github.com/go-macaron/inject v0.0.0-20160627170012-d8a0b8677191 // indirect
-	github.com/go-macaron/session v0.0.0-20190131233854-0a0a789bf193
+	github.com/go-macaron/binding v1.1.1
+	github.com/go-macaron/cache v0.0.0-20200329073519-53bb48172687
+	github.com/go-macaron/captcha v0.2.0
+	github.com/go-macaron/csrf v0.0.0-20200329073418-5d38f39de352
+	github.com/go-macaron/session v1.0.2
 	github.com/go-openapi/validate v0.19.5 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -58,6 +58,8 @@ require (
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lithammer/dedent v1.1.0 // indirect
+	github.com/lunny/log v0.0.0-20160921050905-7887c61bf0de // indirect
+	github.com/lunny/nodb v0.0.0-20160621015157-fc1ef06ad4af // indirect
 	github.com/lxc/lxd v0.0.0-20210507013419-5ff45e701cb8
 	github.com/markbates/goth v1.66.0
 	github.com/mattn/go-colorable v0.1.2 // indirect
@@ -89,7 +91,7 @@ require (
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.22.5 // indirect
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sys v0.0.0-20201112073958-5cba982894dd // indirect
@@ -105,7 +107,7 @@ require (
 	gopkg.in/hlandau/measurable.v1 v1.0.1 // indirect
 	gopkg.in/hlandau/passlib.v1 v1.0.10 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/macaron.v1 v1.3.2
+	gopkg.in/macaron.v1 v1.4.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/redis.v2 v2.3.2 // indirect
 	gopkg.in/square/go-jose.v2 v2.2.2 // indirect
@@ -120,6 +122,6 @@ require (
 
 replace howett.net/plist v0.0.0-20181124034731-591f970eefbb => github.com/DHowett/go-plist v0.0.0-20181124034731-591f970eefbb
 
-replace github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f => github.com/unknwon/com v0.0.0-20181010210213-41959bdd855f
+//replace github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f => github.com/unknwon/com v0.0.0-20181010210213-41959bdd855f
 
 replace github.com/juju/clock v0.0.0-20190205081909-9c5c9712527c => github.com/rogpeppe/clock v0.0.0-20190514193443-f0bda0cd88c6
