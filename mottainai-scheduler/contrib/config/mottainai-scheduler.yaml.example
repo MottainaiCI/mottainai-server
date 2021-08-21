@@ -1,0 +1,40 @@
+# Mottainai Scheduler Config
+
+general:
+  debug: false
+  # Default (currently not supported. For near future feature)
+  logfile: '/var/log/mottainai/mottainai-scheduler.log'
+  loglevel: 'DEBUG'
+
+  # TLS options
+  # tls_cert:
+  # tls_key
+
+  # Others logrus options / providers
+
+  # Configure max timeout of fetch namespace files
+  # Field is in seconds. 0 means infinite.
+  # client_timeout: 360
+
+#----------------------------------------------
+# Mottainai Server API Server
+#----------------------------------------------
+web:
+  # Define URL of the Web Application.
+  # If Mottainai if under reverse proxy set this param
+  # with relative path related with exposed path. Example: /mottainai
+  url: '/'
+
+  # URL used for share API access address
+  application_url: 'http://127.0.0.1:9090/'
+
+scheduler:
+
+  # API Key
+  #api_key: "xxxxxx"
+
+  # Define Queues handled by Agent and number of concurrency tasks
+  # queues:
+  #  - queue1
+  #  - queue2
+

@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"encoding/gob"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
@@ -279,15 +278,6 @@ func ParseLXDFileHeaders(headers http.Header) (uid int64, gid int64, mode int, t
 	}
 
 	return uid, gid, mode, type_, write
-}
-
-func ReadToJSON(r io.Reader, req interface{}) error {
-	buf, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(buf, req)
 }
 
 func ReaderToChannel(r io.Reader, bufferSize int) <-chan []byte {
@@ -1001,18 +991,6 @@ func TimeIsSet(ts time.Time) bool {
 	return true
 }
 
-// WriteTempFile creates a temp file with the specified content
-func WriteTempFile(dir string, prefix string, content string) (string, error) {
-	f, err := ioutil.TempFile(dir, prefix)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(content)
-	return f.Name(), err
-}
-
 // EscapePathFstab escapes a path fstab-style.
 // This ensures that getmntent_r() and friends can correctly parse stuff like
 // /some/wacky path with spaces /some/wacky target with spaces
@@ -1236,4 +1214,14 @@ func InSnap() bool {
 	}
 
 	return false
+}
+
+// JoinUrlPath return the join of the input urls/paths sanitized.
+func JoinUrls(baseUrl, p string) (string, error) {
+	u, err := url.Parse(baseUrl)
+	if err != nil {
+		return "", err
+	}
+	u.Path = path.Join(u.Path, p)
+	return u.String(), nil
 }

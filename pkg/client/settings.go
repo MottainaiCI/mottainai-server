@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) SettingCreate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetSettingRoute("create"),
 		Options: data,
 	}
@@ -37,7 +37,7 @@ func (f *Fetcher) SettingCreate(data map[string]interface{}) (event.APIResponse,
 
 func (f *Fetcher) SettingRemove(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetSettingRoute("remove"),
 		Options: map[string]interface{}{
 			":key": id,
@@ -49,7 +49,7 @@ func (f *Fetcher) SettingRemove(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) SettingUpdate(data map[string]interface{}) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route:   v1.Schema.GetSettingRoute("update"),
 		Options: data,
 	}

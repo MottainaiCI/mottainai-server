@@ -24,6 +24,7 @@ package tiedot
 
 import (
 	"errors"
+	"sort"
 	"strconv"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
@@ -51,16 +52,6 @@ func (d *Database) InsertTask(t *agenttasks.Task) (string, error) {
 func (d *Database) CreateTask(t map[string]interface{}) (string, error) {
 
 	return d.InsertDoc(TaskColl, t)
-}
-
-func (d *Database) CloneTask(config *setting.Config, t string) (string, error) {
-	tdata, err := d.GetTask(config, t)
-	if err != nil {
-		return "", err
-	}
-	tdata.Reset()
-	tdata.ID = ""
-	return d.InsertTask(&tdata)
 }
 
 func (d *Database) DeleteTask(config *setting.Config, docID string) error {
@@ -176,7 +167,63 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 }
 
 func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
-	return dbcommon.TaskResult{}, errors.New("not implemented")
+	tasks := d.DB().Use(TaskColl)
+	tasks_map := make(map[string]agenttasks.Task, 0)
+	tasks_keys := []string{}
+
+	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
+		t := agenttasks.NewTaskFromJson(docContent)
+		t.ID = strconv.Itoa(id)
+		switch f.Sort {
+		case "_key":
+			tasks_map[t.ID] = t
+			tasks_keys = append(tasks_keys, t.ID)
+		case "name":
+			tasks_map[t.Name] = t
+			tasks_keys = append(tasks_keys, t.Name)
+		case "image":
+			tasks_map[t.Image] = t
+			tasks_keys = append(tasks_keys, t.Image)
+		case "status":
+			tasks_map[t.Status] = t
+			tasks_keys = append(tasks_keys, t.Status)
+		case "start_time":
+			tasks_map[t.StartTime] = t
+			tasks_keys = append(tasks_keys, t.StartTime)
+		default:
+			tasks_map[t.ID] = t
+		}
+
+		return true
+	})
+
+	if f.SortOrder == "DESC" {
+		sort.Sort(sort.Reverse(sort.StringSlice(tasks_keys)))
+	} else {
+		sort.Strings(tasks_keys)
+	}
+
+	startIndex := f.PageSize * f.PageIndex
+	endIndex := f.PageSize * (f.PageIndex + 1)
+
+	if endIndex > len(tasks_keys) {
+		endIndex = len(tasks_keys)
+	}
+
+	stasks := []agenttasks.Task{}
+
+	for _, k := range tasks_keys[startIndex:endIndex] {
+		stasks = append(stasks, tasks_map[k])
+	}
+
+	// tiedot doesn't support limit
+	ans := dbcommon.TaskResult{}
+
+	ans.Total = len(tasks_keys)
+
+	ans.Tasks = stasks
+
+	return ans, nil
 }
 
 func (d *Database) AllNodeTask(config *setting.Config, id string) ([]agenttasks.Task, error) {
@@ -218,9 +265,44 @@ func (d *Database) AllUserTask(config *setting.Config, id string) ([]agenttasks.
 }
 
 func (d *Database) AllUserFiltered(config *setting.Config, id string, f dbcommon.TaskFilter) (dbcommon.TaskResult, error) {
-	return dbcommon.TaskResult{}, errors.New("not implemented")
+	// tiedot doesn't support limit
+	ans := dbcommon.TaskResult{}
+
+	tasks, err := d.AllUserTask(config, id)
+	if err != nil {
+		return ans, err
+	}
+	ans.Total = len(tasks)
+	ans.Tasks = tasks
+
+	return ans, nil
 }
 
 func (d *Database) GetTaskMetrics() (map[string]interface{}, error) {
-	return nil, errors.New("not implemented")
+	tasks := d.AllTasks(nil)
+
+	statusRes := make(map[string]int, 0)
+	resultRes := make(map[string]int, 0)
+
+	for _, t := range tasks {
+		if _, ok := statusRes[t.Status]; ok {
+			statusRes[t.Status] = statusRes[t.Status] + 1
+		} else {
+			statusRes[t.Status] = 1
+		}
+
+		if _, ok := resultRes[t.Result]; ok {
+			resultRes[t.Result] = resultRes[t.Result] + 1
+		} else {
+			resultRes[t.Result] = 1
+		}
+	}
+
+	ans := map[string]interface{}{
+		"status": statusRes,
+		"result": resultRes,
+		"total":  len(tasks),
+	}
+
+	return ans, nil
 }

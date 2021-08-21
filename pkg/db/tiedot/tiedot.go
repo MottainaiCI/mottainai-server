@@ -24,12 +24,17 @@ package tiedot
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strconv"
 
+	tiedot_data "github.com/HouzuoGuo/tiedot/data"
 	"github.com/HouzuoGuo/tiedot/db"
-	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	"github.com/mudler/anagent"
 
+	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
 )
 
@@ -39,8 +44,49 @@ type Database struct {
 	DBName string
 }
 
-var Collections = []string{WebHookColl, TaskColl, SecretColl,
-	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
+var Collections = []string{
+	WebHookColl, TaskColl, SecretColl,
+	UserColl, PlansColl, PipelinesColl,
+	NodeColl, NamespaceColl, TokenColl,
+	ArtefactColl, StorageColl, OrganizationColl,
+	SettingColl, QueueColl, NodeQueuesColl,
+}
+
+func (d *Database) GetCollectionName(entity entities.MottainaiEntity) (ans string) {
+	switch entity {
+	case entities.Webhooks:
+		ans = WebHookColl
+	case entities.Tasks:
+		ans = TaskColl
+	case entities.Secrets:
+		ans = SecretColl
+	case entities.Users:
+		ans = UserColl
+	case entities.Plans:
+		ans = PlansColl
+	case entities.Pipelines:
+		ans = PipelinesColl
+	case entities.Nodes:
+		ans = NodeColl
+	case entities.Namespaces:
+		ans = NamespaceColl
+	case entities.Tokens:
+		ans = TokenColl
+	case entities.Artefacts:
+		ans = ArtefactColl
+	case entities.Storages:
+		ans = StorageColl
+	case entities.Organizations:
+		ans = OrganizationColl
+	case entities.Settings:
+		ans = SettingColl
+	case entities.Queues:
+		ans = QueueColl
+	case entities.NodeQueues:
+		ans = NodeQueuesColl
+	}
+	return
+}
 
 func New(path string) *Database {
 	return &Database{Anagent: anagent.New(), DBPath: path}
@@ -63,6 +109,8 @@ func (d *Database) Init() {
 	d.IndexPlan()
 	d.IndexTask()
 	d.IndexNode()
+	d.IndexNodeQueue()
+	d.IndexQueue()
 	d.IndexNamespace()
 	d.IndexArtefacts()
 	d.IndexStorage()
@@ -78,8 +126,49 @@ func (d *Database) Init() {
 var MyDbInstance *db.DB
 
 func (d *Database) DB() *db.DB {
+	dbconf := filepath.Join(d.DBPath, "data-config.json")
+
 	if MyDbInstance != nil {
 		return MyDbInstance
+	}
+
+	exists, err := utils.Exists(dbconf)
+	if err != nil {
+		panic(err)
+	}
+
+	if !exists {
+		d.Invoke(func(config *setting.Config) {
+			// POST: Create config file with our settings.
+			conf := tiedot_data.Config{
+				DocMaxRoom:    config.GetDatabase().TiedotDocMaxRoom,
+				ColFileGrowth: config.GetDatabase().TiedotColFileGrowth,
+				PerBucket:     config.GetDatabase().TiedotPerBucket,
+				HTFileGrowth:  config.GetDatabase().TiedotHTFileGrowth,
+				HashBits:      config.GetDatabase().TiedotHashBits,
+			}
+
+			confData, err := json.Marshal(conf)
+			if err != nil {
+				panic(err)
+			}
+
+			if err := os.MkdirAll(d.DBPath, 0700); err != nil {
+				panic(err)
+			}
+
+			f, err := os.OpenFile(dbconf, os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			_, err = f.Write(confData)
+			if err != nil {
+				panic(err)
+			}
+
+		})
 	}
 
 	myDB, err := db.OpenDB(d.DBPath)
@@ -107,6 +196,14 @@ func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, err
 
 	id, err := d.DB().Use(coll).Insert(t)
 	return strconv.Itoa(id), err
+}
+
+func (d *Database) RestoreDoc(coll, id string, t map[string]interface{}) error {
+	idi, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+	return d.DB().Use(coll).InsertRecovery(idi, t)
 }
 
 func (d *Database) FindDoc(coll string, searchquery string) (map[string]interface{}, error) {

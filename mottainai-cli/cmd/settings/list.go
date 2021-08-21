@@ -48,13 +48,18 @@ func newSettingListCommand(config *setting.Config) *cobra.Command {
 			var v *viper.Viper = config.Viper
 
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
-			req := schema.Request{
+			req := &schema.Request{
 				Route:  v1.Schema.GetSettingRoute("show_all"),
 				Target: &tlist,
 			}
 
 			err := fetcher.Handle(req)
 			if err != nil {
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+				}
+
 				log.Fatalln("error:", err)
 			}
 

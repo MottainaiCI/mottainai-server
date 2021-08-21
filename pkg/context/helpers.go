@@ -212,28 +212,39 @@ func CheckStoragePermission(ctx *Context) bool {
 }
 
 // API Helpers
+func (c *Context) APIActionFailed(id, objType, err, data string, statusCode int) {
+	c.APIEventReport(event.APIResponse{
+		ObjType:   objType,
+		Processed: "true",
+		Status:    "ko",
+		Data:      data,
+		ID:        id,
+		Error:     err,
+	}, statusCode)
+}
 
 func (c *Context) APIActionSuccess() {
-	c.APIEventReport(event.APIResponse{ObjType: "action", Processed: "true", Status: "ok"})
+	c.APIEventReport(event.APIResponse{ObjType: "action", Processed: "true", Status: "ok"}, 200)
 }
 
 func (c *Context) APICreationSuccess(id, objType string) {
-	c.APIEventReport(event.APIResponse{ID: id, ObjType: objType, Processed: "true", Status: "ok"})
+	c.APIEventReport(event.APIResponse{ID: id, ObjType: objType, Processed: "true", Status: "ok"}, 200)
 }
 
 func (c *Context) APIPayload(id, objType, data string) {
-	c.APIEventReport(event.APIResponse{Data: data, ID: id, ObjType: objType, Processed: "true", Status: "ok"})
+	c.APIEventReport(event.APIResponse{Data: data, ID: id, ObjType: objType, Processed: "true", Status: "ok"}, 200)
 }
 
 func (c *Context) APIEventData(data string) {
-	c.APIEventReport(event.APIResponse{Data: data, Processed: "true", Status: "ok"})
+	c.APIEventReport(event.APIResponse{Data: data, Processed: "true", Status: "ok"}, 200)
 }
 
-func (c *Context) APIEventReport(e event.APIResponse) {
+func (c *Context) APIEventReport(e event.APIResponse, statusCode int) {
 	pc, _, _, ok := runtime.Caller(2)
 	details := runtime.FuncForPC(pc)
 	if ok && details != nil {
+		// TODO: do this only with debug enable
 		e.Event = details.Name()
 	}
-	c.JSON(200, e)
+	c.JSON(statusCode, e)
 }

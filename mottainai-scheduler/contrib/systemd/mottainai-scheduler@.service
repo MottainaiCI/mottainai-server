@@ -1,0 +1,13 @@
+[Unit]
+Description=Mottainai Agent (Instance %i)
+After=network-online.target
+
+[Service]
+WorkingDirectory=/srv/mottainai
+ExecStart=/usr/bin/mottainai-scheduler daemon --config /etc/mottainai/%i.yaml
+User=mottainai-agent
+Group=mottainai
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=network-online.target

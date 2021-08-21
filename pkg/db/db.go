@@ -1,6 +1,7 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -30,6 +31,7 @@ import (
 	"github.com/MottainaiCI/mottainai-server/pkg/namespace"
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	organization "github.com/MottainaiCI/mottainai-server/pkg/organization"
+	"github.com/MottainaiCI/mottainai-server/pkg/queues"
 	"github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/pkg/storage"
@@ -40,12 +42,16 @@ import (
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	tiedot "github.com/MottainaiCI/mottainai-server/pkg/db/tiedot"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
+
 	anagent "github.com/mudler/anagent"
 )
 
 type DatabaseDriver interface {
 	Init()
+	GetCollectionName(entities.MottainaiEntity) string
 	InsertDoc(string, map[string]interface{}) (string, error)
+	RestoreDoc(string, string, map[string]interface{}) error
 	FindDoc(string, string) (map[string]interface{}, error)
 	DeleteDoc(string, string) error
 	UpdateDoc(string, string, map[string]interface{}) error
@@ -135,7 +141,6 @@ type DatabaseDriver interface {
 	// Tasks
 	InsertTask(t *agenttasks.Task) (string, error)
 	CreateTask(t map[string]interface{}) (string, error)
-	CloneTask(config *setting.Config, t string) (string, error)
 	DeleteTask(config *setting.Config, docID string) error
 	UpdateTask(docID string, t map[string]interface{}) error
 	GetTask(config *setting.Config, docID string) (agenttasks.Task, error)
@@ -174,6 +179,7 @@ type DatabaseDriver interface {
 	SignIn(name, password string) (user.User, error)
 	GetUserByName(name string) (user.User, error)
 	GetUserByEmail(email string) (user.User, error)
+	GetUserByGithubState(state string) (user.User, error)
 	GetUsersByEmail(email string) ([]user.User, error)
 	GetUsersByName(name string) ([]user.User, error)
 	// TODO: To replace with a specific collection to index search
@@ -233,6 +239,31 @@ type DatabaseDriver interface {
 
 	// TODO: See if it's correct expone this as method
 	GetAgent() *anagent.Anagent
+
+	// Node Queues
+	CreateNodeQueues(t map[string]interface{}) (string, error)
+	DeleteNodeQueues(docId string) error
+	AddNodeQueuesTask(akey, nodeid, queue, taskid string) error
+	DelNodeQueuesTask(akey, nodeid, queue, taskid string) error
+	GetNodeQueuesByKey(akey, nodeid string) (queues.NodeQueues, error)
+	GetNodeQueues(docId string) (queues.NodeQueues, error)
+	AllNodesQueues() []queues.NodeQueues
+
+	// Queue
+	AllQueues([]string) []queues.Queue
+	CreateQueue(t map[string]interface{}) (string, error)
+	DeleteQueue(docId string) error
+	ResetQueueByQid(qid string) error
+	GetQueueByQid(qid string) (queues.Queue, error)
+	GetQueueByKey(name string) (queues.Queue, error)
+	AddTaskInProgress2Queue(qid, taskid string) error
+	DelTaskInProgress2Queue(qid, taskid string) error
+	AddTaskInWaiting2Queue(qid, taskid string) error
+	DelTaskInWaiting2Queue(qid, taskid string) error
+	AddPipelineInProgress2Queue(qid, pipelineid string) error
+	DelPipelineInProgress2Queue(qid, pipelineid string) error
+	AddPipelineInWaiting2Queue(qid, pipelineid string) error
+	DelPipelineInWaiting2Queue(qid, pipelineid string) error
 }
 
 // For future, now in PoC state will just support

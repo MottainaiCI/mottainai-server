@@ -49,14 +49,11 @@ func newDebugConfigCommand(config *setting.Config) *cobra.Command {
 				title("General Options:"), config.General.String()))
 
 			fmt.Println(title("Mottainai Server Options:"))
-			fmt.Println(fmt.Sprintf("  profile: %s", config.Viper.GetString("profile")))
-			fmt.Println(fmt.Sprintf("  master:  %s", config.Viper.GetString("master")))
+			fmt.Println(fmt.Sprintf("profile: %s", config.Viper.GetString("profile")))
+			fmt.Println(fmt.Sprintf("master:  %s", config.Viper.GetString("master")))
 			if config.Viper.GetBool("all") {
-				fmt.Println("\n")
-				fmt.Println(fmt.Sprintf("%s\n%s\n",
+				fmt.Println(fmt.Sprintf("\n%s\n%s\n",
 					title("Mottainai Agent Options:"), config.Agent.String()))
-				fmt.Println(fmt.Sprintf("%s\n%s\n",
-					title("Mottainai Broker Options:"), config.Broker.String()))
 			}
 		},
 	}

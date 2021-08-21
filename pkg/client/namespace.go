@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) NamespaceDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("delete"),
 		Options: map[string]interface{}{
 			":name": id,
@@ -39,7 +39,7 @@ func (f *Fetcher) NamespaceDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("remove"),
 		Options: map[string]interface{}{
 			"name": id,
@@ -51,7 +51,7 @@ func (f *Fetcher) NamespaceRemovePath(id, path string) (event.APIResponse, error
 }
 func (f *Fetcher) NamespaceClone(from, to string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("clone"),
 		Options: map[string]interface{}{
 			":from": from,
@@ -63,7 +63,7 @@ func (f *Fetcher) NamespaceClone(from, to string) (event.APIResponse, error) {
 }
 func (f *Fetcher) NamespaceAppend(id, name string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("append"),
 		Options: map[string]interface{}{
 			":taskid": id,
@@ -76,7 +76,7 @@ func (f *Fetcher) NamespaceAppend(id, name string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceTag(id, tag string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("tag"),
 		Options: map[string]interface{}{
 			":taskid": id,
@@ -89,7 +89,7 @@ func (f *Fetcher) NamespaceTag(id, tag string) (event.APIResponse, error) {
 
 func (f *Fetcher) NamespaceCreate(t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNamespaceRoute("create"),
 		Options: map[string]interface{}{
 			":name": t,

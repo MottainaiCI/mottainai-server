@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package pipeline
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -52,7 +53,7 @@ func newPipelineListCommand(config *setting.Config) *cobra.Command {
 
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
-			req := schema.Request{
+			req := &schema.Request{
 				Route:  v1.Schema.GetTaskRoute("pipeline_list"),
 				Target: &tlist,
 			}
@@ -63,36 +64,46 @@ func newPipelineListCommand(config *setting.Config) *cobra.Command {
 				return tlist[i].CreatedTime > tlist[j].CreatedTime
 			})
 
-			quiet, err = cmd.Flags().GetBool("quiet")
-			tools.CheckError(err)
+			quiet, _ = cmd.Flags().GetBool("quiet")
+			jsonOutput, _ := cmd.Flags().GetBool("json")
 
-			if quiet {
-				for _, i := range tlist {
-					fmt.Println(i.ID)
+			if jsonOutput {
+				data, err := json.Marshal(tlist)
+				if err != nil {
+					fmt.Println(fmt.Errorf("Error on convert data to json: %s", err.Error()))
+					os.Exit(1)
 				}
-				return
-			}
+				fmt.Println(string(data))
+			} else {
+				if quiet {
+					for _, i := range tlist {
+						fmt.Println(i.ID)
+					}
+					return
+				}
 
-			for _, i := range tlist {
-				t, _ := time.Parse("20060102150405", i.CreatedTime)
-				task_table = append(task_table, []string{i.ID, i.Name, t.String()})
-			}
+				for _, i := range tlist {
+					t, _ := time.Parse("20060102150405", i.CreatedTime)
+					task_table = append(task_table, []string{i.ID, i.Name, t.String()})
+				}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			table.SetHeader([]string{"ID", "Name", "Created"})
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+				table.SetCenterSeparator("|")
+				table.SetHeader([]string{"ID", "Name", "Created"})
 
-			for _, v := range task_table {
-				table.Append(v)
+				for _, v := range task_table {
+					table.Append(v)
+				}
+				table.Render()
 			}
-			table.Render()
 
 		},
 	}
 
 	var flags = cmd.Flags()
 	flags.BoolP("quiet", "q", false, "Quiet Output")
+	flags.BoolP("json", "j", false, "Json output")
 
 	return cmd
 }

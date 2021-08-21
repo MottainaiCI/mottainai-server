@@ -7,9 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-	"gopkg.in/robfig/cron.v2"
-
 	"github.com/lxc/lxd/shared/units"
 	"github.com/lxc/lxd/shared/validate"
 )
@@ -43,6 +40,9 @@ func IsRootDiskDevice(device map[string]string) bool {
 	return false
 }
 
+// ErrNoRootDisk means there is no root disk device found.
+var ErrNoRootDisk = fmt.Errorf("No root device could be found")
+
 // GetRootDiskDevice returns the instance device that is configured as root disk.
 // Returns the device name and device config map.
 func GetRootDiskDevice(devices map[string]map[string]string) (string, map[string]string, error) {
@@ -64,7 +64,7 @@ func GetRootDiskDevice(devices map[string]map[string]string) (string, map[string
 		return devName, dev, nil
 	}
 
-	return "", nil, fmt.Errorf("No root device could be found")
+	return "", nil, ErrNoRootDisk
 }
 
 // HugePageSizeKeys is a list of known hugepage size configuration keys.
@@ -185,6 +185,7 @@ var KnownInstanceConfigKeys = map[string]func(value string) error{
 	"migration.incremental.memory":            validate.Optional(validate.IsBool),
 	"migration.incremental.memory.iterations": validate.Optional(validate.IsUint32),
 	"migration.incremental.memory.goal":       validate.Optional(validate.IsUint32),
+	"migration.stateful":                      validate.Optional(validate.IsBool),
 
 	"nvidia.runtime":             validate.Optional(validate.IsBool),
 	"nvidia.driver.capabilities": validate.IsAny,
@@ -222,22 +223,7 @@ var KnownInstanceConfigKeys = map[string]func(value string) error{
 	"security.syscalls.intercept.setxattr":      validate.Optional(validate.IsBool),
 	"security.syscalls.whitelist":               validate.IsAny,
 
-	"snapshots.schedule": func(value string) error {
-		if value == "" {
-			return nil
-		}
-
-		if len(strings.Split(value, " ")) != 5 {
-			return fmt.Errorf("Schedule must be of the form: <minute> <hour> <day-of-month> <month> <day-of-week>")
-		}
-
-		_, err := cron.Parse(fmt.Sprintf("* %s", value))
-		if err != nil {
-			return errors.Wrap(err, "Error parsing schedule")
-		}
-
-		return nil
-	},
+	"snapshots.schedule":         validate.Optional(validate.IsCron([]string{"@hourly", "@daily", "@midnight", "@weekly", "@monthly", "@annually", "@yearly", "@startup"})),
 	"snapshots.schedule.stopped": validate.Optional(validate.IsBool),
 	"snapshots.pattern":          validate.IsAny,
 	"snapshots.expiry": func(value string) error {

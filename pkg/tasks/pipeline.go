@@ -25,7 +25,6 @@ package agenttasks
 import (
 	"encoding/json"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -36,21 +35,19 @@ import (
 type Pipeline struct {
 	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
 
-	Chain []string        `json:"chain" form:"chain"`
-	Chord []string        `json:"chord" form:"chord"`
-	Group []string        `json:"group" form:"group"`
+	Chain []string        `json:"chain,omitempty" form:"chain"`
+	Chord []string        `json:"chord,omitempty" form:"chord"`
+	Group []string        `json:"group,omitempty" form:"group"`
 	Tasks map[string]Task `json:"tasks" form:"tasks"`
 
-	Queue string `json:"queue" form:"queue"`
-	//Status       string   `json:"status" form:"status"`
-	//Result       string   `json:"result" form:"result"`
-	Retry string `json:"retry" form:"retry"`
+	Queue string `json:"queue" form:"queue,omitempty"`
 
 	Owner       string `json:"pipeline_owner_id" form:"pipeline_owner_id"`
 	Name        string `json:"pipeline_name" form:"pipeline_name"`
 	CreatedTime string `json:"created_time" form:"created_time"`
-	StartTime   string `json:"start_time" form:"start_time"`
-	EndTime     string `json:"end_time" form:"end_time"`
+	StartTime   string `json:"start_time,omitempty" form:"start_time"`
+	EndTime     string `json:"end_time,omitempty" form:"end_time"`
+	UpdateTime  string `json:"update_time" form:"update_time"`
 	Concurrency string `json:"concurrency" form:"concurrency"`
 }
 
@@ -78,19 +75,9 @@ func PipelineFromYamlFile(file string) (*Pipeline, error) {
 	return t, nil
 }
 
-func (t *Pipeline) Trials() int {
-
-	ret, err := strconv.Atoi(t.Retry)
-	if err != nil {
-		return 0
-	}
-
-	return ret
-}
-
 func (t *Pipeline) Reset() {
 
-	t.CreatedTime = time.Now().Format("20060102150405")
+	t.CreatedTime = time.Now().UTC().Format("20060102150405")
 	t.EndTime = ""
 	t.StartTime = ""
 }
@@ -98,6 +85,34 @@ func (t *Pipeline) Reset() {
 type PipelineForm struct {
 	*Pipeline
 	Tasks string
+}
+
+func (p *Pipeline) IsTaskUsed(taskName string) bool {
+	if len(p.Chain) > 0 {
+		for _, t := range p.Chain {
+			if taskName == t {
+				return true
+			}
+		}
+	}
+
+	if len(p.Chord) > 0 {
+		for _, t := range p.Chord {
+			if taskName == t {
+				return true
+			}
+		}
+	}
+
+	if len(p.Group) > 0 {
+		for _, t := range p.Group {
+			if taskName == t {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (t *Pipeline) ToMap(serialize bool) map[string]interface{} {

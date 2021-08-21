@@ -28,6 +28,7 @@ import (
 	"fmt"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
+	"github.com/MottainaiCI/mottainai-server/pkg/entities"
 
 	arango "github.com/arangodb/go-driver"
 	"github.com/arangodb/go-driver/http"
@@ -41,8 +42,48 @@ type Database struct {
 	CertPath, KeyPath        string
 }
 
-var Collections = []string{WebHookColl, TaskColl, SecretColl,
-	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl, TokenColl, ArtefactColl, StorageColl, OrganizationColl, SettingColl}
+var Collections = []string{
+	WebHookColl, TaskColl, SecretColl,
+	UserColl, PlansColl, PipelinesColl, NodeColl, NamespaceColl,
+	TokenColl, ArtefactColl, StorageColl, OrganizationColl,
+	SettingColl, QueueColl, NodeQueuesColl,
+}
+
+func (d *Database) GetCollectionName(entity entities.MottainaiEntity) (ans string) {
+	switch entity {
+	case entities.Webhooks:
+		ans = WebHookColl
+	case entities.Tasks:
+		ans = TaskColl
+	case entities.Secrets:
+		ans = SecretColl
+	case entities.Users:
+		ans = UserColl
+	case entities.Plans:
+		ans = PlansColl
+	case entities.Pipelines:
+		ans = PipelinesColl
+	case entities.Nodes:
+		ans = NodeColl
+	case entities.Namespaces:
+		ans = NamespaceColl
+	case entities.Tokens:
+		ans = TokenColl
+	case entities.Artefacts:
+		ans = ArtefactColl
+	case entities.Storages:
+		ans = StorageColl
+	case entities.Organizations:
+		ans = OrganizationColl
+	case entities.Settings:
+		ans = SettingColl
+	case entities.Queues:
+		ans = QueueColl
+	case entities.NodeQueues:
+		ans = NodeQueuesColl
+	}
+	return
+}
 
 func New(db, u, p, cp, kp string, e []string) *Database {
 	return &Database{Anagent: anagent.New(), Database: db, Endpoints: e, CertPath: cp, KeyPath: kp, DBUser: u, DBPass: p}
@@ -90,6 +131,8 @@ func (d *Database) Init() {
 	d.IndexPipeline()
 	d.IndexSecret()
 	d.IndexWebHook()
+	d.IndexNodeQueue()
+	d.IndexQueue()
 }
 
 func (d *Database) AddIndex(coll string, i []string) error {
@@ -200,6 +243,32 @@ func (d *Database) InsertDoc(coll string, t map[string]interface{}) (string, err
 	return meta.Key, err
 }
 
+func (d *Database) RestoreDoc(coll, id string, t map[string]interface{}) error {
+	// Insert document (afterwards the docID uniquely identifies the document and will never change)
+	col, err := d.UseCol(coll)
+	if err != nil {
+		return err
+	}
+
+	_key := ""
+	if _, ok := t["ID"]; ok {
+		_key = t["ID"].(string)
+	} else if _, ok = t["id"]; ok {
+		_key = t["id"].(string)
+	}
+
+	if _key != "" {
+		t["_key"] = _key
+	}
+
+	ctx := context.Background()
+	_, err = col.CreateDocument(ctx, t)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (d *Database) FindDoc(coll string, searchquery string) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	ctx := context.Background()
@@ -277,11 +346,13 @@ func (d *Database) GetDoc(coll string, docID string) (map[string]interface{}, er
 
 func (d *Database) UpdateDoc(coll string, docID string, t map[string]interface{}) error {
 
-	old, _ := d.GetDoc(coll, docID)
-	for k, v := range t {
-		old[k] = v
-	}
-	return d.ReplaceDoc(coll, docID, old)
+	/*
+		old, _ := d.GetDoc(coll, docID)
+		for k, v := range t {
+			old[k] = v
+		}
+	*/
+	return d.ReplaceDoc(coll, docID, t)
 }
 
 func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{}) error {
@@ -292,7 +363,7 @@ func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{
 
 	ctx := context.Background()
 
-	_, err = col.UpdateDocument(ctx, docID, t)
+	_, err = col.ReplaceDocument(ctx, docID, t)
 	if err != nil {
 		return err
 	}

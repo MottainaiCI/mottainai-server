@@ -151,7 +151,7 @@ func (d *DockerExecutor) AttachContainerReport(container *docker.Container) {
 }
 
 func (d *DockerExecutor) Play(docID string) (int, error) {
-	task_info, err := tasks.FetchTask(d.MottainaiClient)
+	task_info, err := tasks.FetchTask(d.MottainaiClient, docID)
 	if err != nil {
 		return 1, err
 	}
@@ -227,12 +227,12 @@ func (d *DockerExecutor) Play(docID string) (int, error) {
 }
 
 func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int, error) {
-	starttime := time.Now()
+	starttime := time.Now().UTC()
 
 	for {
 		time.Sleep(1 * time.Second)
-		now := time.Now()
-		task_info, err := tasks.FetchTask(d.MottainaiClient)
+		now := time.Now().UTC()
+		task_info, err := tasks.FetchTask(d.MottainaiClient, d.Context.DocID)
 		if err != nil {
 			//fetcher.SetTaskResult("error")
 			//fetcher.SetTaskStatus("done")
@@ -253,12 +253,15 @@ func (d *DockerExecutor) Handle(req StateRequest, mapping ArtefactMapping) (int,
 		if c_data.State.Running == false {
 			d.Report("Container execution terminated")
 
-			d.Report("Upload of artifacts starts")
-			err := d.UploadArtefacts(mapping.ArtefactPath)
-			if err != nil {
-				return 1, err
+			if (c_data.State.ExitCode != 0 && task_info.PushOnFailure()) ||
+				c_data.State.ExitCode == 0 {
+				d.Report("Upload of artifacts starts")
+				err := d.UploadArtefacts(mapping.ArtefactPath)
+				if err != nil {
+					return 1, err
+				}
+				d.Report("Upload of artifacts terminated")
 			}
-			d.Report("Upload of artifacts terminated")
 
 			d.HandleCacheImagePush(req, task_info)
 

@@ -17,7 +17,7 @@ LIBEXECDIR ?= /usr/libexec
 SYSCONFDIR ?= /etc
 LOCKDIR ?= /var/lock
 LIBDIR ?= /var/lib
-EXTENSIONS ?= lxd
+EXTENSIONS ?=
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 all: deps multiarch-build install
@@ -46,16 +46,49 @@ deps:
 	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/gomega/...
 
-build:
+build-exporter:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build
-		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+		CGO_ENABLED=0 go build -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+endif
+
+build-importer:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+endif
+
+build-agent:
+ifeq ($(EXTENSIONS),)
 		CGO_ENABLED=0 go build -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
 		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
+
+build-scheduler:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+endif
+
+build-cli:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+endif
+
+build-server:
+ifeq ($(EXTENSIONS),)
+		CGO_ENABLED=0 go build
+else
+		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
+endif
+
+build: build-server build-cli build-agent build-scheduler build-exporter build-importer
 
 multiarch-build:
 ifeq ($(EXTENSIONS),)

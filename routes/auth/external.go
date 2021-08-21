@@ -65,7 +65,7 @@ func GithubLogin(c *context.Context, db *database.Database) error {
 	if c.IsLogged {
 		//c.Session.Set("provider", interface{})
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		if gothUser, err := gothic.CompleteUserAuth(c); err == nil {
+		if _, gothUser, err := gothic.CompleteUserAuth(c, db); err == nil {
 			u, err := db.Driver.GetUser(c.User.ID)
 
 			if err != nil {
@@ -82,7 +82,7 @@ func GithubLogin(c *context.Context, db *database.Database) error {
 			c.Success(SHOW)
 			return nil
 		} else {
-			gothic.BeginAuthHandler(c)
+			gothic.BeginAuthHandler(c, db)
 			return nil
 		}
 
@@ -110,7 +110,7 @@ func GithubAuthCallback(s session.Store, c *context.Context, db *database.Databa
 	if c.IsLogged {
 
 		gothic.GetProviderName = func(req *http.Request) (string, error) { return "github", nil }
-		user, err := gothic.CompleteUserAuth(c)
+		_, user, err := gothic.CompleteUserAuth(c, db)
 		if err != nil {
 			return err
 		}

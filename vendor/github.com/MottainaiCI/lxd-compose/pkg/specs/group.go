@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2020  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2021  Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -45,7 +45,13 @@ func GroupFromYaml(data []byte) (*LxdCGroup, error) {
 	return ans, nil
 }
 
-func (g *LxdCGroup) GetNodesPrefix() string { return g.NodesPrefix }
+func (g *LxdCGroup) GetNodesPrefix() string      { return g.NodesPrefix }
+func (g *LxdCGroup) GetName() string             { return g.Name }
+func (g *LxdCGroup) GetDescription() string      { return g.Description }
+func (g *LxdCGroup) GetConnection() string       { return g.Connection }
+func (g *LxdCGroup) IsEphemeral() bool           { return g.Ephemeral }
+func (g *LxdCGroup) GetCommonProfiles() []string { return g.CommonProfiles }
+func (g *LxdCGroup) GetNodes() *[]LxdCNode       { return &g.Nodes }
 
 func (g *LxdCGroup) SetNodesPrefix(prefix string) {
 	g.NodesPrefix = prefix

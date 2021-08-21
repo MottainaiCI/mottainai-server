@@ -46,7 +46,7 @@ func newStorageListCommand(config *setting.Config) *cobra.Command {
 			var v *viper.Viper = config.Viper
 
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
-			req := schema.Request{
+			req := &schema.Request{
 				Route:  v1.Schema.GetStorageRoute("show_all"),
 				Target: &n,
 			}

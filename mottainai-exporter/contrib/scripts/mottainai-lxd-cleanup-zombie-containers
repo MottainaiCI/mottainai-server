@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Author: Daniele Rondina, geaaru@sabayonlinux.org
+# Description: In some LXD installation with ZFS storage pool currently if disk access has lag
+#              ephimeral containers aren't cleaned correctly because zfs return "dataset busy"
+#              error. While I waiting for a more cleaned fix for this I create a script
+#              called by mottainai-agent from delete zombie containers.
+
+
+MOTTAINAI_AGENT_CONFIG="${MOTTAINAI_AGENT_CONFIG:-/etc/mottainai/mottainai-agent.yml}"
+RETENTION_HOURS="${RETENTION_HOURS:-6}"
+# Check only for ephimeral container (1) or not (0)
+ONLY_EPHEMERAL_CONTAINER="${ONLY_EPHEMERAL_CONTAINER:-1}"
+CONTAINER_FILTER="${CONTAINER_FILTER:-mottainai-}"
+
+get_lxd_conf_dir () {
+  local _value=$(cat $MOTTAINAI_AGENT_CONFIG 2>/dev/null | shyaml "get-value" "agent.lxd_config_dir" 2> /dev/null)
+
+  if [ -n "$_value" ] ; then
+    export LXD_CONF="$_value"
+  fi
+}
+
+main () {
+  get_lxd_conf_dir
+
+  # filter container with name that start with "mottainai-"
+  local out=$(lxc list --format csv -c n,l,s,t ${CONTAINER_FILTER})
+  local name=""
+  local last_update=""
+  local container_status=""
+  local container_type=""
+  local hours=0
+  local nowdate=$(date -u +"%Y/%m/%d %H:%M")
+
+  IFS=$'\n'
+  for row in $out ; do
+    name="$(echo $row | cut -d',' -f 1)"
+    last_update="$(echo $row | cut -d',' -f 2)"
+    last_update="${last_update/ UTC/}"
+    container_status="$(echo $row | cut -d',' -f 3)"
+    container_type="$(echo $row | cut -d',' -f 4)"
+
+    pcode="from datetime import datetime; d=(datetime.strptime('$nowdate', '%Y/%m/%d %H:%M')-datetime.strptime('$last_update', '%Y/%m/%d %H:%M')); print(d.days*24+round(d.seconds/3600))"
+    hours=$(python -c "$pcode")
+
+    [[ $DEBUG && $DEBUG == true ]] && \
+      echo "$name in status $container_status, type $container_type, last_update = $last_update ($hours)"
+
+    if [ "$container_status" != "STOPPED" ] ; then
+      continue
+    fi
+
+    if [ "${ONLY_EPHEMERAL_CONTAINER}" = "1" ] ; then
+      if [ "$container_type" != "EPHEMERAL" ] ; then
+        continue
+      fi
+    fi
+
+    if [ "$hours" -gt ${RETENTION_HOURS} ] ; then
+      [[ $DEBUG && $DEBUG == true ]] && echo "Deleting container $name ($hours)..."
+      lxc delete $name || {
+        echo "Error on delete container $name"
+      }
+    fi
+
+  done
+  unset IFS
+
+  return 0
+}
+
+main
+exit $?

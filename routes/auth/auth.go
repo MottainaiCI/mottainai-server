@@ -31,9 +31,9 @@ import (
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	com "github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/markbates/goth"
+	com "github.com/unknwon/com"
 
 	"github.com/markbates/goth/providers/github"
 	macaron "gopkg.in/macaron.v1"
@@ -239,7 +239,7 @@ func Setup(m *macaron.Macaron) {
 			goth.UseProviders(
 				github.New(config.GetWeb().WebHookGitHubToken,
 					config.GetWeb().WebHookGitHubSecret,
-					config.GetWeb().BuildAbsURL("/auth/github/callback")),
+					config.GetWeb().WebHookGitHubCallback),
 			)
 
 			m.Get("/auth/github/callback", RequiresIntegrationSetting, reqSignIn, GithubAuthCallback)

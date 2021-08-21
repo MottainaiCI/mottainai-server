@@ -26,6 +26,7 @@ import (
 	"errors"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 )
@@ -44,12 +45,33 @@ func Delete(ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 
 	task, err := db.Driver.GetTask(db.Config, id)
-	if err != nil {
+	if err != nil || task.ID == "" {
 		return errors.New("Task not found")
 	}
 	if !ctx.CheckTaskPermissions(&task) {
-		return errors.New("Moar permissions are required for this user")
+		return errors.New("More permissions are required for this user")
 	}
+
+	if task.Status == setting.TASK_STATE_RUNNING {
+		return errors.New("Task is running. You can't delete it until is completed.")
+	}
+
+	if task.Status == setting.TASK_STATE_WAIT && task.Queue != "" {
+		// Retrieve the queue id
+		q, err := db.Driver.GetQueueByKey(task.Queue)
+		if err != nil {
+			return errors.New("Error on retrieve queue id: " + err.Error())
+		}
+
+		if q.Qid != "" {
+			// Remove task from queue
+			err = db.Driver.DelTaskInWaiting2Queue(q.Qid, task.ID)
+			if err != nil {
+				return errors.New("Error on delete task from the queue: " + err.Error())
+			}
+		}
+	}
+
 	err = db.Driver.DeleteTask(db.Config, id)
 	if err != nil {
 		return err

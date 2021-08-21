@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -74,6 +76,13 @@ func ArtefactList(ctx *context.Context, db *database.Database) error {
 
 func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database) error {
 
+	if uf.TaskID == "" {
+		return errors.New("Invalid artefact without task id")
+	}
+
+	fmt.Println(fmt.Sprintf("[%s] Receiving artefact %s for path %s.",
+		uf.TaskID, uf.Name, uf.Path))
+
 	file, err := uf.FileUpload.Open()
 	if err != nil {
 		return err
@@ -85,6 +94,10 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 		return err
 	}
 
+	if task.ID == "" {
+		return errors.New("Invalid task id")
+	}
+
 	if !ctx.CheckTaskPermissions(&task) {
 		ctx.NoPermission()
 		return nil
@@ -93,7 +106,10 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	var f *os.File
 	ctx.Invoke(func(config *setting.Config) {
 		os.MkdirAll(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path), os.ModePerm)
-		f, err = os.OpenFile(filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+		f, err = os.OpenFile(
+			filepath.Join(config.GetStorage().ArtefactPath, task.ID, uf.Path, uf.Name),
+			os.O_WRONLY|os.O_CREATE, os.ModePerm,
+		)
 	})
 
 	if err != nil {
@@ -101,7 +117,12 @@ func ArtefactUpload(uf ArtefactForm, ctx *context.Context, db *database.Database
 	}
 
 	defer f.Close()
-	io.Copy(f, file)
+	_, err = io.Copy(f, file)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("[%s] Error on copy file %s: %s.",
+			task.ID, uf.Name, err.Error()))
+		return err
+	}
 
 	db.Driver.CreateArtefact(map[string]interface{}{
 		"name": uf.Name,

@@ -1,0 +1,69 @@
+# Authors: Sabayon Team
+#          geaaru@sabayonlinux.org
+#
+# Description: Pipeline for build LXD images exposed from Sabayon
+
+pipeline_name: "Test Pipeline Chord OK"
+
+group:
+  - test1
+  - test2
+  - test3
+  - test4
+chord:
+  - endtask
+  - endtask2
+
+tasks:
+
+  test1: &group_task
+    script:
+      - source /etc/profile
+      # temporary: Sleep for LXD
+      - sleep 4
+      - eval '[ -z "$MOTTAINAI_PIPELINE_ID" ] && exit 1 || echo "MOTTAINAI_PIPELINE_ID = $MOTTAINAI_PIPELINE_ID"'
+      - echo "WAKE UP"
+    queue: "lxd"
+    type: lxd
+    image: ubuntu/16.04
+    name: "Test pipeline1 (test)"
+
+  test2:
+    <<: *group_task
+    name: "Test pipeline2 (test)"
+
+  test3:
+    <<: *group_task
+    name: "Test pipeline3 (test)"
+
+  test4:
+    <<: *group_task
+    name: "Test pipeline4 (test)"
+
+  test5:
+    <<: *group_task
+    name: "Test pipeline5 (test)"
+
+  test6:
+    <<: *group_task
+    name: "Test pipeline6 (test)"
+
+  endtask:
+    script:
+      - source /etc/profile
+      - sleep 4
+      - echo "$MOTTAINAI_PIPELINE_ID"
+      - echo "$MOTTAINAI_TASK_ID"
+    type: lxd
+    image: ubuntu/16.04
+    name: "Test pipeline Chord (end1)"
+
+  endtask2:
+    script:
+      - source /etc/profile
+      - sleep 4
+      - echo "$MOTTAINAI_PIPELINE_ID"
+      - echo "$MOTTAINAI_TASK_ID"
+    type: lxd
+    image: ubuntu/16.04
+    name: "Test pipeline Chord (end2)"

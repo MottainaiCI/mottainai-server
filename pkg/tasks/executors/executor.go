@@ -33,7 +33,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -102,7 +101,7 @@ func (d *TaskExecutor) HandleTaskStop(timedout bool) (int, error) {
 func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 	var err error
 	fetcher := d.MottainaiClient
-	task_info, err := tasks.FetchTask(fetcher)
+	task_info, err := tasks.FetchTask(fetcher, d.Context.DocID)
 	if err != nil {
 		d.Report("Couldn't get task info ", err.Error())
 		return err
@@ -164,7 +163,7 @@ func (d *TaskExecutor) DownloadArtefacts(artefactdir, storagedir string) error {
 func (d *TaskExecutor) UploadArtefacts(folder string) error {
 	var filterRegexp []*regexp.Regexp = make([]*regexp.Regexp, 0)
 	fetcher := d.MottainaiClient
-	task_info, err := tasks.FetchTask(fetcher)
+	task_info, err := tasks.FetchTask(fetcher, d.Context.DocID)
 	if err != nil {
 		d.Report("Couldn't get task info ", err.Error())
 		return err
@@ -243,7 +242,7 @@ func (d *TaskExecutor) Clean() error {
 
 func (d *TaskExecutor) Fail(errstring string) {
 
-	task_info, _ := tasks.FetchTask(d.MottainaiClient)
+	task_info, _ := tasks.FetchTask(d.MottainaiClient, d.Context.DocID)
 	if task_info.Status != setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.FinishTask()
 	} else {
@@ -253,7 +252,7 @@ func (d *TaskExecutor) Fail(errstring string) {
 }
 
 func (d *TaskExecutor) Success(status int) {
-	task_info, _ := tasks.FetchTask(d.MottainaiClient)
+	task_info, _ := tasks.FetchTask(d.MottainaiClient, d.Context.DocID)
 	if task_info.Status == setting.TASK_STATE_ASK_STOP {
 		d.MottainaiClient.AbortTask()
 		return
@@ -331,7 +330,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	ID := utils.GenID()
 	hostname := utils.Hostname()
 
-	task_info, err := tasks.FetchTask(d.MottainaiClient)
+	task_info, err := tasks.FetchTask(d.MottainaiClient, docID)
 	if err != nil {
 		return errors.Wrap(err, "Failed to fetch task")
 	}
@@ -341,12 +340,20 @@ func (d *TaskExecutor) Setup(docID string) error {
 		return errors.New(ABORT_DUPLICATE_ERROR)
 	}
 
+	// Retrieve qid of the task queue
+	// NOTE: maybe we can retrieve this directly in the task or passed in input
+	qid, err := fetcher.QueueGetQid(task_info.Queue)
+	if err != nil {
+		d.Report(">>> ERROR! <<< Error on retrieve queue id")
+		return err
+	}
+
+	d.Context.Qid = qid
+
 	fetcher.SetupTask()
 	d.Report("Node: " + ID + " ( " + hostname + " ) ")
-	fetcher.SetTaskField("nodeid", ID)
-
 	fetcher.RunTask()
-	fetcher.SetTaskField("start_time", time.Now().Format("20060102150405"))
+	fetcher.QueueAddTaskInProgress(qid, task_info.ID)
 	d.Report("> Build started!\n")
 
 	d.Context.RootTaskDir = path.Join(d.Config.GetAgent().BuildPath, task_info.ID)
@@ -389,7 +396,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 
 			auth := task_info.PrivKey
 			var s secret.Secret
-			req := schema.Request{
+			req := &schema.Request{
 				Route:   v1.Schema.GetSecretRoute("show"),
 				Target:  &s,
 				Options: map[string]interface{}{"id": task_info.PrivKey},
@@ -400,7 +407,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 				d.Report("Found secret by id.")
 				auth = s.Secret
 			} else {
-				req := schema.Request{
+				req := &schema.Request{
 					Route:   v1.Schema.GetSecretRoute("show_by_name"),
 					Target:  &s,
 					Options: map[string]interface{}{"name": task_info.PrivKey},
@@ -501,6 +508,13 @@ func (t *TaskExecutor) Write(p []byte) (int, error) {
 
 func (t *TaskExecutor) Close() error {
 	t.Report(">>>>> Execution completed")
+
+	fetcher := t.MottainaiClient
+	if t.Context.Qid != "" {
+		_, err := fetcher.QueueDelTaskInProgress(t.Context.Qid, t.Context.DocID)
+		return err
+	}
+
 	return nil
 }
 

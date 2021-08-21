@@ -32,11 +32,10 @@ import (
 
 type Namespace struct {
 	ID         string `json:"ID"`
-	Name       string `form:"name" json:"name"`
+	Name       string `json:"name" form:"name""`
 	Path       string `json:"path" form:"path"`
 	Visibility string `json:"visbility" form:"visbility"`
 	Owner      string `json:"owner_id" form:"owner_id"`
-	//TaskID string `json:"taskid" form:"taskid"`
 }
 
 func (u *Namespace) IsPublic() bool {

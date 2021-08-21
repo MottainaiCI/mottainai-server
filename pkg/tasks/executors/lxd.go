@@ -1,5 +1,3 @@
-// +build lxd
-
 /*
 
 Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
@@ -44,6 +42,7 @@ import (
 	lxd_compose_specs "github.com/MottainaiCI/lxd-compose/pkg/specs"
 
 	lxd "github.com/lxc/lxd/client"
+	viper "github.com/spf13/viper"
 )
 
 func NewLxdExecutor(config *setting.Config) *LxdExecutor {
@@ -76,7 +75,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 	}
 
 	// Lxd compose code require his config
-	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(l.Config.Viper)
+	lxdc_config := lxd_compose_specs.NewLxdComposeConfig(viper.New())
 	lxdc_config.GetLogging().PushProgressBar = true
 	lxdc_config.GetLogging().Color = true
 	lxdc_logger := lxd_compose_log.NewLxdCLogger(lxdc_config)
@@ -203,7 +202,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	var cachedImage bool = false
 	var err error
 
-	task_info, err := tasks.FetchTask(l.MottainaiClient)
+	task_info, err := tasks.FetchTask(l.MottainaiClient, docId)
 	if err != nil {
 		return 1, err
 	}
@@ -283,7 +282,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
-		task_info, err = tasks.FetchTask(l.MottainaiClient)
+		task_info, err = tasks.FetchTask(l.MottainaiClient, l.Context.DocID)
 		if err != nil {
 			l.Report(err.Error())
 			return 0, nil
@@ -313,19 +312,22 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 
 	l.Report("Container execution terminated")
 
-	// Pull ArtefactDir from container
-	err = l.Executor.RecursivePullFile(exec.Request.ContainerID, mapping.ArtefactPath,
-		l.Context.ArtefactDir, true)
-	if err != nil {
-		return 1, err
-	}
+	if (exec.Status == "error" && task_info.PushOnFailure()) || exec.Status == "done" {
 
-	l.Report("Upload of artifacts starts")
-	err = l.UploadArtefacts(l.Context.ArtefactDir)
-	if err != nil {
-		return 1, err
+		// Pull ArtefactDir from container
+		err = l.Executor.RecursivePullFile(exec.Request.ContainerID, mapping.ArtefactPath,
+			l.Context.ArtefactDir, true)
+		if err != nil {
+			return 1, err
+		}
+
+		l.Report("Upload of artifacts starts")
+		err = l.UploadArtefacts(l.Context.ArtefactDir)
+		if err != nil {
+			return 1, err
+		}
+		l.Report("Upload of artifacts terminated")
 	}
-	l.Report("Upload of artifacts terminated")
 
 	if exec.Status == "error" {
 		return exec.Result, exec.Error

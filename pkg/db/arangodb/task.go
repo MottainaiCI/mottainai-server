@@ -51,16 +51,6 @@ func (d *Database) CreateTask(t map[string]interface{}) (string, error) {
 	return d.InsertDoc(TaskColl, t)
 }
 
-func (d *Database) CloneTask(config *setting.Config, t string) (string, error) {
-	tdata, err := d.GetTask(config, t)
-	if err != nil {
-		return "", err
-	}
-	tdata.Reset()
-	tdata.ID = ""
-	return d.InsertTask(&tdata)
-}
-
 func (d *Database) DeleteTask(config *setting.Config, docID string) error {
 
 	t, err := d.GetTask(config, docID)

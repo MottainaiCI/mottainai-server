@@ -30,4 +30,6 @@ type Executor interface {
 	Success(int)
 	ExitStatus(int)
 	Report(...interface{})
+	ReportRaw(...interface{})
+	Close() error
 }

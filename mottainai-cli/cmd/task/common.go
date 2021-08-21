@@ -49,7 +49,7 @@ func GenerateTasks(c client.HttpClient, dat map[string]interface{}, hostreg stri
 	var n []nodes.Node
 	var q []string
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetNodeRoute("show_all"),
 	}
 
@@ -96,7 +96,7 @@ func MonitorTasks(f client.HttpClient, created map[string]bool) {
 			var t citasks.Task
 
 			var err error
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("as_json"),
 				Options: map[string]interface{}{
 					":id": k,

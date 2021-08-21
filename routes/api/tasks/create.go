@@ -24,7 +24,7 @@ package tasksapi
 
 import (
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -42,13 +42,11 @@ func APICreate(m *mottainai.Mottainai, ctx *context.Context, db *database.Databa
 	return nil
 }
 
-func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, opts agenttasks.Task) (string, error) {
-	opts.Reset()
+func Create(m *mottainai.Mottainai, ctx *context.Context,
+	db *database.Database, opts agenttasks.Task) (string, error) {
 
-	opts.Output = ""
+	opts.Reset()
 	opts.Result = "none"
-	opts.ExitStatus = ""
-	opts.CreatedTime = time.Now().Format("20060102150405")
 
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
@@ -58,15 +56,19 @@ func Create(m *mottainai.Mottainai, ctx *context.Context, db *database.Database,
 		return "", errors.New("More permissions required")
 	}
 
-	docID, err := db.Driver.InsertTask(&opts)
+	err := m.CreateTask(&opts)
 	if err != nil {
 		return "", err
 	}
 
-	if _, err := m.SendTask(docID); err != nil {
+	fmt.Println(fmt.Sprintf(
+		"Created task %s for queue %s.", opts.ID, opts.Queue,
+	))
+
+	if _, err := m.SendTask(opts.ID); err != nil {
 		return "", err
 	}
-	return docID, nil
+	return opts.ID, nil
 }
 
 func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *database.Database) (string, error) {
@@ -76,26 +78,29 @@ func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *d
 		return "", err
 	}
 
+	if task.ID == "" {
+		return "", errors.New("Invalid task id")
+	}
+
 	if !ctx.CheckNamespaceBelongs(task.TagNamespace) {
 		ctx.NoPermission()
 		return "", nil
 	}
 
-	docID, err := db.Driver.CloneTask(db.Config, id)
-	if err != nil {
-		return "", err
-	}
-
 	if ctx.IsLogged {
-		db.Driver.UpdateTask(docID, map[string]interface{}{
-			"owner_id": ctx.User.ID,
-		})
+		task.Owner = ctx.User.ID
+	}
+	task.ID = ""
+
+	err = m.CreateTask(&task)
+	if err != nil {
+		return "", errors.New("Error on create task " + err.Error())
 	}
 
-	if _, err := m.SendTask(docID); err != nil {
+	if _, err := m.SendTask(task.ID); err != nil {
 		return "", err
 	}
-	return docID, nil
+	return task.ID, nil
 }
 
 func CloneTask(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {

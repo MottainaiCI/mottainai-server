@@ -91,7 +91,7 @@ func (m *Mottainai) CheckTasksDeadline(d *database.Database, config *setting.Con
 		return e
 	}
 	for _, t := range tasks {
-		now := time.Now()
+		now := time.Now().UTC()
 		if len(t.UpdatedTime) > 0 {
 			last_update, e := time.Parse(setting.Timeformat, t.UpdatedTime)
 			if e != nil {
@@ -127,7 +127,7 @@ func (m *Mottainai) CheckNodesDeadline(d *database.Database, config *setting.Con
 		if e != nil {
 			return e
 		}
-		now := time.Now()
+		now := time.Now().UTC()
 
 		if int(now.Sub(last_update).Seconds()) > config.GetWeb().NodeDeadline {
 			// If node is down, check among its tasks

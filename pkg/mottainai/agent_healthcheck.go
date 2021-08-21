@@ -32,7 +32,7 @@ import (
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	taskmanager "github.com/MottainaiCI/mottainai-server/pkg/tasks/manager"
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
-	"github.com/RichardKnop/machinery/v1/log"
+	//	"github.com/RichardKnop/machinery/v1/log"
 
 	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 )
@@ -55,12 +55,12 @@ func (m *MottainaiAgent) AgentIsBusy() bool {
 
 		err := c.NodesTask(config.GetAgent().AgentKey, &tlist)
 		if err != nil {
-			log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
+			//log.ERROR.Println("> Error getting task running on this host - skipping deep host cleanup")
 			busy = true
 		}
 		for _, t := range tlist {
 			if t.IsRunning() {
-				log.INFO.Println("> Task running on the host, skipping deep host cleanup")
+				//log.INFO.Println("> Task running on the host, skipping deep host cleanup")
 				busy = true
 			}
 		}
@@ -91,9 +91,9 @@ func (m *MottainaiAgent) HealthClean(force bool) {
 			defer wg.Done()
 			m.CleanHealthCheckPathHost()
 		}()
-		log.INFO.Println("> Waiting for cleanup operations to end")
+		//log.INFO.Println("> Waiting for cleanup operations to end")
 		wg.Wait()
-		log.INFO.Println("> Done")
+		//log.INFO.Println("> Done")
 	})
 }
 
@@ -103,9 +103,9 @@ func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 
 	m.Invoke(func(config *setting.Config) {
 		for _, k := range config.GetAgent().HealthCheckCleanPath {
-			log.INFO.Println("> Removing dangling files in " + k)
+			//log.INFO.Println("> Removing dangling files in " + k)
 			if err := utils.RemoveContents(k); err != nil {
-				log.ERROR.Println("> Failed removing contents from ", k, " ", err.Error())
+				//log.ERROR.Println("> Failed removing contents from ", k, " ", err.Error())
 			}
 		}
 	})
@@ -114,14 +114,15 @@ func (m *MottainaiAgent) CleanHealthCheckPathHost() {
 func (m *MottainaiAgent) CleanHealthCheckExec() {
 	m.Invoke(func(config *setting.Config) {
 		for _, k := range config.GetAgent().HealthCheckExec {
-			log.INFO.Println("> Executing: " + k)
+			//log.INFO.Println("> Executing: " + k)
 			args := strings.Split(k, " ")
 			cmdName := args[0]
-			out, stderr, err := utils.Cmd(cmdName, args[1:])
+			_, _, err := utils.Cmd(cmdName, args[1:])
+			//out, stderr, err := utils.Cmd(cmdName, args[1:])
 			if err != nil {
-				log.ERROR.Println("!! Error: ", err.Error()+": "+stderr)
+				//log.ERROR.Println("!! Error: ", err.Error()+": "+stderr)
 			}
-			log.INFO.Println(out)
+			//log.INFO.Println(out)
 		}
 	})
 }
@@ -131,9 +132,9 @@ func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
 	m.Invoke(func(c *client.Fetcher, config *setting.Config) {
 		c.Doc(id)
 		th := taskmanager.DefaultTaskHandler(config)
-		task_info := th.FetchTask(c)
-		if th.Err != nil {
-			log.INFO.Println("Error fetching task: " + th.Err.Error())
+		task_info, err := th.FetchTask(c, id)
+		if err != nil {
+			//log.INFO.Println("Error fetching task: " + th.Err.Error())
 			return
 		}
 		if task_info.IsDone() || task_info.ID == "" {
@@ -145,7 +146,7 @@ func (m *MottainaiAgent) IsAgentBusyWith(id string) bool {
 
 func (m *MottainaiAgent) CleanBuildDir(force bool) {
 	m.Invoke(func(config *setting.Config) {
-		log.INFO.Println("Cleaning " + config.GetAgent().BuildPath)
+		//log.INFO.Println("Cleaning " + config.GetAgent().BuildPath)
 
 		stuff, err := utils.ListAll(config.GetAgent().BuildPath)
 		if err != nil {
@@ -154,23 +155,23 @@ func (m *MottainaiAgent) CleanBuildDir(force bool) {
 
 		defer func() {
 			if r := recover(); r != nil {
-				log.ERROR.Println(r)
+				//log.ERROR.Println(r)
 			}
 		}()
 
 		for _, what := range stuff {
-			log.INFO.Println("Found: " + what)
+			//log.INFO.Println("Found: " + what)
 
 			if force || !m.IsAgentBusyWith(what) {
 				if what == "lxc" {
-					log.INFO.Println("Keeping: " + what)
+					//log.INFO.Println("Keeping: " + what)
 					continue
 				}
 
-				log.INFO.Println("Removing: " + what)
+				//log.INFO.Println("Removing: " + what)
 				os.RemoveAll(path.Join(config.GetAgent().BuildPath, what))
 			} else {
-				log.INFO.Println("Keeping: " + what)
+				//log.INFO.Println("Keeping: " + what)
 			}
 		}
 

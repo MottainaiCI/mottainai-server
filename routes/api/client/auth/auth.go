@@ -35,9 +35,9 @@ import (
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
-	"github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/captcha"
+	"github.com/unknwon/com"
 	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
 )
@@ -206,11 +206,12 @@ func (f *SignUp) Validate(ctx *macaron.Context, errs binding.Errors) binding.Err
 }
 
 type UserResp struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Admin   string `json:"is_admin"`
-	Manager string `json:"is_manager"`
+	ID         string                   `json:"id"`
+	Name       string                   `json:"name"`
+	Email      string                   `json:"email"`
+	Admin      string                   `json:"is_admin"`
+	Manager    string                   `json:"is_manager"`
+	Identities map[string]user.Identity `json:"identities"`
 }
 
 type ErrorResp struct {
@@ -326,6 +327,7 @@ func User(c *context.Context) {
 		c.User.Email,
 		c.User.Admin,
 		c.User.Manager,
+		c.User.Identities,
 	})
 }
 
@@ -355,6 +357,10 @@ func Setup(m *macaron.Macaron) {
 		v1.Schema.GetClientRoute("auth_register").ToMacaron(m, reqSignOut, bindIgnErr(SignUp{}), Register)
 		v1.Schema.GetClientRoute("auth_user").ToMacaron(m, reqSignIn, User)
 		v1.Schema.GetClientRoute("auth_logout").ToMacaron(m, reqSignIn, Logout)
+
+		v1.Schema.GetClientRoute("auth_int_github").ToMacaron(m, RequiresIntegrationSetting, reqSignIn, GithubIntegrationUrl)
+		v1.Schema.GetClientRoute("auth_int_github_logout").ToMacaron(m, RequiresIntegrationSetting, reqSignIn, GithubLogout)
+
 		v1.Schema.GetClientRoute("captcha_new").ToMacaron(m, CaptchaNew)
 		v1.Schema.GetClientRoute("captcha_image").ToMacaron(m, captcha.Captchaer(captcha.Options{
 			URLPrefix: config.GetWeb().BuildURI("/api/v1/client/captcha/image/"),

@@ -1,0 +1,11 @@
+[Unit]
+Description=Mottainai Agent Health Check Service Timer
+After=network-online.target
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=20m
+RandomSec=1m
+
+[Install]
+WantedBy=timers.target

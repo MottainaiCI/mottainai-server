@@ -31,17 +31,24 @@ import (
 )
 
 type Request struct {
-	Route   Route
-	Options map[string]interface{}
-	Target  interface{}
-	Body    io.Reader
+	Route       Route
+	Options     map[string]interface{}
+	Target      interface{}
+	Body        io.Reader
+	ResponseRaw []byte
+	Response    *http.Response
 }
 
 func (req *Request) NewAPIHTTPRequest(endpoint string) (*http.Request, error) {
 	interpolations := req.Options
 	relaxedInterpolations := req.Route.RemoveInterpolations(req.Options)
 	req.Options = relaxedInterpolations
-	httpRequest, err := req.Route.NewAPIRequest(endpoint, interpolations, req.Body)
+	httpRequest, err := req.Route.NewAPIRequest(
+		endpoint,
+		interpolations,
+		req.Route.GetContentType(),
+		req.Body,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +57,7 @@ func (req *Request) NewAPIHTTPRequest(endpoint string) (*http.Request, error) {
 	var Strings []string
 	var String string
 
-	if req.Route.RequireFormEncode() && req.Body == nil {
+	if req.Route.GetContentType() == "application/x-www-form-urlencoded" && req.Body == nil {
 		form := url.Values{}
 
 		for k, v := range req.Options {
@@ -78,7 +85,11 @@ func (req *Request) NewAPIHTTPRequest(endpoint string) (*http.Request, error) {
 			}
 		}
 
-		httpRequest, err = req.Route.NewAPIRequest(endpoint, interpolations, strings.NewReader(form.Encode()))
+		httpRequest, err = req.Route.NewAPIRequest(
+			endpoint,
+			interpolations,
+			req.Route.GetContentType(),
+			strings.NewReader(form.Encode()))
 	} else {
 		q := httpRequest.URL.Query()
 		for k, v := range req.Options {

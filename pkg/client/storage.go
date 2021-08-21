@@ -27,7 +27,7 @@ import (
 
 func (f *Fetcher) StorageDelete(id string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetStorageRoute("delete"),
 		Options: map[string]interface{}{
 			":id": id,
@@ -39,7 +39,7 @@ func (f *Fetcher) StorageDelete(id string) (event.APIResponse, error) {
 
 func (f *Fetcher) StorageRemovePath(id, path string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetStorageRoute("remove_path"),
 		Options: map[string]interface{}{
 			":id":   id,
@@ -52,7 +52,7 @@ func (f *Fetcher) StorageRemovePath(id, path string) (event.APIResponse, error) 
 
 func (f *Fetcher) StorageCreate(t string) (event.APIResponse, error) {
 
-	req := schema.Request{
+	req := &schema.Request{
 		Route: v1.Schema.GetStorageRoute("create"),
 		Options: map[string]interface{}{
 			":name": t,

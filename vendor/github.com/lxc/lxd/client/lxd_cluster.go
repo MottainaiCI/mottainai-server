@@ -2,6 +2,7 @@ package lxd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lxc/lxd/shared/api"
 )
@@ -75,7 +76,14 @@ func (r *ProtocolLXD) GetClusterMemberNames() ([]string, error) {
 		return nil, err
 	}
 
-	return urls, nil
+	// Parse it
+	names := []string{}
+	for _, url := range urls {
+		fields := strings.Split(url, "/cluster/members/")
+		names = append(names, fields[len(fields)-1])
+	}
+
+	return names, nil
 }
 
 // GetClusterMembers returns the current members of the cluster
@@ -140,4 +148,18 @@ func (r *ProtocolLXD) RenameClusterMember(name string, member api.ClusterMemberP
 	}
 
 	return nil
+}
+
+// CreateClusterMember generates a join token to add a cluster member.
+func (r *ProtocolLXD) CreateClusterMember(member api.ClusterMembersPost) (Operation, error) {
+	if !r.HasExtension("clustering_join_token") {
+		return nil, fmt.Errorf("The server is missing the required \"clustering_join_token\" API extension")
+	}
+
+	op, _, err := r.queryOperation("POST", "/cluster/members", member, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return op, nil
 }

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Author: Daniele Rondina, geaaru@sabayonlinux.org
+# Description: Cached images overrided MUST be removed manually.
+#              I'm waiting for an LXD feature that permit to set expiry of created imaged
+#              not cached.
+
+
+MOTTAINAI_AGENT_CONFIG="${MOTTAINAI_AGENT_CONFIG:-/etc/mottainai/mottainai-agent.yml}"
+IMAGE_DESCR_PREFIX="${IMAGE_DESCR_PREFIX:-Mottainai}"
+IMAGE_IGNORE_ALIASES="${IMAGE_IGNORE_ALIASES:-0}"
+
+get_lxd_conf_dir () {
+  local _value=$(cat $MOTTAINAI_AGENT_CONFIG 2>/dev/null | shyaml "get-value" "agent.lxd_config_dir" 2> /dev/null)
+
+  if [ -n "$_value" ] ; then
+    export LXD_CONF="$_value"
+  fi
+}
+
+main () {
+  get_lxd_conf_dir
+
+  local out=$(lxc image list --format csv -c l,d,F)
+  local aliases=""
+  local descr=""
+  local fingerprint=0
+  local skip_image=false
+
+  [[ $DEBUG && $DEBUG == true ]] && echo "IMAGE_DESCR_PREFIX = $IMAGE_DESCR_PREFIX"
+
+  if [ "$IMAGE_DESCR_PREFIX" == "-" ] ; then
+    # Drop always all images
+    IMAGE_DESCR_PREFIX=""
+  fi
+
+  IFS=$'\n'
+  for row in $out ; do
+    aliases="$(echo $row | cut -d',' -f 1)"
+    descr="$(echo $row | cut -d',' -f 2)"
+    fingerprint="$(echo $row | cut -d',' -f 3)"
+
+    [[ $DEBUG && $DEBUG == true ]] && \
+      echo "Image $fingerprint with aliases '$aliases' and descr $descr"
+
+    if [[ "${IMAGE_IGNORE_ALIASES}" == 0 && -n "${aliases}" ]] ; then
+      continue
+    fi
+
+    if [ -n "${IMAGE_DESCR_PREFIX}" ] ; then
+      # Check if description begin with defined prefix
+      if [[ $descr =~ ^${IMAGE_DESCR_PREFIX}.* ]] ; then
+        echo "Found description matching for image $fingerprint"
+      else
+        [[ $DEBUG && $DEBUG == true ]] && echo "No matching for image $fingerprint"
+        continue
+      fi
+    fi
+
+    echo "Deleting image $fingerprint ($descr)..."
+    lxc image delete $fingerprint || {
+      echo "Error on delete image $fingerprint."
+    }
+
+  done
+  unset IFS
+
+  return 0
+}
+
+main
+exit $?

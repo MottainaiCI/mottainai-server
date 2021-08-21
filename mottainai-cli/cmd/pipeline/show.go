@@ -51,7 +51,7 @@ func newPipelineShowCommand(config *setting.Config) *cobra.Command {
 
 			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
-			req := schema.Request{
+			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("pipeline_show"),
 				Options: map[string]interface{}{
 					":id": id,

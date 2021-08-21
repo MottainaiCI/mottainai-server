@@ -252,12 +252,12 @@ func (d *VagrantExecutor) Setup(docID string) error {
 
 func (d *VagrantExecutor) Play(docID string) (int, error) {
 	fetcher := d.MottainaiClient
-	task_info, err := tasks.FetchTask(fetcher)
+	task_info, err := tasks.FetchTask(fetcher, docID)
 	if err != nil {
 		return 1, err
 	}
 	image := task_info.Image
-	starttime := time.Now()
+	starttime := time.Now().UTC()
 
 	vm_build_dir := "/vagrant/"
 	vm_config := d.Config(image, vm_build_dir, &task_info)
@@ -285,8 +285,8 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		return 1, err
 	}
 	for line := range output {
-		now := time.Now()
-		task_info, err = tasks.FetchTask(fetcher)
+		now := time.Now().UTC()
+		task_info, err = tasks.FetchTask(fetcher, docID)
 		if err != nil {
 			return 1, err
 		}
@@ -311,7 +311,7 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		d.Report(res.Line)
 
 		now := time.Now()
-		task_info, err = tasks.FetchTask(fetcher)
+		task_info, err = tasks.FetchTask(fetcher, docID)
 		if err != nil {
 			return 1, err
 		}
@@ -321,9 +321,11 @@ func (d *VagrantExecutor) Play(docID string) (int, error) {
 		}
 		d.Report(out)
 		if res.Error != nil {
-			err = d.UploadArtefacts(d.Context.ArtefactDir)
-			if err != nil {
-				return 1, err
+			if task_info.PushOnFailure() {
+				err = d.UploadArtefacts(d.Context.ArtefactDir)
+				if err != nil {
+					return 1, err
+				}
 			}
 
 			d.Report(res.Error)

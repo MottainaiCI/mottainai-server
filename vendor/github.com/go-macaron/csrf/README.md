@@ -1,8 +1,11 @@
-# csrf [![Build Status](https://travis-ci.org/go-macaron/csrf.svg?branch=master)](https://travis-ci.org/go-macaron/csrf) [![](http://gocover.io/_badge/github.com/go-macaron/csrf)](http://gocover.io/github.com/go-macaron/csrf)
+# csrf
+
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/go-macaron/csrf/Go?logo=github&style=for-the-badge)](https://github.com/go-macaron/csrf/actions?query=workflow%3AGo)
+[![codecov](https://img.shields.io/codecov/c/github/go-macaron/csrf/master?logo=codecov&style=for-the-badge)](https://codecov.io/gh/go-macaron/csrf)
+[![GoDoc](https://img.shields.io/badge/GoDoc-Reference-blue?style=for-the-badge&logo=go)](https://pkg.go.dev/github.com/go-macaron/csrf?tab=doc)
+[![Sourcegraph](https://img.shields.io/badge/view%20on-Sourcegraph-brightgreen.svg?style=for-the-badge&logo=sourcegraph)](https://sourcegraph.com/github.com/go-macaron/csrf)
 
 Middleware csrf generates and validates CSRF tokens for [Macaron](https://github.com/go-macaron/macaron).
-
-[API Reference](https://gowalker.org/github.com/go-macaron/csrf)
 
 ### Installation
 
@@ -11,7 +14,7 @@ Middleware csrf generates and validates CSRF tokens for [Macaron](https://github
 ## Getting Help
 
 - [API Reference](https://gowalker.org/github.com/go-macaron/csrf)
-- [Documentation](http://go-macaron.com/docs/middlewares/csrf)
+- [Documentation](https://go-macaron.com/middlewares/csrf)
 
 ## License
 

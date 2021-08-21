@@ -23,16 +23,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/Unknwon/com"
 	"github.com/go-macaron/cache"
+	"github.com/unknwon/com"
 	"gopkg.in/macaron.v1"
 )
-
-const _VERSION = "0.1.0"
-
-func Version() string {
-	return _VERSION
-}
 
 var (
 	defaultChars = []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -91,7 +85,7 @@ func (c *Captcha) CreateCaptcha() (string, error) {
 
 // verify from a request
 func (c *Captcha) VerifyReq(req macaron.Request) bool {
-	req.ParseForm()
+	_ = req.ParseForm()
 	return c.Verify(req.Form.Get(c.FieldIdName), req.Form.Get(c.FieldCaptchaName))
 }
 
@@ -111,7 +105,9 @@ func (c *Captcha) Verify(id string, challenge string) bool {
 		return false
 	}
 
-	defer c.store.Delete(key)
+	defer func() {
+		_ = c.store.Delete(key)
+	}()
 
 	if len(chars) != len(challenge) {
 		return false
@@ -227,7 +223,7 @@ func Captchaer(options ...Options) macaron.Handler {
 				chars = cpt.genRandChars()
 				if err := cpt.store.Put(key, chars, cpt.Expiration); err != nil {
 					ctx.Status(500)
-					ctx.Write([]byte("captcha reload error"))
+					_, _ = ctx.Write([]byte("captcha reload error"))
 					panic(fmt.Errorf("reload captcha: %v", err))
 				}
 			} else {
@@ -235,11 +231,12 @@ func Captchaer(options ...Options) macaron.Handler {
 					chars = v
 				} else {
 					ctx.Status(404)
-					ctx.Write([]byte("captcha not found"))
+					_, _ = ctx.Write([]byte("captcha not found"))
 					return
 				}
 			}
 
+			ctx.Status(200)
 			if _, err := NewImage([]byte(chars), cpt.StdWidth, cpt.StdHeight, cpt.ColorPalette).WriteTo(ctx.Resp); err != nil {
 				panic(fmt.Errorf("write captcha: %v", err))
 			}

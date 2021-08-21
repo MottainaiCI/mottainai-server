@@ -27,6 +27,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"sort"
+	"time"
 
 	"github.com/ghodss/yaml"
 
@@ -94,7 +95,7 @@ func PipelineShow(ctx *context.Context, db *database.Database) (*task.Pipeline, 
 	}
 
 	if !ctx.CheckPipelinePermissions(&pip) {
-		return &task.Pipeline{}, errors.New("Moar permissions are required for this user")
+		return &task.Pipeline{}, errors.New("More permissions are required for this user")
 	}
 
 	for k, t := range pip.Tasks {
@@ -139,9 +140,32 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 	opts := o.Pipeline
 	opts.Tasks = tasks
 	opts.Reset()
+
+	task2Delete := []string{}
+
+	// Retrieve default queue
+	defaultQueue := "general"
+	df, _ := db.Driver.GetSettingByKey(
+		setting.SYSTEM_TASKS_DEFAULT_QUEUE,
+	)
+
+	if df.Value != "" {
+		defaultQueue = df.Value
+	}
+
+	if opts.Queue == "" {
+		opts.Queue = defaultQueue
+	}
+
 	// XX: aggiornare i task!
 	for i, t := range opts.Tasks {
+		if !opts.IsTaskUsed(i) {
+			task2Delete = append(task2Delete, i)
+			continue
+		}
+
 		f := opts.Tasks[i]
+		f.Reset()
 
 		if ctx.IsLogged {
 			f.Owner = ctx.User.ID
@@ -152,13 +176,29 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 		}
 		f.Status = setting.TASK_STATE_WAIT
 
-		id, err := db.Driver.CreateTask(f.ToMap())
+		if f.Queue == "" {
+			f.Queue = defaultQueue
+		}
+
+		err := m.CreateTask(&f)
 		if err != nil {
 			return err
 		}
-		f.ID = id
+
+		_, err = m.PrepareTaskQueue(f)
+		if err != nil {
+			return err
+		}
+
 		opts.Tasks[i] = f
 	}
+
+	if len(task2Delete) > 0 {
+		for _, t := range task2Delete {
+			delete(opts.Tasks, t)
+		}
+	}
+
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
 	}
@@ -186,7 +226,7 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 	return nil
 }
 
-func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database, c *cron.Cron) error {
+func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
 	pips, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
@@ -200,6 +240,38 @@ func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.D
 	}
 
 	err = db.Driver.DeletePipeline(id)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+
+	return nil
+}
+
+func PipelineCompleted(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
+	updtime := time.Now().UTC().Format("20060102150405")
+	id := ctx.Params(":id")
+
+	if id == "" {
+		return errors.New("Invalid pipeline id")
+	}
+
+	pips, err := db.Driver.GetPipeline(db.Config, id)
+	if err != nil || pips.ID == "" {
+		ctx.NotFound()
+		return nil
+	}
+
+	if !ctx.CheckPipelinePermissions(&pips) {
+		ctx.NoPermission()
+		return nil
+	}
+
+	err = db.Driver.UpdatePipeline(id, map[string]interface{}{
+		"end_time":    updtime,
+		"update_time": updtime,
+	})
 	if err != nil {
 		return err
 	}

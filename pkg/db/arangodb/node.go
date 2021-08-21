@@ -1,6 +1,8 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
+
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -66,7 +68,7 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
     FILTER c.key == "`+key+`"
     RETURN c`)
 	if err != nil || len(queryResult) != 1 {
-		return nodes.Node{}, nil
+		return nodes.Node{}, err
 	}
 
 	// Query result are document IDs
