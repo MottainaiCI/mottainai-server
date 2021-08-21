@@ -10,7 +10,7 @@ require (
 	github.com/MottainaiCI/lxd-compose v0.11.0
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
-	github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f
+	github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f // indirect
 	github.com/arangodb/go-driver v0.0.0-20201202080739-c41c94f2de00
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/michaelklishin/rabbit-hole v1.5.0-rc.1 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/microcosm-cc/bluemonday v1.0.5
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/moby/sys/mount v0.1.1-0.20200320164225-6154f11e6840 // indirect
@@ -88,6 +88,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/theckman/go-flock v0.4.0
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
+	github.com/unknwon/com v1.0.1
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.22.5 // indirect
