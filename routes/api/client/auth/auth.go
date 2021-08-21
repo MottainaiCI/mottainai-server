@@ -35,9 +35,9 @@ import (
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
-	"github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/captcha"
+	"github.com/unknwon/com"
 	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
 )
