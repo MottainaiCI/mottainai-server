@@ -1,6 +1,7 @@
 /*
 
-Copyright (C) 2017-2019  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@sabayonlinux.org>
 Some code portions and re-implemented design are also coming
 from the Gogs project, which is using the go-macaron framework and was
 really source of ispiration. Kudos to them!
@@ -26,6 +27,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -83,6 +85,8 @@ type HttpClient interface {
 	SetAgent(a *anagent.Anagent)
 	SetActiveReport(b bool)
 	SetToken(t string)
+	SetBasicUsername(u string)
+	SetBasicPassword(p string)
 	HandleRaw(req *schema.Request, fn func(io.ReadCloser) error) error
 	Handle(req *schema.Request) error
 	HandleAPIResponse(req *schema.Request) (event.APIResponse, error)
@@ -162,6 +166,8 @@ type Fetcher struct {
 	Token string
 	// TODO: this could be handled directly from Config
 	TrustedCert   string
+	Username      string
+	Pass          string
 	Jar           *http.CookieJar
 	Agent         *anagent.Anagent
 	ActiveReports bool
@@ -172,6 +178,14 @@ func NewTokenClient(host, token string, config *setting.Config) HttpClient {
 	f := NewBasicClient(config)
 	f.SetBaseURL(host)
 	f.SetToken(token)
+	return f
+}
+
+func NewBasicAuthClient(host, user, pass string, config *setting.Config) HttpClient {
+	f := NewBasicClient(config)
+	f.SetBaseURL(host)
+	f.SetBasicUsername(user)
+	f.SetBasicPassword(pass)
 	return f
 }
 
@@ -218,6 +232,14 @@ func (f *Fetcher) SetActiveReport(b bool) {
 }
 func (f *Fetcher) SetToken(t string) {
 	f.Token = t
+}
+
+func (f *Fetcher) SetBasicUsername(u string) {
+	f.Username = u
+}
+
+func (f *Fetcher) SetBasicPassword(p string) {
+	f.Pass = p
 }
 
 func (f *Fetcher) Doc(id string) {
@@ -267,6 +289,11 @@ func (f *Fetcher) SetUploadChunkSize(s int) {
 func (f *Fetcher) setAuthHeader(r *http.Request) *http.Request {
 	if len(f.Token) > 0 {
 		r.Header.Add("Authorization", "token "+f.Token)
+	} else if len(f.Username) > 0 && len(f.Pass) > 0 {
+		r.Header.Add("Authorization", "Basic "+
+			base64.StdEncoding.EncodeToString(
+				[]byte(f.Username+":"+f.Pass),
+			))
 	}
 	return r
 }
