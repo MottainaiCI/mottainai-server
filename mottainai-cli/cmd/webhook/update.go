@@ -22,19 +22,19 @@ package webhook
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
-	event "github.com/MottainaiCI/mottainai-server/pkg/event"
-
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	"github.com/ghodss/yaml"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newWebHookUpdateCommand(config *setting.Config) *cobra.Command {
@@ -47,9 +47,13 @@ func newWebHookUpdateCommand(config *setting.Config) *cobra.Command {
 		// TODO: PreRun check of minimal args if --json is not present
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var v *viper.Viper = config.Viper
 			var res event.APIResponse
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			id := args[0]
 			mytype := args[1]
 

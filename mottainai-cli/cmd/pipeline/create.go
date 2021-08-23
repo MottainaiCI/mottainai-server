@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/ghodss/yaml"
 
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newPipelineCreateCommand(config *setting.Config) *cobra.Command {
@@ -44,16 +44,17 @@ func newPipelineCreateCommand(config *setting.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var jsonfile string
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 			var p = &task.Pipeline{}
 			dat := make(map[string]interface{})
 
-			jsonfile, err = cmd.Flags().GetString("json")
-			tools.CheckError(err)
-			yamlfile, err := cmd.Flags().GetString("yaml")
-			tools.CheckError(err)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
+			jsonfile, _ = cmd.Flags().GetString("json")
+			yamlfile, _ := cmd.Flags().GetString("yaml")
 
 			if jsonfile != "" {
 				content, err := ioutil.ReadFile(jsonfile)
@@ -91,8 +92,10 @@ func newPipelineCreateCommand(config *setting.Config) *cobra.Command {
 	}
 
 	var flags = cmd.Flags()
-	flags.String("json", "", "Decode parameters from a JSON file ( e.g. /path/to/file.json )")
-	flags.String("yaml", "", "Decode parameters from a YAML file ( e.g. /path/to/file.yaml )")
+	flags.String("json", "",
+		"Decode parameters from a JSON file ( e.g. /path/to/file.json )")
+	flags.String("yaml", "",
+		"Decode parameters from a YAML file ( e.g. /path/to/file.yaml )")
 
 	return cmd
 }

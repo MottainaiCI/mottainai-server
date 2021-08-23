@@ -21,14 +21,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package user
 
 import (
+	"fmt"
 	"log"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newUserCreateCommand(config *setting.Config) *cobra.Command {
@@ -37,9 +39,11 @@ func newUserCreateCommand(config *setting.Config) *cobra.Command {
 		Short: "Create a user",
 		Args:  cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			dat := make(map[string]interface{})
 			u := &user.UserForm{}
 

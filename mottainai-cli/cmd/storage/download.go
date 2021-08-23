@@ -21,12 +21,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storage
 
 import (
+	"fmt"
 	"log"
+	"os"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newStorageDownloadCommand(config *setting.Config) *cobra.Command {
@@ -35,9 +37,11 @@ func newStorageDownloadCommand(config *setting.Config) *cobra.Command {
 		Short: "Download storage artefacts",
 		Args:  cobra.RangeArgs(2, 2),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			fetcher.SetActiveReport(true)
 
 			storage := args[0]

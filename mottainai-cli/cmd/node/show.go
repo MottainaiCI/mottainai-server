@@ -24,16 +24,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNodeShowCommand(config *setting.Config) *cobra.Command {
@@ -43,9 +43,12 @@ func newNodeShowCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var n []nodes.Node
-			var v *viper.Viper = config.Viper
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			id := args[0]
 			if len(id) == 0 {
@@ -58,7 +61,7 @@ func newNodeShowCommand(config *setting.Config) *cobra.Command {
 				},
 				Target: &n,
 			}
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			tools.CheckError(err)
 
 			b, err := json.MarshalIndent(n, "", "  ")

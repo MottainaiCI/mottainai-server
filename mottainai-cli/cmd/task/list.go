@@ -27,8 +27,8 @@ import (
 	"sort"
 	"time"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
@@ -36,7 +36,6 @@ import (
 
 	tablewriter "github.com/olekukonko/tablewriter"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskListCommand(config *setting.Config) *cobra.Command {
@@ -46,9 +45,11 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			var tlist []citasks.Task
 			req := &schema.Request{

@@ -24,15 +24,15 @@ import (
 	"fmt"
 	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	secret "github.com/MottainaiCI/mottainai-server/pkg/secret"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	"github.com/MottainaiCI/mottainai-server/routes/schema"
 	"github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+
 	tablewriter "github.com/olekukonko/tablewriter"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newSecretListCommand(config *setting.Config) *cobra.Command {
@@ -45,9 +45,12 @@ func newSecretListCommand(config *setting.Config) *cobra.Command {
 			var tlist []secret.Secret
 			var task_table [][]string
 			var quiet bool
-			var v *viper.Viper = config.Viper
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			req := &schema.Request{
 				Route:  v1.Schema.GetSecretRoute("show_all"),

@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newPipelineShowCommand(config *setting.Config) *cobra.Command {
@@ -42,14 +42,17 @@ func newPipelineShowCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var t citasks.Pipeline
-			var v *viper.Viper = config.Viper
 
 			id := args[0]
 			if len(id) == 0 {
 				log.Fatalln("You need to define a pipeline id")
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("pipeline_show"),
@@ -59,7 +62,7 @@ func newPipelineShowCommand(config *setting.Config) *cobra.Command {
 				Target: &t,
 			}
 
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				log.Fatalln("error:", err)
 			}

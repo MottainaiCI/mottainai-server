@@ -28,13 +28,12 @@ import (
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	nodes "github.com/MottainaiCI/mottainai-server/pkg/nodes"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	tablewriter "github.com/olekukonko/tablewriter"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNodeListCommand(config *setting.Config) *cobra.Command {
@@ -45,17 +44,20 @@ func newNodeListCommand(config *setting.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var n []nodes.Node
 			var node_table [][]string
-			var v *viper.Viper = config.Viper
 
 			jsonOutput, _ := cmd.Flags().GetBool("json")
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			req := &schema.Request{
 				Route:  v1.Schema.GetNodeRoute("show_all"),
 				Target: &n,
 			}
 
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				log.Fatalln("error:", err)
 			}

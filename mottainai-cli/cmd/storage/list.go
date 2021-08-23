@@ -21,18 +21,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storage
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	storage "github.com/MottainaiCI/mottainai-server/pkg/storage"
+
 	tablewriter "github.com/olekukonko/tablewriter"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newStorageListCommand(config *setting.Config) *cobra.Command {
@@ -43,15 +44,19 @@ func newStorageListCommand(config *setting.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var n []storage.Storage
 			var storage_table [][]string
-			var v *viper.Viper = config.Viper
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
 			req := &schema.Request{
 				Route:  v1.Schema.GetStorageRoute("show_all"),
 				Target: &n,
 			}
 
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				log.Fatalln("error:", err)
 			}

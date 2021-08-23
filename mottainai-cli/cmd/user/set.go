@@ -21,14 +21,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package user
 
 import (
+	"fmt"
 	"log"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newUserSetCommand(config *setting.Config) *cobra.Command {
@@ -40,7 +42,6 @@ func newUserSetCommand(config *setting.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var res event.APIResponse
-			var v *viper.Viper = config.Viper
 			t, err := cmd.Flags().GetString("type")
 
 			if len(args) == 0 {
@@ -51,8 +52,12 @@ func newUserSetCommand(config *setting.Config) *cobra.Command {
 			if len(id) == 0 {
 				log.Fatalln("You need to define a user id")
 			}
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			if t == "admin" {
 				res, err = fetcher.UserSet(id, "admin")
 			} else if t == "user" {

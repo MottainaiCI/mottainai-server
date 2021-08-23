@@ -21,13 +21,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package storage
 
 import (
+	"fmt"
 	"log"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newStorageDeleteCommand(config *setting.Config) *cobra.Command {
@@ -37,14 +39,17 @@ func newStorageDeleteCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var v *viper.Viper = config.Viper
 
 			storage := args[0]
 			if len(storage) == 0 {
 				log.Fatalln("You need to define a storage id")
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			res, err := fetcher.StorageDelete(storage)
 			tools.CheckError(err)
 			tools.PrintResponse(res)

@@ -24,14 +24,13 @@ import (
 	"log"
 	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newQueueDelTaskInProgressCommand(config *setting.Config) *cobra.Command {
@@ -54,11 +53,11 @@ func newQueueDelTaskInProgressCommand(config *setting.Config) *cobra.Command {
 
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(
-				v.GetString("master"), v.GetString("apikey"), config,
-			)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			qid, _ := cmd.Flags().GetString("qid")
 			tid, _ := cmd.Flags().GetString("taskid")

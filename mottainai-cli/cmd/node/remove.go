@@ -21,13 +21,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package node
 
 import (
+	"fmt"
 	"log"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNodeRemoveCommand(config *setting.Config) *cobra.Command {
@@ -36,14 +37,16 @@ func newNodeRemoveCommand(config *setting.Config) *cobra.Command {
 		Short: "Remove a node",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
 			id := args[0]
 			if len(id) == 0 {
 				log.Fatalln("You need to define a node id")
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			res, err := fetcher.RemoveNode(id)
 			tools.CheckError(err)
 			tools.PrintResponse(res)

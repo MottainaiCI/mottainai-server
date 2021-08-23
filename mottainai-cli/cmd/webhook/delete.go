@@ -21,15 +21,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
+	"fmt"
 	"log"
+	"os"
 
-	event "github.com/MottainaiCI/mottainai-server/pkg/event"
-
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	event "github.com/MottainaiCI/mottainai-server/pkg/event"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newWebHookDeleteCommand(config *setting.Config) *cobra.Command {
@@ -38,10 +39,12 @@ func newWebHookDeleteCommand(config *setting.Config) *cobra.Command {
 		Short: "Delete a task or a pipeline associated to a webhook",
 		Args:  cobra.RangeArgs(2, 2),
 		Run: func(cmd *cobra.Command, args []string) {
-
-			var v *viper.Viper = config.Viper
 			var err error
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			id := args[0]
 			if len(id) == 0 {

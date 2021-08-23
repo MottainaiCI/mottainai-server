@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
+	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newUserShowCommand(config *setting.Config) *cobra.Command {
@@ -42,8 +42,6 @@ func newUserShowCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.OnlyValidArgs,
 		// TODO: PreRun check of minimal args if --json is not present
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
 			if len(args) == 0 {
 				log.Fatalln("You need to define a user id")
 			}
@@ -52,7 +50,11 @@ func newUserShowCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("You need to define a user id")
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			var t *user.User
 			req := &schema.Request{
@@ -63,7 +65,7 @@ func newUserShowCommand(config *setting.Config) *cobra.Command {
 				Target: &t,
 			}
 
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				log.Fatalln("error:", err)
 			}
