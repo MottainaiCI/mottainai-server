@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package token
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -38,6 +39,7 @@ func newTokenCreateCommand(config *setting.Config) *cobra.Command {
 		// TODO: PreRun check of minimal args if --json is not present
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			jsonOutput, _ := cmd.Flags().GetBool("json")
 
 			fetcher, err := utils.CreateClient(config)
 			if err != nil {
@@ -47,9 +49,18 @@ func newTokenCreateCommand(config *setting.Config) *cobra.Command {
 
 			res, err := fetcher.TokenCreate()
 			tools.CheckError(err)
-			tools.PrintResponse(res)
+
+			if jsonOutput {
+				data, _ := json.Marshal(res)
+				fmt.Println(string(data))
+			} else {
+				tools.PrintResponse(res)
+			}
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }
