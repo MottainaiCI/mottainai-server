@@ -8,77 +8,9 @@
                   <div id="main-menu" class="main-menu float-left ">
                     <a href="{{BuildURI "/"}}" class="link"><img src="{{BuildURI "/images/logo_small"}}" width=32 alt="Logo"></a>
 
-                      <a href="{{BuildURI "/"}}" class="link hover"> <i class="menu-icon fa fa-dashboard"></i> Dashboard </a>
-
-                      <!--    <li class="menu-item-has-children dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-tasks"></i>Tasks</a>
-                              <ul class="sub-menu children dropdown-menu">
-                                  <li><i class="ti ti-view-list-alt"></i><a href="/tasks">List</a></li>
-                                  <li><i class="fa fa-plus-square-o"></i><a href="/tasks/add">Add</a></li>
-
-
-                              </ul>
-                          </li>
-                        -->
-
-                            <a href="{{BuildURI "/tasks"}}" class="link hover"> <i class="menu-icon fa fa-tasks"></i> Tasks </a>
-                            <a href="{{BuildURI "/plans"}}" class="link hover"> <i class="menu-icon fa fa-clock-o"></i> Plans </a>
-                            <a href="{{BuildURI "/pipelines"}}" class="link hover"> <i class="menu-icon fa fa-code-fork"></i> Pipelines </a>
-
-                        <!--  <li class="menu-item-has-children dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-sitemap"></i>Nodes</a>
-                              <ul class="sub-menu children dropdown-menu">
-                                <li><i class="ti ti-view-list-alt"></i><a href="/nodes">List</a></li>
-                                <li><i class="fa fa-plus-square-o"></i><a href="/nodes/add">Add</a></li>
-
-
-                              </ul>
-                          </li>-->
-                          <!--
-                          <li><i class="fa fa-id-badge"></i><a href="/tasks/planned">Planned</a></li>
-                          -->
-                            <a href="{{BuildURI "/nodes"}}" class="link hover"> <i class="menu-icon fa fa-sitemap"></i> Nodes </a>
-                        <!--  <li class="menu-item-has-children dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-cloud"></i>Namespaces</a>
-                              <ul class="sub-menu children dropdown-menu">
-                                  <li><i class="ti ti-view-list-alt"></i><a href="/namespaces">List</a></li>
-                              </ul>
-                          </li> -->
-                            <a href="{{BuildURI "/namespaces"}}" class="link hover"> <i class="menu-icon fa fa-cloud"></i> Namespaces </a>
                     </div>
                 </div>
 
-
-                  <div class="col-sm-5 ">
-
-
-                      <div class="user-area dropdown float-right">
-
-                        {{if eq .LoggedUserName ""}}
-                          <a class="nav-link" href="{{BuildURI "/user/login"}}"><i class="fa fa-user"></i> Login</a>
-                        {{else}}
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              <img class="user-avatar rounded-circle" src="{{GenAvatar .LoggedUserName 48}}" alt="Avatar"><i class="fa fa-arrow-down"></i>
-                          </a>
-
-                          <div class="user-menu dropdown-menu">
-                            <a class="nav-link hoverusermenu"  href="{{BuildURI "/user/show/"}}{{.LoggedUserID}}">
-                              {{if eq .IsAdmin "yes"}}
-                              <i class="fa fa-rocket"></i>
-                              {{else}}
-                              <i class="fa fa-user"></i>
-                              {{end}}
-                              {{.LoggedUserName}}
-                            </a>
-                            <hr>
-                            {{if .IsManagerOrAdmin}}<a class="nav-link hoverusermenu" href="{{BuildURI "/user/list"}}"><i class="fa fa-users"></i> User List</a>{{end}}
-                              <a class="nav-link hoverusermenu"  href="{{BuildURI "/token"}}"> <i class="fa fa-key"></i> API keys</a>
-                              <a class="nav-link hoverusermenu" href="{{BuildURI "/user/logout"}}"><i class="fa fa-power-off"></i> Logout</a>
-                          </div>
-                        {{end}}
-                      </div>
-
-                  </div>
               </div>
 
           </header><!-- /header -->
