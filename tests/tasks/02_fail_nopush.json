@@ -1,0 +1,18 @@
+{
+  "script": [
+    "export LC_ALL=en_US.UTF-8",
+    "pwd",
+    "ip a",
+    "ls -l .",
+    "echo $VAR1 > $MOTTAINAI_ARTEFACT_PATH/test",
+    "exit 1"
+  ],
+  "type": "lxd",
+  "name": "Test LXD",
+  "image": "ubuntu/16.04",
+  "artefact_path": "artifacts",
+  "disable_push_on_failure": "true",
+  "environment": [
+    "VAR1=1"
+  ]
+}
