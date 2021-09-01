@@ -88,7 +88,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short:        agentName,
-		Version:      common.MAGENT_VERSION,
+		Version:      fmt.Sprintf("%s-g%s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime),
 		Example:      agentExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

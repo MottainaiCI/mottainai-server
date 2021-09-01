@@ -1,5 +1,10 @@
 NAME ?= mottainai-server
 PACKAGE_NAME ?= $(NAME)
+
+override LDFLAGS += -X "github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime=$(shell date -u '+%Y-%m-%d %I:%M:%S %Z')"
+override LDFLAGS += -X "github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit=$(shell git rev-parse HEAD)"
+
+
 PACKAGE_CONFLICT ?= $(PACKAGE_NAME)-beta
 REVISION := $(shell git rev-parse --short HEAD || echo unknown)
 VERSION := $(shell git describe --tags || cat pkg/settings/settings.go | echo $(REVISION) || echo dev)
@@ -48,56 +53,47 @@ deps:
 
 build-exporter:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS) -o ./mottainai-exporter/mottainai-exporter ./mottainai-exporter
 endif
 
 build-importer:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o ./mottainai-importer/mottainai-importer ./mottainai-importer
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-importer/mottainai-importer ./mottainai-importer
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS) -o ./mottainai-importer/mottainai-importer ./mottainai-importer
 endif
 
 build-agent:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build -o ./mottainai-agent/mottainai-agent ./mottainai-agent
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS) -o ./mottainai-agent/mottainai-agent ./mottainai-agent
 endif
 
 build-scheduler:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS) -o ./mottainai-scheduler/mottainai-scheduler ./mottainai-scheduler
 endif
 
 build-cli:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o ./mottainai-cli/mottainai-cli ./mottainai-cli
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS) -o ./mottainai-cli/mottainai-cli ./mottainai-cli
 endif
 
 build-server:
 ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 go build
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)'
 else
-		CGO_ENABLED=0 go build -tags $(EXTENSIONS)
+		CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -tags $(EXTENSIONS)
 endif
 
 build: build-server build-cli build-agent build-scheduler build-exporter build-importer
-
-multiarch-build:
-ifeq ($(EXTENSIONS),)
-		CGO_ENABLED=0 gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
-#		CC="arm-linux-gnueabi-gcc" LD_LIBRARY_PATH=/usr/arm-linux-gnueabi/lib gox -osarch="linux/arm" -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
-else
-		CGO_ENABLED=0 gox $(BUILD_PLATFORMS) -tags $(EXTENSIONS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1
-#		CC="arm-linux-gnueabi-gcc" LD_LIBRARY_PATH=/usr/arm-linux-gnueabi/lib gox -tags $(EXTENSIONS) -osarch="linux/arm" -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition" -parallel 1 -cgo
-endif
 
 lint:
 	golint ./... | grep -v "be unexported"

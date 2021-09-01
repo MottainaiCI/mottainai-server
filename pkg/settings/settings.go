@@ -39,6 +39,11 @@ const (
 	Timeformat = "20060102150405"
 )
 
+var (
+	BuildTime   string
+	BuildCommit string
+)
+
 // Web UI Settings
 type WebConfig struct {
 	Protocol  string `mapstructure:"protocol" json:"protocol,omitempty" yaml:"protocol,omitempty"`

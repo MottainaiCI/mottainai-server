@@ -126,8 +126,9 @@ func Execute() {
 	initConfig(config)
 
 	var rootCmd = &cobra.Command{
-		Short:        common.MCLI_HEADER,
-		Version:      setting.MOTTAINAI_VERSION,
+		Short: common.MCLI_HEADER,
+		Version: fmt.Sprintf("%s-g%s %s",
+			setting.MOTTAINAI_VERSION, setting.BuildCommit, setting.BuildTime),
 		Example:      cliExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

@@ -91,7 +91,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short:        importerName,
-		Version:      s.MOTTAINAI_VERSION,
+		Version:      fmt.Sprintf("%s-g%s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime),
 		Example:      importerExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

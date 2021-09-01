@@ -83,8 +83,9 @@ func Execute() {
 	initConfig(config)
 
 	var rootCmd = &cobra.Command{
-		Short:        schedulerName,
-		Version:      msetting.MOTTAINAI_VERSION,
+		Short: schedulerName,
+		Version: fmt.Sprintf("%s-g%s %s",
+			msetting.MOTTAINAI_VERSION, msetting.BuildCommit, msetting.BuildTime),
 		Example:      schedulerExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,
