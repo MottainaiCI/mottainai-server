@@ -7,4 +7,5 @@ mottainai-scheduler/mottainai-scheduler
 mottainai-exporter/mottainai-exporter
 mottainai-importer/mottainai-importer
 release/
+dist/
 contrib/schemas/mottainai.dia.autosave
