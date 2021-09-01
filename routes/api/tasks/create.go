@@ -87,6 +87,8 @@ func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *d
 		return "", nil
 	}
 
+	task.Reset()
+
 	if ctx.IsLogged {
 		task.Owner = ctx.User.ID
 	}
