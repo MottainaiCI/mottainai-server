@@ -237,7 +237,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.healthcheck_interval", 800)
 	viper.SetDefault("web.session_provider", "")
 	viper.SetDefault("web.session_provider_config", "")
-	viper.SetDefault("web.max_page_size", 50)
+	viper.SetDefault("web.max_page_size", 300)
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")

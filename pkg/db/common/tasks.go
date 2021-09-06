@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package dbcommon
 
 import (
+	settings "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 )
 
@@ -36,26 +37,66 @@ type TaskFilter struct {
 	PageSize  int
 	Sort      string
 	SortOrder string
+	Status    string
+	Result    string
+	Image     string
+	Name      string
+	ID        string
 }
 
-func CreateTaskFilter(maxPageSize int, pageIdx int, pageSize int, sort string, sortOrder string) TaskFilter {
+func CreateTaskFilter(maxPageSize, pageIdx, pageSize int, sort, sortOrder, status, result, image, name, id string) TaskFilter {
 	f := TaskFilter{
 		PageIndex: pageIdx,
 		PageSize:  pageSize,
 		Sort:      sort,
 		SortOrder: sortOrder,
+		Status:    status,
+		Result:    result,
+		Image:     image,
+		Name:      name,
+		ID:        id,
+	}
+
+	var TaskStatusOptions = map[string]bool{
+		settings.TASK_STATE_RUNNING:  true,
+		settings.TASK_STATE_DONE:     true,
+		settings.TASK_STATE_SETUP:    true,
+		settings.TASK_STATE_STOPPED:  true,
+		settings.TASK_STATE_ASK_STOP: true,
+		settings.TASK_STATE_WAIT:     true,
+	}
+
+	var TaskResultOptions = map[string]bool{
+		settings.TASK_RESULT_UNKNOWN: true,
+		settings.TASK_RESULT_FAILED:  true,
+		settings.TASK_RESULT_SUCCESS: true,
+		settings.TASK_RESULT_ERROR:   true,
 	}
 
 	if f.PageIndex < 0 {
 		f.PageIndex = 0
 	}
 
-	if f.PageSize <= 0 || f.PageSize > maxPageSize {
+	if f.PageSize <= 0 {
 		f.PageSize = 10
+	} else if f.PageSize > maxPageSize {
+		f.PageSize = maxPageSize
 	}
 
 	if _, ok := TaskSortOptions[f.Sort]; !ok {
 		f.Sort = "ID"
+	}
+
+	if f.Status != "" {
+		if _, ok := TaskStatusOptions[f.Status]; !ok {
+			f.Status = ""
+		}
+	}
+
+	if f.Result != "" {
+		if _, ok := TaskResultOptions[f.Result]; !ok {
+			f.Result = ""
+		}
 	}
 
 	if f.Sort == "ID" {
@@ -70,11 +111,12 @@ func CreateTaskFilter(maxPageSize int, pageIdx int, pageSize int, sort string, s
 }
 
 var TaskSortOptions = map[string]bool{
-	"ID":         true,
-	"name":       true,
-	"image":      true,
-	"status":     true,
-	"start_time": true,
+	"ID":           true,
+	"name":         true,
+	"image":        true,
+	"status":       true,
+	"start_time":   true,
+	"created_time": true,
 }
 
 var SortOrderOptions = map[string]bool{

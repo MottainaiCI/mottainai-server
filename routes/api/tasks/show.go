@@ -155,6 +155,11 @@ func AllFiltered(ctx *context.Context, settings *setting.Config, db *database.Da
 		ctx.QueryInt("pageSize"),
 		ctx.Query("sort"),
 		ctx.Query("sortOrder"),
+		ctx.Query("status"),
+		ctx.Query("result"),
+		ctx.Query("image"),
+		ctx.Query("name"),
+		ctx.Query("id"),
 	)
 
 	if ctx.IsLogged {
