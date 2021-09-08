@@ -3,21 +3,20 @@
 <body class="bg-dark">
     <div class="sufee-login d-flex align-content-center flex-wrap">
         <div class="container">
-					<div class="login-content">
-							<div class="login-logo">
+          <div class="login-content">
+            <div class="login-logo">
                 <a href="{{BuildURI "/"}}">
                   <img class="align-content" src="{{BuildURI "/images/logo"}}" alt="404">
-									</a>
-							</div>
-							<div class="login-form">
-              <h1>KaBoom!<h1>
-							<br>
-							Page not found<br>
-							{{if .ShowFooterVersion}}<p>Application Version: {{AppVer}}</p>{{end}}
-							<p>If you think this is an error, please open an issue on <a href="https://github.com/MottainaiCI/mottainai-server/issues/new">GitHub</a>.</p>
-							</div>
-						</div>
-					</div>
-</div>
+                </a>
+            </div>
+            <div class="login-form">
+              <h1 class="text-center">Stop!</h1>
+              <br>
+              <h3 class="text-center">404 - Page not found or Forbidden!</h3>
+              <br>
+            </div>
+          </div>
+        </div>
+  </div>
 </body>
 {{template "base/footer" .}}

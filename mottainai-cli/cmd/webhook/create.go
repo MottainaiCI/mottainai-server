@@ -21,14 +21,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package webhook
 
 import (
+	"fmt"
 	"log"
 	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newWebHookCreateCommand(config *setting.Config) *cobra.Command {
@@ -38,9 +39,12 @@ func newWebHookCreateCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.RangeArgs(0, 1),
 		// TODO: PreRun check of minimal args if --json is not present
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 			if len(args) == 0 {
 				log.Fatalln("You need to define a webhook type: github|gitlab")
 			}

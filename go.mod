@@ -7,7 +7,7 @@ require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/MottainaiCI/lxd-compose v0.11.0
+	github.com/MottainaiCI/lxd-compose v0.12.2
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
 	github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f // indirect
@@ -20,7 +20,6 @@ require (
 	github.com/couchbaselabs/go-couchbase v0.0.0-20190708161019-23e7ca2ce2b7 // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd // indirect
-	github.com/docker/docker v17.12.0-ce-rc1.0.20200417035958-130b0bc6032c+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
@@ -38,7 +37,6 @@ require (
 	github.com/go-macaron/captcha v0.2.0
 	github.com/go-macaron/csrf v0.0.0-20200329073418-5d38f39de352
 	github.com/go-macaron/session v1.0.2
-	github.com/go-openapi/validate v0.19.5 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
@@ -53,14 +51,13 @@ require (
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
 	github.com/jaypipes/pcidb v0.0.0-20181115143611-141a53e65d4a // indirect
-	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/juju/webbrowser v0.0.0-20180907093207-efb9432b2bcb // indirect
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/lunny/log v0.0.0-20160921050905-7887c61bf0de // indirect
 	github.com/lunny/nodb v0.0.0-20160621015157-fc1ef06ad4af // indirect
-	github.com/lxc/lxd v0.0.0-20210507013419-5ff45e701cb8
+	github.com/lxc/lxd v0.0.0-20210805235317-774489441569
 	github.com/markbates/goth v1.66.0
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
@@ -83,23 +80,18 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sethvargo/go-password v0.1.2
-	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.3
-	github.com/spf13/viper v1.7.1
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/cobra v1.2.1
+	github.com/spf13/viper v1.8.1
 	github.com/theckman/go-flock v0.4.0
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
 	github.com/unknwon/com v1.0.1
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	go.opencensus.io v0.22.5 // indirect
-	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
-	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sys v0.0.0-20201112073958-5cba982894dd // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.33.0 // indirect
 	gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
@@ -116,7 +108,6 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.9.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools/v3 v3.0.2 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
 	vbom.ml/util v0.0.0-20160121211510-db5cfe13f5cc // indirect
 )

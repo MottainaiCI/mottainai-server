@@ -23,12 +23,11 @@ import (
 	"fmt"
 	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNodeQueueDelTaskCommand(config *setting.Config) *cobra.Command {
@@ -64,19 +63,16 @@ func newNodeQueueDelTaskCommand(config *setting.Config) *cobra.Command {
 
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(
-				v.GetString("master"),
-				v.GetString("apikey"),
-				config,
-			)
-
 			akey, _ := cmd.Flags().GetString("agent-key")
 			nid, _ := cmd.Flags().GetString("node-id")
 			tid, _ := cmd.Flags().GetString("tid")
 			queue, _ := cmd.Flags().GetString("queue")
+
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			resp, err := fetcher.NodeQueueDelTask(akey, nid, queue, tid)
 

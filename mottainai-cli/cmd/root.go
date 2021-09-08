@@ -87,12 +87,16 @@ func initCommand(rootCmd *cobra.Command, config *setting.Config) {
 	v := config.Viper
 
 	pflags.StringP("master", "m", "http://localhost:8080", "MottainaiCI webUI URL")
-	pflags.StringP("apikey", "k", "fb4h3bhgv4421355", "Mottainai API key")
+	pflags.StringP("apikey", "k", "", "Mottainai API key")
+	pflags.String("apiUser", "", "Mottainai API username. To use only on bootstrap phase.")
+	pflags.String("apiPass", "", "Mottainai API password. To use only on bootstrap phase.")
 
 	pflags.StringP("profile", "p", "", "Use specific profile for call API.")
 
 	v.BindPFlag("master", rootCmd.PersistentFlags().Lookup("master"))
 	v.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
+	v.BindPFlag("apiUser", rootCmd.PersistentFlags().Lookup("apiUser"))
+	v.BindPFlag("apiPass", rootCmd.PersistentFlags().Lookup("apiPass"))
 	v.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile"))
 
 	rootCmd.AddCommand(
@@ -122,8 +126,9 @@ func Execute() {
 	initConfig(config)
 
 	var rootCmd = &cobra.Command{
-		Short:        common.MCLI_HEADER,
-		Version:      setting.MOTTAINAI_VERSION,
+		Short: common.MCLI_HEADER,
+		Version: fmt.Sprintf("%s-g%s %s",
+			setting.MOTTAINAI_VERSION, setting.BuildCommit, setting.BuildTime),
 		Example:      cliExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

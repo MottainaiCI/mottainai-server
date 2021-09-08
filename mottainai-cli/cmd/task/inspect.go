@@ -23,12 +23,13 @@ package task
 import (
 	"fmt"
 	"log"
+	"os"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskInspectCommand(config *setting.Config) *cobra.Command {
@@ -37,15 +38,16 @@ func newTaskInspectCommand(config *setting.Config) *cobra.Command {
 		Short: "Inspect a task for debugging",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
 			id := args[0]
 			if len(id) == 0 {
 				log.Fatalln("You need to define a task id")
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
-			fetcher.SetBaseURL(v.GetString("master"))
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			task_info, err := citasks.FetchTask(fetcher, id)
 			if err != nil {

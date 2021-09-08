@@ -28,11 +28,10 @@ import (
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
@@ -47,13 +46,14 @@ func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var tlist []string
-			var v *viper.Viper = config.Viper
 
 			jsonOutput, _ := cmd.Flags().GetBool("json")
 
-			fetcher := client.NewTokenClient(
-				v.GetString("master"), v.GetString("apikey"), config,
-			)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			ns := args[0]
 			req := &schema.Request{
@@ -63,7 +63,7 @@ func newNamespaceShowCommand(config *setting.Config) *cobra.Command {
 					":name": ns,
 				},
 			}
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				if req.Response != nil {
 					fmt.Println("ERROR: ", req.Response.StatusCode)

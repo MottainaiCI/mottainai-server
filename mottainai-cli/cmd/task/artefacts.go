@@ -23,15 +23,16 @@ package task
 import (
 	"fmt"
 	"log"
+	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskArtefactsCommand(config *setting.Config) *cobra.Command {
@@ -40,7 +41,6 @@ func newTaskArtefactsCommand(config *setting.Config) *cobra.Command {
 		Short: "Show artefacts of a task",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
 			var tlist []string
 
 			id := args[0]
@@ -49,7 +49,11 @@ func newTaskArtefactsCommand(config *setting.Config) *cobra.Command {
 			}
 
 			fmt.Println("Artefacts for:", id)
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("artefact_list"),
 				Options: map[string]interface{}{
@@ -57,7 +61,7 @@ func newTaskArtefactsCommand(config *setting.Config) *cobra.Command {
 				},
 				Target: &tlist,
 			}
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			tools.CheckError(err)
 
 			for _, i := range tlist {

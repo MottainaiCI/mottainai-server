@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 
 	"github.com/ghodss/yaml"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskCreateCommand(config *setting.Config) *cobra.Command {
@@ -42,10 +42,12 @@ func newTaskCreateCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.OnlyValidArgs,
 		// TODO: PreRun check of minimal args if --json is not present
 		Run: func(cmd *cobra.Command, args []string) {
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
 			to, _ := cmd.Flags().GetString("to")
 			dat := make(map[string]interface{})
 			t := &task.Task{}

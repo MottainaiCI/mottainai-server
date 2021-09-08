@@ -24,8 +24,10 @@ package tiedot
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	agenttasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -174,25 +176,49 @@ func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilte
 	tasks.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
 		t := agenttasks.NewTaskFromJson(docContent)
 		t.ID = strconv.Itoa(id)
+		key := t.ID
+
+		// Check if there are filter to apply
+		if f.Status != "" && t.Status != f.Status {
+			goto ignore
+		}
+
+		if f.Result != "" && t.Result != f.Result {
+			goto ignore
+		}
+
+		if f.Image != "" && !strings.Contains(t.Image, f.Image) {
+			goto ignore
+		}
+
+		if f.ID != "" && !strings.Contains(t.ID, f.ID) {
+			goto ignore
+		}
+
+		if f.Name != "" && !strings.Contains(t.Name, f.Name) {
+			goto ignore
+		}
+
+		// NOTE: key that are unique use ID as postfix.
 		switch f.Sort {
 		case "_key":
-			tasks_map[t.ID] = t
-			tasks_keys = append(tasks_keys, t.ID)
+			key = t.ID
 		case "name":
-			tasks_map[t.Name] = t
-			tasks_keys = append(tasks_keys, t.Name)
+			key = fmt.Sprintf("%s-%s", t.Name, t.ID)
 		case "image":
-			tasks_map[t.Image] = t
-			tasks_keys = append(tasks_keys, t.Image)
+			key = fmt.Sprintf("%s-%s", t.Image, t.ID)
 		case "status":
-			tasks_map[t.Status] = t
-			tasks_keys = append(tasks_keys, t.Status)
+			key = fmt.Sprintf("%s-%s", t.Status, t.ID)
 		case "start_time":
-			tasks_map[t.StartTime] = t
-			tasks_keys = append(tasks_keys, t.StartTime)
-		default:
-			tasks_map[t.ID] = t
+			key = fmt.Sprintf("%s-%s", t.StartTime, t.ID)
+		case "created_time":
+			key = fmt.Sprintf("%s-%s", t.CreatedTime, t.ID)
 		}
+
+		tasks_map[key] = t
+		tasks_keys = append(tasks_keys, key)
+
+	ignore:
 
 		return true
 	})

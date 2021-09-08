@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	"github.com/ghodss/yaml"
 
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newPlanCreateCommand(config *setting.Config) *cobra.Command {
@@ -45,21 +45,22 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 			var err error
 			var jsonfile string
 			var value string
-			var v *viper.Viper = config.Viper
+			var p = &task.Plan{}
+			dat := make(map[string]interface{})
 			var flagsName []string = []string{
 				"script", "storage", "source", "directory", "task", "image",
 				"namespace", "storage_path", "artefact_path", "tag_namespace",
 				"prune", "queue", "cache_image", "planned",
 			}
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
-			var p = &task.Plan{}
-			dat := make(map[string]interface{})
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
-			jsonfile, err = cmd.Flags().GetString("json")
-			tools.CheckError(err)
-			yamlfile, err := cmd.Flags().GetString("yaml")
-			tools.CheckError(err)
+			jsonfile, _ = cmd.Flags().GetString("json")
+			yamlfile, _ := cmd.Flags().GetString("yaml")
 
 			if jsonfile != "" {
 				content, err := ioutil.ReadFile(jsonfile)

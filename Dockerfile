@@ -1,6 +1,6 @@
 FROM quay.io/mocaccino/extra
 
-RUN luet install -y repository/mocaccino-os-commons-stable
+RUN luet install -y repository/mocaccino-os-commons-stable repository/geaaru
 RUN luet install -y dev-util/mottainai-server && luet cleanup
 
 # See: https://github.com/docker/compose/issues/3270#issuecomment-206214034

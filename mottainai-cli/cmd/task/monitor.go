@@ -21,10 +21,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package task
 
 import (
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	"fmt"
+	"os"
+
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskMonitorCommand(config *setting.Config) *cobra.Command {
@@ -32,9 +35,11 @@ func newTaskMonitorCommand(config *setting.Config) *cobra.Command {
 		Use:   "monitor id1 id2 id3 ...",
 		Short: "Monitor tasks and propagate exit status",
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			var tasks = make(map[string]bool)
 			for _, id := range args {

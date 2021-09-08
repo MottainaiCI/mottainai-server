@@ -20,20 +20,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package nodequeue
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	queues "github.com/MottainaiCI/mottainai-server/pkg/queues"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newNodeQueueShowCommand(config *setting.Config) *cobra.Command {
@@ -43,11 +42,12 @@ func newNodeQueueShowCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var n queues.NodeQueues
-			var v *viper.Viper = config.Viper
 
-			fetcher := client.NewTokenClient(
-				v.GetString("master"), v.GetString("apikey"), config,
-			)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			id := args[0]
 			if len(id) == 0 {
@@ -55,40 +55,20 @@ func newNodeQueueShowCommand(config *setting.Config) *cobra.Command {
 			}
 
 			req := &schema.Request{
-				Route: v1.Schema.GetNodeQueueRoute("show_byagent"),
+				Route: v1.Schema.GetNodeQueueRoute("show"),
 				Options: map[string]interface{}{
-					":nodeid": id,
+					":id": id,
 				},
 				Target: &n,
 			}
-			msg := map[string]interface{}{
-				"akey":   "j1ZvSpC1405KjYfkCB6Uv1AKj2idwO",
-				"nodeid": id,
-			}
-			b, _ := json.Marshal(msg)
-
-			req.Body = bytes.NewBuffer(b)
-
-			err := fetcher.Handle(req)
-			fmt.Println("RES ", string(req.ResponseRaw))
+			err = fetcher.Handle(req)
 			tools.CheckError(err)
-			/*
-				req := &schema.Request{
-					Route: v1.Schema.GetNodeQueueRoute("show"),
-					Options: map[string]interface{}{
-						":id": id,
-					},
-					Target: &n,
-				}
-				err := fetcher.Handle(req)
-				tools.CheckError(err)
 
-				b, err := json.MarshalIndent(n, "", "  ")
-				if err != nil {
-					log.Fatalln("error:", err)
-				}
-				fmt.Println(string(b))
-			*/
+			b, err := json.MarshalIndent(n, "", "  ")
+			if err != nil {
+				log.Fatalln("error:", err)
+			}
+			fmt.Println(string(b))
 		},
 	}
 

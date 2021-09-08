@@ -24,14 +24,13 @@ import (
 	"log"
 	"os"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newQueueAddPipelineInProgressCommand(config *setting.Config) *cobra.Command {
@@ -54,14 +53,14 @@ func newQueueAddPipelineInProgressCommand(config *setting.Config) *cobra.Command
 
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(
-				v.GetString("master"), v.GetString("apikey"), config,
-			)
-
 			qid, _ := cmd.Flags().GetString("qid")
 			pid, _ := cmd.Flags().GetString("pipelineid")
+
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			req := &schema.Request{
 				Route: v1.Schema.GetQueueRoute("add_pipeline_in_progress"),

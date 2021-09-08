@@ -25,18 +25,18 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
-	cobra "github.com/spf13/cobra"
 
-	viper "github.com/spf13/viper"
+	cobra "github.com/spf13/cobra"
 )
 
 func newTaskAttachCommand(config *setting.Config) *cobra.Command {
@@ -45,9 +45,11 @@ func newTaskAttachCommand(config *setting.Config) *cobra.Command {
 		Short: "attach to a task output",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			id := args[0]
 			if len(id) == 0 {

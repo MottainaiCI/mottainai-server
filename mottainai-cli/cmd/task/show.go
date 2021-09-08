@@ -24,15 +24,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
-	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
-
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
+	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskShowCommand(config *setting.Config) *cobra.Command {
@@ -41,16 +41,18 @@ func newTaskShowCommand(config *setting.Config) *cobra.Command {
 		Short: "Show a task",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			var t citasks.Task
 
 			id := args[0]
 			if len(id) == 0 {
 				log.Fatalln("You need to define a task id")
 			}
-			var t citasks.Task
 
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 			req := &schema.Request{
 				Route: v1.Schema.GetTaskRoute("as_json"),
 				Options: map[string]interface{}{
@@ -59,7 +61,7 @@ func newTaskShowCommand(config *setting.Config) *cobra.Command {
 				Target: &t,
 			}
 
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				panic(err)
 			}

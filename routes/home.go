@@ -34,20 +34,14 @@ import (
 	context "github.com/MottainaiCI/mottainai-server/pkg/context"
 	"github.com/MottainaiCI/mottainai-server/pkg/mottainai"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"github.com/MottainaiCI/mottainai-server/pkg/template"
+	//"github.com/MottainaiCI/mottainai-server/pkg/template"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	"github.com/MottainaiCI/mottainai-server/routes/api"
 	auth "github.com/MottainaiCI/mottainai-server/routes/auth"
-	namespaceroute "github.com/MottainaiCI/mottainai-server/routes/namespaces"
-	nodesroute "github.com/MottainaiCI/mottainai-server/routes/nodes"
-	tokenroute "github.com/MottainaiCI/mottainai-server/routes/token"
 
-	"github.com/MottainaiCI/mottainai-server/routes/plans"
 	"github.com/MottainaiCI/mottainai-server/routes/webhook"
 	macaron "gopkg.in/macaron.v1"
-
-	"github.com/MottainaiCI/mottainai-server/routes/tasks"
 )
 
 func NotFound(c *context.Context) {
@@ -145,63 +139,8 @@ func Setup(m *macaron.Macaron) {
 				ctx.Redirect(config.GetWeb().BuildURI("/images/mottainai_logo_small.png"))
 				return nil
 			})
-			m.Get("/", func(ctx *context.Context, db *database.Database) error {
-				rtasks, e := db.Driver.GetTaskByStatus(db.Config, "running")
-				if e != nil {
-					return e
-				}
-				running_tasks := len(rtasks)
-				wtasks, e := db.Driver.GetTaskByStatus(db.Config, "waiting")
-				if e != nil {
-					return e
-				}
-				waiting_tasks := len(wtasks)
-				etasks, e := db.Driver.GetTaskByStatus(db.Config, "error")
-				if e != nil {
-					return e
-				}
-				error_tasks := len(etasks)
-				ftasks, e := db.Driver.GetTaskByStatus(db.Config, "failed")
-				if e != nil {
-					return e
-				}
-				failed_tasks := len(ftasks)
-				stasks, e := db.Driver.GetTaskByStatus(db.Config, "success")
-				if e != nil {
-					return e
-				}
-				succeeded_tasks := len(stasks)
-				stoppedtasks, e := db.Driver.GetTaskByStatus(db.Config, "stopped")
-				if e != nil {
-					return e
-				}
-				instoptasks, e := db.Driver.GetTaskByStatus(db.Config, "stop")
-				if e != nil {
-					return e
-				}
-
-				stopped_tasks := len(stoppedtasks)
-				instop_tasks := len(instoptasks)
-
-				ctx.Data["TotalTasks"] = len(db.Driver.ListDocs("Tasks"))
-				ctx.Data["RunningTasks"] = running_tasks
-				ctx.Data["WaitingTasks"] = waiting_tasks
-				ctx.Data["ErroredTasks"] = error_tasks
-				ctx.Data["SucceededTasks"] = succeeded_tasks
-				ctx.Data["FailedTasks"] = failed_tasks
-				ctx.Data["StoppedTasks"] = stopped_tasks
-				ctx.Data["InStopTasks"] = instop_tasks
-
-				template.TemplatePreview(ctx, "index", db.Config)
-				return nil
-			})
 		})
 	})
 
-	tasks.Setup(m)
-	plans.Setup(m)
-	nodesroute.Setup(m)
-	namespaceroute.Setup(m)
-	tokenroute.Setup(m)
 	api.Setup(m)
 }

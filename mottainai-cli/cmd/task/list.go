@@ -27,8 +27,7 @@ import (
 	"sort"
 	"time"
 
-	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
@@ -36,8 +35,12 @@ import (
 
 	tablewriter "github.com/olekukonko/tablewriter"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
+
+type TaskListFiltered struct {
+	Total int            `json:"total"`
+	Tasks []citasks.Task `json:"tasks"`
+}
 
 func newTaskListCommand(config *setting.Config) *cobra.Command {
 	var cmd = &cobra.Command{
@@ -46,20 +49,58 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var v *viper.Viper = config.Viper
+			var tlist TaskListFiltered
 
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
-			var tlist []citasks.Task
+			status, _ := cmd.Flags().GetString("status")
+			name, _ := cmd.Flags().GetString("name")
+			id, _ := cmd.Flags().GetString("id")
+			image, _ := cmd.Flags().GetString("image")
+			result, _ := cmd.Flags().GetString("result")
+			pageSize, _ := cmd.Flags().GetInt32("page-size")
+
+			options := make(map[string]interface{}, 0)
+
+			options["pageSize"] = fmt.Sprintf("%d", pageSize)
+
+			if status != "" {
+				options["status"] = status
+			}
+
+			if result != "" {
+				options["result"] = result
+			}
+
+			if name != "" {
+				options["name"] = name
+			}
+
+			if id != "" {
+				options["id"] = id
+			}
+
+			if image != "" {
+				options["image"] = image
+			}
+
 			req := &schema.Request{
-				Route:  v1.Schema.GetTaskRoute("show_all"),
-				Target: &tlist,
+				Route:   v1.Schema.GetTaskRoute("show_all_filtered"),
+				Target:  &tlist,
+				Options: options,
 			}
 			err = fetcher.Handle(req)
-			tools.CheckError(err)
+			if err != nil {
+				fmt.Println("Error: \n" + string(req.ResponseRaw))
+				os.Exit(1)
+			}
 
-			sort.Slice(tlist[:], func(i, j int) bool {
-				return tlist[i].CreatedTime > tlist[j].CreatedTime
+			sort.Slice(tlist.Tasks[:], func(i, j int) bool {
+				return tlist.Tasks[i].CreatedTime > tlist.Tasks[j].CreatedTime
 			})
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			jsonOutput, _ := cmd.Flags().GetBool("json")
@@ -75,7 +116,7 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 
 			} else {
 				if quiet {
-					for _, i := range tlist {
+					for _, i := range tlist.Tasks {
 						fmt.Println(i.ID)
 					}
 					return
@@ -83,16 +124,20 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 
 				var task_table [][]string
 
-				for _, i := range tlist {
+				for _, i := range tlist.Tasks {
 					t, _ := time.Parse("20060102150405", i.CreatedTime)
 					t2, _ := time.Parse("20060102150405", i.EndTime)
-					task_table = append(task_table, []string{i.ID, i.Name, i.Type, i.Status, i.Result, t.String(), t2.String(), i.Source, i.Directory})
+					task_table = append(task_table, []string{i.ID, i.Name, i.Type, i.Status, i.Result, t.String(), t2.String(), i.Image, i.Owner})
 				}
 
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-				table.SetCenterSeparator("|")
-				table.SetHeader([]string{"ID", "Name", "Type", "Status", "Result", "Created", "End", "Source", "Dir"})
+				table.SetFooterAlignment(tablewriter.ALIGN_LEFT)
+				table.SetHeader([]string{
+					"ID", "Name", "Type", "Status", "Result", "Created", "End", "Image", "Owner",
+				})
+				table.SetFooter([]string{
+					"Total Tasks", "", "", "", "", "", "", "", fmt.Sprintf("%d", tlist.Total),
+				})
 
 				for _, v := range task_table {
 					table.Append(v)
@@ -105,6 +150,12 @@ func newTaskListCommand(config *setting.Config) *cobra.Command {
 	var flags = cmd.Flags()
 	flags.BoolP("quiet", "q", false, "Quiet Output")
 	flags.BoolP("json", "j", false, "Json output")
+	flags.String("status", "", "Filter tasks of the specificied status.")
+	flags.String("name", "", "Filter tasks with name matching the value.")
+	flags.String("id", "", "Filter tasks with id matching the value.")
+	flags.String("image", "", "Filter tasks with image matching the value.")
+	flags.Int32("page-size", 100, "Set page size. Max page size is based on server side config.")
+	flags.String("result", "", "Filter tasks with the specifiied result.")
 
 	return cmd
 }

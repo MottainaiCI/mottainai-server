@@ -19,13 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package common
 
-import (
-	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-)
-
 const (
-	MAGENT_ENV_PREFIX    = "MOTTAINAI_AGENT"
-	MAGENT_DEF_CONFFILE  = "custom/conf/agent.yml"
-	MAGENT_MINOR_VERSION = "1"
-	MAGENT_VERSION       = setting.MOTTAINAI_VERSION + "." + MAGENT_MINOR_VERSION
+	MAGENT_ENV_PREFIX   = "MOTTAINAI_AGENT"
+	MAGENT_DEF_CONFFILE = "custom/conf/agent.yml"
 )

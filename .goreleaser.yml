@@ -1,0 +1,219 @@
+builds:
+  - id: mottainai-server
+    binary: mottainai-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+  - id: mottainai-cli
+    dir: mottainai-cli
+    binary: mottainai-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+  - id: mottainai-agent
+    dir: mottainai-agent
+    binary: mottainai-agent
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+  - id: mottainai-scheduler
+    dir: mottainai-scheduler
+    binary: mottainai-scheduler
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+  - id: mottainai-importer
+    dir: mottainai-importer
+    binary: mottainai-importer
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+  - id: mottainai-exporter
+    dir: mottainai-exporter
+    binary: mottainai-exporter
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+
+archives:
+  - id: mottainai-server
+    builds:
+      - mottainai-server
+
+    format: binary
+    name_template: mottainai-server-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+  - id: mottainai-cli
+    builds:
+      - mottainai-cli
+
+    format: binary
+    name_template: mottainai-cli-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+  - id: mottainai-agent
+    builds:
+      - mottainai-agent
+
+    format: binary
+    name_template: mottainai-agent-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+  - id: mottainai-scheduler
+    builds:
+      - mottainai-scheduler
+
+    format: binary
+    name_template: mottainai-scheduler-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+  - id: mottainai-importer
+    builds:
+      - mottainai-importer
+
+    format: binary
+    name_template: mottainai-importer-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+  - id: mottainai-exporter
+    builds:
+      - mottainai-exporter
+
+    format: binary
+    name_template: mottainai-exporter-{{ .Tag }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+
+    replacements:
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+source:
+  enabled: true
+  name_template: '{{ .ProjectName }}-{{ .Tag }}-source'
+checksum:
+  name_template: '{{ .ProjectName }}-{{ .Tag }}-checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^tests:'
+      - '^make:'
+      - '^contrib'

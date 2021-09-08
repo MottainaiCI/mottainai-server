@@ -25,6 +25,8 @@ package arangodb
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/artefact"
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
@@ -181,19 +183,51 @@ func (d *Database) AllTasks(config *setting.Config) []agenttasks.Task {
 func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilter) (res dbcommon.TaskResult, err error) {
 	sortClause := fmt.Sprintf("SORT c.%s %s", f.Sort, f.SortOrder)
 
-	query :=
+	filters := []string{}
+	filtersOpts := ""
+
+	if f.Status != "" {
+		filters = append(filters, fmt.Sprintf("c.status == \"%s\"", f.Status))
+	}
+
+	if f.Result != "" {
+		filters = append(filters, fmt.Sprintf("c.result == \"%s\"", f.Result))
+	}
+
+	if f.Image != "" {
+		filters = append(filters, "c.image LIKE \"%"+f.Image+"%\"")
+	}
+
+	if f.ID != "" {
+		filters = append(filters, "c._key LIKE \"%"+f.ID+"%\"")
+	}
+
+	if f.Name != "" {
+		filters = append(filters, "c.name LIKE \"%"+f.Name+"%\"")
+	}
+
+	if len(filters) > 0 {
+		filtersOpts = "FILTER " + strings.Join(filters, " && ")
+	}
+
+	queryPrefix :=
 		fmt.Sprintf(
-			"FOR c IN %s %s LIMIT %d, %d RETURN c",
+			"FOR c IN %s %s",
 			TaskColl,
-			sortClause,
-			f.PageIndex*f.PageSize, f.PageSize)
+			filtersOpts,
+		)
+
+	query := fmt.Sprintf("%s %s LIMIT %d, %d RETURN c",
+		queryPrefix, sortClause,
+		f.PageIndex*f.PageSize, f.PageSize)
 
 	docs, err := d.FindDocSorted(query)
 	if err != nil {
 		return res, err
 	}
 
-	countRes, err := d.FindDocSorted(fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+	countRes, err := d.FindDocSorted(
+		fmt.Sprintf("%s COLLECT WITH COUNT INTO length RETURN length", queryPrefix))
 
 	var tasks []agenttasks.Task
 	for _, v := range docs {

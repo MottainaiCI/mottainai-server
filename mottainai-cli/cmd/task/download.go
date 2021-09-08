@@ -21,12 +21,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package task
 
 import (
+	"fmt"
 	"log"
+	"os"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
+
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newTaskDownloadCommand(config *setting.Config) *cobra.Command {
@@ -37,16 +39,19 @@ func newTaskDownloadCommand(config *setting.Config) *cobra.Command {
 		Short: "Download task artefacts",
 		Args:  cobra.RangeArgs(2, 2),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
-
 			id := args[0]
 			target := args[1]
 			if len(id) == 0 || len(target) == 0 {
 				log.Fatalln("You need to define a task id and a target")
 			}
-			fetcher := client.NewTokenClient(v.GetString("master"), v.GetString("apikey"), config)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
 			fetcher.SetActiveReport(true)
-			if err := fetcher.DownloadArtefactsFromTask(id, target, filters); err != nil {
+			if err = fetcher.DownloadArtefactsFromTask(id, target, filters); err != nil {
 				log.Fatalln(err)
 			}
 		},

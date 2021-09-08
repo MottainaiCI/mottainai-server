@@ -31,12 +31,17 @@ import (
 )
 
 const (
-	MOTTAINAI_VERSION    = "0.1"
+	MOTTAINAI_VERSION    = "0.1.0"
 	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
 	MOTTAINAI_CONFIGNAME = "mottainai-server"
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
 
 	Timeformat = "20060102150405"
+)
+
+var (
+	BuildTime   string
+	BuildCommit string
 )
 
 // Web UI Settings
@@ -232,7 +237,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("web.healthcheck_interval", 800)
 	viper.SetDefault("web.session_provider", "")
 	viper.SetDefault("web.session_provider_config", "")
-	viper.SetDefault("web.max_page_size", 50)
+	viper.SetDefault("web.max_page_size", 300)
 
 	viper.SetDefault("storage.type", "dir")
 	viper.SetDefault("storage.artefact_path", "./artefact")

@@ -26,11 +26,10 @@ import (
 
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
-	client "github.com/MottainaiCI/mottainai-server/pkg/client"
+	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 	cobra "github.com/spf13/cobra"
-	viper "github.com/spf13/viper"
 )
 
 func newQueueGetQidCommand(config *setting.Config) *cobra.Command {
@@ -45,12 +44,13 @@ func newQueueGetQidCommand(config *setting.Config) *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *viper.Viper = config.Viper
 			var qid string
 
-			fetcher := client.NewTokenClient(
-				v.GetString("master"), v.GetString("apikey"), config,
-			)
+			fetcher, err := utils.CreateClient(config)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			req := &schema.Request{
 				Route: v1.Schema.GetQueueRoute("get_qid"),
@@ -59,7 +59,7 @@ func newQueueGetQidCommand(config *setting.Config) *cobra.Command {
 				},
 				Target: &qid,
 			}
-			err := fetcher.Handle(req)
+			err = fetcher.Handle(req)
 			if err != nil {
 				if req.Response != nil {
 					fmt.Println("ERROR: ", req.Response.StatusCode)
