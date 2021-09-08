@@ -195,35 +195,39 @@ func (d *Database) AllTasksFiltered(config *setting.Config, f dbcommon.TaskFilte
 	}
 
 	if f.Image != "" {
-		filters = append(filters, fmt.Sprintf("c.image LIKE \"%s\"", f.Image))
+		filters = append(filters, "c.image LIKE \"%"+f.Image+"%\"")
 	}
 
 	if f.ID != "" {
-		filters = append(filters, fmt.Sprintf("c._key LIKE \"%s\"", f.ID))
+		filters = append(filters, "c._key LIKE \"%"+f.ID+"%\"")
 	}
 
-	if f.ID != "" {
-		filters = append(filters, fmt.Sprintf("c.name LIKE \"%s\"", f.Name))
+	if f.Name != "" {
+		filters = append(filters, "c.name LIKE \"%"+f.Name+"%\"")
 	}
 
 	if len(filters) > 0 {
 		filtersOpts = "FILTER " + strings.Join(filters, " && ")
 	}
 
-	query :=
+	queryPrefix :=
 		fmt.Sprintf(
-			"FOR c IN %s %s %s LIMIT %d, %d RETURN c",
+			"FOR c IN %s %s",
 			TaskColl,
 			filtersOpts,
-			sortClause,
-			f.PageIndex*f.PageSize, f.PageSize)
+		)
+
+	query := fmt.Sprintf("%s %s LIMIT %d, %d RETURN c",
+		queryPrefix, sortClause,
+		f.PageIndex*f.PageSize, f.PageSize)
 
 	docs, err := d.FindDocSorted(query)
 	if err != nil {
 		return res, err
 	}
 
-	countRes, err := d.FindDocSorted(fmt.Sprintf("RETURN LENGTH(%s)", TaskColl))
+	countRes, err := d.FindDocSorted(
+		fmt.Sprintf("%s COLLECT WITH COUNT INTO length RETURN length", queryPrefix))
 
 	var tasks []agenttasks.Task
 	for _, v := range docs {
