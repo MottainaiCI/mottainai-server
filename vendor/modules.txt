@@ -3,8 +3,9 @@
 # github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
-# github.com/BurntSushi/toml v0.3.1
+# github.com/BurntSushi/toml v0.4.1
 github.com/BurntSushi/toml
+github.com/BurntSushi/toml/internal
 # github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 ## explicit
 github.com/HouzuoGuo/tiedot/data
@@ -30,7 +31,7 @@ github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/Microsoft/hcsshim v0.8.14
 github.com/Microsoft/hcsshim/osversion
-# github.com/MottainaiCI/lxd-compose v0.12.2
+# github.com/MottainaiCI/lxd-compose v0.14.2
 ## explicit
 github.com/MottainaiCI/lxd-compose/pkg/executor
 github.com/MottainaiCI/lxd-compose/pkg/helpers
@@ -143,13 +144,11 @@ github.com/emirpasic/gods/utils
 ## explicit
 # github.com/fatih/camelcase v1.0.0
 ## explicit
-# github.com/fatih/color v1.7.0
+# github.com/fatih/color v1.9.0
 github.com/fatih/color
-# github.com/flosch/pongo2 v0.0.0-20200529170236-5abacdfa4915
+# github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3
 github.com/flosch/pongo2
-# github.com/frankban/quicktest v1.11.2
-## explicit
-# github.com/fsnotify/fsnotify v1.4.9
+# github.com/fsnotify/fsnotify v1.5.1
 github.com/fsnotify/fsnotify
 # github.com/fsouza/go-dockerclient v1.6.5
 ## explicit
@@ -177,6 +176,8 @@ github.com/go-macaron/inject
 ## explicit
 github.com/go-macaron/session
 github.com/go-macaron/session/redis
+# github.com/go-macaroon-bakery/macaroonpb v1.0.0
+github.com/go-macaroon-bakery/macaroonpb
 # github.com/go-redis/redis/v8 v8.4.0
 github.com/go-redis/redis/v8
 github.com/go-redis/redis/v8/internal
@@ -207,15 +208,13 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/golang/snappy v0.0.2
-## explicit
 # github.com/golangplus/bytes v0.0.0-20160111154220-45c989fe5450
 ## explicit
 # github.com/golangplus/fmt v0.0.0-20150411045040-2a5d6d7d2995
 ## explicit
 # github.com/golangplus/testing v0.0.0-20180327235837-af21d9c3145e
 ## explicit
-# github.com/google/go-cmp v0.5.5
+# github.com/google/go-cmp v0.5.6
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -230,7 +229,7 @@ github.com/google/go-querystring/query
 # github.com/google/gofuzz v1.1.0
 ## explicit
 github.com/google/gofuzz
-# github.com/google/uuid v1.1.2
+# github.com/google/uuid v1.3.0
 github.com/google/uuid
 # github.com/googleapis/gnostic v0.4.1
 github.com/googleapis/gnostic/compiler
@@ -270,8 +269,7 @@ github.com/inconshreveable/mousetrap
 # github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
 ## explicit
 github.com/jaypipes/ghw
-# github.com/jaypipes/pcidb v0.0.0-20181115143611-141a53e65d4a
-## explicit
+# github.com/jaypipes/pcidb v0.6.0
 github.com/jaypipes/pcidb
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
@@ -283,12 +281,11 @@ github.com/json-iterator/go
 github.com/juju/go4/lock
 # github.com/juju/persistent-cookiejar v0.0.0-20171026135701-d5e5a8405ef9
 github.com/juju/persistent-cookiejar
-# github.com/juju/schema v1.0.0
+# github.com/juju/schema v1.0.1-0.20190814234152-1f8aaeef0989
 github.com/juju/schema
-# github.com/juju/webbrowser v0.0.0-20180907093207-efb9432b2bcb
-## explicit
+# github.com/juju/webbrowser v1.0.0
 github.com/juju/webbrowser
-# github.com/julienschmidt/httprouter v1.2.0
+# github.com/julienschmidt/httprouter v1.3.0
 github.com/julienschmidt/httprouter
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
@@ -309,7 +306,7 @@ github.com/logrusorgru/aurora
 ## explicit
 # github.com/lunny/nodb v0.0.0-20160621015157-fc1ef06ad4af
 ## explicit
-# github.com/lxc/lxd v0.0.0-20210805235317-774489441569
+# github.com/lxc/lxd v0.0.0-20211001020858-71fe94be1e89
 ## explicit
 github.com/lxc/lxd/client
 github.com/lxc/lxd/lxc/config
@@ -336,13 +333,11 @@ github.com/magiconair/properties
 ## explicit
 github.com/markbates/goth
 github.com/markbates/goth/providers/github
-# github.com/mattn/go-colorable v0.1.2
-## explicit
+# github.com/mattn/go-colorable v0.1.11
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.10
-## explicit
+# github.com/mattn/go-isatty v0.0.14
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.9
+# github.com/mattn/go-runewidth v0.0.13
 github.com/mattn/go-runewidth
 # github.com/michaelklishin/rabbit-hole v1.5.0-rc.1
 ## explicit
@@ -355,7 +350,7 @@ github.com/mitchellh/copystructure
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-wordwrap v1.0.0
 ## explicit
-# github.com/mitchellh/mapstructure v1.4.1
+# github.com/mitchellh/mapstructure v1.4.2
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 ## explicit
@@ -378,7 +373,7 @@ github.com/mudler/anagent
 github.com/mxk/go-flowrate/flowrate
 # github.com/natefinch/lumberjack v2.0.0+incompatible
 ## explicit
-# github.com/nxadm/tail v1.4.4
+# github.com/nxadm/tail v1.4.8
 github.com/nxadm/tail
 github.com/nxadm/tail/ratelimiter
 github.com/nxadm/tail/util
@@ -387,10 +382,11 @@ github.com/nxadm/tail/winfile
 # github.com/olekukonko/tablewriter v0.0.5
 ## explicit
 github.com/olekukonko/tablewriter
-# github.com/onsi/ginkgo v1.14.2
+# github.com/onsi/ginkgo v1.16.4
 ## explicit
 github.com/onsi/ginkgo
 github.com/onsi/ginkgo/config
+github.com/onsi/ginkgo/formatter
 github.com/onsi/ginkgo/internal/codelocation
 github.com/onsi/ginkgo/internal/containernode
 github.com/onsi/ginkgo/internal/failer
@@ -408,14 +404,11 @@ github.com/onsi/ginkgo/reporters/stenographer
 github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
 github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
 github.com/onsi/ginkgo/types
-# github.com/onsi/gomega v1.10.3
+# github.com/onsi/gomega v1.16.0
 ## explicit
 github.com/onsi/gomega
 github.com/onsi/gomega/format
-github.com/onsi/gomega/internal/assertion
-github.com/onsi/gomega/internal/asyncassertion
-github.com/onsi/gomega/internal/oraclematcher
-github.com/onsi/gomega/internal/testingtsupport
+github.com/onsi/gomega/internal
 github.com/onsi/gomega/matchers
 github.com/onsi/gomega/matchers/support/goraph/bipartitegraph
 github.com/onsi/gomega/matchers/support/goraph/edge
@@ -434,7 +427,7 @@ github.com/opencontainers/runc/libcontainer/user
 github.com/pborman/uuid
 # github.com/pelletier/go-buffruneio v0.2.0
 github.com/pelletier/go-buffruneio
-# github.com/pelletier/go-toml v1.9.3
+# github.com/pelletier/go-toml v1.9.4
 github.com/pelletier/go-toml
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 ## explicit
@@ -445,6 +438,8 @@ github.com/pkg/errors
 ## explicit
 # github.com/prometheus/client_model v0.2.0
 ## explicit
+# github.com/rivo/uniseg v0.2.0
+github.com/rivo/uniseg
 # github.com/robfig/cron v1.2.0
 ## explicit
 github.com/robfig/cron
@@ -465,7 +460,7 @@ github.com/sirupsen/logrus
 # github.com/spf13/afero v1.6.0
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/spf13/cast v1.3.1
+# github.com/spf13/cast v1.4.1
 github.com/spf13/cast
 # github.com/spf13/cobra v1.2.1
 ## explicit
@@ -474,9 +469,14 @@ github.com/spf13/cobra
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/spf13/viper v1.8.1
+# github.com/spf13/viper v1.9.0
 ## explicit
 github.com/spf13/viper
+github.com/spf13/viper/internal/encoding
+github.com/spf13/viper/internal/encoding/hcl
+github.com/spf13/viper/internal/encoding/json
+github.com/spf13/viper/internal/encoding/toml
+github.com/spf13/viper/internal/encoding/yaml
 # github.com/src-d/gcfg v1.4.0
 github.com/src-d/gcfg
 github.com/src-d/gcfg/scanner
@@ -522,14 +522,14 @@ go.opentelemetry.io/otel/unit
 go.uber.org/atomic
 # go.uber.org/multierr v1.7.0
 go.uber.org/multierr
-# go.uber.org/zap v1.19.0
+# go.uber.org/zap v1.19.1
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 ## explicit
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -538,8 +538,10 @@ golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
+golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/nacl/box
 golang.org/x/crypto/nacl/secretbox
@@ -550,7 +552,6 @@ golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pbkdf2
-golang.org/x/crypto/poly1305
 golang.org/x/crypto/salsa20/salsa
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh
@@ -558,7 +559,7 @@ golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+# golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -569,21 +570,21 @@ golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/publicsuffix
-# golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+# golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 ## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20210510120138-977fb7262007
+# golang.org/x/sys v0.0.0-20210930212924-f542c8878de8
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
+# golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 golang.org/x/term
-# golang.org/x/text v0.3.5
+# golang.org/x/text v0.3.7
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex
@@ -606,9 +607,6 @@ golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 golang.org/x/time/rate
-# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-golang.org/x/xerrors
-golang.org/x/xerrors/internal
 # gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e
 ## explicit
 # google.golang.org/appengine v1.6.7
@@ -620,13 +618,13 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
+# google.golang.org/genproto v0.0.0-20210930144712-2e2e1008e8a3
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.38.0
+# google.golang.org/grpc v1.41.0
 google.golang.org/grpc/codes
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/status
-# google.golang.org/protobuf v1.26.0
+# google.golang.org/protobuf v1.27.1
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -690,12 +688,12 @@ gopkg.in/hlandau/passlib.v1/hash/scrypt
 gopkg.in/hlandau/passlib.v1/hash/scrypt/raw
 gopkg.in/hlandau/passlib.v1/hash/sha2crypt
 gopkg.in/hlandau/passlib.v1/hash/sha2crypt/raw
-# gopkg.in/httprequest.v1 v1.2.0
+# gopkg.in/httprequest.v1 v1.2.1
 gopkg.in/httprequest.v1
 # gopkg.in/inf.v0 v0.9.1
 ## explicit
 gopkg.in/inf.v0
-# gopkg.in/ini.v1 v1.62.0
+# gopkg.in/ini.v1 v1.63.2
 gopkg.in/ini.v1
 # gopkg.in/juju/environschema.v1 v1.0.0
 gopkg.in/juju/environschema.v1
@@ -703,10 +701,9 @@ gopkg.in/juju/environschema.v1/form
 # gopkg.in/macaron.v1 v1.4.0
 ## explicit
 gopkg.in/macaron.v1
-# gopkg.in/macaroon-bakery.v2 v2.2.0
+# gopkg.in/macaroon-bakery.v2 v2.3.0
 gopkg.in/macaroon-bakery.v2/bakery
 gopkg.in/macaroon-bakery.v2/bakery/checkers
-gopkg.in/macaroon-bakery.v2/bakery/internal/macaroonpb
 gopkg.in/macaroon-bakery.v2/httpbakery
 gopkg.in/macaroon-bakery.v2/httpbakery/form
 gopkg.in/macaroon-bakery.v2/internal/httputil
@@ -720,8 +717,6 @@ gopkg.in/macaroon.v2
 gopkg.in/retry.v1
 # gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 gopkg.in/robfig/cron.v2
-# gopkg.in/square/go-jose.v2 v2.2.2
-## explicit
 # gopkg.in/src-d/go-billy.v4 v4.3.0
 ## explicit
 gopkg.in/src-d/go-billy.v4
@@ -780,7 +775,7 @@ gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit
 gopkg.in/yaml.v2
-# helm.sh/helm/v3 v3.6.1
+# helm.sh/helm/v3 v3.6.3
 helm.sh/helm/v3/internal/ignore
 helm.sh/helm/v3/internal/sympath
 helm.sh/helm/v3/internal/version
