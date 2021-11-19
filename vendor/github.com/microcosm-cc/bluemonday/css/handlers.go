@@ -26,7 +26,8 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-package bluemonday
+
+package css
 
 import (
 	"regexp"
@@ -328,7 +329,7 @@ func splitValues(value string) []string {
 	return values
 }
 
-func getDefaultHandler(attr string) func(string) bool {
+func GetDefaultHandler(attr string) func(string) bool {
 
 	if defaultStyleHandlers[attr] != nil {
 		return defaultStyleHandlers[attr]
