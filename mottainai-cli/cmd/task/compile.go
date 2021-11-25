@@ -24,7 +24,7 @@ import (
 	"os"
 	"strings"
 
-	template "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/task/template"
+	template "github.com/MottainaiCI/lxd-compose/pkg/template"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	cobra "github.com/spf13/cobra"
 )
@@ -53,7 +53,7 @@ func newCompileCommand(config *setting.Config) *cobra.Command {
 				va[item[0]] = item[1]
 			}
 
-			templ := template.New()
+			templ := template.NewTemplate()
 			templ.Values = va
 
 			vFile, err := cmd.Flags().GetString("load")
