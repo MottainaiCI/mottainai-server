@@ -58,6 +58,7 @@ github.com/MottainaiCI/lxd-compose/pkg/executor
 github.com/MottainaiCI/lxd-compose/pkg/helpers
 github.com/MottainaiCI/lxd-compose/pkg/logger
 github.com/MottainaiCI/lxd-compose/pkg/specs
+github.com/MottainaiCI/lxd-compose/pkg/template
 # github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 ## explicit
 github.com/MottainaiCI/passlib
