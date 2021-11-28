@@ -25,6 +25,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package arangodb
 
 import (
+	"errors"
+
 	"github.com/MottainaiCI/mottainai-server/pkg/nodes"
 
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
@@ -68,6 +70,9 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
     FILTER c.key == "`+key+`"
     RETURN c`)
 	if err != nil || len(queryResult) != 1 {
+		if err == nil {
+			err = errors.New("Node not found")
+		}
 		return nodes.Node{}, err
 	}
 
@@ -78,7 +83,6 @@ func (d *Database) GetNodeByKey(key string) (nodes.Node, error) {
 		res = append(res, n)
 	}
 	return res[0], nil
-
 }
 
 func (d *Database) ListNodes() []dbcommon.DocItem {
