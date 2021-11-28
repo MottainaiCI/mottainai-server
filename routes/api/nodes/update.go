@@ -25,6 +25,7 @@ package nodesapi
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
@@ -55,6 +56,8 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	nodefound, err := db.Driver.GetNodeByKey(key)
 	if err != nil {
+		fmt.Println(fmt.Sprintf("Receive node registration call invalid from %s - %s",
+			nodedata.Hostname, err))
 		ctx.APIActionFailed("", "", "Node not found", "", 404)
 		return nil
 	}
