@@ -345,14 +345,13 @@ func (d *Database) GetDoc(coll string, docID string) (map[string]interface{}, er
 }
 
 func (d *Database) UpdateDoc(coll string, docID string, t map[string]interface{}) error {
-
-	/*
-		old, _ := d.GetDoc(coll, docID)
-		for k, v := range t {
-			old[k] = v
-		}
-	*/
-	return d.ReplaceDoc(coll, docID, t)
+	col, err := d.UseCol(coll)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	_, err = col.UpdateDocument(ctx, docID, t)
+	return err
 }
 
 func (d *Database) ReplaceDoc(coll string, docID string, t map[string]interface{}) error {
