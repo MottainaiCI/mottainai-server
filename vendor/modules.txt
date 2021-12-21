@@ -31,7 +31,7 @@ github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 github.com/Microsoft/go-winio/pkg/security
 github.com/Microsoft/go-winio/vhd
-# github.com/Microsoft/hcsshim v0.8.21
+# github.com/Microsoft/hcsshim v0.8.23
 github.com/Microsoft/hcsshim
 github.com/Microsoft/hcsshim/computestorage
 github.com/Microsoft/hcsshim/internal/cow
@@ -95,7 +95,7 @@ github.com/codegangsta/inject
 # github.com/containerd/cgroups v1.0.2
 ## explicit
 github.com/containerd/cgroups/stats/v1
-# github.com/containerd/containerd v1.5.7
+# github.com/containerd/containerd v1.5.8
 ## explicit
 github.com/containerd/containerd/log
 github.com/containerd/containerd/pkg/userns
@@ -450,7 +450,8 @@ github.com/opencontainers/go-digest
 ## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.0.2
+# github.com/opencontainers/runc v1.0.3
+## explicit
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pborman/uuid v1.2.1
 github.com/pborman/uuid
