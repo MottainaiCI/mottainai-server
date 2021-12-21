@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package namespace
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -41,8 +42,8 @@ func newNamespaceListCommand(config *setting.Config) *cobra.Command {
 		Args:  cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var tlist []string
-			var ns_table [][]string
 
+			jsonOutput, _ := cmd.Flags().GetBool("json")
 			fetcher, err := utils.CreateClient(config)
 			if err != nil {
 				fmt.Println(err.Error())
@@ -59,20 +60,24 @@ func newNamespaceListCommand(config *setting.Config) *cobra.Command {
 				log.Fatalln("error:", err)
 			}
 
-			for _, i := range tlist {
-				ns_table = append(ns_table, []string{i})
+			if jsonOutput {
+				data, _ := json.Marshal(tlist)
+				fmt.Println(string(data))
+			} else {
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetHeader([]string{"Name"})
+				table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+				table.SetCenterSeparator("|")
+				for _, v := range tlist {
+					table.Append([]string{v})
+				}
+				table.Render()
 			}
-
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"Name"})
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
-			for _, v := range ns_table {
-				table.Append(v)
-			}
-			table.Render()
 		},
 	}
+
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 
 	return cmd
 }
