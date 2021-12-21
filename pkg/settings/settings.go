@@ -1,6 +1,7 @@
 /*
 
 Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+              2021 Daniele Rondina <geaaru@funtoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -31,7 +32,7 @@ import (
 )
 
 const (
-	MOTTAINAI_VERSION    = "0.1.1"
+	MOTTAINAI_VERSION    = "0.1.2"
 	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
 	MOTTAINAI_CONFIGNAME = "mottainai-server"
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
