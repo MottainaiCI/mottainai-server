@@ -80,11 +80,13 @@ func NamespaceUpload(uf NamespaceForm, ctx *context.Context, db *database.Databa
 	}
 
 	os.MkdirAll(filepath.Join(db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path), os.ModePerm)
-	f, err := os.OpenFile(filepath.Join(db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path, uf.Name), os.O_WRONLY|os.O_CREATE, os.ModePerm)
-	defer f.Close()
+	f, err := os.OpenFile(filepath.Join(
+		db.Config.GetStorage().NamespacePath, uf.Namespace, uf.Path, uf.Name),
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	io.Copy(f, file)
 
 	ctx.APIActionSuccess()
