@@ -36,6 +36,10 @@ import (
 
 func UpdateUser(opts user.UserForm, ctx *context.Context, db *database.Database) error {
 	id := ctx.Params(":id")
+
+	// TODO: Add check of the user in session and his
+	// permission.
+
 	u, err := db.Driver.GetUser(id)
 	if err != nil {
 		ctx.NotFound()
@@ -54,10 +58,11 @@ func UpdateUser(opts user.UserForm, ctx *context.Context, db *database.Database)
 
 	err = db.Driver.UpdateUser(id, u.ToMap())
 	if err != nil {
-		ctx.NotFound()
+		ctx.APIActionFailed("", "", err.Error(), "", 404)
 		return err
 	}
 
+	ctx.APIActionSuccess()
 	return nil
 }
 
