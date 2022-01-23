@@ -93,6 +93,8 @@ func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *d
 		task.Owner = ctx.User.ID
 	}
 	task.ID = ""
+	task.EndTime = ""
+	task.StartTime = ""
 
 	err = m.CreateTask(&task)
 	if err != nil {
