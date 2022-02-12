@@ -7,7 +7,7 @@ require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/MottainaiCI/lxd-compose v0.14.3
+	github.com/MottainaiCI/lxd-compose v0.16.6
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
 	github.com/Unknwon/com v0.0.0-20181010210213-41959bdd855f // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/lunny/log v0.0.0-20160921050905-7887c61bf0de // indirect
 	github.com/lunny/nodb v0.0.0-20160621015157-fc1ef06ad4af // indirect
-	github.com/lxc/lxd v0.0.0-20211001020858-71fe94be1e89
+	github.com/lxc/lxd v0.0.0-20211210041606-30500c962f8e
 	github.com/markbates/goth v1.66.0
 	github.com/michaelklishin/rabbit-hole v1.5.0-rc.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.16
@@ -82,18 +82,17 @@ require (
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sethvargo/go-password v0.1.2
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.2.1
-	github.com/spf13/viper v1.9.0
+	github.com/spf13/cobra v1.3.0
+	github.com/spf13/viper v1.10.1
 	github.com/theckman/go-flock v0.4.0
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
 	github.com/unknwon/com v1.0.1
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
+	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211101144312-62acf1d99145 // indirect
 	gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
