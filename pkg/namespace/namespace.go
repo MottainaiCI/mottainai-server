@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/utils"
+	cp "github.com/otiai10/copy"
 )
 
 type Namespace struct {
@@ -166,6 +167,7 @@ func (n *Namespace) Append(from string,
 
 	taskArtefact := filepath.Join(artefactPath, from)
 	namespace := filepath.Join(namespacePath, n.Name)
+
 	return utils.DeepCopy(taskArtefact, namespace)
 }
 
@@ -175,5 +177,10 @@ func (n *Namespace) Clone(old Namespace, namespacePath string) error {
 
 	oldNamespace := filepath.Join(namespacePath, old.Path)
 	newNamespace := filepath.Join(namespacePath, n.Name)
-	return utils.DeepCopy(oldNamespace, newNamespace)
+
+	return cp.Copy(oldNamespace, newNamespace, cp.Options{
+		Sync:          true,
+		PreserveTimes: true,
+		PreserveOwner: true,
+	})
 }
