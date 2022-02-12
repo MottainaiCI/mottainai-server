@@ -47,7 +47,7 @@ deps:
 	go get github.com/mitchellh/gox
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/mattn/goveralls
-	go get -u github.com/onsi/ginkgo/ginkgo
+	GO111MODULE=off go get github.com/onsi/ginkgo/v2/ginkgo
 	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/gomega/...
 

@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	MOTTAINAI_VERSION    = "0.1.2"
+	MOTTAINAI_VERSION    = "0.1.3"
 	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
 	MOTTAINAI_CONFIGNAME = "mottainai-server"
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"

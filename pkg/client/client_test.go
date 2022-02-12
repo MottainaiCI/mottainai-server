@@ -36,7 +36,7 @@ import (
 
 	. "github.com/MottainaiCI/mottainai-server/pkg/client"
 	helpers "github.com/MottainaiCI/mottainai-server/tests/helpers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

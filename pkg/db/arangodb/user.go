@@ -117,13 +117,11 @@ func (d *Database) GetUsersByField(field, name string) ([]user.User, error) {
 	}
 
 	// Query result are document IDs
-	for id, _ := range queryResult {
+	for id, doc := range queryResult {
 
 		// Read document
-		u, err := d.GetUser(id)
-		if err != nil {
-			return res, err
-		}
+		u := user.NewUserFromMap(doc.(map[string]interface{}))
+		u.ID = id
 		res = append(res, u)
 	}
 	return res, nil

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2020  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2021  Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -36,6 +36,8 @@ type LxdCEnvironment struct {
 	IncludeProfilesFiles []string      `json:"include_profiles_files,omitempty" yaml:"include_profiles_files,omitempty"`
 	Networks             []LxdCNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
 	IncludeNetworkFiles  []string      `json:"include_networks_files,omitempty" yaml:"include_networks_files,omitempty"`
+	Storages             []LxdCStorage `json:"storages,omitempty" yaml:"storages,omitempty"`
+	IncludeStorageFiles  []string      `json:"include_storage_files,omitempty" yaml:"include_storage_files,omitempty"`
 }
 
 type LxdCProfile struct {
@@ -52,6 +54,13 @@ type LxdCNetwork struct {
 	Config      map[string]string `json:"config" yaml:"config"`
 }
 
+type LxdCStorage struct {
+	Name        string            `json:"name" yaml:"name"`
+	Driver      string            `json:"driver" yaml:"driver"`
+	Description string            `json:"description" yaml:"description"`
+	Config      map[string]string `json:"config" yaml:"config"`
+}
+
 type LxdCHook struct {
 	Event      string   `json:"event" yaml:"event"`
 	Node       string   `json:"node" yaml:"node"`
@@ -61,6 +70,10 @@ type LxdCHook struct {
 	Entrypoint []string `json:"entrypoint,omitempty" yaml:"entrypoint,omitempty"`
 	Flags      []string `json:"flags,omitempty" yaml:"flags,omitempty"`
 	Disable    bool     `json:"disable,omitempty" yaml:"disable,omitempty"`
+}
+
+type LxdCHooks struct {
+	Hooks []LxdCHook `json:"hooks,omitempty" yaml:"hooks,omitempty"`
 }
 
 type LxdCTemplateEngine struct {
@@ -74,6 +87,7 @@ type LxdCProject struct {
 
 	IncludeGroupFiles []string `json:"include_groups_files,omitempty" yaml:"include_groups_files,omitempty"`
 	IncludeEnvFiles   []string `json:"include_env_files,omitempty" yaml:"include_env_files,omitempty"`
+	IncludeHooksFiles []string `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
 
 	Environments []LxdCEnvVars `json:"vars,omitempty" yaml:"vars,omitempty"`
 
@@ -90,6 +104,7 @@ type LxdCProjectSanitized struct {
 
 	IncludeGroupFiles []string `json:"include_groups_files,omitempty" yaml:"include_groups_files,omitempty"`
 	IncludeEnvFiles   []string `json:"include_env_files,omitempty" yaml:"include_env_files,omitempty"`
+	IncludeHooksFiles []string `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
 
 	Groups      []LxdCGroup `json:"groups" yaml:"groups"`
 	NodesPrefix string      `json:"nodes_prefix,omitempty" yaml:"nodes_prefix,omitempty"`
@@ -109,8 +124,9 @@ type LxdCGroup struct {
 	Nodes       []LxdCNode `json:"nodes" yaml:"nodes"`
 	NodesPrefix string     `json:"nodes_prefix,omitempty" yaml:"nodes_prefix,omitempty"`
 
-	Hooks           []LxdCHook           `json:"hooks" yaml:"hooks"`
-	ConfigTemplates []LxdCConfigTemplate `json:"config_templates,omitempty" yaml:"config_templates,omitempty"`
+	Hooks             []LxdCHook           `json:"hooks" yaml:"hooks"`
+	IncludeHooksFiles []string             `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
+	ConfigTemplates   []LxdCConfigTemplate `json:"config_templates,omitempty" yaml:"config_templates,omitempty"`
 }
 
 type LxdCEnvVars struct {
@@ -133,7 +149,8 @@ type LxdCNode struct {
 	SyncResources   []LxdCSyncResource   `json:"sync_resources,omitempty" yaml:"sync_resources,omitempty"`
 	Profiles        []string             `json:"profiles,omitempty" yaml:"profiles,omitempty"`
 
-	Hooks []LxdCHook `json:"hooks" yaml:"hooks"`
+	Hooks             []LxdCHook `json:"hooks" yaml:"hooks"`
+	IncludeHooksFiles []string   `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
 }
 
 type LxdCConfigTemplate struct {
@@ -165,4 +182,6 @@ type LxdCCommand struct {
 
 	Envs     LxdCEnvVars `json:"envs,omitempty" yaml:"envs,omitempty"`
 	VarFiles []string    `json:"vars_files,omitempty" yaml:"vars_files,omitempty"`
+
+	IncludeHooksFiles []string `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
 }
