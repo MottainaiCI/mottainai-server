@@ -27,7 +27,7 @@ import (
 	"net/http/httptest"
 
 	. "github.com/MottainaiCI/mottainai-server/routes/schema"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	macaron "gopkg.in/macaron.v1"
 )

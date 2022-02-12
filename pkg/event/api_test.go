@@ -21,7 +21,7 @@ package event_test
 
 import (
 	. "github.com/MottainaiCI/mottainai-server/pkg/event"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

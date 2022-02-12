@@ -23,7 +23,7 @@ package schema_test
 
 import (
 	. "github.com/MottainaiCI/mottainai-server/routes/schema"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
