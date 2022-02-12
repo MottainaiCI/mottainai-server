@@ -453,6 +453,9 @@ github.com/opencontainers/image-spec/specs-go/v1
 # github.com/opencontainers/runc v1.0.3
 ## explicit
 github.com/opencontainers/runc/libcontainer/user
+# github.com/otiai10/copy v1.7.0
+## explicit
+github.com/otiai10/copy
 # github.com/pborman/uuid v1.2.1
 github.com/pborman/uuid
 # github.com/pelletier/go-buffruneio v0.2.0
