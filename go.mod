@@ -60,8 +60,8 @@ require (
 	github.com/markbates/goth v1.66.0
 	github.com/michaelklishin/rabbit-hole v1.5.0-rc.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.16
+	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/moby/sys/mount v0.1.1-0.20200320164225-6154f11e6840 // indirect
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/unknwon/com v1.0.1
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
+	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	google.golang.org/appengine v1.6.7 // indirect
