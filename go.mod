@@ -7,6 +7,7 @@ require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/Microsoft/hcsshim v0.9.2 // indirect
 	github.com/MottainaiCI/lxd-compose v0.16.6
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
@@ -17,8 +18,9 @@ require (
 	github.com/chris-ramon/douceur v0.2.0 // indirect
 	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9 // indirect
 	github.com/codegangsta/inject v0.0.0-20140425184007-37d7f8432a3e // indirect
-	github.com/containerd/cgroups v1.0.2 // indirect
-	github.com/containerd/containerd v1.5.8 // indirect
+	github.com/containerd/cgroups v1.0.3 // indirect
+	github.com/containerd/containerd v1.5.9 // indirect
+	github.com/containerd/continuity v0.2.2 // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd // indirect
 	github.com/docker/docker v20.10.10+incompatible // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
+	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lithammer/dedent v1.1.0 // indirect
@@ -63,6 +66,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/moby/sys/mount v0.1.1-0.20200320164225-6154f11e6840 // indirect
+	github.com/moby/sys/mountinfo v0.6.0 // indirect
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
@@ -72,7 +76,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.1.1
 	github.com/onsi/gomega v1.17.0
 	github.com/opencontainers/image-spec v1.0.2 // indirect
-	github.com/opencontainers/runc v1.0.3 // indirect
+	github.com/opencontainers/runc v1.1.0 // indirect
 	github.com/otiai10/copy v1.7.0
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
@@ -90,9 +94,12 @@ require (
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20220211171837-173942840c17 // indirect
 	gopkg.in/bufio.v1 v1.0.0-20140618132640-567b2bfa514e // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
