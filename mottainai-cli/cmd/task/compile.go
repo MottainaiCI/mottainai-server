@@ -22,6 +22,7 @@ package task
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	template "github.com/MottainaiCI/lxd-compose/pkg/template"
@@ -81,6 +82,9 @@ func newCompileCommand(config *setting.Config) *cobra.Command {
 				fmt.Println(compiled)
 				return
 			}
+
+			dir := filepath.Dir(oFile)
+			os.MkdirAll(dir, 0740)
 
 			f, err := os.Create(oFile)
 			if err != nil {
