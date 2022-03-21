@@ -96,7 +96,7 @@ type Task struct {
 }
 
 type Plan struct {
-	*Task
+	*Task   `yaml:",inline"`
 	Planned string `json:"planned" yaml:"planned,omitempty" form:"planned"`
 }
 
@@ -129,7 +129,6 @@ func (t *Plan) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
@@ -143,7 +142,6 @@ func (t *Task) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
