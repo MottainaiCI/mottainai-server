@@ -77,6 +77,7 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 				if err := yaml.Unmarshal(content, &p); err != nil {
 					panic(err)
 				}
+
 				dat = p.ToMap()
 			}
 
@@ -102,6 +103,7 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 			fmt.Println("-------------------------")
 			fmt.Println("Information: ", tools.BuildCmdArgs(cmd, "plan show "+tid))
 			fmt.Println("-------------------------")
+
 		},
 	}
 
