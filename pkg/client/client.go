@@ -146,6 +146,7 @@ type HttpClient interface {
 	// NodeQueue methods
 	NodeQueueCreate(agentKey, nodeId string, queues map[string][]string) (event.APIResponse, error)
 	NodeQueueDelete(agentKey, nodeId string) (event.APIResponse, error)
+	NodeQueueDelById(nodeQueueId string) (event.APIResponse, error)
 	NodeQueueAddTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
 	NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error)
 	NodeQueueGetTasks(id string) (queues.NodeQueues, error)
