@@ -47,11 +47,11 @@ func newCompileCommand(config *setting.Config) *cobra.Command {
 
 			for _, v := range values {
 				item := strings.Split(v, "=")
-				if len(item) != 2 {
+				if len(item) == 0 {
 					fmt.Println("Invalid value: ", item)
 					os.Exit(1)
 				}
-				va[item[0]] = item[1]
+				va[item[0]] = strings.Join(item[1:], "=")
 			}
 
 			templ := template.NewTemplate()
