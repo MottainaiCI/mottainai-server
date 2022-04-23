@@ -20,12 +20,14 @@ jobs:
         run: |
             sudo -E env "PATH=$PATH" make deps &&
             sudo pip install j2cli
+
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
           install-only: true
+
       - name: Build test
-        run: sudo -E env "PATH=$PATH" make multiarch-build
+        run: sudo -E env "PATH=$PATH" make goreleaser-snapshot
 
       - name: Tests
         run: |
