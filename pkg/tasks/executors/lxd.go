@@ -235,6 +235,7 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 	err = l.Executor.LaunchContainerType(
 		containerName, imageFingerprint,
 		l.Config.GetAgent().LxdProfiles,
+		map[string]string{},
 		ephemeral,
 	)
 	if err != nil {
