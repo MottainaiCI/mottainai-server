@@ -37,7 +37,7 @@ import (
 
 const (
 	srvName = `Mottainai CLI
-Copyright (c) 2017-2021 Mottainai
+Copyright (c) 2017-2022 Mottainai
 
 Mottainai - Task/Job Build Service`
 
