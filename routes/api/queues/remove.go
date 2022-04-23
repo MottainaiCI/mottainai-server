@@ -51,6 +51,31 @@ func Remove(q NodeQueue, ctx *context.Context, db *database.Database) error {
 	return nil
 }
 
+func RemoveById(ctx *context.Context, db *database.Database) error {
+	id := ctx.Params(":id")
+
+	if id == "" {
+		return errors.New("Invalid node queue id")
+	}
+
+	doc, err := db.Driver.GetNodeQueues(id)
+	if err != nil {
+		return err // Do not treat it as an error, we have no node with such id.
+	}
+
+	if doc.ID == "" {
+		return errors.New("Node queue not found")
+	}
+
+	err = db.Driver.DeleteNodeQueues(doc.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx.APIActionSuccess()
+	return nil
+}
+
 func RemoveQueue(ctx *context.Context, db *database.Database) error {
 	qid := ctx.Params(":qid")
 

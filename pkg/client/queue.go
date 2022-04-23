@@ -95,6 +95,17 @@ func (d *Fetcher) NodeQueueAddTask(agentKey, nodeId, queue, taskid string) (even
 	return d.HandleAPIResponse(req)
 }
 
+func (f *Fetcher) NodeQueueDelById(nodeQueueId string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetNodeQueueRoute("delete_byid"),
+		Options: map[string]interface{}{
+			":id": nodeQueueId,
+		},
+	}
+
+	return f.HandleAPIResponse(req)
+}
+
 func (d *Fetcher) NodeQueueDelTask(agentKey, nodeId, queue, taskid string) (event.APIResponse, error) {
 
 	req := &schema.Request{

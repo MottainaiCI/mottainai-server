@@ -19,6 +19,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
   - id: mottainai-cli
     dir: mottainai-cli
@@ -41,6 +42,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
   - id: mottainai-agent
     dir: mottainai-agent
@@ -63,6 +65,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
   - id: mottainai-scheduler
     dir: mottainai-scheduler
@@ -85,6 +88,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
   - id: mottainai-importer
     dir: mottainai-importer
@@ -107,6 +111,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
   - id: mottainai-exporter
     dir: mottainai-exporter
@@ -129,6 +134,7 @@ builds:
         -s -w
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime={{.Date}}
         -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit={{.Commit}}
+        -X github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion={{ .Env.GOVERSION }}
 
 archives:
   - id: mottainai-server

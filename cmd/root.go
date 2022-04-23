@@ -37,7 +37,7 @@ import (
 
 const (
 	srvName = `Mottainai CLI
-Copyright (c) 2017-2021 Mottainai
+Copyright (c) 2017-2022 Mottainai
 
 Mottainai - Task/Job Build Service`
 
@@ -101,7 +101,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short:        srvName,
-		Version:      fmt.Sprintf("%s-g%s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime),
+		Version:      fmt.Sprintf("%s-g%s %s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime, s.BuildGoVersion),
 		Example:      srvExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

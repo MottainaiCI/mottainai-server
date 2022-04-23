@@ -181,6 +181,11 @@ var Schema schema.RouteGenerator = &schema.APIRouteGenerator{
 			Type:        "delete",
 			ContentType: schema.ContentTypeJson,
 		},
+		"delete_byid": &schema.APIRoute{
+			Path:        "/api/nodequeues/delete_byid/:id",
+			Type:        "delete",
+			ContentType: schema.ContentTypeJson,
+		},
 		"show": &schema.APIRoute{
 			Path:        "/api/nodequeues/show/:id",
 			Type:        "get",

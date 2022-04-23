@@ -30,9 +30,9 @@ import (
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/ghodss/yaml"
 
 	cobra "github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 func newPlanCreateCommand(config *setting.Config) *cobra.Command {
@@ -77,6 +77,7 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 				if err := yaml.Unmarshal(content, &p); err != nil {
 					panic(err)
 				}
+
 				dat = p.ToMap()
 			}
 
@@ -102,6 +103,7 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 			fmt.Println("-------------------------")
 			fmt.Println("Information: ", tools.BuildCmdArgs(cmd, "plan show "+tid))
 			fmt.Println("-------------------------")
+
 		},
 	}
 

@@ -34,7 +34,7 @@ import (
 
 func newUserRemoveCommand(config *setting.Config) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "remove <token-id> [OPTIONS]",
+		Use:   "remove <user-id> [OPTIONS]",
 		Short: "Remove a user",
 		Args:  cobra.RangeArgs(1, 1),
 		Run: func(cmd *cobra.Command, args []string) {

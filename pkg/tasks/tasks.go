@@ -25,7 +25,7 @@ package agenttasks
 import (
 	"encoding/json"
 
-	"github.com/ghodss/yaml"
+	"gopkg.in/yaml.v3"
 
 	"io/ioutil"
 	"os"
@@ -46,58 +46,58 @@ import (
 type Task struct {
 	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
 
-	Name                string   `json:"name" form:"name"`
-	Source              string   `json:"source" form:"source"`
-	Script              []string `json:"script" form:"script"`
-	Directory           string   `json:"directory" form:"directory"`
-	Type                string   `json:"type" form:"type"`
-	Status              string   `json:"status" form:"status"`
-	Output              string   `json:"output" form:"output"`
-	Result              string   `json:"result" form:"result"`
-	Entrypoint          []string `json:"entrypoint" form:"entrypoint"`
-	Namespace           string   `json:"namespace" form:"namespace"`
-	Commit              string   `json:"commit" form:"commit"`
-	PrivKey             string   `json:"privkey" form:"privkey"`
-	AuthHosts           string   `json:"authhosts" form:"authhosts"`
-	Node                string   `json:"node_id" form:"node_id"`
-	Owner               string   `json:"owner_id" form:"owner_id"`
-	Image               string   `json:"image" form:"image"`
-	ExitStatus          string   `json:"exit_status" form:"exit_status"`
-	Storage             string   `json:"storage" form:"storage"`
-	ArtefactPath        string   `json:"artefact_path" form:"artefact_path"`
-	ArtefactPushFilters []string `json:"artefact_push_filters" form:"artefact_push_filters"`
-	StoragePath         string   `json:"storage_path" form:"storage_path"`
-	RootTask            string   `json:"root_task" form:"root_task"`
-	Prune               string   `json:"prune" form:"prune"`
-	CacheImage          string   `json:"cache_image" form:"cache_image"`
-	CacheClean          string   `json:"cache_clean" form:"cache_clean"`
-	PublishMode         string   `json:"publish_mode" form:"publish_mode"`
-	PipelineID          string   `json:"pipeline_id" form:"pipeline_id"`
+	Name                string   `json:"name" yaml:"name" form:"name"`
+	Source              string   `json:"source" yaml:"source,omitempty" form:"source"`
+	Script              []string `json:"script" yaml:"script,omitempty" form:"script"`
+	Directory           string   `json:"directory" yaml:"directory,omitempty" form:"directory"`
+	Type                string   `json:"type" yaml:"type,omitempty" form:"type"`
+	Status              string   `json:"status,omitempty" yaml:"status,omitempty" form:"status"`
+	Output              string   `json:"output,omitempty" yaml:"output,omitempty" form:"output"`
+	Result              string   `json:"result,omitempty" yaml:"result,omitempty" form:"result"`
+	Entrypoint          []string `json:"entrypoint,omitempty" yaml:"entrypoint,omitempty" form:"entrypoint"`
+	Namespace           string   `json:"namespace" yaml:"namespace,omitempty" form:"namespace"`
+	Commit              string   `json:"commit,omitempty" yaml:"commit,omitempty" form:"commit"`
+	PrivKey             string   `json:"privkey,omitempty" yaml:"privkey,omitempty" form:"privkey"`
+	AuthHosts           string   `json:"authhosts" yaml:"authhosts,omitempty" form:"authhosts"`
+	Node                string   `json:"node_id" yaml:"node_id,omitempty" form:"node_id"`
+	Owner               string   `json:"owner_id" yaml:"owner_id,omitempty" form:"owner_id"`
+	Image               string   `json:"image" yaml:"image,omitempty" form:"image"`
+	ExitStatus          string   `json:"exit_status" yaml:"exit_status,omitempty" form:"exit_status"`
+	Storage             string   `json:"storage" yaml:"storage,omitempty" form:"storage"`
+	ArtefactPath        string   `json:"artefact_path" yaml:"artefact_path,omitempty" form:"artefact_path"`
+	ArtefactPushFilters []string `json:"artefact_push_filters" yaml:"artefact_push_filters,omitempty"  form:"artefact_push_filters"`
+	StoragePath         string   `json:"storage_path" yaml:"storage_path,omitempty" form:"storage_path"`
+	RootTask            string   `json:"root_task" yaml:"root_task,omitempty" form:"root_task"`
+	Prune               string   `json:"prune" yaml:"prune,omitempty" form:"prune"`
+	CacheImage          string   `json:"cache_image" yaml:"cache_image,omitempty" form:"cache_image"`
+	CacheClean          string   `json:"cache_clean" yaml:"cache_clean,omitempty" form:"cache_clean"`
+	PublishMode         string   `json:"publish_mode" yaml:"publish_mode,omitempty" form:"publish_mode"`
+	PipelineID          string   `json:"pipeline_id" yaml:"pipeline_id,omitempty" form:"pipeline_id"`
 
-	NamespaceMerged  string   `json:"namespace_merged" form:"namespace_merged"`
-	NamespaceFilters []string `json:"namespace_filters" form:"namespace_filters"`
-	TagNamespace     string   `json:"tag_namespace" form:"tag_namespace"`
+	NamespaceMerged  string   `json:"namespace_merged" yaml:"namespace_merged,omitempty" form:"namespace_merged"`
+	NamespaceFilters []string `json:"namespace_filters" yaml:"namespace_filters,omitempty" form:"namespace_filters"`
+	TagNamespace     string   `json:"tag_namespace" yaml:"tag_namespace,omitempty" form:"tag_namespace"`
 
-	CreatedTime string `json:"created_time" form:"created_time"`
-	StartTime   string `json:"start_time" form:"start_time"`
-	EndTime     string `json:"end_time" form:"end_time"`
-	UpdatedTime string `json:"last_update_time" form:"last_update_time"`
-	Queue       string `json:"queue" form:"queue"`
-	Retry       string `json:"retry" form:"retry"`
+	CreatedTime string `json:"created_time" yaml:"created_time,omitempty" form:"created_time"`
+	StartTime   string `json:"start_time" yaml:"start_time,omitempty" form:"start_time"`
+	EndTime     string `json:"end_time" yaml:"end_time,omitempty" form:"end_time"`
+	UpdatedTime string `json:"last_update_time" yaml:"last_update_time,omitempty" form:"last_update_time"`
+	Queue       string `json:"queue" yaml:"queue,omitempty" form:"queue"`
+	Retry       string `json:"retry" yaml:"retry,omitempty" form:"retry"`
 
-	Delayed     string   `json:"eta" form:"eta"`
-	TimeOut     float64  `json:"timeout" form:"timeout"`
-	Binds       []string `json:"binds" form:"binds"`
-	Environment []string `json:"environment" form:"environment"`
+	Delayed     string   `json:"eta" yaml:"eta,omitempty" form:"eta"`
+	TimeOut     float64  `json:"timeout" yaml:"timeout,omitempty" form:"timeout"`
+	Binds       []string `json:"binds" yaml:"binds,omitempty" form:"binds"`
+	Environment []string `json:"environment" yaml:"environment,omitempty" form:"environment"`
 	// Temporary using string until move form away from API
-	DisablePushOnFailure string `json:"disable_push_on_failure" form:"disable_push_on_failure"`
+	DisablePushOnFailure string `json:"disable_push_on_failure" yaml:"disable_push_on_failure,omitempty" form:"disable_push_on_failure"`
 
-	Quota string `json:"quota" form:"quota"`
+	Quota string `json:"quota" yaml:"quota,omitempty" form:"quota"`
 }
 
 type Plan struct {
-	*Task
-	Planned string `json:"planned" form:"planned"`
+	*Task   `yaml:",inline"`
+	Planned string `json:"planned" yaml:"planned,omitempty" form:"planned"`
 }
 
 func NewPlanFromMap(t map[string]interface{}) Plan {
@@ -129,7 +129,6 @@ func (t *Plan) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
@@ -143,7 +142,6 @@ func (t *Task) ToMap() map[string]interface{} {
 		tag := typeField.Tag
 
 		ts[tag.Get("form")] = valueField.Interface()
-		//fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("tag_name"))
 	}
 	return ts
 }
@@ -480,18 +478,6 @@ func PipelineFromJSON(file string) (*Pipeline, error) {
 
 func FromYamlFile(file string) (*Task, error) {
 	var t *Task
-	content, err := ioutil.ReadFile(file)
-	if err != nil {
-		return t, err
-	}
-	if err := yaml.Unmarshal(content, &t); err != nil {
-		return t, err
-	}
-	return t, nil
-}
-
-func PipelineFromYaml(file string) (*Pipeline, error) {
-	var t *Pipeline
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		return t, err

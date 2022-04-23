@@ -1,7 +1,7 @@
 /*
 
-Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
-                         Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2017-2022  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@funtoo.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package node
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -36,6 +37,7 @@ func newNodeCreateCommand(config *setting.Config) *cobra.Command {
 		Short: "Create a new node",
 		Args:  cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			jsonOutput, _ := cmd.Flags().GetBool("json")
 
 			fetcher, err := utils.CreateClient(config)
 			if err != nil {
@@ -43,11 +45,18 @@ func newNodeCreateCommand(config *setting.Config) *cobra.Command {
 				os.Exit(1)
 			}
 			resp, err := fetcher.CreateNode()
-
 			tools.CheckError(err)
-			tools.PrintResponse(resp)
+
+			if jsonOutput {
+				data, _ := json.Marshal(resp)
+				fmt.Println(string(data))
+			} else {
+				tools.PrintResponse(resp)
+			}
 		},
 	}
 
+	var flags = cmd.Flags()
+	flags.Bool("json", false, "JSON output")
 	return cmd
 }

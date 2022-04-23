@@ -30,9 +30,9 @@ import (
 	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
-	"github.com/ghodss/yaml"
 
 	cobra "github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 func newPipelineCreateCommand(config *setting.Config) *cobra.Command {

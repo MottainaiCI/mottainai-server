@@ -1,6 +1,7 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+                         Daniele Rondina <geaaru@funtoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -27,28 +28,28 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/ghodss/yaml"
+	"gopkg.in/yaml.v3"
 
 	"io/ioutil"
 )
 
 type Pipeline struct {
-	ID string `json:"ID" form:"ID"` // ARMv7l overflows :(
+	ID string `json:"ID" yaml:"ID,omitempty" form:"ID"` // ARMv7l overflows :(
 
-	Chain []string        `json:"chain,omitempty" form:"chain"`
-	Chord []string        `json:"chord,omitempty" form:"chord"`
-	Group []string        `json:"group,omitempty" form:"group"`
-	Tasks map[string]Task `json:"tasks" form:"tasks"`
+	Chain []string        `json:"chain,omitempty" yaml:"chain,omitempty" form:"chain"`
+	Chord []string        `json:"chord,omitempty" yaml:"chord,omitempty" form:"chord"`
+	Group []string        `json:"group,omitempty" yaml:"group,omitempty" form:"group"`
+	Tasks map[string]Task `json:"tasks" yaml:"tasks,omitempty" form:"tasks"`
 
-	Queue string `json:"queue" form:"queue,omitempty"`
+	Queue string `json:"queue" yaml:"queue,omitempty" form:"queue,omitempty"`
 
-	Owner       string `json:"pipeline_owner_id" form:"pipeline_owner_id"`
-	Name        string `json:"pipeline_name" form:"pipeline_name"`
-	CreatedTime string `json:"created_time" form:"created_time"`
-	StartTime   string `json:"start_time,omitempty" form:"start_time"`
-	EndTime     string `json:"end_time,omitempty" form:"end_time"`
-	UpdateTime  string `json:"update_time" form:"update_time"`
-	Concurrency string `json:"concurrency" form:"concurrency"`
+	Owner       string `json:"pipeline_owner_id" yaml:"pipeline_owner_id,omitempty" form:"pipeline_owner_id"`
+	Name        string `json:"pipeline_name" yaml:"pipeline_name,omitempty" form:"pipeline_name"`
+	CreatedTime string `json:"created_time" yaml:"created_time,omitempty" form:"created_time"`
+	StartTime   string `json:"start_time,omitempty" yaml:"start_time,omitempty" form:"start_time"`
+	EndTime     string `json:"end_time,omitempty" yaml:"end_time,omitempty" form:"end_time"`
+	UpdateTime  string `json:"update_time" yaml:"update_time,omitempty" form:"update_time"`
+	Concurrency string `json:"concurrency" yaml:"concurrency,omitempty" form:"concurrency"`
 }
 
 func PipelineFromJsonFile(file string) (*Pipeline, error) {

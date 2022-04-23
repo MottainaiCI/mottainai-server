@@ -65,6 +65,10 @@ func Setup(m *macaron.Macaron) {
 				m, reqSignIn, reqManager, bind(NodeQueue{}), Remove,
 			)
 
+			v1.Schema.GetNodeQueueRoute("delete_byid").ToMacaron(
+				m, reqSignIn, reqManager, RemoveById,
+			)
+
 			// Queue actions
 			v1.Schema.GetQueueRoute("show_all").ToMacaron(
 				m, reqSignIn, bind(QueueFilter{}), ShowAllQueues,

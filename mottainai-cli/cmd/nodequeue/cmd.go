@@ -38,6 +38,7 @@ func NewNodeQueueCommand(config *setting.Config) *cobra.Command {
 		newNodeQueueShowCommand(config),
 		newNodeQueueAddTaskCommand(config),
 		newNodeQueueDelTaskCommand(config),
+		newNodeQueueDeleteByIdCommand(config),
 	)
 
 	return cmd

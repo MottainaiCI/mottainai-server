@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2022  Ettore Di Giacinto <mudler@gentoo.org>
                          Daniele Rondina <geaaru@sabayonlinux.org>
 
 This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import (
 
 const (
 	importerName = `Mottainai Importer - Database importer/Backup handler.
-Copyright (c) 2017-2021 Mottainai
+Copyright (c) 2017-2022 Mottainai
 
 `
 	importerExamples = `
@@ -91,7 +91,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short:        importerName,
-		Version:      fmt.Sprintf("%s-g%s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime),
+		Version:      fmt.Sprintf("%s-g%s %s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime, s.BuildGoVersion),
 		Example:      importerExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,
