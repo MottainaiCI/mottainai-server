@@ -1,16 +1,17 @@
 NAME ?= mottainai-server
 PACKAGE_NAME ?= $(NAME)
+GOLANG_VERSION=$(shell go env GOVERSION)
 
 override LDFLAGS += -X "github.com/MottainaiCI/mottainai-server/pkg/settings.BuildTime=$(shell date -u '+%Y-%m-%d %I:%M:%S %Z')"
 override LDFLAGS += -X "github.com/MottainaiCI/mottainai-server/pkg/settings.BuildCommit=$(shell git rev-parse HEAD)"
+override LDFLAGS += -X "github.com/MottainaiCI/mottainai-server/pkg/settings.BuildGoVersion=$(GOLANG_VERSION)"
 
 
-PACKAGE_CONFLICT ?= $(PACKAGE_NAME)-beta
 REVISION := $(shell git rev-parse --short HEAD || echo unknown)
 VERSION := $(shell git describe --tags || cat pkg/settings/settings.go | echo $(REVISION) || echo dev)
 VERSION := $(shell echo $(VERSION) | sed -e 's/^v//g')
-ITTERATION := $(shell date +%s)
 BUILD_PLATFORMS ?= -osarch="linux/amd64" -osarch="linux/386" -osarch="linux/arm" -osarch="linux/arm64"
+
 SUBDIRS =
 DESTDIR =
 UBINDIR ?= /usr/bin
@@ -25,7 +26,7 @@ LIBDIR ?= /var/lib
 EXTENSIONS ?=
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-all: deps multiarch-build install
+all: deps build
 
 build-test: test multiarch-build
 
@@ -37,19 +38,18 @@ help:
 	# make build - build project for all supported OSes
 
 clean:
-	rm -rf vendor/
 	rm -rf release/
 
 deps:
 	go env
 	# Installing dependencies...
-	go get golang.org/x/lint/golint
-	go get github.com/mitchellh/gox
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/mattn/goveralls
-	GO111MODULE=off go get github.com/onsi/ginkgo/v2/ginkgo
+	GO111MODULE=off go get golang.org/x/lint/golint
+	GO111MODULE=off go get github.com/mitchellh/gox
+	GO111MODULE=off go get golang.org/x/tools/cmd/cover
+	GO111MODULE=on go get github.com/onsi/ginkgo/v2/ginkgo
+	GO111MODULE=off go get github.com/onsi/gomega/...
 	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
-	go get -u github.com/onsi/gomega/...
+	ginkgo version
 
 build-exporter:
 ifeq ($(EXTENSIONS),)
@@ -99,10 +99,17 @@ lint:
 	golint ./... | grep -v "be unexported"
 
 test:
-	go test -v -tags all -cover -race ./...
+	GO111MODULE=off go get github.com/onsi/ginkgo/v2/ginkgo
+	GO111MODULE=off go get github.com/onsi/gomega/...
+	ginkgo -r -flake-attempts 3 ./...
 
-ginkgo-test:
-	ginkgo -p -r --randomizeAllSpecs -failOnPending --trace
+.PHONY: test-coverage
+test-coverage:
+	scripts/ginkgo.coverage.sh --codecov
+
+.PHONY: coverage
+coverage:
+	go test ./... -coverprofile=coverage.txt -race -covermode=atomic
 
 docker-test:
 	docker run -v $(ROOT_DIR)/:/test \
