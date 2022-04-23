@@ -101,7 +101,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short:        srvName,
-		Version:      fmt.Sprintf("%s-g%s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime),
+		Version:      fmt.Sprintf("%s-g%s %s %s", s.MOTTAINAI_VERSION, s.BuildCommit, s.BuildTime, s.BuildGoVersion),
 		Example:      srvExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

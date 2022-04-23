@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2022  Ettore Di Giacinto <mudler@gentoo.org>
                          Daniele Rondina <geaaru@sabayonlinux.org>
 
 This program is free software: you can redistribute it and/or modify
@@ -127,8 +127,8 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short: common.MCLI_HEADER,
-		Version: fmt.Sprintf("%s-g%s %s",
-			setting.MOTTAINAI_VERSION, setting.BuildCommit, setting.BuildTime),
+		Version: fmt.Sprintf("%s-g%s %s %s",
+			setting.MOTTAINAI_VERSION, setting.BuildCommit, setting.BuildTime, setting.BuildGoVersion),
 		Example:      cliExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,

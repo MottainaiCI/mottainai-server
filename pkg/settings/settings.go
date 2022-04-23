@@ -1,7 +1,7 @@
 /*
 
-Copyright (C) 2017-2018  Ettore Di Giacinto <mudler@gentoo.org>
-              2021 Daniele Rondina <geaaru@funtoo.org>
+Copyright (C) 2017-2018 Ettore Di Giacinto <mudler@gentoo.org>
+              2021-2022 Daniele Rondina <geaaru@funtoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -41,8 +41,9 @@ const (
 )
 
 var (
-	BuildTime   string
-	BuildCommit string
+	BuildTime      string
+	BuildCommit    string
+	BuildGoVersion string
 )
 
 // Web UI Settings

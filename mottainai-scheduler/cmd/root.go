@@ -33,7 +33,7 @@ import (
 
 const (
 	schedulerName = `Mottainai Scheduler - Task/Pipeline Scheduler
-Copyright (c) 2017-2021 Mottainai
+Copyright (c) 2017-2022 Mottainai
 
 `
 	schedulerExamples = ""
@@ -84,8 +84,8 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Short: schedulerName,
-		Version: fmt.Sprintf("%s-g%s %s",
-			msetting.MOTTAINAI_VERSION, msetting.BuildCommit, msetting.BuildTime),
+		Version: fmt.Sprintf("%s-g%s %s %s",
+			msetting.MOTTAINAI_VERSION, msetting.BuildCommit, msetting.BuildTime, msetting.BuildGoVersion),
 		Example:      schedulerExamples,
 		Args:         cobra.OnlyValidArgs,
 		SilenceUsage: true,
