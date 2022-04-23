@@ -156,3 +156,12 @@ install:
 
 gen-fakes:
 	counterfeiter -o tests/fakes/http_client.go pkg/client/client.go HttpClient
+
+.PHONY: multiarch-build
+multiarch-build:
+	CGO_ENABLED=0 gox $(BUILD_PLATFORMS) -ldflags '$(LDFLAGS)' -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}"
+
+.PHONY: goreleaser-snapshot
+goreleaser-snapshot:
+	rm -rf dist/ || true
+	GOVERSION=$(GOLANG_VERSION) goreleaser release --debug --skip-publish  --skip-validate --snapshot
