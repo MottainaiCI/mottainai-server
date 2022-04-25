@@ -72,7 +72,7 @@ func ShowAllPipelines(ctx *context.Context, db *database.Database) {
 
 	all, mine := AllPipelines(ctx, db, cMode)
 
-	if cMode && ctx.User.IsAdmin() {
+	if cMode || ctx.User.IsAdmin() {
 		ctx.JSON(200, all)
 	} else {
 		ctx.JSON(200, mine)
