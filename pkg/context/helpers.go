@@ -165,7 +165,9 @@ func CheckArtefactPermission(ctx *Context) bool {
 		return false
 	}
 
-	if !task.IsOwner(ctx.User.ID) && !ctx.User.IsManagerOrAdmin() {
+	cModeSet, _ := db.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+	if !cMode && !task.IsOwner(ctx.User.ID) && !ctx.User.IsManagerOrAdmin() {
 		ctx.NoPermission()
 		return false
 	}

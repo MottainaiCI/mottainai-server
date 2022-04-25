@@ -38,3 +38,8 @@ const SYSTEM_PROTECT_NAMESPACE_PARALLEL_APPEND = "system.namespace.protect_overw
 const SYSTEM_SIGNIN_ONLY_USERVALIDATION = "system.signin_useronly_validation"
 
 const SYSTEM_TASKS_DEFAULT_QUEUE = "system.tasks.default_queue"
+
+// Set this setting to true to enable community mode.
+// With this setting is enabled all registered users
+// can see all tasks and download task resources.
+const SYSTEM_COMMUNITY_ENABLED = "system.community"

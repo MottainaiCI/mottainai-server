@@ -49,18 +49,26 @@ func AllArtefactList(ctx *context.Context, db *database.Database) {
 }
 
 func ArtefactList(ctx *context.Context, db *database.Database) error {
+
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return nil
+	}
+
 	id := ctx.Params(":id")
 	// artefacts, err := db.Driver.GetTaskArtefacts(id)
 	// if err != nil {
 	// 	panic(err)
 	// }
 
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
 	// ns, err := db.SearchNamespace(name)
 	// if err != nil {
 	// 	ctx.JSON(200, ns)
 	// }
 	t, err := db.Driver.GetTask(db.Config, id)
-	if !ctx.CheckTaskPermissions(&t) {
+	if !cMode && !ctx.CheckTaskPermissions(&t) {
 		ctx.NoPermission()
 		return nil
 	}

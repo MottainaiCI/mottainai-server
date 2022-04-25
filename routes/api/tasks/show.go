@@ -23,9 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package tasksapi
 
 import (
+	"sort"
+
 	dbcommon "github.com/MottainaiCI/mottainai-server/pkg/db/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
-	"sort"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 	task "github.com/MottainaiCI/mottainai-server/pkg/tasks"
@@ -35,13 +36,23 @@ import (
 )
 
 func GetTaskYaml(ctx *context.Context, db *database.Database) string {
+
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return ""
+	}
+
 	id := ctx.Params(":id")
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
 	}
-	if !ctx.CheckTaskPermissions(&task) {
+
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+
+	if !cMode && !ctx.CheckTaskPermissions(&task) {
 		ctx.NoPermission()
 		return ""
 	}
@@ -56,13 +67,23 @@ func GetTaskYaml(ctx *context.Context, db *database.Database) string {
 }
 
 func GetTaskJson(ctx *context.Context, db *database.Database) {
+
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return
+	}
+
 	id := ctx.Params(":id")
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return
 	}
-	if !ctx.CheckTaskPermissions(&task) {
+
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+
+	if !cMode && !ctx.CheckTaskPermissions(&task) {
 		ctx.NoPermission()
 		return
 	}
@@ -76,6 +97,11 @@ func APIShowTaskByStatus(ctx *context.Context, db *database.Database) {
 // TODO: We shouldn't have queries here but in the db interface
 func ShowTaskByStatus(ctx *context.Context, db *database.Database) []task.Task {
 
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return []task.Task{}
+	}
+
 	status := ctx.Params(":status")
 	tasks, e := db.Driver.GetTaskByStatus(db.Config, status)
 	if e != nil {
@@ -83,11 +109,14 @@ func ShowTaskByStatus(ctx *context.Context, db *database.Database) []task.Task {
 	}
 	var res []task.Task
 
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+
 	// Query result are document IDs
 	for _, task := range tasks {
 		// Read document
 
-		if ctx.CheckUserOrManager() || ctx.CheckTaskPermissions(&task) {
+		if ctx.CheckUserOrManager() || cMode || ctx.CheckTaskPermissions(&task) {
 			res = append(res, task)
 		}
 	}
@@ -98,12 +127,20 @@ func StreamOutputTask(ctx *context.Context, db *database.Database) string {
 	id := ctx.Params(":id")
 	pos := ctx.ParamsInt(":pos")
 
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return ""
+	}
+
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
 	}
-	if !ctx.CheckTaskPermissions(&task) {
+
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+	if !cMode && !ctx.CheckTaskPermissions(&task) {
 		ctx.NoPermission()
 
 		return ""
@@ -116,12 +153,20 @@ func TailTask(ctx *context.Context, db *database.Database) string {
 	id := ctx.Params(":id")
 	pos := ctx.ParamsInt(":pos")
 
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return ""
+	}
+
 	task, err := db.Driver.GetTask(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
 	}
-	if !ctx.CheckTaskPermissions(&task) {
+
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+	if !cMode && !ctx.CheckTaskPermissions(&task) {
 		ctx.NoPermission()
 		return ""
 	}
@@ -133,7 +178,8 @@ func All(ctx *context.Context, db *database.Database) []task.Task {
 	var all []task.Task
 
 	if ctx.IsLogged {
-		if ctx.User.IsAdmin() {
+		cMode, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+		if ctx.User.IsAdmin() || cMode.Value == "true" {
 			all = db.Driver.AllTasks(db.Config)
 		} else {
 			all, _ = db.Driver.AllUserTask(db.Config, ctx.User.ID)
@@ -163,7 +209,8 @@ func AllFiltered(ctx *context.Context, settings *setting.Config, db *database.Da
 	)
 
 	if ctx.IsLogged {
-		if ctx.User.IsAdmin() {
+		cMode, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+		if ctx.User.IsAdmin() || cMode.Value == "true" {
 			result, _ = db.Driver.AllTasksFiltered(db.Config, f)
 		} else {
 			result, _ = db.Driver.AllUserFiltered(db.Config, ctx.User.ID, f)
