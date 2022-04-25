@@ -63,8 +63,20 @@ func newTaskShowCommand(config *setting.Config) *cobra.Command {
 
 			err = fetcher.Handle(req)
 			if err != nil {
-				panic(err)
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+				}
+
+				log.Fatalln("error:", err)
 			}
+
+			if req.Response != nil && req.Response.StatusCode != 200 {
+				fmt.Println("ERROR: ", req.Response.StatusCode)
+				fmt.Println(string(req.ResponseRaw))
+				os.Exit(1)
+			}
+
 			b, err := json.MarshalIndent(t, "", "  ")
 			if err != nil {
 				fmt.Println("error:", err)
