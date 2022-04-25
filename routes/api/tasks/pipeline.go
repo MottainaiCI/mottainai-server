@@ -41,18 +41,15 @@ import (
 	"github.com/robfig/cron"
 )
 
-func AllPipelines(ctx *context.Context, db *database.Database) ([]task.Pipeline, []task.Pipeline) {
+func AllPipelines(ctx *context.Context, db *database.Database, communityMode bool) ([]task.Pipeline, []task.Pipeline) {
 
 	var all []task.Pipeline
 	var mine []task.Pipeline
 
-	if ctx.IsLogged {
-		if ctx.User.IsAdmin() {
-			all = db.Driver.AllPipelines(db.Config)
-		}
-		mine, _ = db.Driver.AllUserPipelines(db.Config, ctx.User.ID)
-
+	if communityMode || ctx.User.IsAdmin() {
+		all = db.Driver.AllPipelines(db.Config)
 	}
+	mine, _ = db.Driver.AllUserPipelines(db.Config, ctx.User.ID)
 
 	sort.Slice(all[:], func(i, j int) bool {
 		return all[i].CreatedTime > all[j].CreatedTime
@@ -65,20 +62,30 @@ func AllPipelines(ctx *context.Context, db *database.Database) ([]task.Pipeline,
 }
 
 func ShowAllPipelines(ctx *context.Context, db *database.Database) {
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return
+	}
 
-	all, mine := AllPipelines(ctx, db)
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
 
-	if ctx.IsLogged {
-		if ctx.User.IsAdmin() {
-			ctx.JSON(200, all)
-		} else {
-			ctx.JSON(200, mine)
-		}
+	all, mine := AllPipelines(ctx, db, cMode)
+
+	if cMode && ctx.User.IsAdmin() {
+		ctx.JSON(200, all)
+	} else {
+		ctx.JSON(200, mine)
 	}
 
 }
 
 func APIPipelineShow(ctx *context.Context, db *database.Database) error {
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return nil
+	}
+
 	pip, err := PipelineShow(ctx, db)
 	if err != nil {
 		return err
@@ -95,7 +102,10 @@ func PipelineShow(ctx *context.Context, db *database.Database) (*task.Pipeline, 
 		return &task.Pipeline{}, err
 	}
 
-	if !ctx.CheckPipelinePermissions(&pip) {
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+
+	if !cMode && !ctx.CheckPipelinePermissions(&pip) {
 		return &task.Pipeline{}, errors.New("More permissions are required for this user")
 	}
 
@@ -111,13 +121,22 @@ func PipelineShow(ctx *context.Context, db *database.Database) (*task.Pipeline, 
 }
 
 func PipelineYaml(ctx *context.Context, db *database.Database) string {
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return ""
+	}
+
 	id := ctx.Params(":id")
 	task, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
 		ctx.NotFound()
 		return ""
 	}
-	if !ctx.CheckPipelinePermissions(&task) {
+
+	cModeSet, _ := db.Driver.GetSettingByKey(setting.SYSTEM_COMMUNITY_ENABLED)
+	cMode := cModeSet.Value == "true"
+
+	if !cMode && !ctx.CheckPipelinePermissions(&task) {
 		return ""
 	}
 
@@ -132,6 +151,11 @@ func PipelineYaml(ctx *context.Context, db *database.Database) string {
 
 func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *database.Database, o task.PipelineForm) error {
 	var tasks map[string]task.Task
+
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return nil
+	}
 
 	d := gob.NewDecoder(bytes.NewBuffer([]byte(o.Tasks)))
 	if err := d.Decode(&tasks); err != nil {
@@ -246,6 +270,11 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 }
 
 func PipelineDelete(m *mottainai.Mottainai, ctx *context.Context, db *database.Database) error {
+	if !ctx.IsLogged {
+		ctx.NoPermission()
+		return nil
+	}
+
 	id := ctx.Params(":id")
 	pips, err := db.Driver.GetPipeline(db.Config, id)
 	if err != nil {
