@@ -27,6 +27,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -170,6 +171,24 @@ func Pipeline(m *mottainai.Mottainai, c *cron.Cron, ctx *context.Context, db *da
 		if ctx.IsLogged {
 			f.Owner = ctx.User.ID
 		}
+
+		// Check storage permissions
+		if f.Storage != "" {
+			storages := strings.Split(f.Storage, ",")
+			for _, s := range storages {
+
+				storage, err := db.Driver.SearchStorage(strings.TrimSpace(s))
+
+				if err != nil {
+					return errors.New("Invalid storage " + s)
+				}
+
+				if !ctx.CheckStoragePermissions(&storage) {
+					return errors.New("More permissions requires to use storage " + s)
+				}
+			}
+		}
+
 		if !ctx.CheckNamespaceBelongs(t.TagNamespace) {
 			ctx.NoPermission()
 			return nil

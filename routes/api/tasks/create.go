@@ -25,6 +25,7 @@ package tasksapi
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/MottainaiCI/mottainai-server/pkg/context"
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
@@ -50,6 +51,22 @@ func Create(m *mottainai.Mottainai, ctx *context.Context,
 
 	if ctx.IsLogged {
 		opts.Owner = ctx.User.ID
+	}
+
+	// Check storage permissions
+	if opts.Storage != "" {
+		storages := strings.Split(opts.Storage, ",")
+		for _, s := range storages {
+
+			storage, err := db.Driver.SearchStorage(strings.TrimSpace(s))
+			if err != nil {
+				return "", errors.New("Invalid storage " + s)
+			}
+
+			if !ctx.CheckStoragePermissions(&storage) {
+				return "", errors.New("More permissions requires to use storage " + s)
+			}
+		}
 	}
 
 	if !ctx.CheckNamespaceBelongs(opts.TagNamespace) {
@@ -80,6 +97,23 @@ func CloneAndSend(id string, m *mottainai.Mottainai, ctx *context.Context, db *d
 
 	if task.ID == "" {
 		return "", errors.New("Invalid task id")
+	}
+
+	// Check storage permissions
+	if task.Storage != "" {
+		storages := strings.Split(task.Storage, ",")
+		for _, s := range storages {
+
+			storage, err := db.Driver.SearchStorage(strings.TrimSpace(s))
+
+			if err != nil {
+				return "", errors.New("Invalid storage " + s)
+			}
+
+			if !ctx.CheckStoragePermissions(&storage) {
+				return "", errors.New("More permissions requires to use storage " + s)
+			}
+		}
 	}
 
 	if !ctx.CheckNamespaceBelongs(task.TagNamespace) {
