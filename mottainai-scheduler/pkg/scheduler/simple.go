@@ -68,7 +68,12 @@ func (s *SimpleTaskScheduler) Schedule() error {
 				for _, tid := range tasks {
 					_, err := s.Fetcher.NodeQueueAddTask(akey, nid, fields[0], tid)
 					if err != nil {
-						return err
+						return errors.New(fmt.Sprintf(
+							"Error on add task %s to queue %s (%s): %s",
+							tid,
+							fields[0],
+							fields[1],
+							err.Error()))
 					}
 
 					fmt.Println("Assigned task " + tid + " to agent " + nid + ".")
@@ -83,7 +88,10 @@ func (s *SimpleTaskScheduler) Schedule() error {
 					}
 					resp, err := s.Fetcher.HandleAPIResponse(req)
 					if err != nil {
-						return err
+						return errors.New(fmt.Sprintf(
+							"Error on del task %s from queue %s: %s",
+							tid, fields[1],
+							err.Error()))
 					}
 					if resp.Status == "ko" {
 						return errors.New("Error on delete task " + tid +
