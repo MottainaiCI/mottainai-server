@@ -121,6 +121,14 @@ projects:
                     PATH=/usr/lib/go-${golang_version}/bin:$PATH:$GOBIN \
                     make deps
 
+                  # Install goreleaser
+                  - >-
+                    GOROOT="/usr/lib/go-${golang_version}"
+                    GOTOOLDIR="/usr/lib/go-${golang_version}'/pkg/tool/linux_amd64"
+                    GOPATH=/gopath
+                    GOBIN=$GOPATH/bin
+                    PATH=/usr/lib/go-${golang_version}/bin:$PATH:$GOBIN
+                    go install github.com/goreleaser/goreleaser@latest
                   - |
                     cd /gopath/src/github.com/MottainaiCi/mottainai-server && \
                     GOROOT="/usr/lib/go-${golang_version}" \
@@ -128,6 +136,6 @@ projects:
                     GOPATH=/gopath \
                     GOBIN=$GOPATH/bin \
                     PATH=/usr/lib/go-${golang_version}/bin:$PATH:$GOBIN \
-                    make build coverage
+                    make build goreleaser-snapshot
 
 {{ end }}
