@@ -44,11 +44,11 @@ import (
 	"github.com/MottainaiCI/mottainai-server/routes/schema"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
 
+	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	ssh2 "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"golang.org/x/crypto/ssh"
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 const ABORT_EXECUTION_ERROR = "Aborting execution"
@@ -387,9 +387,14 @@ func (d *TaskExecutor) Setup(docID string) error {
 		if err := os.Mkdir(d.Context.SourceDir, os.ModePerm); err != nil {
 			return err
 		}
+
 		opts := &git.CloneOptions{
 			URL:      task_info.Source,
 			Progress: d,
+		}
+		gitCheck := os.Getenv("GIT_SSL_NO_VERIFY")
+		if gitCheck != "" {
+			opts.InsecureSkipTLS = true
 		}
 
 		if task_info.PrivKey != "" {

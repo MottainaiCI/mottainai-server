@@ -22,12 +22,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package specs
 
 import (
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
-func (n *LxdCStorage) GetName() string        { return n.Name }
-func (n *LxdCStorage) GetDriver() string      { return n.Driver }
-func (n *LxdCStorage) GetDescription() string { return n.Description }
+func (n *LxdCStorage) GetName() string          { return n.Name }
+func (n *LxdCStorage) GetDriver() string        { return n.Driver }
+func (n *LxdCStorage) GetDescription() string   { return n.Description }
+func (n *LxdCStorage) GetDocumentation() string { return n.Documentation }
 
 func StorageFromYaml(data []byte) (*LxdCStorage, error) {
 	ans := &LxdCStorage{}

@@ -23,6 +23,7 @@ package pipeline
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"time"
@@ -30,7 +31,6 @@ import (
 	schema "github.com/MottainaiCI/mottainai-server/routes/schema"
 
 	utils "github.com/MottainaiCI/mottainai-server/mottainai-cli/cmd/utils"
-	tools "github.com/MottainaiCI/mottainai-server/mottainai-cli/common"
 	setting "github.com/MottainaiCI/mottainai-server/pkg/settings"
 	citasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	v1 "github.com/MottainaiCI/mottainai-server/routes/schema/v1"
@@ -60,7 +60,20 @@ func newPipelineListCommand(config *setting.Config) *cobra.Command {
 				Target: &tlist,
 			}
 			err = fetcher.Handle(req)
-			tools.CheckError(err)
+			if err != nil {
+				if req.Response != nil {
+					fmt.Println("ERROR: ", req.Response.StatusCode)
+					fmt.Println(string(req.ResponseRaw))
+				}
+
+				log.Fatalln("error:", err)
+			}
+
+			if req.Response != nil && req.Response.StatusCode != 200 {
+				fmt.Println("ERROR: ", req.Response.StatusCode)
+				fmt.Println(string(req.ResponseRaw))
+				os.Exit(1)
+			}
 
 			sort.Slice(tlist[:], func(i, j int) bool {
 				return tlist[i].CreatedTime > tlist[j].CreatedTime

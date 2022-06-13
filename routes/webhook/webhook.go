@@ -48,11 +48,11 @@ import (
 	tasks "github.com/MottainaiCI/mottainai-server/pkg/tasks"
 	user "github.com/MottainaiCI/mottainai-server/pkg/user"
 
+	git "github.com/go-git/go-git/v5"
+	gith "github.com/go-git/go-git/v5/plumbing/transport/http"
+	ssh2 "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"golang.org/x/crypto/ssh"
 	webhooks "gopkg.in/go-playground/webhooks.v3"
-	git "gopkg.in/src-d/go-git.v4"
-	gith "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 var (
@@ -230,6 +230,11 @@ func (h *GitWebHook) PrepareGitDir(db *database.Database) error {
 	opts := &git.CloneOptions{
 		// By default for now I use HTTP Git URL.
 		URL: h.Context.CloneHTTPUrl,
+	}
+
+	gitCheck := os.Getenv("GIT_SSL_NO_VERIFY")
+	if gitCheck != "" {
+		opts.InsecureSkipTLS = true
 	}
 
 	if h.Hook.Auth != "" {
