@@ -41,6 +41,15 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 		Short: "Create a new planning",
 		Args:  cobra.OnlyValidArgs,
 		// TODO: PreRun check of minimal args if --json is not present
+		PreRun: func(cmd *cobra.Command, args []string) {
+			jsonfile, _ := cmd.Flags().GetString("json")
+			yamlfile, _ := cmd.Flags().GetString("yaml")
+
+			if jsonfile == "" && yamlfile == "" {
+				fmt.Println("No JSON or YAML file supplied. Use --json or --yaml")
+				os.Exit(1)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var jsonfile string
@@ -90,12 +99,17 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 			}
 
 			res, err := fetcher.PlanCreate(dat)
-			tools.CheckError(err)
+			if err != nil {
+				if res != nil {
+					fmt.Println("Error: \n" + string(res.Request.ResponseRaw))
+				}
+				tools.CheckError(err)
+			}
 
 			tid := res.ID
 			if tid == "" {
 				tools.PrintResponse(res)
-				panic("Failed creating task")
+				panic("Failed creating plan")
 			}
 
 			fmt.Println("-------------------------")
