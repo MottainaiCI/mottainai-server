@@ -100,7 +100,7 @@ func newPlanCreateCommand(config *setting.Config) *cobra.Command {
 
 			res, err := fetcher.PlanCreate(dat)
 			if err != nil {
-				if res != nil {
+				if res.Request != nil {
 					fmt.Println("Error: \n" + string(res.Request.ResponseRaw))
 				}
 				tools.CheckError(err)
