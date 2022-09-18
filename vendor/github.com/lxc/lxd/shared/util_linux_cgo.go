@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	// Used by cgo
-	_ "github.com/lxc/lxd/lxd/include"
-
 	"golang.org/x/sys/unix"
+
+	_ "github.com/lxc/lxd/lxd/include" // Used by cgo
 )
 
 /*
@@ -74,11 +73,12 @@ func unCloexec(fd int) error {
 	if errno != 0 {
 		err = errno
 	}
+
 	return err
 }
 
 func PidFdOpen(Pid int, Flags uint32) (*os.File, error) {
-	pidFd, errno := C.pidfd_open(C.int(Pid), C.uint32_t(Flags))
+	pidFd, errno := C.lxd_pidfd_open(C.int(Pid), C.uint32_t(Flags))
 	if errno != nil {
 		return nil, errno
 	}
@@ -92,7 +92,7 @@ func PidFdOpen(Pid int, Flags uint32) (*os.File, error) {
 }
 
 func PidfdSendSignal(Pidfd int, Signal int, Flags uint32) error {
-	ret, errno := C.pidfd_send_signal(C.int(Pidfd), C.int(Signal), nil, C.uint32_t(Flags))
+	ret, errno := C.lxd_pidfd_send_signal(C.int(Pidfd), C.int(Signal), nil, C.uint32_t(Flags))
 	if ret != 0 {
 		return errno
 	}

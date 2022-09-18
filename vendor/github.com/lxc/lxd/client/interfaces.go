@@ -256,6 +256,14 @@ type InstanceServer interface {
 	UpdateNetworkForward(networkName string, listenAddress string, forward api.NetworkForwardPut, ETag string) (err error)
 	DeleteNetworkForward(networkName string, listenAddress string) (err error)
 
+	// Network load balancer functions ("network_load_balancer" API extension)
+	GetNetworkLoadBalancerAddresses(networkName string) ([]string, error)
+	GetNetworkLoadBalancers(networkName string) ([]api.NetworkLoadBalancer, error)
+	GetNetworkLoadBalancer(networkName string, listenAddress string) (forward *api.NetworkLoadBalancer, ETag string, err error)
+	CreateNetworkLoadBalancer(networkName string, forward api.NetworkLoadBalancersPost) error
+	UpdateNetworkLoadBalancer(networkName string, listenAddress string, forward api.NetworkLoadBalancerPut, ETag string) (err error)
+	DeleteNetworkLoadBalancer(networkName string, listenAddress string) (err error)
+
 	// Network peer functions ("network_peer" API extension)
 	GetNetworkPeerNames(networkName string) ([]string, error)
 	GetNetworkPeers(networkName string) ([]api.NetworkPeer, error)
@@ -326,10 +334,27 @@ type InstanceServer interface {
 	UpdateStoragePool(name string, pool api.StoragePoolPut, ETag string) (err error)
 	DeleteStoragePool(name string) (err error)
 
+	// Storage bucket functions ("storage_buckets" API extension)
+	GetStoragePoolBucketNames(poolName string) ([]string, error)
+	GetStoragePoolBuckets(poolName string) ([]api.StorageBucket, error)
+	GetStoragePoolBucket(poolName string, bucketName string) (bucket *api.StorageBucket, ETag string, err error)
+	CreateStoragePoolBucket(poolName string, bucket api.StorageBucketsPost) (*api.StorageBucketKey, error)
+	UpdateStoragePoolBucket(poolName string, bucketName string, bucket api.StorageBucketPut, ETag string) (err error)
+	DeleteStoragePoolBucket(poolName string, bucketName string) (err error)
+	GetStoragePoolBucketKeyNames(poolName string, bucketName string) ([]string, error)
+	GetStoragePoolBucketKeys(poolName string, bucketName string) ([]api.StorageBucketKey, error)
+	GetStoragePoolBucketKey(poolName string, bucketName string, keyName string) (key *api.StorageBucketKey, ETag string, err error)
+	CreateStoragePoolBucketKey(poolName string, bucketName string, key api.StorageBucketKeysPost) (newKey *api.StorageBucketKey, err error)
+	UpdateStoragePoolBucketKey(poolName string, bucketName string, keyName string, key api.StorageBucketKeyPut, ETag string) (err error)
+	DeleteStoragePoolBucketKey(poolName string, bucketName string, keyName string) (err error)
+
 	// Storage volume functions ("storage" API extension)
 	GetStoragePoolVolumeNames(pool string) (names []string, err error)
+	GetStoragePoolVolumeNamesAllProjects(pool string) (names []string, err error)
 	GetStoragePoolVolumes(pool string) (volumes []api.StorageVolume, err error)
+	GetStoragePoolVolumesAllProjects(pool string) (volumes []api.StorageVolume, err error)
 	GetStoragePoolVolumesWithFilter(pool string, filters []string) (volumes []api.StorageVolume, err error)
+	GetStoragePoolVolumesWithFilterAllProjects(pool string, filters []string) (volumes []api.StorageVolume, err error)
 	GetStoragePoolVolume(pool string, volType string, name string) (volume *api.StorageVolume, ETag string, err error)
 	GetStoragePoolVolumeState(pool string, volType string, name string) (state *api.StorageVolumeState, err error)
 	CreateStoragePoolVolume(pool string, volume api.StorageVolumesPost) (err error)
@@ -526,7 +551,7 @@ type StoragePoolVolumeMoveArgs struct {
 }
 
 // The StoragePoolVolumeBackupArgs struct is used when creating a storage volume from a backup.
-// API extension: custom_volume_backup
+// API extension: custom_volume_backup.
 type StoragePoolVolumeBackupArgs struct {
 	// The backup file
 	BackupFile io.Reader

@@ -38,7 +38,7 @@ type CertificatesPost struct {
 //
 // swagger:model
 //
-// API extension: certificate_update
+// API extension: certificate_update.
 type CertificatePut struct {
 	// Name associated with the certificate
 	// Example: castiana
@@ -79,16 +79,21 @@ type Certificate struct {
 	Fingerprint string `json:"fingerprint" yaml:"fingerprint"`
 }
 
-// Writable converts a full Certificate struct into a CertificatePut struct (filters read-only fields)
+// Writable converts a full Certificate struct into a CertificatePut struct (filters read-only fields).
 func (cert *Certificate) Writable() CertificatePut {
 	return cert.CertificatePut
+}
+
+// URL returns the URL for the certificate.
+func (c *Certificate) URL(apiVersion string) *URL {
+	return NewURL().Path(apiVersion, "certificates", c.Fingerprint)
 }
 
 // CertificateAddToken represents the fields contained within an encoded certificate add token.
 //
 // swagger:model
 //
-// API extension: certificate_token
+// API extension: certificate_token.
 type CertificateAddToken struct {
 	// The name of the new client
 	// Example: user@host
