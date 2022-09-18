@@ -205,6 +205,7 @@ func NewFetcher(docID string, config *setting.Config) HttpClient {
 func NewBasicClient(config *setting.Config) HttpClient {
 	// Basic constructor
 	f := &Fetcher{Config: config, ChunkSize: 512}
+
 	if len(config.GetGeneral().TLSCert) > 0 {
 		f.TrustedCert = config.GetGeneral().TLSCert
 	}
@@ -274,6 +275,17 @@ func (f *Fetcher) newHttpClient() *http.Client {
 			RootCAs: rootCAs,
 		}
 		tr := &http.Transport{TLSClientConfig: config}
+		c.Transport = tr
+	}
+
+	insecure := os.Getenv("INSECURE")
+	if insecure == "1" {
+		tr := &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
 		c.Transport = tr
 	}
 

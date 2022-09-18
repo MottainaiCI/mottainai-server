@@ -2,6 +2,7 @@ package lxd
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -87,12 +88,9 @@ func (r *ProtocolLXD) GetInstanceNamesAllProjects(instanceType api.InstanceType)
 
 	names := map[string][]string{}
 	for _, instance := range instances {
-		if _, ok := names[instance.Project]; ok {
-			names[instance.Project] = append(names[instance.Project], instance.Name)
-		} else {
-			names[instance.Project] = []string{instance.Name}
-		}
+		names[instance.Project] = append(names[instance.Project], instance.Name)
 	}
+
 	return names, nil
 }
 
@@ -395,7 +393,7 @@ func (r *ProtocolLXD) GetInstanceFull(name string) (*api.InstanceFull, string, e
 }
 
 // CreateInstanceFromBackup is a convenience function to make it easier to
-// create a instance from a backup
+// create a instance from a backup.
 func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operation, error) {
 	if !r.HasExtension("container_backup") {
 		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
@@ -450,6 +448,7 @@ func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operati
 	if err != nil {
 		return nil, err
 	}
+
 	defer func() { _ = resp.Body.Close() }()
 
 	// Handle errors
@@ -631,6 +630,7 @@ func (r *ProtocolLXD) CopyInstance(source InstanceServer, instance api.Instance,
 		InstancePut: instance.Writable(),
 		Type:        api.InstanceType(instance.Type),
 	}
+
 	req.Source.BaseImage = instance.Config["volatile.base_image"]
 
 	// Process the copy arguments
@@ -791,6 +791,7 @@ func (r *ProtocolLXD) CopyInstance(source InstanceServer, instance api.Instance,
 	if err != nil {
 		return nil, err
 	}
+
 	opAPI := op.Get()
 
 	sourceSecrets := map[string]string{}
@@ -809,6 +810,7 @@ func (r *ProtocolLXD) CopyInstance(source InstanceServer, instance api.Instance,
 		if err != nil {
 			return nil, err
 		}
+
 		targetOpAPI := targetOp.Get()
 
 		// Extract the websockets
@@ -1027,6 +1029,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 	if err != nil {
 		return nil, err
 	}
+
 	opAPI := op.Get()
 
 	// Process additional arguments
@@ -1173,6 +1176,7 @@ func (r *ProtocolLXD) GetInstanceFile(instanceName string, filePath string) (io.
 			fmt.Sprintf("%s/1.0%s/%s/files", r.httpBaseURL.String(), path, url.PathEscape(instanceName)),
 			map[string]string{"path": filePath})
 	}
+
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1374,10 +1378,11 @@ func (r *ProtocolLXD) rawSFTPConn(apiURL *url.URL) (net.Conn, error) {
 	var err error
 
 	if httpTransport.TLSClientConfig != nil {
-		conn, err = httpTransport.DialTLS("tcp", apiURL.Host)
+		conn, err = httpTransport.DialTLSContext(context.Background(), "tcp", apiURL.Host)
 	} else {
-		conn, err = httpTransport.Dial("tcp", apiURL.Host)
+		conn, err = httpTransport.DialContext(context.Background(), "tcp", apiURL.Host)
 	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -1417,7 +1422,7 @@ func (r *ProtocolLXD) rawSFTPConn(apiURL *url.URL) (net.Conn, error) {
 // GetInstanceFileSFTPConn returns a connection to the instance's SFTP endpoint.
 func (r *ProtocolLXD) GetInstanceFileSFTPConn(instanceName string) (net.Conn, error) {
 	apiURL := api.NewURL()
-	apiURL.URL = *&r.httpBaseURL // Preload the URL with the client base URL.
+	apiURL.URL = r.httpBaseURL // Preload the URL with the client base URL.
 	apiURL.Path("1.0", "instances", instanceName, "sftp")
 	r.setURLQueryAttributes(&apiURL.URL)
 
@@ -1484,7 +1489,7 @@ func (r *ProtocolLXD) GetInstanceSnapshots(instanceName string) ([]api.InstanceS
 	return snapshots, nil
 }
 
-// GetInstanceSnapshot returns a Snapshot struct for the provided instance and snapshot names
+// GetInstanceSnapshot returns a Snapshot struct for the provided instance and snapshot names.
 func (r *ProtocolLXD) GetInstanceSnapshot(instanceName string, name string) (*api.InstanceSnapshot, string, error) {
 	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
 	if err != nil {
@@ -1546,9 +1551,11 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 		if !r.HasExtension("container_snapshot_stateful_migration") {
 			return nil, fmt.Errorf("The server is missing the required \"container_snapshot_stateful_migration\" API extension")
 		}
+
 		req.InstancePut.Stateful = snapshot.Stateful
 		req.Source.Live = args.Live
 	}
+
 	req.Source.BaseImage = snapshot.Config["volatile.base_image"]
 
 	// Process the copy arguments
@@ -1639,6 +1646,7 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 		Migration: true,
 		Name:      args.Name,
 	}
+
 	if snapshot.Stateful && args.Live {
 		sourceReq.Live = args.Live
 	}
@@ -1659,6 +1667,7 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 		if err != nil {
 			return nil, err
 		}
+
 		opAPI := op.Get()
 
 		targetSecrets := map[string]string{}
@@ -1686,6 +1695,7 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 	if err != nil {
 		return nil, err
 	}
+
 	opAPI := op.Get()
 
 	sourceSecrets := map[string]string{}
@@ -1704,6 +1714,7 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 		if err != nil {
 			return nil, err
 		}
+
 		targetOpAPI := targetOp.Get()
 
 		// Extract the websockets
@@ -1939,7 +1950,7 @@ func (r *ProtocolLXD) GetInstanceLogfiles(name string) ([]string, error) {
 
 // GetInstanceLogfile returns the content of the requested logfile.
 //
-// Note that it's the caller's responsibility to close the returned ReadCloser
+// Note that it's the caller's responsibility to close the returned ReadCloser.
 func (r *ProtocolLXD) GetInstanceLogfile(name string, filename string) (io.ReadCloser, error) {
 	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
 	if err != nil {
@@ -2118,6 +2129,7 @@ func (r *ProtocolLXD) CreateInstanceTemplateFile(instanceName string, templateNa
 	if err != nil {
 		return err
 	}
+
 	req.Header.Set("Content-Type", "application/octet-stream")
 
 	// Send the request
@@ -2142,6 +2154,7 @@ func (r *ProtocolLXD) DeleteInstanceTemplateFile(name string, templateName strin
 	if !r.HasExtension("container_edit_metadata") {
 		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
+
 	_, _, err = r.query("DELETE", fmt.Sprintf("%s/%s/metadata/templates?path=%s", path, url.PathEscape(name), url.QueryEscape(templateName)), nil, "")
 	return err
 }
@@ -2170,6 +2183,7 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 	if err != nil {
 		return nil, err
 	}
+
 	opAPI := op.Get()
 
 	if args == nil || args.Terminal == nil {
@@ -2257,6 +2271,7 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 	if err != nil {
 		return nil, nil, err
 	}
+
 	opAPI := op.Get()
 
 	if args == nil {
@@ -2319,7 +2334,7 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 
 // GetInstanceConsoleLog requests that LXD attaches to the console device of a instance.
 //
-// Note that it's the caller's responsibility to close the returned ReadCloser
+// Note that it's the caller's responsibility to close the returned ReadCloser.
 func (r *ProtocolLXD) GetInstanceConsoleLog(instanceName string, args *InstanceConsoleLogArgs) (io.ReadCloser, error) {
 	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
 	if err != nil {
@@ -2538,6 +2553,7 @@ func (r *ProtocolLXD) GetInstanceBackupFile(instanceName string, name string, re
 	if err != nil {
 		return nil, err
 	}
+
 	defer func() { _ = response.Body.Close() }()
 	defer close(doneCh)
 

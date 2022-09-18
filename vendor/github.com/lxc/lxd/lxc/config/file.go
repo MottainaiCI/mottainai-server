@@ -42,8 +42,10 @@ func LoadConfig(path string) (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Unable to decode the configuration: %w", err)
 		}
+
 		for k, r := range globalConf.Remotes {
-			if _, ok := c.Remotes[k]; !ok {
+			_, ok := c.Remotes[k]
+			if !ok {
 				r.Global = true
 				c.Remotes[k] = r
 			}
@@ -70,7 +72,7 @@ func LoadConfig(path string) (*Config, error) {
 	if len(envDefaultRemote) > 0 {
 		c.DefaultRemote = envDefaultRemote
 	} else if c.DefaultRemote == "" {
-		c.DefaultRemote = DefaultConfig.DefaultRemote
+		c.DefaultRemote = DefaultConfig().DefaultRemote
 	}
 
 	// NOTE: Remove this once we only see a small fraction of non-simplestreams users
@@ -98,14 +100,16 @@ func (c *Config) SaveConfig(path string) error {
 
 	// Remove the global remotes
 	for k, v := range c.Remotes {
-		if v.Global == true {
+		if v.Global {
 			delete(conf.Remotes, k)
 		}
 	}
 
+	defaultRemote := DefaultConfig().DefaultRemote
+
 	// Remove the static remotes
 	for k := range StaticRemotes {
-		if k == DefaultConfig.DefaultRemote {
+		if k == defaultRemote {
 			continue
 		}
 
@@ -117,6 +121,7 @@ func (c *Config) SaveConfig(path string) error {
 	if err != nil {
 		return fmt.Errorf("Unable to create the configuration file: %w", err)
 	}
+
 	defer func() { _ = f.Close() }()
 
 	// Write the new config

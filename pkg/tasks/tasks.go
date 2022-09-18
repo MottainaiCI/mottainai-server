@@ -96,7 +96,7 @@ type Task struct {
 }
 
 type Plan struct {
-	*Task   `yaml:",inline"`
+	*Task   `yaml:",inline" json:",inline"`
 	Planned string `json:"planned" yaml:"planned,omitempty" form:"planned"`
 }
 

@@ -1,6 +1,7 @@
 package lxd
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -22,7 +23,6 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 	// Define the http transport
 	transport := &http.Transport{
 		TLSClientConfig:       tlsConfig,
-		Dial:                  shared.RFC3493Dialer,
 		Proxy:                 shared.ProxyFromEnvironment,
 		DisableKeepAlives:     true,
 		ExpectContinueTimeout: time.Second * 30,
@@ -36,12 +36,9 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 	}
 
 	// Special TLS handling
-	//lint:ignore SA1019 DialContext doesn't exist in Go 1.13
-	transport.DialTLS = func(network string, addr string) (net.Conn, error) {
+	transport.DialTLSContext = func(ctx context.Context, network string, addr string) (net.Conn, error) {
 		tlsDial := func(network string, addr string, config *tls.Config, resetName bool) (net.Conn, error) {
-			// TCP connection
-			//lint:ignore SA1019 DialContext doesn't exist in Go 1.13
-			conn, err := transport.Dial(network, addr)
+			conn, err := shared.RFC3493Dialer(ctx, network, addr)
 			if err != nil {
 				return nil, err
 			}
@@ -56,6 +53,7 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 				config = config.Clone()
 				config.ServerName = hostName
 			}
+
 			tlsConn := tls.Client(conn, config)
 
 			// Validate the connection
@@ -89,6 +87,7 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 	if client == nil {
 		client = &http.Client{}
 	}
+
 	client.Transport = transport
 
 	// Setup redirect policy
@@ -104,7 +103,7 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 
 func unixHTTPClient(client *http.Client, path string) (*http.Client, error) {
 	// Setup a Unix socket dialer
-	unixDial := func(network, addr string) (net.Conn, error) {
+	unixDial := func(_ context.Context, network, addr string) (net.Conn, error) {
 		raddr, err := net.ResolveUnixAddr("unix", path)
 		if err != nil {
 			return nil, err
@@ -115,7 +114,7 @@ func unixHTTPClient(client *http.Client, path string) (*http.Client, error) {
 
 	// Define the http transport
 	transport := &http.Transport{
-		Dial:                  unixDial,
+		DialContext:           unixDial,
 		DisableKeepAlives:     true,
 		ExpectContinueTimeout: time.Second * 30,
 		ResponseHeaderTimeout: time.Second * 3600,
@@ -126,6 +125,7 @@ func unixHTTPClient(client *http.Client, path string) (*http.Client, error) {
 	if client == nil {
 		client = &http.Client{}
 	}
+
 	client.Transport = transport
 
 	// Setup redirect policy
@@ -211,7 +211,7 @@ func urlsToResourceNames(matchPathPrefix string, urls ...string) ([]string, erro
 	return resourceNames, nil
 }
 
-// parseFilters translates filters passed at client side to form acceptable by server-side API
+// parseFilters translates filters passed at client side to form acceptable by server-side API.
 func parseFilters(filters []string) string {
 	var result []string
 	for _, filter := range filters {

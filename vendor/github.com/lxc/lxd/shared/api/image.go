@@ -8,7 +8,7 @@ import (
 //
 // swagger:model
 //
-// API extension: images_push_relay
+// API extension: images_push_relay.
 type ImageExportPost struct {
 	// Target server URL
 	// Example: https://1.2.3.4:8443
@@ -181,9 +181,14 @@ type Image struct {
 	UploadedAt time.Time `json:"uploaded_at" yaml:"uploaded_at"`
 }
 
-// Writable converts a full Image struct into a ImagePut struct (filters read-only fields)
+// Writable converts a full Image struct into a ImagePut struct (filters read-only fields).
 func (img *Image) Writable() ImagePut {
 	return img.ImagePut
+}
+
+// URL returns the URL for the image.
+func (img *Image) URL(apiVersion string, project string) *URL {
+	return NewURL().Path(apiVersion, "images", img.Fingerprint).Project(project)
 }
 
 // ImageAlias represents an alias from the alias list of a LXD image

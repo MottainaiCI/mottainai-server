@@ -1,69 +1,72 @@
 package cancel
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
 )
 
-// HTTPRequestCanceller tracks a cancelable operation
+// HTTPRequestCanceller tracks a cancelable operation.
 type HTTPRequestCanceller struct {
-	reqChCancel map[*http.Request]chan struct{}
-	lock        sync.Mutex
+	reqCancel map[*http.Request]context.CancelFunc
+	lock      sync.Mutex
 }
 
-// NewHTTPRequestCanceller returns a new HTTPRequestCanceller struct
+// NewHTTPRequestCanceller returns a new HTTPRequestCanceller struct.
 func NewHTTPRequestCanceller() *HTTPRequestCanceller {
 	c := HTTPRequestCanceller{}
 
 	c.lock.Lock()
-	c.reqChCancel = make(map[*http.Request]chan struct{})
+	c.reqCancel = make(map[*http.Request]context.CancelFunc)
 	c.lock.Unlock()
 
 	return &c
 }
 
-// Cancelable indicates whether there are operations that support cancellation
+// Cancelable indicates whether there are operations that support cancellation.
 func (c *HTTPRequestCanceller) Cancelable() bool {
 	c.lock.Lock()
-	length := len(c.reqChCancel)
+	length := len(c.reqCancel)
 	c.lock.Unlock()
 
 	return length > 0
 }
 
-// Cancel will attempt to cancel all ongoing operations
+// Cancel will attempt to cancel all ongoing operations.
 func (c *HTTPRequestCanceller) Cancel() error {
 	if !c.Cancelable() {
 		return fmt.Errorf("This operation can't be canceled at this time")
 	}
 
 	c.lock.Lock()
-	for req, ch := range c.reqChCancel {
-		close(ch)
-		delete(c.reqChCancel, req)
+	for req, cancel := range c.reqCancel {
+		cancel()
+		delete(c.reqCancel, req)
 	}
+
 	c.lock.Unlock()
 
 	return nil
 }
 
-// CancelableDownload performs an http request and allows for it to be canceled at any time
+// CancelableDownload performs an http request and allows for it to be canceled at any time.
 func CancelableDownload(c *HTTPRequestCanceller, client *http.Client, req *http.Request) (*http.Response, chan bool, error) {
 	chDone := make(chan bool)
-	chCancel := make(chan struct{})
+	ctx, cancel := context.WithCancel(req.Context())
+	req = req.WithContext(ctx)
 	if c != nil {
 		c.lock.Lock()
-		c.reqChCancel[req] = chCancel
+		c.reqCancel[req] = cancel
 		c.lock.Unlock()
 	}
-	req.Cancel = chCancel
 
 	go func() {
 		<-chDone
 		if c != nil {
 			c.lock.Lock()
-			delete(c.reqChCancel, req)
+			cancel()
+			delete(c.reqCancel, req)
 			c.lock.Unlock()
 		}
 	}()
