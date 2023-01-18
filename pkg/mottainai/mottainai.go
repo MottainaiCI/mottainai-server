@@ -180,6 +180,7 @@ func (m *Mottainai) SetStatic() {
 			c.GetWeb().AccessControlAllowOrigin, c,
 			macaron.StaticOptions{
 				Prefix: "namespace",
+				ETag:   true,
 			},
 		))
 		m.Use(static.AuthStatic(context.CheckStoragePermission,
