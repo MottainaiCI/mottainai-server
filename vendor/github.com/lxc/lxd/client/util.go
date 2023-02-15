@@ -13,7 +13,7 @@ import (
 	"github.com/lxc/lxd/shared"
 )
 
-func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey string, tlsCA string, tlsServerCert string, insecureSkipVerify bool, proxy func(req *http.Request) (*url.URL, error)) (*http.Client, error) {
+func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey string, tlsCA string, tlsServerCert string, insecureSkipVerify bool, proxy func(req *http.Request) (*url.URL, error), transportWrapper func(t *http.Transport) HTTPTransporter) (*http.Client, error) {
 	// Get the TLS configuration
 	tlsConfig, err := shared.GetTLSConfigMem(tlsClientCert, tlsClientKey, tlsCA, tlsServerCert, insecureSkipVerify)
 	if err != nil {
@@ -88,7 +88,11 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 		client = &http.Client{}
 	}
 
-	client.Transport = transport
+	if transportWrapper != nil {
+		client.Transport = transportWrapper(transport)
+	} else {
+		client.Transport = transport
+	}
 
 	// Setup redirect policy
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -101,7 +105,7 @@ func tlsHTTPClient(client *http.Client, tlsClientCert string, tlsClientKey strin
 	return client, nil
 }
 
-func unixHTTPClient(client *http.Client, path string) (*http.Client, error) {
+func unixHTTPClient(args *ConnectionArgs, path string) (*http.Client, error) {
 	// Setup a Unix socket dialer
 	unixDial := func(_ context.Context, network, addr string) (net.Conn, error) {
 		raddr, err := net.ResolveUnixAddr("unix", path)
@@ -112,16 +116,22 @@ func unixHTTPClient(client *http.Client, path string) (*http.Client, error) {
 		return net.DialUnix("unix", nil, raddr)
 	}
 
+	if args == nil {
+		args = &ConnectionArgs{}
+	}
+
 	// Define the http transport
 	transport := &http.Transport{
 		DialContext:           unixDial,
 		DisableKeepAlives:     true,
+		Proxy:                 args.Proxy,
 		ExpectContinueTimeout: time.Second * 30,
 		ResponseHeaderTimeout: time.Second * 3600,
 		TLSHandshakeTimeout:   time.Second * 5,
 	}
 
 	// Define the http client
+	client := args.HTTPClient
 	if client == nil {
 		client = &http.Client{}
 	}
@@ -221,4 +231,13 @@ func parseFilters(filters []string) string {
 		}
 	}
 	return strings.Join(result, " and ")
+}
+
+// HTTPTransporter represents a wrapper around *http.Transport.
+// It is used to add some pre and postprocessing logic to http requests / responses.
+type HTTPTransporter interface {
+	http.RoundTripper
+
+	// Transport what this struct wraps
+	Transport() *http.Transport
 }

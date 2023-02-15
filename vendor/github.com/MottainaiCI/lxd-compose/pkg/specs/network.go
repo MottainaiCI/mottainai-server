@@ -1,6 +1,5 @@
 /*
-
-Copyright (C) 2020-2021  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2022  Daniele Rondina <geaaru@funtoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -17,7 +16,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 */
 package specs
 
@@ -36,4 +34,31 @@ func NetworkFromYaml(data []byte) (*LxdCNetwork, error) {
 	}
 
 	return ans, nil
+}
+
+func (n *LxdCNetwork) IsPresentForwardAddress(a string) bool {
+	ans := false
+	if len(n.Forwards) > 0 {
+		for idx, _ := range n.Forwards {
+			if n.Forwards[idx].ListenAddress == a {
+				ans = true
+				break
+			}
+		}
+	}
+	return ans
+}
+
+func (n *LxdCNetwork) GetForwardAddress(a string) *LxdCNetworkForward {
+	var ans *LxdCNetworkForward = nil
+
+	if len(n.Forwards) > 0 {
+		for idx, _ := range n.Forwards {
+			if n.Forwards[idx].ListenAddress == a {
+				return &n.Forwards[idx]
+			}
+		}
+	}
+
+	return ans
 }

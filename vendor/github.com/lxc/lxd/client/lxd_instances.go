@@ -1356,7 +1356,10 @@ func (r *ProtocolLXD) DeleteInstanceFile(instanceName string, filePath string) e
 // rawSFTPConn connects to the apiURL, upgrades to an SFTP raw connection and returns it.
 func (r *ProtocolLXD) rawSFTPConn(apiURL *url.URL) (net.Conn, error) {
 	// Get the HTTP transport.
-	httpTransport := r.http.Transport.(*http.Transport)
+	httpTransport, err := r.getUnderlyingHTTPTransport()
+	if err != nil {
+		return nil, err
+	}
 
 	req := &http.Request{
 		Method:     http.MethodGet,
@@ -1375,7 +1378,6 @@ func (r *ProtocolLXD) rawSFTPConn(apiURL *url.URL) (net.Conn, error) {
 
 	// Establish the connection.
 	var conn net.Conn
-	var err error
 
 	if httpTransport.TLSClientConfig != nil {
 		conn, err = httpTransport.DialTLSContext(context.Background(), "tcp", apiURL.Host)
@@ -1387,9 +1389,9 @@ func (r *ProtocolLXD) rawSFTPConn(apiURL *url.URL) (net.Conn, error) {
 		return nil, err
 	}
 
-	tcpConn, err := tcp.ExtractConn(conn)
-	if err == nil {
-		err = tcp.SetTimeouts(tcpConn)
+	remoteTCP, _ := tcp.ExtractConn(conn)
+	if remoteTCP != nil {
+		err = tcp.SetTimeouts(remoteTCP, 0)
 		if err != nil {
 			return nil, err
 		}

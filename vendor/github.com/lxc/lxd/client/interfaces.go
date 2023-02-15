@@ -1,6 +1,7 @@
 package lxd
 
 import (
+	"context"
 	"io"
 	"net"
 	"net/http"
@@ -22,6 +23,7 @@ type Operation interface {
 	RemoveHandler(target *EventTarget) (err error)
 	Refresh() (err error)
 	Wait() (err error)
+	WaitContext(ctx context.Context) error
 }
 
 // The RemoteOperation type represents an Operation that may be using multiple servers.
@@ -395,6 +397,7 @@ type InstanceServer interface {
 	RenameClusterMember(name string, member api.ClusterMemberPost) (err error)
 	CreateClusterMember(member api.ClusterMembersPost) (op Operation, err error)
 	UpdateClusterCertificate(certs api.ClusterCertificatePut, ETag string) (err error)
+	GetClusterMemberState(name string) (*api.ClusterMemberState, string, error)
 	UpdateClusterMemberState(name string, state api.ClusterMemberStatePost) (op Operation, err error)
 	GetClusterGroups() ([]api.ClusterGroup, error)
 	GetClusterGroupNames() ([]string, error)
