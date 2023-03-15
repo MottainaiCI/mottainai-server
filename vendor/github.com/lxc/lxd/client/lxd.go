@@ -12,13 +12,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-macaroon-bakery/macaroon-bakery/v3/bakery"
+	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery"
 	"github.com/gorilla/websocket"
-	"gopkg.in/macaroon-bakery.v3/bakery"
-	"gopkg.in/macaroon-bakery.v3/httpbakery"
 
 	"github.com/lxc/lxd/shared"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/lxc/lxd/shared/logger"
+	"github.com/lxc/lxd/shared/tcp"
 )
 
 // ProtocolLXD represents a LXD API server.
@@ -406,7 +407,10 @@ func (r *ProtocolLXD) queryOperation(method string, path string, data any, ETag 
 
 func (r *ProtocolLXD) rawWebsocket(url string) (*websocket.Conn, error) {
 	// Grab the http transport handler
-	httpTransport := r.http.Transport.(*http.Transport)
+	httpTransport, err := r.getUnderlyingHTTPTransport()
+	if err != nil {
+		return nil, err
+	}
 
 	// Setup a new websocket dialer based on it
 	dialer := websocket.Dialer{
@@ -427,10 +431,19 @@ func (r *ProtocolLXD) rawWebsocket(url string) (*websocket.Conn, error) {
 		return nil, err
 	}
 
+	// Set TCP timeout options.
+	remoteTCP, _ := tcp.ExtractConn(conn.UnderlyingConn())
+	if remoteTCP != nil {
+		err = tcp.SetTimeouts(remoteTCP, 0)
+		if err != nil {
+			logger.Error("Failed setting TCP timeouts on remote connection", logger.Ctx{"err": err})
+		}
+	}
+
 	// Log the data
 	logger.Debugf("Connected to the websocket: %v", url)
 
-	return conn, err
+	return conn, nil
 }
 
 func (r *ProtocolLXD) websocket(path string) (*websocket.Conn, error) {
@@ -460,4 +473,17 @@ func (r *ProtocolLXD) WithContext(ctx context.Context) InstanceServer {
 	rr := r
 	rr.ctx = ctx
 	return rr
+}
+
+// getUnderlyingHTTPTransport returns the *http.Transport used by the http client. If the http
+// client was initialized with a HTTPTransporter, it returns the wrapped *http.Transport.
+func (r *ProtocolLXD) getUnderlyingHTTPTransport() (*http.Transport, error) {
+	switch t := r.http.Transport.(type) {
+	case *http.Transport:
+		return t, nil
+	case HTTPTransporter:
+		return t.Transport(), nil
+	default:
+		return nil, fmt.Errorf("Unexpected http.Transport type, %T", r)
+	}
 }

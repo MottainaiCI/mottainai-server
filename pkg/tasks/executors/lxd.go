@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2017-2021  Ettore Di Giacinto <mudler@gentoo.org>
+Copyright (C) 2017-2023  Ettore Di Giacinto <mudler@gentoo.org>
                          Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
@@ -243,6 +243,13 @@ func (l *LxdExecutor) Play(docId string) (int, error) {
 		return 1, err
 	}
 	defer l.Executor.DeleteContainer(containerName)
+
+	// Wait for ip. TODO: Move this to a task option.
+	err = l.Executor.WaitIpOfContainer(containerName, 30)
+	if err != nil {
+		l.Report("Container is without ip: " + err.Error())
+		return 1, err
+	}
 
 	// Push workdir to container
 	var targetHomeDir string

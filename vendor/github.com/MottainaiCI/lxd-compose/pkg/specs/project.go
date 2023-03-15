@@ -1,6 +1,5 @@
 /*
-
-Copyright (C) 2020-2021  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2023  Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -17,13 +16,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 */
 package specs
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -35,14 +33,15 @@ func (p *LxdCProject) Init() {
 		p.Hooks = []LxdCHook{}
 	}
 
-	for idx, _ := range p.Groups {
+	for idx := range p.Groups {
 		p.Groups[idx].Init()
 	}
 }
 
-func (p *LxdCProject) GetGroups() *[]LxdCGroup { return &p.Groups }
-func (p *LxdCProject) GetDescription() string  { return p.Description }
-func (p *LxdCProject) GetName() string         { return p.Name }
+func (p *LxdCProject) GetGroups() *[]LxdCGroup       { return &p.Groups }
+func (p *LxdCProject) GetDescription() string        { return p.Description }
+func (p *LxdCProject) GetName() string               { return p.Name }
+func (p *LxdCProject) GetShellEnvsFilter() *[]string { return &p.ShellEnvsFilter }
 
 func (p *LxdCProject) AddGroup(grp *LxdCGroup) {
 	p.Groups = append(p.Groups, *grp)
@@ -50,6 +49,15 @@ func (p *LxdCProject) AddGroup(grp *LxdCGroup) {
 
 func (p *LxdCProject) AddEnvironment(e *LxdCEnvVars) {
 	p.Environments = append(p.Environments, *e)
+}
+
+func (p *LxdCProject) GetGroupByName(name string) *LxdCGroup {
+	for idx := range p.Groups {
+		if p.Groups[idx].Name == name {
+			return &p.Groups[idx]
+		}
+	}
+	return nil
 }
 
 func (p *LxdCProject) GetEnvsMap() (map[string]string, error) {
@@ -67,8 +75,21 @@ func (p *LxdCProject) GetEnvsMap() (map[string]string, error) {
 	}
 	ans["project"] = string(pData)
 
+	mfilter := make(map[string]bool, 0)
+	if len(p.ShellEnvsFilter) > 0 {
+		for _, k := range p.ShellEnvsFilter {
+			mfilter[k] = true
+		}
+	}
+
 	for _, e := range p.Environments {
 		for k, v := range e.EnvVars {
+
+			_, filtered := mfilter[k]
+			if filtered {
+				continue
+			}
+
 			// Bash doesn't support variable with dash.
 			// I will convert dash with underscore.
 			if strings.Contains(k, "-") {
@@ -130,13 +151,13 @@ func (p *LxdCProject) GetNodesPrefix() string { return p.NodesPrefix }
 
 func (p *LxdCProject) SetNodesPrefix(prefix string) {
 	p.NodesPrefix = prefix
-	for idx, _ := range p.Groups {
+	for idx := range p.Groups {
 		p.Groups[idx].SetNodesPrefix(prefix)
 	}
 }
 
 func (p *LxdCProject) LoadEnvVarsFile(file string) error {
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}

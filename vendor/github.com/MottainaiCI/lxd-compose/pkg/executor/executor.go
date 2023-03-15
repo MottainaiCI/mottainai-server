@@ -1,6 +1,5 @@
 /*
-
-Copyright (C) 2020  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2023  Daniele Rondina <geaaru@funtoo.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -17,7 +16,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 */
 package executor
 
@@ -28,11 +26,14 @@ import (
 	"os/user"
 	"path"
 	"strings"
+	"time"
 
 	log "github.com/MottainaiCI/lxd-compose/pkg/logger"
 
 	lxd "github.com/lxc/lxd/client"
 	lxd_config "github.com/lxc/lxd/lxc/config"
+	lxd_utils "github.com/lxc/lxd/lxc/utils"
+	lxd_api "github.com/lxc/lxd/shared/api"
 )
 
 type LxdCExecutor struct {
@@ -274,6 +275,65 @@ func (e *LxdCExecutor) IsPresentContainer(containerName string) (bool, error) {
 	return ans, nil
 }
 
+func (e *LxdCExecutor) CopyContainerOnInstance(
+	containerName, newContainerName string) error {
+
+	args := lxd.InstanceCopyArgs{
+		Name: newContainerName,
+		// Always follow stateless copy.
+		Live: false,
+		// Ignore containers snapshot
+		InstanceOnly: true,
+		Mode:         "pull",
+		// I don't think that it makes sense an incremental update
+		// in our use case.
+		Refresh: false,
+		// Ignore copy errors for volatile files.
+		AllowInconsistent: true,
+	}
+
+	entry, _, err := e.LxdClient.GetInstance(containerName)
+	if err != nil {
+		return err
+	}
+
+	if entry.Config != nil {
+		// Strip the last_state.power key in all cases
+		delete(entry.Config, "volatile.last_state.power")
+	}
+
+	op, err := e.LxdClient.CopyInstance(e.LxdClient, *entry, &args)
+	if err != nil {
+		return err
+	}
+
+	// Watch the background operation
+	progress := lxd_utils.ProgressRenderer{
+		Format: "Copy container: %s",
+		Quiet:  false,
+	}
+
+	_, err = op.AddHandler(progress.UpdateOp)
+	if err != nil {
+		progress.Done("")
+		return err
+	}
+
+	// Wait the copy of the container
+	err = lxd_utils.CancelableWait(op, &progress)
+	if err != nil {
+		progress.Done("")
+		return err
+	}
+
+	progress.Done("")
+
+	e.Emitter.DebugLog(false,
+		fmt.Sprintf("Container %s copy to %s.", containerName, newContainerName))
+
+	return nil
+}
+
 func (e *LxdCExecutor) DeleteContainer(containerName string) error {
 
 	ephemeral, err := e.IsEphemeralContainer(containerName)
@@ -297,6 +357,61 @@ func (e *LxdCExecutor) DeleteContainer(containerName string) error {
 			return err
 		}
 		_ = e.WaitOperation(currOper, nil)
+	}
+
+	return nil
+}
+
+func (e *LxdCExecutor) WaitIpOfContainer(containerName string, timeout int64) error {
+	filters := []string{
+		"name=" + containerName,
+	}
+
+	start := time.Now().Unix()
+	diff := int64(0)
+	withoutIp := true
+	for withoutIp && diff < timeout {
+		instances, err := e.LxdClient.GetInstancesFullWithFilter(
+			lxd_api.InstanceTypeContainer,
+			filters,
+		)
+		if err != nil {
+			e.Emitter.ErrorLog(false, "Error on get instances: "+err.Error())
+			return err
+		}
+
+		if len(instances) == 0 {
+			return errors.New("No container found with name " + containerName)
+		} else if len(instances) > 1 {
+			return errors.New("Found multiple container with name " + containerName)
+		}
+
+		c := instances[0]
+		for netIface, net := range c.State.Network {
+			if net.Type == "loopback" {
+				continue
+			}
+			for _, a := range net.Addresses {
+				if a.Scope == "link" || a.Scope == "local" {
+					continue
+				}
+
+				if a.Family == "inet" {
+					if a.Address != "" && a.Netmask != "" {
+						e.Emitter.Emits(LxdContainerIpAssigned, map[string]interface{}{
+							"name":    containerName,
+							"iface":   netIface,
+							"address": fmt.Sprintf("%s/%s", a.Address, a.Netmask),
+						})
+						withoutIp = false
+						break
+					}
+				}
+			}
+		}
+
+		time.Sleep(100 * time.Millisecond)
+		diff = time.Now().Unix() - start
 	}
 
 	return nil
