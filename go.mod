@@ -6,7 +6,7 @@ require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Microsoft/hcsshim v0.9.6 // indirect
-	github.com/MottainaiCI/lxd-compose v0.25.0
+	github.com/MottainaiCI/lxd-compose v0.27.0
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
 	github.com/arangodb/go-driver v0.0.0-20201202080739-c41c94f2de00
@@ -30,7 +30,7 @@ require (
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
-	github.com/lxc/lxd v0.0.0-20230215164809-d1b8e15a55d7
+	github.com/lxc/lxd v0.0.0-20230217031332-3ee687474e01
 	github.com/markbates/goth v1.66.0
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -39,8 +39,8 @@ require (
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/ginkgo/v2 v2.4.0
-	github.com/onsi/gomega v1.23.0
+	github.com/onsi/ginkgo/v2 v2.8.0
+	github.com/onsi/gomega v1.25.0
 	github.com/opencontainers/runc v1.1.2 // indirect
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
@@ -54,7 +54,7 @@ require (
 	golang.org/x/crypto v0.6.0
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.5.0
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	gopkg.in/clog.v1 v1.2.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/webhooks.v3 v3.13.0
@@ -85,11 +85,13 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fvbommel/sortorder v1.0.2 // indirect
+	github.com/geaaru/tar-formers v0.8.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -128,6 +130,8 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
+	github.com/klauspost/compress v1.15.15 // indirect
+	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kyokomi/emoji v2.2.4+incompatible // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
@@ -148,7 +152,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/pkg/xattr v0.4.9 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
@@ -156,11 +160,12 @@ require (
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/afero v1.9.3 // indirect
+	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
+	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
@@ -169,8 +174,9 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

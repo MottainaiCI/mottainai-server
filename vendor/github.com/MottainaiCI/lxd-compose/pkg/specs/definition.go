@@ -19,6 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package specs
 
+import (
+	tarf_specs "github.com/geaaru/tar-formers/pkg/specs"
+)
+
 type LxdCEnvironment struct {
 	Version string `json:"version,omitempty" yaml:"version,omitempty"`
 	File    string `json:"-" yaml:"-"`
@@ -37,8 +41,15 @@ type LxdCEnvironment struct {
 	Storages             []LxdCStorage `json:"storages,omitempty" yaml:"storages,omitempty"`
 	IncludeStorageFiles  []string      `json:"include_storage_files,omitempty" yaml:"include_storage_files,omitempty"`
 
-	Acls             []LxdCAcl `json:"acls,omitempty" yaml:"acls,omitempty"`
-	IncludeAclsFiles []string  `json:"include_acls_files,omitempty" yaml:"include_acls_files,omitempty"`
+	Acls             []LxdCAcl      `json:"acls,omitempty" yaml:"acls,omitempty"`
+	IncludeAclsFiles []string       `json:"include_acls_files,omitempty" yaml:"include_acls_files,omitempty"`
+	PackExtra        *LxdCPackExtra `json:"pack_extra,omitempty" yaml:"pack_extra,omitempty"`
+}
+
+type LxdCPackExtra struct {
+	Dirs   []string                 `json:"dirs,omitempty" yaml:"dirs,omitempty"`
+	Files  []string                 `json:"files,omitempty" yaml:"files,omitempty"`
+	Rename []*tarf_specs.RenameRule `json:"rename,omitempty" yaml:"rename,omitempty"`
 }
 
 type LxdCProfile struct {
@@ -256,6 +267,10 @@ type LxdCNode struct {
 
 	Hooks             []LxdCHook `json:"hooks" yaml:"hooks"`
 	IncludeHooksFiles []string   `json:"include_hooks_files,omitempty" yaml:"include_hooks_files,omitempty"`
+
+	// Wait ip address before execute post-node-creation hooks for the timeout
+	// in seconds defined. A value 0 means skip waiting.
+	WaitIp int64 `json:"wait_ip,omitempty" yaml:"wait_ip,omitempty"`
 }
 
 type LxdCConfigTemplate struct {

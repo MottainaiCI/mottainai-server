@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020-2021  Daniele Rondina <geaaru@sabayonlinux.org>
+Copyright (C) 2020-2023  Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -21,7 +21,7 @@ package specs
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -33,7 +33,7 @@ func (p *LxdCProject) Init() {
 		p.Hooks = []LxdCHook{}
 	}
 
-	for idx, _ := range p.Groups {
+	for idx := range p.Groups {
 		p.Groups[idx].Init()
 	}
 }
@@ -49,6 +49,15 @@ func (p *LxdCProject) AddGroup(grp *LxdCGroup) {
 
 func (p *LxdCProject) AddEnvironment(e *LxdCEnvVars) {
 	p.Environments = append(p.Environments, *e)
+}
+
+func (p *LxdCProject) GetGroupByName(name string) *LxdCGroup {
+	for idx := range p.Groups {
+		if p.Groups[idx].Name == name {
+			return &p.Groups[idx]
+		}
+	}
+	return nil
 }
 
 func (p *LxdCProject) GetEnvsMap() (map[string]string, error) {
@@ -142,13 +151,13 @@ func (p *LxdCProject) GetNodesPrefix() string { return p.NodesPrefix }
 
 func (p *LxdCProject) SetNodesPrefix(prefix string) {
 	p.NodesPrefix = prefix
-	for idx, _ := range p.Groups {
+	for idx := range p.Groups {
 		p.Groups[idx].SetNodesPrefix(prefix)
 	}
 }
 
 func (p *LxdCProject) LoadEnvVarsFile(file string) error {
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}
