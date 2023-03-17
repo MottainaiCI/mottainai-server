@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	MOTTAINAI_VERSION    = "0.2.0"
+	MOTTAINAI_VERSION    = "0.3.0"
 	MOTTAINAI_ENV_PREFIX = "MOTTAINAI"
 	MOTTAINAI_CONFIGNAME = "mottainai-server"
 	MOTTAINAI_CONFIGPATH = "/etc/mottainai"
@@ -375,7 +375,7 @@ func (c *WebConfig) HasPrefixURL(requestURI, prefix string) bool {
 }
 
 /*
-   Return path of resource without application prefix.
+Return path of resource without application prefix.
 */
 func (c *WebConfig) NormalizePath(requestPath string) (string, error) {
 	var ans = requestPath
