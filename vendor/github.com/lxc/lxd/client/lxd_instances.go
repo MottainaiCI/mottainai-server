@@ -20,6 +20,7 @@ import (
 	"github.com/lxc/lxd/shared/ioprogress"
 	"github.com/lxc/lxd/shared/tcp"
 	"github.com/lxc/lxd/shared/units"
+	"github.com/lxc/lxd/shared/ws"
 )
 
 // Instance handling functions.
@@ -1046,8 +1047,8 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 		}
 
 		// Call the control handler with a connection to the control socket
-		if args.Control != nil && fds["control"] != "" {
-			conn, err := r.GetOperationWebsocket(opAPI.ID, fds["control"])
+		if args.Control != nil && fds[api.SecretNameControl] != "" {
+			conn, err := r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
 			if err != nil {
 				return nil, err
 			}
@@ -1066,8 +1067,8 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 
 				// And attach stdin and stdout to it
 				go func() {
-					shared.WebsocketSendStream(conn, args.Stdin, -1)
-					<-shared.WebsocketRecvStream(args.Stdout, conn)
+					ws.MirrorRead(context.Background(), conn, args.Stdin)
+					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
 					_ = conn.Close()
 
 					if args.DataDone != nil {
@@ -1081,7 +1082,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 			}
 		} else {
 			// Handle non-interactive sessions
-			dones := map[int]chan bool{}
+			dones := make(map[int]chan struct{})
 			conns := []*websocket.Conn{}
 
 			// Handle stdin
@@ -1092,7 +1093,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 				}
 
 				conns = append(conns, conn)
-				dones[0] = shared.WebsocketSendStream(conn, args.Stdin, -1)
+				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
 			}
 
 			// Handle stdout
@@ -1103,7 +1104,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 				}
 
 				conns = append(conns, conn)
-				dones[1] = shared.WebsocketRecvStream(args.Stdout, conn)
+				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
 			}
 
 			// Handle stderr
@@ -1114,7 +1115,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 				}
 
 				conns = append(conns, conn)
-				dones[2] = shared.WebsocketRecvStream(args.Stderr, conn)
+				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
 			}
 
 			// Wait for everything to be done
@@ -1555,7 +1556,7 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 		}
 
 		req.InstancePut.Stateful = snapshot.Stateful
-		req.Source.Live = args.Live
+		req.Source.Live = false // Snapshots are never running and so we don't need live migration.
 	}
 
 	req.Source.BaseImage = snapshot.Config["volatile.base_image"]
@@ -2209,11 +2210,11 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 
 	var controlConn *websocket.Conn
 	// Call the control handler with a connection to the control socket
-	if fds["control"] == "" {
+	if fds[api.SecretNameControl] == "" {
 		return nil, fmt.Errorf("Did not receive a file descriptor for the control channel")
 	}
 
-	controlConn, err = r.GetOperationWebsocket(opAPI.ID, fds["control"])
+	controlConn, err = r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
 	if err != nil {
 		return nil, err
 	}
@@ -2237,8 +2238,8 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 
 	// And attach stdin and stdout to it
 	go func() {
-		shared.WebsocketSendStream(conn, args.Terminal, -1)
-		<-shared.WebsocketRecvStream(args.Terminal, conn)
+		ws.MirrorRead(context.Background(), conn, args.Terminal)
+		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
 		_ = conn.Close()
 	}()
 
@@ -2296,11 +2297,11 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 	}
 
 	// Call the control handler with a connection to the control socket.
-	if fds["control"] == "" {
+	if fds[api.SecretNameControl] == "" {
 		return nil, nil, fmt.Errorf("Did not receive a file descriptor for the control channel")
 	}
 
-	controlConn, err := r.GetOperationWebsocket(opAPI.ID, fds["control"])
+	controlConn, err := r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2324,8 +2325,9 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 		}
 
 		// Attach reader/writer.
-		shared.WebsocketSendStream(conn, rwc, -1)
-		<-shared.WebsocketRecvStream(rwc, conn)
+		readDone, writeDone := ws.Mirror(context.Background(), conn, rwc)
+		<-readDone
+		<-writeDone
 		_ = conn.Close()
 
 		return nil
@@ -2551,7 +2553,7 @@ func (r *ProtocolLXD) GetInstanceBackupFile(instanceName string, name string, re
 	}
 
 	// Start the request
-	response, doneCh, err := cancel.CancelableDownload(req.Canceler, r.http, request)
+	response, doneCh, err := cancel.CancelableDownload(req.Canceler, r.DoHTTP, request)
 	if err != nil {
 		return nil, err
 	}
@@ -2600,7 +2602,7 @@ func (r *ProtocolLXD) proxyMigration(targetOp *operation, targetSecrets map[stri
 		}
 	}
 
-	if targetSecrets["control"] == "" {
+	if targetSecrets[api.SecretNameControl] == "" {
 		return fmt.Errorf("Migration target didn't setup the required \"control\" socket")
 	}
 
@@ -2614,25 +2616,25 @@ func (r *ProtocolLXD) proxyMigration(targetOp *operation, targetSecrets map[stri
 	proxies := map[string]*proxy{}
 
 	// Connect the control socket
-	sourceConn, err := source.GetOperationWebsocket(sourceOp.ID, sourceSecrets["control"])
+	sourceConn, err := source.GetOperationWebsocket(sourceOp.ID, sourceSecrets[api.SecretNameControl])
 	if err != nil {
 		return err
 	}
 
-	targetConn, err := r.GetOperationWebsocket(targetOp.ID, targetSecrets["control"])
+	targetConn, err := r.GetOperationWebsocket(targetOp.ID, targetSecrets[api.SecretNameControl])
 	if err != nil {
 		return err
 	}
 
-	proxies["control"] = &proxy{
-		done:       shared.WebsocketProxy(sourceConn, targetConn),
+	proxies[api.SecretNameControl] = &proxy{
+		done:       ws.Proxy(sourceConn, targetConn),
 		sourceConn: sourceConn,
 		targetConn: targetConn,
 	}
 
 	// Connect the data sockets
 	for name := range sourceSecrets {
-		if name == "control" {
+		if name == api.SecretNameControl {
 			continue
 		}
 
@@ -2650,20 +2652,20 @@ func (r *ProtocolLXD) proxyMigration(targetOp *operation, targetSecrets map[stri
 		proxies[name] = &proxy{
 			sourceConn: sourceConn,
 			targetConn: targetConn,
-			done:       shared.WebsocketProxy(sourceConn, targetConn),
+			done:       ws.Proxy(sourceConn, targetConn),
 		}
 	}
 
 	// Cleanup once everything is done
 	go func() {
 		// Wait for control socket
-		<-proxies["control"].done
-		_ = proxies["control"].sourceConn.Close()
-		_ = proxies["control"].targetConn.Close()
+		<-proxies[api.SecretNameControl].done
+		_ = proxies[api.SecretNameControl].sourceConn.Close()
+		_ = proxies[api.SecretNameControl].targetConn.Close()
 
 		// Then deal with the others
 		for name, proxy := range proxies {
-			if name == "control" {
+			if name == api.SecretNameControl {
 				continue
 			}
 

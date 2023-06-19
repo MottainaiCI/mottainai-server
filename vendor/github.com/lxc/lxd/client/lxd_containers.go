@@ -1,6 +1,7 @@
 package lxd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"github.com/lxc/lxd/shared/cancel"
 	"github.com/lxc/lxd/shared/ioprogress"
 	"github.com/lxc/lxd/shared/units"
+	"github.com/lxc/lxd/shared/ws"
 )
 
 // Container handling functions
@@ -651,8 +653,8 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 		}
 
 		// Call the control handler with a connection to the control socket
-		if args.Control != nil && fds["control"] != "" {
-			conn, err := r.GetOperationWebsocket(opAPI.ID, fds["control"])
+		if args.Control != nil && fds[api.SecretNameControl] != "" {
+			conn, err := r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
 			if err != nil {
 				return nil, err
 			}
@@ -671,8 +673,8 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 
 				// And attach stdin and stdout to it
 				go func() {
-					shared.WebsocketSendStream(conn, args.Stdin, -1)
-					<-shared.WebsocketRecvStream(args.Stdout, conn)
+					ws.MirrorRead(context.Background(), conn, args.Stdin)
+					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
 					_ = conn.Close()
 
 					if args.DataDone != nil {
@@ -686,7 +688,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 			}
 		} else {
 			// Handle non-interactive sessions
-			dones := map[int]chan bool{}
+			dones := make(map[int]chan struct{})
 			conns := []*websocket.Conn{}
 
 			// Handle stdin
@@ -697,7 +699,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-				dones[0] = shared.WebsocketSendStream(conn, args.Stdin, -1)
+				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
 			}
 
 			// Handle stdout
@@ -708,7 +710,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-				dones[1] = shared.WebsocketRecvStream(args.Stdout, conn)
+				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
 			}
 
 			// Handle stderr
@@ -719,7 +721,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-				dones[2] = shared.WebsocketRecvStream(args.Stderr, conn)
+				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
 			}
 
 			// Wait for everything to be done
@@ -992,7 +994,7 @@ func (r *ProtocolLXD) CopyContainerSnapshot(source InstanceServer, containerName
 		}
 
 		req.ContainerPut.Stateful = snapshot.Stateful
-		req.Source.Live = args.Live
+		req.Source.Live = false // Snapshots are never running and so we don't need live migration.
 	}
 
 	req.Source.BaseImage = snapshot.Config["volatile.base_image"]
@@ -1546,11 +1548,11 @@ func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.Contain
 
 	var controlConn *websocket.Conn
 	// Call the control handler with a connection to the control socket
-	if fds["control"] == "" {
+	if fds[api.SecretNameControl] == "" {
 		return nil, fmt.Errorf("Did not receive a file descriptor for the control channel")
 	}
 
-	controlConn, err = r.GetOperationWebsocket(opAPI.ID, fds["control"])
+	controlConn, err = r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
 	if err != nil {
 		return nil, err
 	}
@@ -1574,8 +1576,8 @@ func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.Contain
 
 	// And attach stdin and stdout to it
 	go func() {
-		shared.WebsocketSendStream(conn, args.Terminal, -1)
-		<-shared.WebsocketRecvStream(args.Terminal, conn)
+		ws.MirrorRead(context.Background(), conn, args.Terminal)
+		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
 		_ = conn.Close()
 	}()
 
@@ -1758,7 +1760,7 @@ func (r *ProtocolLXD) GetContainerBackupFile(containerName string, name string, 
 	}
 
 	// Start the request
-	response, doneCh, err := cancel.CancelableDownload(req.Canceler, r.http, request)
+	response, doneCh, err := cancel.CancelableDownload(req.Canceler, r.DoHTTP, request)
 	if err != nil {
 		return nil, err
 	}
