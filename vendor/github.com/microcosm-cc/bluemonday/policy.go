@@ -74,6 +74,9 @@ type Policy struct {
 	// When true, add crossorigin="anonymous" to HTML audio, img, link, script, and video tags
 	requireCrossOriginAnonymous bool
 
+	// When true, add and filter sandbox attribute on iframe tags
+	requireSandboxOnIFrame map[string]bool
+
 	// When true add target="_blank" to fully qualified links
 	// Will add for href="http://foo"
 	// Will skip for href="/foo" or href="foo"
@@ -113,6 +116,10 @@ type Policy struct {
 	// Otherwise, only the URLs with matching schema and urlPolicy(url)
 	// returning true are allowed.
 	allowURLSchemes map[string][]urlPolicy
+
+	// These regexps are used to match allowed URL schemes, for example
+	// if one would want to allow all URL schemes, they would add `.+`
+	allowURLSchemeRegexps []*regexp.Regexp
 
 	// If an element has had all attributes removed as a result of a policy
 	// being applied, then the element would be removed from the output.
@@ -189,6 +196,25 @@ type stylePolicyBuilder struct {
 
 type urlPolicy func(url *url.URL) (allowUrl bool)
 
+type SandboxValue int64
+
+const (
+	SandboxAllowDownloads SandboxValue = iota
+	SandboxAllowDownloadsWithoutUserActivation
+	SandboxAllowForms
+	SandboxAllowModals
+	SandboxAllowOrientationLock
+	SandboxAllowPointerLock
+	SandboxAllowPopups
+	SandboxAllowPopupsToEscapeSandbox
+	SandboxAllowPresentation
+	SandboxAllowSameOrigin
+	SandboxAllowScripts
+	SandboxAllowStorageAccessByUserActivation
+	SandboxAllowTopNavigation
+	SandboxAllowTopNavigationByUserActivation
+)
+
 // init initializes the maps if this has not been done already
 func (p *Policy) init() {
 	if !p.initialized {
@@ -199,6 +225,7 @@ func (p *Policy) init() {
 		p.elsMatchingAndStyles = make(map[*regexp.Regexp]map[string][]stylePolicy)
 		p.globalStyles = make(map[string][]stylePolicy)
 		p.allowURLSchemes = make(map[string][]urlPolicy)
+		p.allowURLSchemeRegexps = make([]*regexp.Regexp, 0)
 		p.setOfElementsAllowedWithoutAttrs = make(map[string]struct{})
 		p.setOfElementsToSkipContent = make(map[string]struct{})
 		p.initialized = true
@@ -541,6 +568,13 @@ func (p *Policy) AllowElementsMatching(regex *regexp.Regexp) *Policy {
 	return p
 }
 
+// AllowURLSchemesMatching will append URL schemes to the allowlist if they
+// match a regexp.
+func (p *Policy) AllowURLSchemesMatching(r *regexp.Regexp) *Policy {
+	p.allowURLSchemeRegexps = append(p.allowURLSchemeRegexps, r)
+	return p
+}
+
 // RequireNoFollowOnLinks will result in all a, area, link tags having a
 // rel="nofollow"added to them if one does not already exist
 //
@@ -680,6 +714,58 @@ func (p *Policy) AllowURLSchemeWithCustomPolicy(
 	return p
 }
 
+// RequireSandboxOnIFrame will result in all iframe tags having a sandbox="" tag
+// Any sandbox values not specified here will be filtered from the generated HTML
+func (p *Policy) RequireSandboxOnIFrame(vals ...SandboxValue) {
+	p.requireSandboxOnIFrame = make(map[string]bool)
+
+	for _, val := range vals {
+		switch SandboxValue(val) {
+		case SandboxAllowDownloads:
+			p.requireSandboxOnIFrame["allow-downloads"] = true
+
+		case SandboxAllowDownloadsWithoutUserActivation:
+			p.requireSandboxOnIFrame["allow-downloads-without-user-activation"] = true
+
+		case SandboxAllowForms:
+			p.requireSandboxOnIFrame["allow-forms"] = true
+
+		case SandboxAllowModals:
+			p.requireSandboxOnIFrame["allow-modals"] = true
+
+		case SandboxAllowOrientationLock:
+			p.requireSandboxOnIFrame["allow-orientation-lock"] = true
+
+		case SandboxAllowPointerLock:
+			p.requireSandboxOnIFrame["allow-pointer-lock"] = true
+
+		case SandboxAllowPopups:
+			p.requireSandboxOnIFrame["allow-popups"] = true
+
+		case SandboxAllowPopupsToEscapeSandbox:
+			p.requireSandboxOnIFrame["allow-popups-to-escape-sandbox"] = true
+
+		case SandboxAllowPresentation:
+			p.requireSandboxOnIFrame["allow-presentation"] = true
+
+		case SandboxAllowSameOrigin:
+			p.requireSandboxOnIFrame["allow-same-origin"] = true
+
+		case SandboxAllowScripts:
+			p.requireSandboxOnIFrame["allow-scripts"] = true
+
+		case SandboxAllowStorageAccessByUserActivation:
+			p.requireSandboxOnIFrame["allow-storage-access-by-user-activation"] = true
+
+		case SandboxAllowTopNavigation:
+			p.requireSandboxOnIFrame["allow-top-navigation"] = true
+
+		case SandboxAllowTopNavigationByUserActivation:
+			p.requireSandboxOnIFrame["allow-top-navigation-by-user-activation"] = true
+		}
+	}
+}
+
 // AddSpaceWhenStrippingTag states whether to add a single space " " when
 // removing tags that are not allowed by the policy.
 //
@@ -805,6 +891,7 @@ func (p *Policy) addDefaultElementsWithoutAttrs() {
 	p.setOfElementsAllowedWithoutAttrs["optgroup"] = struct{}{}
 	p.setOfElementsAllowedWithoutAttrs["option"] = struct{}{}
 	p.setOfElementsAllowedWithoutAttrs["p"] = struct{}{}
+	p.setOfElementsAllowedWithoutAttrs["picture"] = struct{}{}
 	p.setOfElementsAllowedWithoutAttrs["pre"] = struct{}{}
 	p.setOfElementsAllowedWithoutAttrs["q"] = struct{}{}
 	p.setOfElementsAllowedWithoutAttrs["rp"] = struct{}{}
