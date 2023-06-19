@@ -41,9 +41,14 @@ github.com/Microsoft/go-winio/pkg/guid
 =======
 # github.com/Microsoft/hcsshim v0.10.0-rc.8
 ## explicit; go 1.18
+<<<<<<< HEAD
 # github.com/MottainaiCI/lxd-compose v0.27.0
 ## explicit; go 1.18
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# github.com/MottainaiCI/lxd-compose v0.28.1-0.20230619135553-d928eed0eddf
+## explicit; go 1.19
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/MottainaiCI/lxd-compose/pkg/executor
 github.com/MottainaiCI/lxd-compose/pkg/helpers
 github.com/MottainaiCI/lxd-compose/pkg/logger
@@ -209,8 +214,13 @@ github.com/fsouza/go-dockerclient
 # github.com/fvbommel/sortorder v1.1.0
 ## explicit; go 1.13
 github.com/fvbommel/sortorder
+<<<<<<< HEAD
 # github.com/geaaru/tar-formers v0.9.1
 ## explicit; go 1.20
+=======
+# github.com/geaaru/tar-formers v0.8.2
+## explicit; go 1.19
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/geaaru/tar-formers/pkg/specs
 # github.com/ghodss/yaml v1.0.0
 ## explicit
@@ -273,8 +283,13 @@ github.com/go-git/go-git/v5/utils/merkletrie/filesystem
 github.com/go-git/go-git/v5/utils/merkletrie/index
 github.com/go-git/go-git/v5/utils/merkletrie/internal/frame
 github.com/go-git/go-git/v5/utils/merkletrie/noder
+<<<<<<< HEAD
 # github.com/go-logr/logr v1.4.2
 ## explicit; go 1.18
+=======
+# github.com/go-logr/logr v1.2.4
+## explicit; go 1.16
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/go-logr/logr
 github.com/go-logr/logr/funcr
 # github.com/go-macaron/binding v1.1.1
@@ -326,9 +341,15 @@ github.com/go-redis/redis/v8/internal/pool
 github.com/go-redis/redis/v8/internal/proto
 github.com/go-redis/redis/v8/internal/rand
 github.com/go-redis/redis/v8/internal/util
+<<<<<<< HEAD
 # github.com/go-task/slim-sprig/v3 v3.0.0
 ## explicit; go 1.20
 github.com/go-task/slim-sprig/v3
+=======
+# github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
+## explicit; go 1.13
+github.com/go-task/slim-sprig
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 # github.com/gobwas/glob v0.2.3
 ## explicit
 github.com/gobwas/glob
@@ -384,15 +405,23 @@ github.com/google/go-querystring/query
 ## explicit; go 1.12
 github.com/google/gofuzz
 github.com/google/gofuzz/bytesource
+<<<<<<< HEAD
 # github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6
 ## explicit; go 1.19
 github.com/google/pprof/profile
 # github.com/google/uuid v1.6.0
+=======
+# github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
+## explicit; go 1.14
+github.com/google/pprof/profile
+# github.com/google/uuid v1.3.0
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit
 github.com/google/uuid
 # github.com/gorilla/css v1.0.0
 ## explicit
 github.com/gorilla/css/scanner
+<<<<<<< HEAD
 # github.com/gorilla/schema v1.3.0
 ## explicit; go 1.20
 github.com/gorilla/schema
@@ -401,6 +430,16 @@ github.com/gorilla/schema
 github.com/gorilla/securecookie
 # github.com/gorilla/websocket v1.5.1
 ## explicit; go 1.20
+=======
+# github.com/gorilla/schema v1.2.0
+## explicit
+github.com/gorilla/schema
+# github.com/gorilla/securecookie v1.1.1
+## explicit
+github.com/gorilla/securecookie
+# github.com/gorilla/websocket v1.5.0
+## explicit; go 1.12
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/gorilla/websocket
 # github.com/gosexy/gettext v0.0.0-20160830220431-74466a0a0c4a
 ## explicit
@@ -485,11 +524,16 @@ github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
 <<<<<<< HEAD
+<<<<<<< HEAD
 # github.com/klauspost/pgzip v1.2.6
 ## explicit
 =======
 # github.com/klauspost/pgzip v1.2.5
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# github.com/klauspost/pgzip v1.2.6
+## explicit
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 # github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b
 ## explicit
 github.com/koding/logging
@@ -502,6 +546,30 @@ github.com/kyokomi/emoji
 # github.com/logrusorgru/aurora v2.0.3+incompatible
 ## explicit
 github.com/logrusorgru/aurora
+<<<<<<< HEAD
+=======
+# github.com/lxc/lxd v0.0.0-20230526000706-c0b7d6b0c8cc
+## explicit; go 1.18
+github.com/lxc/lxd/client
+github.com/lxc/lxd/lxc/config
+github.com/lxc/lxd/lxc/utils
+github.com/lxc/lxd/lxd/device/config
+github.com/lxc/lxd/lxd/instance/instancetype
+github.com/lxc/lxd/lxd/revert
+github.com/lxc/lxd/shared
+github.com/lxc/lxd/shared/api
+github.com/lxc/lxd/shared/cancel
+github.com/lxc/lxd/shared/i18n
+github.com/lxc/lxd/shared/ioprogress
+github.com/lxc/lxd/shared/logger
+github.com/lxc/lxd/shared/osarch
+github.com/lxc/lxd/shared/simplestreams
+github.com/lxc/lxd/shared/tcp
+github.com/lxc/lxd/shared/termios
+github.com/lxc/lxd/shared/units
+github.com/lxc/lxd/shared/validate
+github.com/lxc/lxd/shared/ws
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 # github.com/magiconair/properties v1.8.7
 ## explicit; go 1.19
 github.com/magiconair/properties
@@ -517,7 +585,11 @@ github.com/markbates/goth/providers/github
 # github.com/mattn/go-colorable v0.1.13
 ## explicit; go 1.15
 github.com/mattn/go-colorable
+<<<<<<< HEAD
 # github.com/mattn/go-isatty v0.0.20
+=======
+# github.com/mattn/go-isatty v0.0.19
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.15
@@ -583,8 +655,13 @@ github.com/mxk/go-flowrate/flowrate
 # github.com/olekukonko/tablewriter v0.0.5
 ## explicit; go 1.12
 github.com/olekukonko/tablewriter
+<<<<<<< HEAD
 # github.com/onsi/ginkgo/v2 v2.17.2
 ## explicit; go 1.20
+=======
+# github.com/onsi/ginkgo/v2 v2.9.5
+## explicit; go 1.18
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
 github.com/onsi/ginkgo/v2/formatter
@@ -605,8 +682,13 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
+<<<<<<< HEAD
 # github.com/onsi/gomega v1.33.1
 ## explicit; go 1.20
+=======
+# github.com/onsi/gomega v1.27.6
+## explicit; go 1.18
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/internal
@@ -660,7 +742,11 @@ github.com/pkg/sftp/internal/encoding/ssh/filexfer
 # github.com/pkg/xattr v0.4.9
 ## explicit; go 1.14
 github.com/pkg/xattr
+<<<<<<< HEAD
 # github.com/rivo/uniseg v0.4.7
+=======
+# github.com/rivo/uniseg v0.4.4
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit; go 1.18
 github.com/rivo/uniseg
 # github.com/robfig/cron v1.2.0
@@ -762,8 +848,13 @@ github.com/xeipuuv/gojsonreference
 ## explicit
 github.com/xeipuuv/gojsonschema
 <<<<<<< HEAD
+<<<<<<< HEAD
 # github.com/zitadel/oidc/v2 v2.12.0
 ## explicit; go 1.19
+=======
+# github.com/zitadel/oidc/v2 v2.6.1
+## explicit; go 1.18
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 github.com/zitadel/oidc/v2/pkg/client
 github.com/zitadel/oidc/v2/pkg/client/rp
 github.com/zitadel/oidc/v2/pkg/crypto
@@ -771,15 +862,22 @@ github.com/zitadel/oidc/v2/pkg/http
 github.com/zitadel/oidc/v2/pkg/oidc
 github.com/zitadel/oidc/v2/pkg/oidc/grants/tokenexchange
 github.com/zitadel/oidc/v2/pkg/strings
+<<<<<<< HEAD
 # go.uber.org/multierr v1.11.0
 =======
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 # go.opencensus.io v0.24.0
 ## explicit; go 1.13
-# go.uber.org/atomic v1.10.0
+# go.uber.org/atomic v1.11.0
 ## explicit; go 1.18
 go.uber.org/atomic
+<<<<<<< HEAD
 # go.uber.org/multierr v1.9.0
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# go.uber.org/multierr v1.11.0
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit; go 1.19
 go.uber.org/multierr
 # go.uber.org/zap v1.27.0
@@ -853,10 +951,14 @@ golang.org/x/net/internal/socks
 golang.org/x/net/proxy
 golang.org/x/net/publicsuffix
 <<<<<<< HEAD
+<<<<<<< HEAD
 # golang.org/x/oauth2 v0.20.0
 ## explicit; go 1.18
 =======
 # golang.org/x/oauth2 v0.7.0
+=======
+# golang.org/x/oauth2 v0.8.0
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit; go 1.17
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 golang.org/x/oauth2
@@ -929,6 +1031,7 @@ golang.org/x/tools/internal/aliases
 # golang.org/x/tools v0.10.0
 ## explicit; go 1.18
 golang.org/x/tools/cmd/stringer
+golang.org/x/tools/go/ast/inspector
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/go/packages
@@ -1069,10 +1172,16 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+<<<<<<< HEAD
 # gotest.tools/v3 v3.5.1
 ## explicit; go 1.17
 # helm.sh/helm/v3 v3.15.1
 ## explicit; go 1.22.0
+=======
+# helm.sh/helm/v3 v3.12.1
+## explicit; go 1.19
+helm.sh/helm/v3/internal/ignore
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 helm.sh/helm/v3/internal/sympath
 helm.sh/helm/v3/internal/version
 helm.sh/helm/v3/pkg/chart
@@ -1084,12 +1193,17 @@ helm.sh/helm/v3/pkg/ignore
 ## explicit
 howett.net/plist
 <<<<<<< HEAD
+<<<<<<< HEAD
 # k8s.io/api v0.30.1
 ## explicit; go 1.22.0
 =======
 # k8s.io/api v0.26.2
 ## explicit; go 1.19
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# k8s.io/api v0.27.2
+## explicit; go 1.20
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1alpha1
 k8s.io/api/admissionregistration/v1beta1
@@ -1143,6 +1257,7 @@ k8s.io/api/scheduling/v1beta1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
+<<<<<<< HEAD
 k8s.io/api/storagemigration/v1alpha1
 # k8s.io/apiextensions-apiserver v0.30.1
 ## explicit; go 1.22.0
@@ -1156,6 +1271,15 @@ k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
 # k8s.io/apimachinery v0.26.2
 ## explicit; go 1.19
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# k8s.io/apiextensions-apiserver v0.27.2
+## explicit; go 1.20
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
+# k8s.io/apimachinery v0.27.2
+## explicit; go 1.20
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/meta
@@ -1197,12 +1321,17 @@ k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/reflect
 <<<<<<< HEAD
+<<<<<<< HEAD
 # k8s.io/client-go v0.30.1
 ## explicit; go 1.22.0
 =======
 # k8s.io/client-go v0.26.2
 ## explicit; go 1.19
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# k8s.io/client-go v0.27.2
+## explicit; go 1.20
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 k8s.io/client-go/discovery
 k8s.io/client-go/dynamic
 k8s.io/client-go/kubernetes/scheme
@@ -1236,9 +1365,15 @@ k8s.io/klog/v2/internal/clock
 k8s.io/klog/v2/internal/dbg
 k8s.io/klog/v2/internal/serialize
 k8s.io/klog/v2/internal/severity
+<<<<<<< HEAD
 k8s.io/klog/v2/internal/sloghandler
 # k8s.io/kube-openapi v0.0.0-20240521193020-835d969ad83a
 ## explicit; go 1.20
+=======
+# k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
+## explicit; go 1.19
+k8s.io/kube-openapi/pkg/builder3/util
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 k8s.io/kube-openapi/pkg/cached
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/handler3
@@ -1249,10 +1384,14 @@ k8s.io/kube-openapi/pkg/spec3
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/validation/spec
 <<<<<<< HEAD
+<<<<<<< HEAD
 # k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 =======
 # k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+# k8s.io/utils v0.0.0-20230505201702-9f6742963106
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## explicit; go 1.18
 k8s.io/utils/clock
 k8s.io/utils/clock/testing

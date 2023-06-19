@@ -135,10 +135,14 @@ func (w *Writer) Println(a ...interface{}) {
 
 func GinkgoLogrFunc(writer *Writer) logr.Logger {
 	return funcr.New(func(prefix, args string) {
+<<<<<<< HEAD
 		if prefix == "" {
 			writer.Printf("%s\n", args)
 		} else {
 			writer.Printf("%s %s\n", prefix, args)
 		}
+=======
+		writer.Printf("%s\n", args)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}, funcr.Options{})
 }

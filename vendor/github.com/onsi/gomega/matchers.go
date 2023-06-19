@@ -105,6 +105,7 @@ func Succeed() types.GomegaMatcher {
 }
 
 // MatchError succeeds if actual is a non-nil error that matches the passed in
+<<<<<<< HEAD
 // string, error, function, or matcher.
 //
 // These are valid use-cases:
@@ -140,6 +141,19 @@ func Succeed() types.GomegaMatcher {
 //
 // The optional second argument is a description of the error function, if used.  This is required when passing a function but is ignored in all other cases.
 func MatchError(expected interface{}, functionErrorDescription ...any) types.GomegaMatcher {
+=======
+// string, error, or matcher.
+//
+// These are valid use-cases:
+//
+//  Expect(err).Should(MatchError("an error")) //asserts that err.Error() == "an error"
+//  Expect(err).Should(MatchError(SomeError)) //asserts that err == SomeError (via reflect.DeepEqual)
+//  Expect(err).Should(MatchError(ContainsSubstring("sprocket not found"))) // asserts that edrr.Error() contains substring "sprocket not found"
+//
+// It is an error for err to be nil or an object that does not implement the
+// Error interface
+func MatchError(expected interface{}) types.GomegaMatcher {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return &matchers.MatchErrorMatcher{
 		Expected:           expected,
 		FuncErrDescription: functionErrorDescription,
@@ -395,7 +409,11 @@ func ConsistOf(elements ...interface{}) types.GomegaMatcher {
 	}
 }
 
+<<<<<<< HEAD
 // HaveExactElements succeeds if actual contains elements that precisely match the elemets passed into the matcher. The ordering of the elements does matter.
+=======
+// HaveExactElemets succeeds if actual contains elements that precisely match the elemets passed into the matcher. The ordering of the elements does matter.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // By default HaveExactElements() uses Equal() to match the elements, however custom matchers can be passed in instead.  Here are some examples:
 //
 //	Expect([]string{"Foo", "FooBar"}).Should(HaveExactElements("Foo", "FooBar"))

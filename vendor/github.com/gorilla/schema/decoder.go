@@ -84,7 +84,10 @@ func (d *Decoder) Decode(dst interface{}, src map[string][]string) error {
 			errors[path] = UnknownKeyError{Key: path}
 		}
 	}
+<<<<<<< HEAD
 	errors.merge(d.setDefaults(t, v))
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	errors.merge(d.checkRequired(t, src))
 	if len(errors) > 0 {
 		return errors
@@ -92,6 +95,7 @@ func (d *Decoder) Decode(dst interface{}, src map[string][]string) error {
 	return nil
 }
 
+<<<<<<< HEAD
 //setDefaults sets the default values when the `default` tag is specified,
 //default is supported on basic/primitive types and their pointers,
 //nested structs can also have default tags
@@ -162,6 +166,8 @@ func isPointerToStruct(v reflect.Value) bool {
 	return !v.IsZero() && v.Type().Kind() == reflect.Ptr && v.Elem().Type().Kind() == reflect.Struct
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // checkRequired checks whether required fields are empty
 //
 // check type t recursively if t has struct fields.
@@ -264,7 +270,11 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 		if v.Type().Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
 				field := v.Field(i)
+<<<<<<< HEAD
 				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous {
+=======
+				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous == true {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 					field.Set(reflect.New(field.Type().Elem()))
 				}
 			}

@@ -243,7 +243,10 @@ type IngressRuleValue struct {
 // or '#'.
 type HTTPIngressRuleValue struct {
 	// paths is a collection of paths that map requests to backends.
+<<<<<<< HEAD
 	// +listType=atomic
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	Paths []HTTPIngressPath `json:"paths" protobuf:"bytes,1,rep,name=paths"`
 	// TODO: Consider adding fields for ingress-type specific global
 	// options usable by a loadbalancer, like http keep-alive.

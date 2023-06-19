@@ -30,10 +30,16 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+<<<<<<< HEAD
 	openapi_v3 "github.com/google/gnostic-models/openapiv3"
 	"github.com/google/uuid"
 	"github.com/munnerz/goautoneg"
 
+=======
+	openapi_v3 "github.com/google/gnostic/openapiv3"
+	"github.com/google/uuid"
+	"github.com/munnerz/goautoneg"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"k8s.io/klog/v2"
 	"k8s.io/kube-openapi/pkg/cached"
 	"k8s.io/kube-openapi/pkg/common"
@@ -74,13 +80,20 @@ type timedSpec struct {
 
 // This type is protected by the lock on OpenAPIService.
 type openAPIV3Group struct {
+<<<<<<< HEAD
 	specCache cached.LastSuccess[*spec3.OpenAPI]
 	pbCache   cached.Value[timedSpec]
 	jsonCache cached.Value[timedSpec]
+=======
+	specCache cached.Replaceable[*spec3.OpenAPI]
+	pbCache   cached.Data[timedSpec]
+	jsonCache cached.Data[timedSpec]
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func newOpenAPIV3Group() *openAPIV3Group {
 	o := &openAPIV3Group{}
+<<<<<<< HEAD
 	o.jsonCache = cached.Transform[*spec3.OpenAPI](func(spec *spec3.OpenAPI, etag string, err error) (timedSpec, string, error) {
 		if err != nil {
 			return timedSpec{}, "", err
@@ -100,12 +113,38 @@ func newOpenAPIV3Group() *openAPIV3Group {
 			return timedSpec{}, "", err
 		}
 		return timedSpec{spec: proto, lastModified: ts.lastModified}, etag, nil
+=======
+	o.jsonCache = cached.NewTransformer[*spec3.OpenAPI](func(result cached.Result[*spec3.OpenAPI]) cached.Result[timedSpec] {
+		if result.Err != nil {
+			return cached.NewResultErr[timedSpec](result.Err)
+		}
+		json, err := json.Marshal(result.Data)
+		if err != nil {
+			return cached.NewResultErr[timedSpec](err)
+		}
+		return cached.NewResultOK(timedSpec{spec: json, lastModified: time.Now()}, computeETag(json))
+	}, &o.specCache)
+	o.pbCache = cached.NewTransformer(func(result cached.Result[timedSpec]) cached.Result[timedSpec] {
+		if result.Err != nil {
+			return cached.NewResultErr[timedSpec](result.Err)
+		}
+		proto, err := ToV3ProtoBinary(result.Data.spec)
+		if err != nil {
+			return cached.NewResultErr[timedSpec](err)
+		}
+		return cached.NewResultOK(timedSpec{spec: proto, lastModified: result.Data.lastModified}, result.Etag)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}, o.jsonCache)
 	return o
 }
 
+<<<<<<< HEAD
 func (o *openAPIV3Group) UpdateSpec(openapi cached.Value[*spec3.OpenAPI]) {
 	o.specCache.Store(openapi)
+=======
+func (o *openAPIV3Group) UpdateSpec(openapi cached.Data[*spec3.OpenAPI]) {
+	o.specCache.Replace(openapi)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // OpenAPIService is the service responsible for serving OpenAPI spec. It has
@@ -115,7 +154,11 @@ type OpenAPIService struct {
 	mutex    sync.Mutex
 	v3Schema map[string]*openAPIV3Group
 
+<<<<<<< HEAD
 	discoveryCache cached.LastSuccess[timedSpec]
+=======
+	discoveryCache cached.Replaceable[timedSpec]
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func computeETag(data []byte) string {
@@ -138,6 +181,7 @@ func NewOpenAPIService() *OpenAPIService {
 	o := &OpenAPIService{}
 	o.v3Schema = make(map[string]*openAPIV3Group)
 	// We're not locked because we haven't shared the structure yet.
+<<<<<<< HEAD
 	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
 	return o
 }
@@ -152,6 +196,22 @@ func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Value[timedSpec] {
 		for gvName, result := range results {
 			if result.Err != nil {
 				return timedSpec{}, "", result.Err
+=======
+	o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
+	return o
+}
+
+func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Data[timedSpec] {
+	caches := make(map[string]cached.Data[timedSpec], len(o.v3Schema))
+	for gvName, group := range o.v3Schema {
+		caches[gvName] = group.jsonCache
+	}
+	return cached.NewMerger(func(results map[string]cached.Result[timedSpec]) cached.Result[timedSpec] {
+		discovery := &OpenAPIV3Discovery{Paths: make(map[string]OpenAPIV3DiscoveryGroupVersion)}
+		for gvName, result := range results {
+			if result.Err != nil {
+				return cached.NewResultErr[timedSpec](result.Err)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			}
 			discovery.Paths[gvName] = OpenAPIV3DiscoveryGroupVersion{
 				ServerRelativeURL: constructServerRelativeURL(gvName, result.Etag),
@@ -159,9 +219,15 @@ func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Value[timedSpec] {
 		}
 		j, err := json.Marshal(discovery)
 		if err != nil {
+<<<<<<< HEAD
 			return timedSpec{}, "", err
 		}
 		return timedSpec{spec: j, lastModified: time.Now()}, computeETag(j), nil
+=======
+			return cached.NewResultErr[timedSpec](err)
+		}
+		return cached.NewResultOK(timedSpec{spec: j, lastModified: time.Now()}, computeETag(j))
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}, caches)
 }
 
@@ -172,6 +238,7 @@ func (o *OpenAPIService) getSingleGroupBytes(getType string, group string) ([]by
 	if !ok {
 		return nil, "", time.Now(), fmt.Errorf("Cannot find CRD group %s", group)
 	}
+<<<<<<< HEAD
 	switch getType {
 	case subTypeJSON:
 		ts, etag, err := v.jsonCache.Get()
@@ -186,18 +253,42 @@ func (o *OpenAPIService) getSingleGroupBytes(getType string, group string) ([]by
 
 // UpdateGroupVersionLazy adds or updates an existing group with the new cached.
 func (o *OpenAPIService) UpdateGroupVersionLazy(group string, openapi cached.Value[*spec3.OpenAPI]) {
+=======
+	result := cached.Result[timedSpec]{}
+	switch getType {
+	case subTypeJSON:
+		result = v.jsonCache.Get()
+	case subTypeProtobuf, subTypeProtobufDeprecated:
+		result = v.pbCache.Get()
+	default:
+		return nil, "", time.Now(), fmt.Errorf("Invalid accept clause %s", getType)
+	}
+	return result.Data.spec, result.Etag, result.Data.lastModified, result.Err
+}
+
+// UpdateGroupVersionLazy adds or updates an existing group with the new cached.
+func (o *OpenAPIService) UpdateGroupVersionLazy(group string, openapi cached.Data[*spec3.OpenAPI]) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	if _, ok := o.v3Schema[group]; !ok {
 		o.v3Schema[group] = newOpenAPIV3Group()
 		// Since there is a new item, we need to re-build the cache map.
+<<<<<<< HEAD
 		o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
+=======
+		o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	o.v3Schema[group].UpdateSpec(openapi)
 }
 
 func (o *OpenAPIService) UpdateGroupVersion(group string, openapi *spec3.OpenAPI) {
+<<<<<<< HEAD
 	o.UpdateGroupVersionLazy(group, cached.Static(openapi, uuid.New().String()))
+=======
+	o.UpdateGroupVersionLazy(group, cached.NewResultOK(openapi, uuid.New().String()))
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (o *OpenAPIService) DeleteGroupVersion(group string) {
@@ -205,6 +296,7 @@ func (o *OpenAPIService) DeleteGroupVersion(group string) {
 	defer o.mutex.Unlock()
 	delete(o.v3Schema, group)
 	// Rebuild the merge cache map since the items have changed.
+<<<<<<< HEAD
 	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
 }
 
@@ -218,6 +310,21 @@ func (o *OpenAPIService) HandleDiscovery(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Etag", strconv.Quote(etag))
 	w.Header().Set("Content-Type", "application/json")
 	http.ServeContent(w, r, "/openapi/v3", ts.lastModified, bytes.NewReader(ts.spec))
+=======
+	o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
+}
+
+func (o *OpenAPIService) HandleDiscovery(w http.ResponseWriter, r *http.Request) {
+	result := o.discoveryCache.Get()
+	if result.Err != nil {
+		klog.Errorf("Error serving discovery: %s", result.Err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Etag", strconv.Quote(result.Etag))
+	w.Header().Set("Content-Type", "application/json")
+	http.ServeContent(w, r, "/openapi/v3", result.Data.lastModified, bytes.NewReader(result.Data.spec))
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (o *OpenAPIService) HandleGroupVersion(w http.ResponseWriter, r *http.Request) {

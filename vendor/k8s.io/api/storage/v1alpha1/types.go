@@ -247,6 +247,11 @@ type CSIStorageCapacityList struct {
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// items is the list of CSIStorageCapacity objects.
+<<<<<<< HEAD
+=======
+	// +listType=map
+	// +listMapKey=name
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	Items []CSIStorageCapacity `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 

@@ -46,8 +46,13 @@ func GetKeyIDAndAlg(jws *jose.JSONWebSignature) (string, string) {
 //
 // will return false none or multiple match
 //
+<<<<<<< HEAD
 // deprecated: use FindMatchingKey which will return an error (more specific) instead of just a bool
 // moved implementation already to FindMatchingKey
+=======
+//deprecated: use FindMatchingKey which will return an error (more specific) instead of just a bool
+//moved implementation already to FindMatchingKey
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 func FindKey(keyID, use, expectedAlg string, keys ...jose.JSONWebKey) (jose.JSONWebKey, bool) {
 	key, err := FindMatchingKey(keyID, use, expectedAlg, keys...)
 	return key, err == nil
@@ -91,7 +96,11 @@ func FindMatchingKey(keyID, use, expectedAlg string, keys ...jose.JSONWebKey) (k
 	return key, ErrKeyNone
 }
 
+<<<<<<< HEAD
 func algToKeyType(key any, alg string) bool {
+=======
+func algToKeyType(key interface{}, alg string) bool {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	switch alg[0] {
 	case 'R', 'P':
 		_, ok := key.(*rsa.PublicKey)

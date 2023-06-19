@@ -1,6 +1,10 @@
 package internal
 
 import (
+<<<<<<< HEAD
+=======
+	"bytes"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +15,10 @@ import (
 	"github.com/google/pprof/profile"
 	"github.com/onsi/ginkgo/v2/reporters"
 	"github.com/onsi/ginkgo/v2/types"
+<<<<<<< HEAD
 	"golang.org/x/tools/cover"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 func AbsPathForGeneratedAsset(assetName string, suite TestSuite, cliConfig types.CLIConfig, process int) string {
@@ -144,6 +151,7 @@ func FinalizeProfilesAndReportsForSuites(suites TestSuites, cliConfig types.CLIC
 	return messages, nil
 }
 
+<<<<<<< HEAD
 // loads each profile, merges them, deletes them, stores them in destination
 func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
 	var merged []*cover.Profile
@@ -165,6 +173,40 @@ func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
 	err = DumpCoverProfiles(merged, dst)
 	if err != nil {
 		return err
+=======
+//loads each profile, combines them, deletes them, stores them in destination
+func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
+	combined := &bytes.Buffer{}
+	modeRegex := regexp.MustCompile(`^mode: .*\n`)
+	for i, profile := range profiles {
+		contents, err := os.ReadFile(profile)
+		if err != nil {
+			return fmt.Errorf("Unable to read coverage file %s:\n%s", profile, err.Error())
+		}
+		os.Remove(profile)
+
+		// remove the cover mode line from every file
+		// except the first one
+		if i > 0 {
+			contents = modeRegex.ReplaceAll(contents, []byte{})
+		}
+
+		_, err = combined.Write(contents)
+
+		// Add a newline to the end of every file if missing.
+		if err == nil && len(contents) > 0 && contents[len(contents)-1] != '\n' {
+			_, err = combined.Write([]byte("\n"))
+		}
+
+		if err != nil {
+			return fmt.Errorf("Unable to append to coverprofile:\n%s", err.Error())
+		}
+	}
+
+	err := os.WriteFile(destination, combined.Bytes(), 0666)
+	if err != nil {
+		return fmt.Errorf("Unable to create combined cover profile:\n%s", err.Error())
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	return nil
 }
@@ -173,7 +215,11 @@ func GetCoverageFromCoverProfile(profile string) (float64, error) {
 	cmd := exec.Command("go", "tool", "cover", "-func", profile)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+<<<<<<< HEAD
 		return 0, fmt.Errorf("Could not process Coverprofile %s: %s - %s", profile, err.Error(), string(output))
+=======
+		return 0, fmt.Errorf("Could not process Coverprofile %s: %s", profile, err.Error())
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	re := regexp.MustCompile(`total:\s*\(statements\)\s*(\d*\.\d*)\%`)
 	matches := re.FindStringSubmatch(string(output))
@@ -197,7 +243,10 @@ func MergeProfiles(profilePaths []string, destination string) error {
 			return fmt.Errorf("Could not open profile: %s\n%s", profilePath, err.Error())
 		}
 		prof, err := profile.Parse(proFile)
+<<<<<<< HEAD
 		_ = proFile.Close()
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		if err != nil {
 			return fmt.Errorf("Could not parse profile: %s\n%s", profilePath, err.Error())
 		}

@@ -28,7 +28,18 @@ func packageNameForImport(f *ast.File, path string) *string {
 	}
 	name := spec.Name.String()
 	if name == "<nil>" {
+<<<<<<< HEAD
 		name = "ginkgo"
+=======
+		// If the package name is not explicitly specified,
+		// make an educated guess. This is not guaranteed to be correct.
+		lastSlash := strings.LastIndex(path, "/")
+		if lastSlash == -1 {
+			name = path
+		} else {
+			name = path[lastSlash+1:]
+		}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	if name == "." {
 		name = ""

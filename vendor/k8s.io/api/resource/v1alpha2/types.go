@@ -202,15 +202,19 @@ type ResourceHandle struct {
 	// future, but not reduced.
 	// +optional
 	Data string `json:"data,omitempty" protobuf:"bytes,2,opt,name=data"`
+<<<<<<< HEAD
 
 	// If StructuredData is set, then it needs to be used instead of Data.
 	//
 	// +optional
 	StructuredData *StructuredResourceHandle `json:"structuredData,omitempty" protobuf:"bytes,5,opt,name=structuredData"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // ResourceHandleDataMaxSize represents the maximum size of resourceHandle.data.
 const ResourceHandleDataMaxSize = 16 * 1024
+<<<<<<< HEAD
 
 // StructuredResourceHandle is the in-tree representation of the allocation result.
 type StructuredResourceHandle struct {
@@ -258,6 +262,8 @@ type AllocationResultModel struct {
 	// +optional
 	NamedResources *NamedResourcesAllocationResult `json:"namedResources,omitempty" protobuf:"bytes,1,opt,name=namedResources"`
 }
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:prerelease-lifecycle-gen:introduced=1.26

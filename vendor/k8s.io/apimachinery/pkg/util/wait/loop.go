@@ -27,11 +27,17 @@ import (
 // the provided timer until the provided context is cancelled, the condition returns
 // true, or the condition returns an error. If sliding is true, the period is computed
 // after condition runs. If it is false then period includes the runtime for condition.
+<<<<<<< HEAD
 // If immediate is false the first delay happens before any call to condition, if
 // immediate is true the condition will be invoked before waiting and guarantees that
 // the condition is invoked at least once, regardless of whether the context has been
 // cancelled. The returned error is the error returned by the last condition or the
 // context error if the context was terminated.
+=======
+// If immediate is false the first delay happens before any call to condition. The
+// returned error is the error returned by the last condition or the context error if
+// the context was terminated.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 //
 // This is the common loop construct for all polling in the wait package.
 func loopConditionUntilContext(ctx context.Context, t Timer, immediate, sliding bool, condition ConditionWithContextFunc) error {
@@ -40,6 +46,7 @@ func loopConditionUntilContext(ctx context.Context, t Timer, immediate, sliding 
 	var timeCh <-chan time.Time
 	doneCh := ctx.Done()
 
+<<<<<<< HEAD
 	if !sliding {
 		timeCh = t.C()
 	}
@@ -63,11 +70,17 @@ func loopConditionUntilContext(ctx context.Context, t Timer, immediate, sliding 
 	for {
 
 		// Wait for either the context to be cancelled or the next invocation be called
+=======
+	// if we haven't requested immediate execution, delay once
+	if !immediate {
+		timeCh = t.C()
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		select {
 		case <-doneCh:
 			return ctx.Err()
 		case <-timeCh:
 		}
+<<<<<<< HEAD
 
 		// IMPORTANT: Because there is no channel priority selection in golang
 		// it is possible for very short timers to "win" the race in the previous select
@@ -75,6 +88,12 @@ func loopConditionUntilContext(ctx context.Context, t Timer, immediate, sliding 
 		// explicitly check for context cancellation on every loop and exit if true to
 		// guarantee that we don't invoke condition more than once after context has
 		// been cancelled.
+=======
+	}
+
+	for {
+		// checking ctx.Err() is slightly faster than checking a select
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		if err := ctx.Err(); err != nil {
 			return err
 		}
@@ -91,5 +110,24 @@ func loopConditionUntilContext(ctx context.Context, t Timer, immediate, sliding 
 		if sliding {
 			t.Next()
 		}
+<<<<<<< HEAD
+=======
+
+		if timeCh == nil {
+			timeCh = t.C()
+		}
+
+		// NOTE: b/c there is no priority selection in golang
+		// it is possible for this to race, meaning we could
+		// trigger t.C and doneCh, and t.C select falls through.
+		// In order to mitigate we re-check doneCh at the beginning
+		// of every loop to guarantee at-most one extra execution
+		// of condition.
+		select {
+		case <-doneCh:
+			return ctx.Err()
+		case <-timeCh:
+		}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 }

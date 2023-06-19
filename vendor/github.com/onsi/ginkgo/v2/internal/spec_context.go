@@ -17,7 +17,11 @@ type specContext struct {
 	context.Context
 	*ProgressReporterManager
 
+<<<<<<< HEAD
 	cancel context.CancelCauseFunc
+=======
+	cancel context.CancelFunc
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 	suite *Suite
 }

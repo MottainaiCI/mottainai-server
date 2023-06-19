@@ -788,6 +788,7 @@ message ValidationRule {
   // "x must be less than max ("+string(self.max)+")"
   // +optional
   optional string messageExpression = 3;
+<<<<<<< HEAD
 
   // reason provides a machine-readable validation failure reason that is returned to the caller when a request fails this validation rule.
   // The HTTP status code returned to the caller will match the reason of the reason of the first failed validation rule.
@@ -826,6 +827,8 @@ message ValidationRule {
   // +featureGate=CRDValidationRatcheting
   // +optional
   optional bool optionalOldSelf = 6;
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // WebhookClientConfig contains the information to make a TLS connection with the webhook.

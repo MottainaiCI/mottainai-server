@@ -850,11 +850,14 @@ func (in *Container) DeepCopyInto(out *Container) {
 		*out = make([]ContainerResizePolicy, len(*in))
 		copy(*out, *in)
 	}
+<<<<<<< HEAD
 	if in.RestartPolicy != nil {
 		in, out := &in.RestartPolicy, &out.RestartPolicy
 		*out = new(ContainerRestartPolicy)
 		**out = **in
 	}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if in.VolumeMounts != nil {
 		in, out := &in.VolumeMounts, &out.VolumeMounts
 		*out = make([]VolumeMount, len(*in))
@@ -1062,6 +1065,7 @@ func (in *ContainerStatus) DeepCopyInto(out *ContainerStatus) {
 		*out = new(ResourceRequirements)
 		(*in).DeepCopyInto(*out)
 	}
+<<<<<<< HEAD
 	if in.VolumeMounts != nil {
 		in, out := &in.VolumeMounts, &out.VolumeMounts
 		*out = make([]VolumeMountStatus, len(*in))
@@ -1069,6 +1073,8 @@ func (in *ContainerStatus) DeepCopyInto(out *ContainerStatus) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return
 }
 
@@ -1489,11 +1495,14 @@ func (in *EphemeralContainerCommon) DeepCopyInto(out *EphemeralContainerCommon) 
 		*out = make([]ContainerResizePolicy, len(*in))
 		copy(*out, *in)
 	}
+<<<<<<< HEAD
 	if in.RestartPolicy != nil {
 		in, out := &in.RestartPolicy, &out.RestartPolicy
 		*out = new(ContainerRestartPolicy)
 		**out = **in
 	}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if in.VolumeMounts != nil {
 		in, out := &in.VolumeMounts, &out.VolumeMounts
 		*out = make([]VolumeMount, len(*in))
@@ -5777,11 +5786,14 @@ func (in *ServiceSpec) DeepCopyInto(out *ServiceSpec) {
 	if in.InternalTrafficPolicy != nil {
 		in, out := &in.InternalTrafficPolicy, &out.InternalTrafficPolicy
 		*out = new(ServiceInternalTrafficPolicy)
+<<<<<<< HEAD
 		**out = **in
 	}
 	if in.TrafficDistribution != nil {
 		in, out := &in.TrafficDistribution, &out.TrafficDistribution
 		*out = new(string)
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		**out = **in
 	}
 	return

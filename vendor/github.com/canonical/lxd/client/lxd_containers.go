@@ -1,6 +1,7 @@
 package lxd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,12 +11,21 @@ import (
 
 	"github.com/gorilla/websocket"
 
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/lxd/shared/cancel"
 	"github.com/canonical/lxd/shared/ioprogress"
 	"github.com/canonical/lxd/shared/units"
 	"github.com/canonical/lxd/shared/ws"
+=======
+	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/api"
+	"github.com/lxc/lxd/shared/cancel"
+	"github.com/lxc/lxd/shared/ioprogress"
+	"github.com/lxc/lxd/shared/units"
+	"github.com/lxc/lxd/shared/ws"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 )
 
 // Container handling functions
@@ -672,8 +682,13 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 
 				// And attach stdin and stdout to it
 				go func() {
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 					ws.MirrorRead(conn, args.Stdin)
 					<-ws.MirrorWrite(conn, args.Stdout)
+=======
+					ws.MirrorRead(context.Background(), conn, args.Stdin)
+					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 					_ = conn.Close()
 
 					if args.DataDone != nil {
@@ -687,7 +702,11 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 			}
 		} else {
 			// Handle non-interactive sessions
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 			dones := make(map[int]chan error)
+=======
+			dones := make(map[int]chan struct{})
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 			conns := []*websocket.Conn{}
 
 			// Handle stdin
@@ -698,7 +717,11 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[0] = ws.MirrorRead(conn, args.Stdin)
+=======
+				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 			}
 
 			waitConns := 0 // Used for keeping track of when stdout and stderr have finished.
@@ -711,8 +734,12 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[1] = ws.MirrorWrite(conn, args.Stdout)
 				waitConns++
+=======
+				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 			}
 
 			// Handle stderr
@@ -723,8 +750,12 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[2] = ws.MirrorWrite(conn, args.Stderr)
 				waitConns++
+=======
+				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 			}
 
 			// Wait for everything to be done
@@ -1583,8 +1614,13 @@ func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.Contain
 
 	// And attach stdin and stdout to it
 	go func() {
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 		_, writeDone := ws.Mirror(conn, args.Terminal)
 		<-writeDone
+=======
+		ws.MirrorRead(context.Background(), conn, args.Terminal)
+		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
 		_ = conn.Close()
 	}()
 

@@ -57,9 +57,14 @@ func grTransitions(state, prop int) (newState int, newProp int, boundary int) {
 	case grControlLF | prAny<<32:
 		return grAny, grBoundary, 40
 
+<<<<<<< HEAD
 	// GB3
 	case grCR | prLF<<32:
 		return grControlLF, grNoBoundary, 30
+=======
+	// GB3.
+	{grCR, prLF}: {grControlLF, grNoBoundary, 30},
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 	// GB6
 	case grAny | prL<<32:

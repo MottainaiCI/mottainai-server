@@ -27,11 +27,14 @@ const (
 	// More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#label-selector-and-annotation-conventions
 	labelPrefix = "batch.kubernetes.io/"
 
+<<<<<<< HEAD
 	// CronJobScheduledTimestampAnnotation is the scheduled timestamp annotation for the Job.
 	// It records the original/expected scheduled timestamp for the running job, represented in RFC3339.
 	// The CronJob controller adds this annotation if the CronJobsScheduledAnnotation feature gate (beta in 1.28) is enabled.
 	CronJobScheduledTimestampAnnotation = labelPrefix + "cronjob-scheduled-timestamp"
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	JobCompletionIndexAnnotation = labelPrefix + "job-completion-index"
 	// JobTrackingFinalizer is a finalizer for Job's pods. It prevents them from
 	// being deleted before being accounted in the Job status.
@@ -50,6 +53,7 @@ const (
 	// ControllerUid is used to programatically get pods corresponding to a Job.
 	// There is a corresponding label without the batch.kubernetes.io that we support for legacy reasons.
 	ControllerUidLabel = labelPrefix + "controller-uid"
+<<<<<<< HEAD
 	// Annotation indicating the number of failures for the index corresponding
 	// to the pod, which are counted towards the backoff limit.
 	JobIndexFailureCountAnnotation = labelPrefix + "job-index-failure-count"
@@ -60,6 +64,8 @@ const (
 	// JobControllerName reserved value for the managedBy field for the built-in
 	// Job controller.
 	JobControllerName = "kubernetes.io/job-controller"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 // +genclient
@@ -543,6 +549,7 @@ type JobStatus struct {
 	// +optional
 	Failed int32 `json:"failed,omitempty" protobuf:"varint,6,opt,name=failed"`
 
+<<<<<<< HEAD
 	// The number of pods which are terminating (in phase Pending or Running
 	// and have a deletionTimestamp).
 	//
@@ -551,6 +558,8 @@ type JobStatus struct {
 	// +optional
 	Terminating *int32 `json:"terminating,omitempty" protobuf:"varint,11,opt,name=terminating"`
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// completedIndexes holds the completed indexes when .spec.completionMode =
 	// "Indexed" in a text format. The indexes are represented as decimal integers
 	// separated by commas. The numbers are listed in increasing order. Three or
@@ -561,6 +570,7 @@ type JobStatus struct {
 	// +optional
 	CompletedIndexes string `json:"completedIndexes,omitempty" protobuf:"bytes,7,opt,name=completedIndexes"`
 
+<<<<<<< HEAD
 	// FailedIndexes holds the failed indexes when spec.backoffLimitPerIndex is set.
 	// The indexes are represented in the text format analogous as for the
 	// `completedIndexes` field, ie. they are kept as decimal integers
@@ -576,6 +586,8 @@ type JobStatus struct {
 	// +optional
 	FailedIndexes *string `json:"failedIndexes,omitempty" protobuf:"bytes,10,opt,name=failedIndexes"`
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// uncountedTerminatedPods holds the UIDs of Pods that have terminated but
 	// the job controller hasn't yet accounted for in the status counters.
 	//

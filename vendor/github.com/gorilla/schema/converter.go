@@ -143,6 +143,7 @@ func convertUint64(value string) reflect.Value {
 	}
 	return invalidValue
 }
+<<<<<<< HEAD
 
 func convertPointer(k reflect.Kind, value string) reflect.Value {
 	switch k {
@@ -220,3 +221,5 @@ func convertPointer(k reflect.Kind, value string) reflect.Value {
 
 	return invalidValue
 }
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

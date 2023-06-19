@@ -810,6 +810,21 @@ message NetworkPolicySpec {
   repeated string policyTypes = 4;
 }
 
+<<<<<<< HEAD
+=======
+// NetworkPolicyStatus describe the current state of the NetworkPolicy.
+message NetworkPolicyStatus {
+  // Conditions holds an array of metav1.Condition that describe the state of the NetworkPolicy.
+  // Current service state
+  // +optional
+  // +patchMergeKey=type
+  // +patchStrategy=merge
+  // +listType=map
+  // +listMapKey=type
+  repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 1;
+}
+
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // DEPRECATED - This group version of ReplicaSet is deprecated by apps/v1beta2/ReplicaSet. See the release notes for
 // more information.
 // ReplicaSet ensures that a specified number of pod replicas are running at any given time.

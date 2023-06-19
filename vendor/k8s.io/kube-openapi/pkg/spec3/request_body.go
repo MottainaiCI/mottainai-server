@@ -92,12 +92,15 @@ type RequestBodyProps struct {
 	Required bool `json:"required,omitempty"`
 }
 
+<<<<<<< HEAD
 type requestBodyPropsOmitZero struct {
 	Description string                `json:"description,omitempty"`
 	Content     map[string]*MediaType `json:"content,omitempty"`
 	Required    bool                  `json:"required,omitzero"`
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 func (r *RequestBody) UnmarshalNextJSON(opts jsonv2.UnmarshalOptions, dec *jsonv2.Decoder) error {
 	var x struct {
 		spec.Extensions

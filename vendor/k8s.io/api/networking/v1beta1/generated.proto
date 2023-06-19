@@ -69,7 +69,10 @@ message HTTPIngressPath {
 // or '#'.
 message HTTPIngressRuleValue {
   // paths is a collection of paths that map requests to backends.
+<<<<<<< HEAD
   // +listType=atomic
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   repeated HTTPIngressPath paths = 1;
 }
 

@@ -22,4 +22,7 @@ var UseOptimizedJSONUnmarshalingV3 bool = true
 
 // Used by tests to selectively disable experimental JSON marshaler
 var UseOptimizedJSONMarshaling bool = true
+<<<<<<< HEAD
 var UseOptimizedJSONMarshalingV3 bool = true
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

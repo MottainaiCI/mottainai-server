@@ -85,7 +85,11 @@ func DecryptToken(tokenString string) (string, error) {
 	return tokenString, nil // TODO: impl
 }
 
+<<<<<<< HEAD
 func ParseToken(tokenString string, claims any) ([]byte, error) {
+=======
+func ParseToken(tokenString string, claims interface{}) ([]byte, error) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("%w: token contains an invalid number of segments", ErrParse)

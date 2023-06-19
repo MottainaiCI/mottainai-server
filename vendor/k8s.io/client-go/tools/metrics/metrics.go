@@ -68,6 +68,7 @@ type RetryMetric interface {
 	IncrementRetry(ctx context.Context, code string, method string, host string)
 }
 
+<<<<<<< HEAD
 // TransportCacheMetric shows the number of entries in the internal transport cache
 type TransportCacheMetric interface {
 	Observe(value int)
@@ -79,6 +80,8 @@ type TransportCreateCallsMetric interface {
 	Increment(result string)
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 var (
 	// ClientCertExpiry is the expiry time of a client certificate
 	ClientCertExpiry ExpiryMetric = noopExpiry{}
@@ -102,12 +105,15 @@ var (
 	// RequestRetry is the retry metric that tracks the number of
 	// retries sent to the server.
 	RequestRetry RetryMetric = noopRetry{}
+<<<<<<< HEAD
 	// TransportCacheEntries is the metric that tracks the number of entries in the
 	// internal transport cache.
 	TransportCacheEntries TransportCacheMetric = noopTransportCache{}
 	// TransportCreateCalls is the metric that counts the number of times a new transport
 	// is created
 	TransportCreateCalls TransportCreateCallsMetric = noopTransportCreateCalls{}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 // RegisterOpts contains all the metrics to register. Metrics may be nil.
@@ -122,8 +128,11 @@ type RegisterOpts struct {
 	RequestResult         ResultMetric
 	ExecPluginCalls       CallsMetric
 	RequestRetry          RetryMetric
+<<<<<<< HEAD
 	TransportCacheEntries TransportCacheMetric
 	TransportCreateCalls  TransportCreateCallsMetric
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // Register registers metrics for the rest client to use. This can
@@ -160,12 +169,15 @@ func Register(opts RegisterOpts) {
 		if opts.RequestRetry != nil {
 			RequestRetry = opts.RequestRetry
 		}
+<<<<<<< HEAD
 		if opts.TransportCacheEntries != nil {
 			TransportCacheEntries = opts.TransportCacheEntries
 		}
 		if opts.TransportCreateCalls != nil {
 			TransportCreateCalls = opts.TransportCreateCalls
 		}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	})
 }
 
@@ -201,6 +213,7 @@ func (noopCalls) Increment(int, string) {}
 type noopRetry struct{}
 
 func (noopRetry) IncrementRetry(context.Context, string, string, string) {}
+<<<<<<< HEAD
 
 type noopTransportCache struct{}
 
@@ -209,3 +222,5 @@ func (noopTransportCache) Observe(int) {}
 type noopTransportCreateCalls struct{}
 
 func (noopTransportCreateCalls) Increment(string) {}
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

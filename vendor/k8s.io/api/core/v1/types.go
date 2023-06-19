@@ -620,6 +620,7 @@ const (
 	PersistentVolumeClaimNodeResizeFailed ClaimResourceStatus = "NodeResizeFailed"
 )
 
+<<<<<<< HEAD
 // +enum
 // New statuses can be added in the future. Consumers should check for unknown statuses and fail appropriately
 type PersistentVolumeClaimModifyVolumeStatus string
@@ -652,6 +653,8 @@ type ModifyVolumeStatus struct {
 	Status PersistentVolumeClaimModifyVolumeStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=PersistentVolumeClaimModifyVolumeStatus"`
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // PersistentVolumeClaimCondition contains details about state of pvc
 type PersistentVolumeClaimCondition struct {
 	Type   PersistentVolumeClaimConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=PersistentVolumeClaimConditionType"`
@@ -2039,8 +2042,13 @@ type CSIPersistentVolumeSource struct {
 	// nodeExpandSecretRef is a reference to the secret object containing
 	// sensitive information to pass to the CSI driver to complete the CSI
 	// NodeExpandVolume call.
+<<<<<<< HEAD
+=======
+	// This is a beta field which is enabled default by CSINodeExpandSecret feature gate.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// This field is optional, may be omitted if no secret is required. If the
 	// secret object contains more than one secret, all secrets are passed.
+	// +featureGate=CSINodeExpandSecret
 	// +optional
 	NodeExpandSecretRef *SecretReference `json:"nodeExpandSecretRef,omitempty" protobuf:"bytes,10,opt,name=nodeExpandSecretRef"`
 }
@@ -2719,6 +2727,7 @@ type Container struct {
 	// +optional
 	// +listType=atomic
 	ResizePolicy []ContainerResizePolicy `json:"resizePolicy,omitempty" protobuf:"bytes,23,rep,name=resizePolicy"`
+<<<<<<< HEAD
 	// RestartPolicy defines the restart behavior of individual containers in a pod.
 	// This field may only be set for init containers, and the only allowed value is "Always".
 	// For non-init containers or when this field is not specified,
@@ -2737,6 +2746,8 @@ type Container struct {
 	// +featureGate=SidecarContainers
 	// +optional
 	RestartPolicy *ContainerRestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,24,opt,name=restartPolicy,casttype=ContainerRestartPolicy"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// Pod volumes to mount into the container's filesystem.
 	// Cannot be updated.
 	// +optional
@@ -3022,6 +3033,7 @@ type ContainerStatus struct {
 	// +featureGate=InPlacePodVerticalScaling
 	// +optional
 	Resources *ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,11,opt,name=resources"`
+<<<<<<< HEAD
 	// Status of volume mounts.
 	// +optional
 	// +patchMergeKey=mountPath
@@ -3030,6 +3042,8 @@ type ContainerStatus struct {
 	// +listMapKey=mountPath
 	// +featureGate=RecursiveReadOnlyMounts
 	VolumeMounts []VolumeMountStatus `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,12,rep,name=volumeMounts"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // PodPhase is a label for the condition of a pod at the current time.
@@ -3139,6 +3153,7 @@ const (
 	PodResizeStatusInfeasible PodResizeStatus = "Infeasible"
 )
 
+<<<<<<< HEAD
 // VolumeMountStatus shows status of volume mounts.
 type VolumeMountStatus struct {
 	// Name corresponds to the name of the original VolumeMount.
@@ -3156,6 +3171,8 @@ type VolumeMountStatus struct {
 	RecursiveReadOnly *RecursiveReadOnlyMode `json:"recursiveReadOnly,omitempty" protobuf:"bytes,4,opt,name=recursiveReadOnly,casttype=RecursiveReadOnlyMode"`
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // RestartPolicy describes how the container should be restarted.
 // Only one of the following restart policies may be specified.
 // If none of the following policies is specified, the default one
@@ -3857,11 +3874,20 @@ type PodSpec struct {
 	// scheduler will not attempt to schedule the pod.
 	//
 	// SchedulingGates can only be set at pod creation time, and be removed only afterwards.
+<<<<<<< HEAD
+=======
+	//
+	// This is a beta feature enabled by the PodSchedulingReadiness feature gate.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	//
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	// +listType=map
 	// +listMapKey=name
+<<<<<<< HEAD
+=======
+	// +featureGate=PodSchedulingReadiness
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// +optional
 	SchedulingGates []PodSchedulingGate `json:"schedulingGates,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,38,opt,name=schedulingGates"`
 	// ResourceClaims defines which ResourceClaims must be allocated
@@ -4422,6 +4448,7 @@ type EphemeralContainerCommon struct {
 	// +optional
 	// +listType=atomic
 	ResizePolicy []ContainerResizePolicy `json:"resizePolicy,omitempty" protobuf:"bytes,23,rep,name=resizePolicy"`
+<<<<<<< HEAD
 	// Restart policy for the container to manage the restart behavior of each
 	// container within a pod.
 	// This may only be set for init containers. You cannot set this field on
@@ -4429,6 +4456,8 @@ type EphemeralContainerCommon struct {
 	// +featureGate=SidecarContainers
 	// +optional
 	RestartPolicy *ContainerRestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,24,opt,name=restartPolicy,casttype=ContainerRestartPolicy"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// Pod volumes to mount into the container's filesystem. Subpath mounts are not allowed for ephemeral containers.
 	// Cannot be updated.
 	// +optional
@@ -4651,6 +4680,7 @@ type PodStatus struct {
 	// +featureGate=InPlacePodVerticalScaling
 	// +optional
 	Resize PodResizeStatus `json:"resize,omitempty" protobuf:"bytes,14,opt,name=resize,casttype=PodResizeStatus"`
+<<<<<<< HEAD
 
 	// Status of resource claims.
 	// +patchMergeKey=name
@@ -4660,6 +4690,8 @@ type PodStatus struct {
 	// +featureGate=DynamicResourceAllocation
 	// +optional
 	ResourceClaimStatuses []PodResourceClaimStatus `json:"resourceClaimStatuses,omitempty" patchStrategy:"merge,retainKeys" patchMergeKey:"name" protobuf:"bytes,15,rep,name=resourceClaimStatuses"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -5002,6 +5034,7 @@ type ServiceExternalTrafficPolicyType = ServiceExternalTrafficPolicy
 const (
 	ServiceExternalTrafficPolicyTypeLocal   = ServiceExternalTrafficPolicyLocal
 	ServiceExternalTrafficPolicyTypeCluster = ServiceExternalTrafficPolicyCluster
+<<<<<<< HEAD
 )
 
 // These are valid values for the TrafficDistribution field of a Service.
@@ -5014,6 +5047,8 @@ const (
 	// proximity rather than equal distribution of load. Users should not set this
 	// value if such tradeoffs are not acceptable.
 	ServiceTrafficDistributionPreferClose = "PreferClose"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 // These are the valid conditions of a service.
@@ -5360,6 +5395,7 @@ type ServiceSpec struct {
 	// (possibly modified by topology and other features).
 	// +optional
 	InternalTrafficPolicy *ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,22,opt,name=internalTrafficPolicy"`
+<<<<<<< HEAD
 
 	// TrafficDistribution offers a way to express preferences for how traffic is
 	// distributed to Service endpoints. Implementations can use this field as a
@@ -5371,6 +5407,8 @@ type ServiceSpec struct {
 	// +featureGate=ServiceTrafficDistribution
 	// +optional
 	TrafficDistribution *string `json:"trafficDistribution,omitempty" protobuf:"bytes,23,opt,name=trafficDistribution"`
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // ServicePort contains information on service's port.
@@ -5649,9 +5687,13 @@ type EndpointPort struct {
 	// RFC-6335 and https://www.iana.org/assignments/service-names).
 	//
 	// * Kubernetes-defined prefixed names:
+<<<<<<< HEAD
 	//   * 'kubernetes.io/h2c' - HTTP/2 prior knowledge over cleartext as described in https://www.rfc-editor.org/rfc/rfc9113.html#name-starting-http-2-with-prior-
 	//   * 'kubernetes.io/ws'  - WebSocket over cleartext as described in https://www.rfc-editor.org/rfc/rfc6455
 	//   * 'kubernetes.io/wss' - WebSocket over TLS as described in https://www.rfc-editor.org/rfc/rfc6455
+=======
+	//   * 'kubernetes.io/h2c' - HTTP/2 over cleartext as described in https://www.rfc-editor.org/rfc/rfc7540
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	//
 	// * Other protocols should use implementation-defined prefixed names such as
 	// mycompany.com/my-custom-protocol.

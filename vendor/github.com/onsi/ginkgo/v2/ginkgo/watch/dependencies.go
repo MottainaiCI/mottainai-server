@@ -78,7 +78,11 @@ func (d Dependencies) resolveAndAdd(deps []string, depth int) {
 		if err != nil {
 			continue
 		}
+<<<<<<< HEAD
 		if !pkg.Goroot && (!ginkgoAndGomegaFilter.MatchString(pkg.Dir) || ginkgoIntegrationTestFilter.MatchString(pkg.Dir)) {
+=======
+		if !pkg.Goroot && (!ginkgoAndGomegaFilter.Match([]byte(pkg.Dir)) || ginkgoIntegrationTestFilter.Match([]byte(pkg.Dir))) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			d.addDepIfNotPresent(pkg.Dir, depth)
 		}
 	}

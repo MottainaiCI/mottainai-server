@@ -267,14 +267,22 @@ func (d *DiscoveryClient) downloadLegacy() (
 	}
 
 	var resourcesByGV map[schema.GroupVersion]*metav1.APIResourceList
+<<<<<<< HEAD
 	// Based on the content-type server responded with: aggregated or unaggregated.
 	if isGVK, _ := ContentTypeIsGVK(responseContentType, v2GVK); isGVK {
 		var aggregatedDiscovery apidiscoveryv2.APIGroupDiscoveryList
+=======
+	// Switch on content-type server responded with: aggregated or unaggregated.
+	switch {
+	case isV2Beta1ContentType(responseContentType):
+		var aggregatedDiscovery apidiscovery.APIGroupDiscoveryList
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		err = json.Unmarshal(body, &aggregatedDiscovery)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		apiGroupList, resourcesByGV, failedGVs = SplitGroupsAndResources(aggregatedDiscovery)
+<<<<<<< HEAD
 	} else if isGVK, _ := ContentTypeIsGVK(responseContentType, v2Beta1GVK); isGVK {
 		var aggregatedDiscovery apidiscoveryv2beta1.APIGroupDiscoveryList
 		err = json.Unmarshal(body, &aggregatedDiscovery)
@@ -283,6 +291,9 @@ func (d *DiscoveryClient) downloadLegacy() (
 		}
 		apiGroupList, resourcesByGV, failedGVs = SplitGroupsAndResourcesV2Beta1(aggregatedDiscovery)
 	} else {
+=======
+	default:
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		// Default is unaggregated discovery v1.
 		var v metav1.APIVersions
 		err = json.Unmarshal(body, &v)
@@ -326,6 +337,7 @@ func (d *DiscoveryClient) downloadAPIs() (
 	apiGroupList := &metav1.APIGroupList{}
 	failedGVs := map[schema.GroupVersion]error{}
 	var resourcesByGV map[schema.GroupVersion]*metav1.APIResourceList
+<<<<<<< HEAD
 	// Based on the content-type server responded with: aggregated or unaggregated.
 	if isGVK, _ := ContentTypeIsGVK(responseContentType, v2GVK); isGVK {
 		var aggregatedDiscovery apidiscoveryv2.APIGroupDiscoveryList
@@ -347,18 +359,41 @@ func (d *DiscoveryClient) downloadAPIs() (
 		if err != nil {
 			return nil, nil, nil, err
 		}
+=======
+	// Switch on content-type server responded with: aggregated or unaggregated.
+	switch {
+	case isV2Beta1ContentType(responseContentType):
+		var aggregatedDiscovery apidiscovery.APIGroupDiscoveryList
+		err = json.Unmarshal(body, &aggregatedDiscovery)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		apiGroupList, resourcesByGV, failedGVs = SplitGroupsAndResources(aggregatedDiscovery)
+	default:
+		// Default is unaggregated discovery v1.
+		err = json.Unmarshal(body, apiGroupList)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 
 	return apiGroupList, resourcesByGV, failedGVs, nil
 }
 
+<<<<<<< HEAD
 // ContentTypeIsGVK checks of the content-type string is both
 // "application/json" and matches the provided GVK. An error
 // is returned if the content type string is malformed.
+=======
+// isV2Beta1ContentType checks of the content-type string is both
+// "application/json" and contains the v2beta1 content-type params.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // NOTE: This function is resilient to the ordering of the
 // content-type parameters, as well as parameters added by
 // intermediaries such as proxies or gateways. Examples:
 //
+<<<<<<< HEAD
 //	("application/json; g=apidiscovery.k8s.io;v=v2beta1;as=APIGroupDiscoveryList", {apidiscovery.k8s.io, v2beta1, APIGroupDiscoveryList}) = (true, nil)
 //	("application/json; as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io", {apidiscovery.k8s.io, v2beta1, APIGroupDiscoveryList}) = (true, nil)
 //	("application/json; as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io;charset=utf-8", {apidiscovery.k8s.io, v2beta1, APIGroupDiscoveryList}) = (true, nil)
@@ -375,6 +410,22 @@ func ContentTypeIsGVK(contentType string, gvk schema.GroupVersionKind) (bool, er
 		params["v"] == gvk.Version &&
 		params["as"] == gvk.Kind
 	return gvkMatch, nil
+=======
+//	"application/json; g=apidiscovery.k8s.io;v=v2beta1;as=APIGroupDiscoveryList" = true
+//	"application/json; as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io" = true
+//	"application/json; as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io;charset=utf-8" = true
+//	"application/json" = false
+//	"application/json; charset=UTF-8" = false
+func isV2Beta1ContentType(contentType string) bool {
+	base, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return false
+	}
+	return runtime.ContentTypeJSON == base &&
+		params["g"] == "apidiscovery.k8s.io" &&
+		params["v"] == "v2beta1" &&
+		params["as"] == "APIGroupDiscoveryList"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // ServerGroups returns the supported groups, with information like supported versions and the

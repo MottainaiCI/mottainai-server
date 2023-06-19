@@ -12,6 +12,11 @@ package inspector
 import (
 	"go/ast"
 	"math"
+<<<<<<< HEAD
+=======
+
+	"golang.org/x/tools/internal/typeparams"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 const (
@@ -169,7 +174,11 @@ func typeOf(n ast.Node) uint64 {
 		return 1 << nIncDecStmt
 	case *ast.IndexExpr:
 		return 1 << nIndexExpr
+<<<<<<< HEAD
 	case *ast.IndexListExpr:
+=======
+	case *typeparams.IndexListExpr:
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return 1 << nIndexListExpr
 	case *ast.InterfaceType:
 		return 1 << nInterfaceType

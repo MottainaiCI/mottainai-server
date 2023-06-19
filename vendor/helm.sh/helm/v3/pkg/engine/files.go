@@ -131,7 +131,11 @@ func (f files) AsConfig() string {
 //
 //	data:
 //
+<<<<<<< HEAD
 // {{ .Files.Glob("secrets/*").AsSecrets() | indent 4 }}
+=======
+// {{ .Files.Glob("secrets/*").AsSecrets() }}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 func (f files) AsSecrets() string {
 	if f == nil {
 		return ""

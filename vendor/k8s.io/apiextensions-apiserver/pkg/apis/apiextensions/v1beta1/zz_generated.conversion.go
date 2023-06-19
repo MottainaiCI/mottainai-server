@@ -1341,9 +1341,12 @@ func autoConvert_v1beta1_ValidationRule_To_apiextensions_ValidationRule(in *Vali
 	out.Rule = in.Rule
 	out.Message = in.Message
 	out.MessageExpression = in.MessageExpression
+<<<<<<< HEAD
 	out.Reason = (*apiextensions.FieldValueErrorReason)(unsafe.Pointer(in.Reason))
 	out.FieldPath = in.FieldPath
 	out.OptionalOldSelf = (*bool)(unsafe.Pointer(in.OptionalOldSelf))
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return nil
 }
 
@@ -1356,9 +1359,12 @@ func autoConvert_apiextensions_ValidationRule_To_v1beta1_ValidationRule(in *apie
 	out.Rule = in.Rule
 	out.Message = in.Message
 	out.MessageExpression = in.MessageExpression
+<<<<<<< HEAD
 	out.Reason = (*FieldValueErrorReason)(unsafe.Pointer(in.Reason))
 	out.FieldPath = in.FieldPath
 	out.OptionalOldSelf = (*bool)(unsafe.Pointer(in.OptionalOldSelf))
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return nil
 }
 

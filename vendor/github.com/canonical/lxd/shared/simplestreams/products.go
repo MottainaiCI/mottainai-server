@@ -100,7 +100,11 @@ func (s *Products) ToLXD() ([]api.Image, map[string][][]string) {
 			addImage := func(meta *ProductVersionItem, root *ProductVersionItem) error {
 				// Look for deltas
 				deltas := []ProductVersionItem{}
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/shared/simplestreams/products.go
 				if root != nil && shared.ValueInSlice(root.FileType, []string{"squashfs", "disk-kvm.img"}) {
+=======
+				if root != nil && shared.StringInSlice(root.FileType, []string{"squashfs", "disk-kvm.img"}) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/shared/simplestreams/products.go
 					for _, item := range version.Items {
 						if item.FileType == fmt.Sprintf("%s.vcdiff", root.FileType) {
 							deltas = append(deltas, item)

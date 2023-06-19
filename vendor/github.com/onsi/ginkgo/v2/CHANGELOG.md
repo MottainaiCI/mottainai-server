@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## 2.17.2
 
 ### Fixes
@@ -186,6 +187,8 @@ This change is technically a change in Ginkgo's external contract and may requir
 ### Maintenance
 - Bump github.com/onsi/gomega from 1.27.6 to 1.27.7 (#1202) [3e39231]
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 ## 2.9.5
 
 ### Fixes

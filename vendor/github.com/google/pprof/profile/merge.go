@@ -15,7 +15,10 @@
 package profile
 
 import (
+<<<<<<< HEAD
 	"encoding/binary"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"fmt"
 	"sort"
 	"strconv"
@@ -59,7 +62,11 @@ func Merge(srcs []*Profile) (*Profile, error) {
 
 	for _, src := range srcs {
 		// Clear the profile-specific hash tables
+<<<<<<< HEAD
 		pm.locationsByID = makeLocationIDMap(len(src.Location))
+=======
+		pm.locationsByID = make(map[uint64]*Location, len(src.Location))
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		pm.functionsByID = make(map[uint64]*Function, len(src.Function))
 		pm.mappingsByID = make(map[uint64]mapInfo, len(src.Mapping))
 
@@ -137,7 +144,11 @@ type profileMerger struct {
 	p *Profile
 
 	// Memoization tables within a profile.
+<<<<<<< HEAD
 	locationsByID locationIDMap
+=======
+	locationsByID map[uint64]*Location
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	functionsByID map[uint64]*Function
 	mappingsByID  map[uint64]mapInfo
 
@@ -154,6 +165,7 @@ type mapInfo struct {
 }
 
 func (pm *profileMerger) mapSample(src *Sample) *Sample {
+<<<<<<< HEAD
 	// Check memoization table
 	k := pm.sampleKey(src)
 	if ss, ok := pm.samples[k]; ok {
@@ -164,6 +176,8 @@ func (pm *profileMerger) mapSample(src *Sample) *Sample {
 	}
 
 	// Make new sample.
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	s := &Sample{
 		Location: make([]*Location, len(src.Location)),
 		Value:    make([]int64, len(src.Value)),
@@ -188,12 +202,26 @@ func (pm *profileMerger) mapSample(src *Sample) *Sample {
 		s.NumLabel[k] = vv
 		s.NumUnit[k] = uu
 	}
+<<<<<<< HEAD
+=======
+	// Check memoization table. Must be done on the remapped location to
+	// account for the remapped mapping. Add current values to the
+	// existing sample.
+	k := s.key()
+	if ss, ok := pm.samples[k]; ok {
+		for i, v := range src.Value {
+			ss.Value[i] += v
+		}
+		return ss
+	}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	copy(s.Value, src.Value)
 	pm.samples[k] = s
 	pm.p.Sample = append(pm.p.Sample, s)
 	return s
 }
 
+<<<<<<< HEAD
 func (pm *profileMerger) sampleKey(sample *Sample) sampleKey {
 	// Accumulate contents into a string.
 	var buf strings.Builder
@@ -280,6 +308,38 @@ func sortedKeys2(m map[string][]int64) []string {
 	}
 	sort.Strings(keys)
 	return keys
+=======
+// key generates sampleKey to be used as a key for maps.
+func (sample *Sample) key() sampleKey {
+	ids := make([]string, len(sample.Location))
+	for i, l := range sample.Location {
+		ids[i] = strconv.FormatUint(l.ID, 16)
+	}
+
+	labels := make([]string, 0, len(sample.Label))
+	for k, v := range sample.Label {
+		labels = append(labels, fmt.Sprintf("%q%q", k, v))
+	}
+	sort.Strings(labels)
+
+	numlabels := make([]string, 0, len(sample.NumLabel))
+	for k, v := range sample.NumLabel {
+		numlabels = append(numlabels, fmt.Sprintf("%q%x%x", k, v, sample.NumUnit[k]))
+	}
+	sort.Strings(numlabels)
+
+	return sampleKey{
+		strings.Join(ids, "|"),
+		strings.Join(labels, ""),
+		strings.Join(numlabels, ""),
+	}
+}
+
+type sampleKey struct {
+	locations string
+	labels    string
+	numlabels string
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (pm *profileMerger) mapLocation(src *Location) *Location {
@@ -287,7 +347,11 @@ func (pm *profileMerger) mapLocation(src *Location) *Location {
 		return nil
 	}
 
+<<<<<<< HEAD
 	if l := pm.locationsByID.get(src.ID); l != nil {
+=======
+	if l, ok := pm.locationsByID[src.ID]; ok {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return l
 	}
 
@@ -306,10 +370,17 @@ func (pm *profileMerger) mapLocation(src *Location) *Location {
 	// account for the remapped mapping ID.
 	k := l.key()
 	if ll, ok := pm.locations[k]; ok {
+<<<<<<< HEAD
 		pm.locationsByID.set(src.ID, ll)
 		return ll
 	}
 	pm.locationsByID.set(src.ID, l)
+=======
+		pm.locationsByID[src.ID] = ll
+		return ll
+	}
+	pm.locationsByID[src.ID] = l
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	pm.locations[k] = l
 	pm.p.Location = append(pm.p.Location, l)
 	return l
@@ -326,13 +397,20 @@ func (l *Location) key() locationKey {
 		key.addr -= l.Mapping.Start
 		key.mappingID = l.Mapping.ID
 	}
+<<<<<<< HEAD
 	lines := make([]string, len(l.Line)*3)
+=======
+	lines := make([]string, len(l.Line)*2)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	for i, line := range l.Line {
 		if line.Function != nil {
 			lines[i*2] = strconv.FormatUint(line.Function.ID, 16)
 		}
 		lines[i*2+1] = strconv.FormatInt(line.Line, 16)
+<<<<<<< HEAD
 		lines[i*2+2] = strconv.FormatInt(line.Column, 16)
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	key.lines = strings.Join(lines, "|")
 	return key
@@ -361,6 +439,7 @@ func (pm *profileMerger) mapMapping(src *Mapping) mapInfo {
 		return mi
 	}
 	m := &Mapping{
+<<<<<<< HEAD
 		ID:                     uint64(len(pm.p.Mapping) + 1),
 		Start:                  src.Start,
 		Limit:                  src.Limit,
@@ -372,6 +451,18 @@ func (pm *profileMerger) mapMapping(src *Mapping) mapInfo {
 		HasFilenames:           src.HasFilenames,
 		HasLineNumbers:         src.HasLineNumbers,
 		HasInlineFrames:        src.HasInlineFrames,
+=======
+		ID:              uint64(len(pm.p.Mapping) + 1),
+		Start:           src.Start,
+		Limit:           src.Limit,
+		Offset:          src.Offset,
+		File:            src.File,
+		BuildID:         src.BuildID,
+		HasFunctions:    src.HasFunctions,
+		HasFilenames:    src.HasFilenames,
+		HasLineNumbers:  src.HasLineNumbers,
+		HasInlineFrames: src.HasInlineFrames,
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	pm.p.Mapping = append(pm.p.Mapping, m)
 
@@ -419,7 +510,10 @@ func (pm *profileMerger) mapLine(src Line) Line {
 	ln := Line{
 		Function: pm.mapFunction(src.Function),
 		Line:     src.Line,
+<<<<<<< HEAD
 		Column:   src.Column,
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 	return ln
 }
@@ -539,6 +633,7 @@ func (p *Profile) compatible(pb *Profile) error {
 func equalValueType(st1, st2 *ValueType) bool {
 	return st1.Type == st2.Type && st1.Unit == st2.Unit
 }
+<<<<<<< HEAD
 
 // locationIDMap is like a map[uint64]*Location, but provides efficiency for
 // ids that are densely numbered, which is often the case.
@@ -667,3 +762,5 @@ func searchValueType(vts []*ValueType, s string) int {
 	}
 	return -1
 }
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

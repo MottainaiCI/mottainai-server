@@ -29,7 +29,11 @@ var (
 	//
 	// Increment major number for new feature additions and behavioral changes.
 	// Increment minor number for bug fixes and performance enhancements.
+<<<<<<< HEAD
 	version = "v3.15"
+=======
+	version = "v3.12"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 	// metadata is extra build time data
 	metadata = ""

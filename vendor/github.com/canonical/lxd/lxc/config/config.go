@@ -9,7 +9,11 @@ import (
 	"github.com/juju/persistent-cookiejar"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
 
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/config.go
 	"github.com/canonical/lxd/shared"
+=======
+	"github.com/lxc/lxd/shared"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/config.go
 )
 
 // Config holds settings to be used by a client or daemon.

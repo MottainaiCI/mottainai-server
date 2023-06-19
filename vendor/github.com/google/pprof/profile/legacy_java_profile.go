@@ -56,7 +56,11 @@ func javaCPUProfile(b []byte, period int64, parse func(b []byte) (uint64, []byte
 	}
 
 	// Strip out addresses for better merge.
+<<<<<<< HEAD
 	if err = p.Aggregate(true, true, true, true, false, false); err != nil {
+=======
+	if err = p.Aggregate(true, true, true, true, false); err != nil {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return nil, err
 	}
 
@@ -99,7 +103,11 @@ func parseJavaProfile(b []byte) (*Profile, error) {
 	}
 
 	// Strip out addresses for better merge.
+<<<<<<< HEAD
 	if err = p.Aggregate(true, true, true, true, false, false); err != nil {
+=======
+	if err = p.Aggregate(true, true, true, true, false); err != nil {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return nil, err
 	}
 

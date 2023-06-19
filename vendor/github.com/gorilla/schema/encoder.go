@@ -93,11 +93,16 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		// Encode struct pointer types if the field is a valid pointer and a struct.
+<<<<<<< HEAD
 		if isValidStructPointer(v.Field(i)) && !e.hasCustomEncoder(v.Field(i).Type()) {
 			err := e.encode(v.Field(i).Elem(), dst)
 			if err != nil {
 				errors[v.Field(i).Elem().Type().String()] = err
 			}
+=======
+		if isValidStructPointer(v.Field(i)) {
+			e.encode(v.Field(i).Elem(), dst)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			continue
 		}
 
@@ -115,10 +120,14 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		if v.Field(i).Type().Kind() == reflect.Struct {
+<<<<<<< HEAD
 			err := e.encode(v.Field(i), dst)
 			if err != nil {
 				errors[v.Field(i).Type().String()] = err
 			}
+=======
+			e.encode(v.Field(i), dst)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			continue
 		}
 
@@ -148,11 +157,14 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func (e *Encoder) hasCustomEncoder(t reflect.Type) bool {
 	_, exists := e.regenc[t]
 	return exists
 }
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	if f, ok := reg[t]; ok {
 		return f

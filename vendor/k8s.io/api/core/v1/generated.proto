@@ -248,8 +248,13 @@ message CSIPersistentVolumeSource {
   // nodeExpandSecretRef is a reference to the secret object containing
   // sensitive information to pass to the CSI driver to complete the CSI
   // NodeExpandVolume call.
+<<<<<<< HEAD
+=======
+  // This is a beta field which is enabled default by CSINodeExpandSecret feature gate.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // This field is optional, may be omitted if no secret is required. If the
   // secret object contains more than one secret, all secrets are passed.
+  // +featureGate=CSINodeExpandSecret
   // +optional
   optional SecretReference nodeExpandSecretRef = 10;
 }
@@ -788,6 +793,7 @@ message Container {
   // +listType=atomic
   repeated ContainerResizePolicy resizePolicy = 23;
 
+<<<<<<< HEAD
   // RestartPolicy defines the restart behavior of individual containers in a pod.
   // This field may only be set for init containers, and the only allowed value is "Always".
   // For non-init containers or when this field is not specified,
@@ -807,6 +813,8 @@ message Container {
   // +optional
   optional string restartPolicy = 24;
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // Pod volumes to mount into the container's filesystem.
   // Cannot be updated.
   // +optional
@@ -1100,6 +1108,7 @@ message ContainerStatus {
   // +featureGate=InPlacePodVerticalScaling
   // +optional
   optional ResourceRequirements resources = 11;
+<<<<<<< HEAD
 
   // Status of volume mounts.
   // +optional
@@ -1109,6 +1118,8 @@ message ContainerStatus {
   // +listMapKey=mountPath
   // +featureGate=RecursiveReadOnlyMounts
   repeated VolumeMountStatus volumeMounts = 12;
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // DaemonEndpoint contains information about a single Daemon endpoint.
@@ -1240,9 +1251,13 @@ message EndpointPort {
   // RFC-6335 and https://www.iana.org/assignments/service-names).
   //
   // * Kubernetes-defined prefixed names:
+<<<<<<< HEAD
   //   * 'kubernetes.io/h2c' - HTTP/2 prior knowledge over cleartext as described in https://www.rfc-editor.org/rfc/rfc9113.html#name-starting-http-2-with-prior-
   //   * 'kubernetes.io/ws'  - WebSocket over cleartext as described in https://www.rfc-editor.org/rfc/rfc6455
   //   * 'kubernetes.io/wss' - WebSocket over TLS as described in https://www.rfc-editor.org/rfc/rfc6455
+=======
+  //   * 'kubernetes.io/h2c' - HTTP/2 over cleartext as described in https://www.rfc-editor.org/rfc/rfc7540
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   //
   // * Other protocols should use implementation-defined prefixed names such as
   // mycompany.com/my-custom-protocol.
@@ -1491,6 +1506,7 @@ message EphemeralContainerCommon {
   // +listType=atomic
   repeated ContainerResizePolicy resizePolicy = 23;
 
+<<<<<<< HEAD
   // Restart policy for the container to manage the restart behavior of each
   // container within a pod.
   // This may only be set for init containers. You cannot set this field on
@@ -1499,6 +1515,8 @@ message EphemeralContainerCommon {
   // +optional
   optional string restartPolicy = 24;
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // Pod volumes to mount into the container's filesystem. Subpath mounts are not allowed for ephemeral containers.
   // Cannot be updated.
   // +optional
@@ -4261,11 +4279,20 @@ message PodSpec {
   // scheduler will not attempt to schedule the pod.
   //
   // SchedulingGates can only be set at pod creation time, and be removed only afterwards.
+<<<<<<< HEAD
+=======
+  //
+  // This is a beta feature enabled by the PodSchedulingReadiness feature gate.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   //
   // +patchMergeKey=name
   // +patchStrategy=merge
   // +listType=map
   // +listMapKey=name
+<<<<<<< HEAD
+=======
+  // +featureGate=PodSchedulingReadiness
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // +optional
   repeated PodSchedulingGate schedulingGates = 38;
 
@@ -4407,6 +4434,7 @@ message PodStatus {
   // +featureGate=InPlacePodVerticalScaling
   // +optional
   optional string resize = 14;
+<<<<<<< HEAD
 
   // Status of resource claims.
   // +patchMergeKey=name
@@ -4416,6 +4444,8 @@ message PodStatus {
   // +featureGate=DynamicResourceAllocation
   // +optional
   repeated PodResourceClaimStatus resourceClaimStatuses = 15;
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // PodStatusResult is a wrapper for PodStatus returned by kubelet that can be encode/decoded

@@ -104,7 +104,11 @@ func (c *Config) GetInstanceServer(name string) (lxd.InstanceServer, error) {
 	}
 
 	// HTTPs
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/remote.go
 	if !shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodCandid, api.AuthenticationMethodOIDC}) && (args.TLSClientCert == "" || args.TLSClientKey == "") {
+=======
+	if !shared.StringInSlice(remote.AuthType, []string{"candid", "oidc"}) && (args.TLSClientCert == "" || args.TLSClientKey == "") {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
 		return nil, fmt.Errorf("Missing TLS client certificate and key")
 	}
 
@@ -258,7 +262,11 @@ func (c *Config) getConnectionArgs(name string) (*lxd.ConnectionArgs, error) {
 		}
 
 		args.CookieJar = c.cookieJars[name]
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/remote.go
 	} else if args.AuthType == api.AuthenticationMethodOIDC {
+=======
+	} else if args.AuthType == "oidc" {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
 		if c.oidcTokens == nil {
 			c.oidcTokens = map[string]*oidc.Tokens[*oidc.IDTokenClaims]{}
 		}
@@ -304,7 +312,11 @@ func (c *Config) getConnectionArgs(name string) (*lxd.ConnectionArgs, error) {
 	}
 
 	// Stop here if no client certificate involved
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/remote.go
 	if remote.Protocol == "simplestreams" || shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodCandid, api.AuthenticationMethodOIDC}) {
+=======
+	if remote.Protocol == "simplestreams" || shared.StringInSlice(remote.AuthType, []string{"candid", "oidc"}) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
 		return &args, nil
 	}
 

@@ -10,7 +10,11 @@ import (
 	"strings"
 	"text/template"
 
+<<<<<<< HEAD
 	sprig "github.com/go-task/slim-sprig/v3"
+=======
+	sprig "github.com/go-task/slim-sprig"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"github.com/onsi/ginkgo/v2/ginkgo/command"
 	"github.com/onsi/ginkgo/v2/ginkgo/internal"
 	"github.com/onsi/ginkgo/v2/types"
@@ -32,9 +36,12 @@ func BuildGenerateCommand() command.Command {
 			{Name: "template-data", KeyPath: "CustomTemplateData",
 				UsageArgument: "template-data-file",
 				Usage:         "If specified, generate will use the contents of the file passed as data to be rendered in the test file template"},
+<<<<<<< HEAD
 			{Name: "tags", KeyPath: "Tags",
 				UsageArgument: "build-tags",
 				Usage:         "If specified, generate will create a test file that uses the given build tags (i.e. `--tags e2e,!unit` will add `//go:build e2e,!unit`)"},
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		},
 		&conf,
 		types.GinkgoFlagSections{},
@@ -62,7 +69,10 @@ You can also pass a <filename> of the form "file.go" and generate will emit "fil
 }
 
 type specData struct {
+<<<<<<< HEAD
 	BuildTags         string
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	Package           string
 	Subject           string
 	PackageImportPath string
@@ -97,7 +107,10 @@ func generateTestFileForSubject(subject string, conf GeneratorsConfig) {
 	}
 
 	data := specData{
+<<<<<<< HEAD
 		BuildTags:         getBuildTags(conf.Tags),
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		Package:           determinePackageName(packageName, conf.Internal),
 		Subject:           formattedName,
 		PackageImportPath: getPackageImportPath(),
@@ -174,7 +187,10 @@ func moduleName(modRoot string) string {
 	if err != nil {
 		return ""
 	}
+<<<<<<< HEAD
 	defer modFile.Close()
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 	mod := make([]byte, 128)
 	_, err = modFile.Read(mod)

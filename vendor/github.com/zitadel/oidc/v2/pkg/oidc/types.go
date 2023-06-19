@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/gorilla/schema"
+<<<<<<< HEAD
 	"github.com/muhlemmer/gu"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"golang.org/x/text/language"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -17,13 +20,21 @@ import (
 type Audience []string
 
 func (a *Audience) UnmarshalJSON(text []byte) error {
+<<<<<<< HEAD
 	var i any
+=======
+	var i interface{}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	err := json.Unmarshal(text, &i)
 	if err != nil {
 		return err
 	}
 	switch aud := i.(type) {
+<<<<<<< HEAD
 	case []any:
+=======
+	case []interface{}:
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		*a = make([]string, len(aud))
 		for i, audience := range aud {
 			(*a)[i] = audience.(string)
@@ -82,6 +93,7 @@ func (l *Locale) UnmarshalJSON(data []byte) error {
 
 type Locales []language.Tag
 
+<<<<<<< HEAD
 // ParseLocales parses a slice of strings into Locales.
 // If an entry causes a parse error or is undefined,
 // it is ignored and not set to Locales.
@@ -134,6 +146,16 @@ func (l *Locales) UnmarshalJSON(data []byte) error {
 	default:
 		return fmt.Errorf("oidc locales: unsupported type: %T", v)
 	}
+=======
+func (l *Locales) UnmarshalText(text []byte) error {
+	locales := strings.Split(string(text), " ")
+	for _, locale := range locales {
+		tag, err := language.Parse(locale)
+		if err == nil && !tag.IsRoot() {
+			*l = append(*l, tag)
+		}
+	}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return nil
 }
 
@@ -177,7 +199,11 @@ func (s *SpaceDelimitedArray) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func (s *SpaceDelimitedArray) Scan(src any) error {
+=======
+func (s *SpaceDelimitedArray) Scan(src interface{}) error {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if src == nil {
 		*s = nil
 		return nil

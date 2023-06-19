@@ -112,8 +112,11 @@ func convertAPIGroup(g apidiscovery.APIGroupDiscovery) (
 	return group, gvResources, failedGVs
 }
 
+<<<<<<< HEAD
 var emptyKind = metav1.GroupVersionKind{}
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // convertAPIResource tranforms a APIResourceDiscovery to an APIResource. We are
 // resilient to missing GVK, since this resource might be the parent resource
 // for a subresource. If the parent is missing a GVK, it is not returned in
@@ -128,7 +131,11 @@ func convertAPIResource(in apidiscovery.APIResourceDiscovery) (metav1.APIResourc
 		Categories:   in.Categories,
 	}
 	var err error
+<<<<<<< HEAD
 	if in.ResponseKind != nil && (*in.ResponseKind) != emptyKind {
+=======
+	if in.ResponseKind != nil {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		result.Group = in.ResponseKind.Group
 		result.Version = in.ResponseKind.Version
 		result.Kind = in.ResponseKind.Kind
@@ -143,7 +150,11 @@ func convertAPIResource(in apidiscovery.APIResourceDiscovery) (metav1.APIResourc
 // convertAPISubresource tranforms a APISubresourceDiscovery to an APIResource.
 func convertAPISubresource(parent metav1.APIResource, in apidiscovery.APISubresourceDiscovery) (metav1.APIResource, error) {
 	result := metav1.APIResource{}
+<<<<<<< HEAD
 	if in.ResponseKind == nil || (*in.ResponseKind) == emptyKind {
+=======
+	if in.ResponseKind == nil {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return result, fmt.Errorf("subresource %s/%s missing GVK", parent.Name, in.Subresource)
 	}
 	result.Name = fmt.Sprintf("%s/%s", parent.Name, in.Subresource)
@@ -154,6 +165,7 @@ func convertAPISubresource(parent metav1.APIResource, in apidiscovery.APISubreso
 	result.Kind = in.ResponseKind.Kind
 	result.Verbs = in.Verbs
 	return result, nil
+<<<<<<< HEAD
 }
 
 // Please note the functions below will be removed in v1.33. They facilitate conversion
@@ -275,4 +287,6 @@ func convertAPISubresourcev2beta1(parent metav1.APIResource, in apidiscoveryv2be
 	result.Kind = in.ResponseKind.Kind
 	result.Verbs = in.Verbs
 	return result, nil
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }

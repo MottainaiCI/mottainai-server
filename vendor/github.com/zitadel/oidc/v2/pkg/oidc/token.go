@@ -222,7 +222,11 @@ type JWTProfileAssertionClaims struct {
 	Expiration   Time     `json:"exp"`
 	IssuedAt     Time     `json:"iat"`
 
+<<<<<<< HEAD
 	Claims map[string]any `json:"-"`
+=======
+	Claims map[string]interface{} `json:"-"`
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 type jpaAlias JWTProfileAssertionClaims
@@ -262,7 +266,11 @@ func JWTProfileDelegatedSubject(sub string) func(*JWTProfileAssertionClaims) {
 	}
 }
 
+<<<<<<< HEAD
 func JWTProfileCustomClaim(key string, value any) func(*JWTProfileAssertionClaims) {
+=======
+func JWTProfileCustomClaim(key string, value interface{}) func(*JWTProfileAssertionClaims) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return func(j *JWTProfileAssertionClaims) {
 		j.Claims[key] = value
 	}
@@ -292,7 +300,11 @@ func NewJWTProfileAssertion(userID, keyID string, audience []string, key []byte,
 		IssuedAt:     FromTime(time.Now().UTC()),
 		Expiration:   FromTime(time.Now().Add(1 * time.Hour).UTC()),
 		Audience:     audience,
+<<<<<<< HEAD
 		Claims:       make(map[string]any),
+=======
+		Claims:       make(map[string]interface{}),
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 
 	for _, opt := range opts {

@@ -292,7 +292,11 @@ type CSIDriverSpec struct {
 	// If true, Kubelet will pass pod information as VolumeContext in the CSI NodePublishVolume() calls.
 	// The CSI driver is responsible for parsing and validating the information passed in as VolumeContext.
 	//
+<<<<<<< HEAD
 	// The following VolumeContext will be passed if podInfoOnMount is set to true.
+=======
+	// The following VolumeConext will be passed if podInfoOnMount is set to true.
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// This list might grow, but the prefix will be used.
 	// "csi.storage.k8s.io/pod.name": pod.Name
 	// "csi.storage.k8s.io/pod.namespace": pod.Namespace
@@ -684,5 +688,10 @@ type CSIStorageCapacityList struct {
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// items is the list of CSIStorageCapacity objects.
+<<<<<<< HEAD
+=======
+	// +listType=map
+	// +listMapKey=name
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	Items []CSIStorageCapacity `json:"items" protobuf:"bytes,2,rep,name=items"`
 }

@@ -1,10 +1,14 @@
 package ginkgo
 
 import (
+<<<<<<< HEAD
 	"testing"
 
 	"github.com/onsi/ginkgo/v2/internal/testingtproxy"
 	"github.com/onsi/ginkgo/v2/types"
+=======
+	"github.com/onsi/ginkgo/v2/internal/testingtproxy"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 /*
@@ -23,7 +27,11 @@ GinkgoT() attempts to mimic the behavior of `testing.T` with the exception of th
 You can learn more here: https://onsi.github.io/ginkgo/#using-third-party-libraries
 */
 func GinkgoT(optionalOffset ...int) FullGinkgoTInterface {
+<<<<<<< HEAD
 	offset := 1
+=======
+	offset := 3
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if len(optionalOffset) > 0 {
 		offset = optionalOffset[0]
 	}
@@ -79,9 +87,15 @@ type FullGinkgoTInterface interface {
 	AddReportEntryVisibilityNever(name string, args ...any)
 
 	//Prints to the GinkgoWriter
+<<<<<<< HEAD
 	Print(a ...any)
 	Printf(format string, a ...any)
 	Println(a ...any)
+=======
+	Print(a ...interface{})
+	Printf(format string, a ...interface{})
+	Println(a ...interface{})
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 
 	//Provides access to Ginkgo's color formatting, correctly configured to match the color settings specified in the invocation of ginkgo
 	F(format string, args ...any) string
@@ -100,6 +114,7 @@ type FullGinkgoTInterface interface {
 
 	AttachProgressReporter(func() string) func()
 }
+<<<<<<< HEAD
 
 /*
 GinkgoTB() implements a wrapper that exactly matches the testing.TB interface.
@@ -178,3 +193,5 @@ func (g *GinkgoTBWrapper) Skipped() bool {
 func (g *GinkgoTBWrapper) TempDir() string {
 	return g.GinkgoT.TempDir()
 }
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

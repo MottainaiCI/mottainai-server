@@ -242,8 +242,11 @@ type Formatter struct {
 	valuesStr    string
 	depth        int
 	opts         *Options
+<<<<<<< HEAD
 	groupName    string // for slog groups
 	groups       []groupDef
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // outputFormat indicates which outputFormat to use.
@@ -572,7 +575,11 @@ func (f Formatter) prettyWithFlags(value any, flags uint32, depth int) string {
 				continue
 			}
 			if printComma {
+<<<<<<< HEAD
 				buf.WriteByte(f.comma())
+=======
+				buf.WriteByte(',')
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			}
 			printComma = true // if we got here, we are rendering a field
 			if fld.Anonymous && fld.Type.Kind() == reflect.Struct && name == "" {

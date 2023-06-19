@@ -438,7 +438,10 @@ func CodeExchangeHandler[C oidc.IDClaims](callback CodeExchangeCallback[C], rp R
 				return
 			}
 			codeOpts = append(codeOpts, WithCodeVerifier(codeVerifier))
+<<<<<<< HEAD
 			rp.CookieHandler().DeleteCookie(w, pkceCode)
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		}
 		if rp.Signer() != nil {
 			assertion, err := client.SignedJWTProfileAssertion(rp.OAuthConfig().ClientID, []string{rp.Issuer()}, time.Hour, rp.Signer())

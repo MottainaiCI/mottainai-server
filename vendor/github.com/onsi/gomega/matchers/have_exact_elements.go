@@ -44,12 +44,16 @@ func (matcher *HaveExactElementsMatcher) Match(actual interface{}) (success bool
 
 		elemMatcher := matchers[i].(omegaMatcher)
 		match, err := elemMatcher.Match(values[i])
+<<<<<<< HEAD
 		if err != nil {
 			matcher.mismatchFailures = append(matcher.mismatchFailures, mismatchFailure{
 				index:   i,
 				failure: err.Error(),
 			})
 		} else if !match {
+=======
+		if err != nil || !match {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			matcher.mismatchFailures = append(matcher.mismatchFailures, mismatchFailure{
 				index:   i,
 				failure: elemMatcher.FailureMessage(values[i]),

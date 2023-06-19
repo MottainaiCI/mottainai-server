@@ -1,11 +1,18 @@
 package outline
 
 import (
+<<<<<<< HEAD
 	"go/ast"
 	"go/token"
 	"strconv"
 
 	"github.com/onsi/ginkgo/v2/types"
+=======
+	"github.com/onsi/ginkgo/v2/types"
+	"go/ast"
+	"go/token"
+	"strconv"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 const (
@@ -245,7 +252,13 @@ func labelFromCallExpr(ce *ast.CallExpr) []string {
 			}
 			if id.Name == "Label" {
 				ls := extractLabels(expr)
+<<<<<<< HEAD
 				labels = append(labels, ls...)
+=======
+				for _, label := range ls {
+					labels = append(labels, label)
+				}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			}
 		}
 	}

@@ -64,9 +64,14 @@ type event struct {
 // depth-first order. It calls f(n) for each node n before it visits
 // n's children.
 //
+<<<<<<< HEAD
 // The complete traversal sequence is determined by ast.Inspect.
 // The types argument, if non-empty, enables type-based filtering of
 // events. The function f is called only for nodes whose type
+=======
+// The types argument, if non-empty, enables type-based filtering of
+// events. The function f if is called only for nodes whose type
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // matches an element of the types slice.
 func (in *Inspector) Preorder(types []ast.Node, f func(ast.Node)) {
 	// Because it avoids postorder calls to f, and the pruning
@@ -98,7 +103,10 @@ func (in *Inspector) Preorder(types []ast.Node, f func(ast.Node)) {
 // of the non-nil children of the node, followed by a call of
 // f(n, false).
 //
+<<<<<<< HEAD
 // The complete traversal sequence is determined by ast.Inspect.
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // The types argument, if non-empty, enables type-based filtering of
 // events. The function f if is called only for nodes whose type
 // matches an element of the types slice.

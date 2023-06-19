@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/sftp"
 
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/lxd/shared/cancel"
@@ -22,6 +23,15 @@ import (
 	"github.com/canonical/lxd/shared/tcp"
 	"github.com/canonical/lxd/shared/units"
 	"github.com/canonical/lxd/shared/ws"
+=======
+	"github.com/lxc/lxd/shared"
+	"github.com/lxc/lxd/shared/api"
+	"github.com/lxc/lxd/shared/cancel"
+	"github.com/lxc/lxd/shared/ioprogress"
+	"github.com/lxc/lxd/shared/tcp"
+	"github.com/lxc/lxd/shared/units"
+	"github.com/lxc/lxd/shared/ws"
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
 )
 
 // Instance handling functions.
@@ -1165,6 +1175,7 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 			}
 		}
 
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 		if outputFiles["1"] != "" {
 			reader, _ := r.getInstanceExecOutputLogFile(instanceName, filepath.Base(outputFiles["1"]))
 			if args.Stdout != nil {
@@ -1228,11 +1239,85 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 		if args.Stdin != nil && args.Stdout != nil {
 			// Connect to the websocket
 			conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
+=======
+		// Call the control handler with a connection to the control socket
+		if args.Control != nil && fds[api.SecretNameControl] != "" {
+			conn, err := r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
 			if err != nil {
 				return nil, err
 			}
 
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 			// And attach stdin and stdout to it
+=======
+			go args.Control(conn)
+		}
+
+		if exec.Interactive {
+			// Handle interactive sections
+			if args.Stdin != nil && args.Stdout != nil {
+				// Connect to the websocket
+				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
+				if err != nil {
+					return nil, err
+				}
+
+				// And attach stdin and stdout to it
+				go func() {
+					ws.MirrorRead(context.Background(), conn, args.Stdin)
+					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
+					_ = conn.Close()
+
+					if args.DataDone != nil {
+						close(args.DataDone)
+					}
+				}()
+			} else {
+				if args.DataDone != nil {
+					close(args.DataDone)
+				}
+			}
+		} else {
+			// Handle non-interactive sessions
+			dones := make(map[int]chan struct{})
+			conns := []*websocket.Conn{}
+
+			// Handle stdin
+			if fds["0"] != "" {
+				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
+				if err != nil {
+					return nil, err
+				}
+
+				conns = append(conns, conn)
+				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
+			}
+
+			// Handle stdout
+			if fds["1"] != "" {
+				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["1"])
+				if err != nil {
+					return nil, err
+				}
+
+				conns = append(conns, conn)
+				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
+			}
+
+			// Handle stderr
+			if fds["2"] != "" {
+				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["2"])
+				if err != nil {
+					return nil, err
+				}
+
+				conns = append(conns, conn)
+				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
+			}
+
+			// Wait for everything to be done
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
 			go func() {
 				ws.MirrorRead(conn, args.Stdin)
 				<-ws.MirrorWrite(conn, args.Stdout)
@@ -2490,8 +2575,13 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 
 	// And attach stdin and stdout to it
 	go func() {
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 		_, writeDone := ws.Mirror(conn, args.Terminal)
 		<-writeDone
+=======
+		ws.MirrorRead(context.Background(), conn, args.Terminal)
+		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
 		_ = conn.Close()
 	}()
 
@@ -2577,7 +2667,12 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 		}
 
 		// Attach reader/writer.
+<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 		_, writeDone := ws.Mirror(conn, rwc)
+=======
+		readDone, writeDone := ws.Mirror(context.Background(), conn, rwc)
+		<-readDone
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
 		<-writeDone
 		_ = conn.Close()
 

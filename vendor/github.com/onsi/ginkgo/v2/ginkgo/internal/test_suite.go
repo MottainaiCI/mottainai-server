@@ -7,7 +7,10 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+<<<<<<< HEAD
 	"runtime"
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	"strings"
 
 	"github.com/onsi/ginkgo/v2/types"
@@ -193,7 +196,11 @@ func precompiledTestSuite(path string) (TestSuite, error) {
 		return TestSuite{}, errors.New("this is not a .test binary")
 	}
 
+<<<<<<< HEAD
 	if filepath.Ext(path) == ".test" && runtime.GOOS != "windows" && info.Mode()&0111 == 0 {
+=======
+	if filepath.Ext(path) == ".test" && info.Mode()&0111 == 0 {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return TestSuite{}, errors.New("this is not executable")
 	}
 
@@ -226,7 +233,11 @@ func suitesInDir(dir string, recurse bool) TestSuites {
 	files, _ := os.ReadDir(dir)
 	re := regexp.MustCompile(`^[^._].*_test\.go$`)
 	for _, file := range files {
+<<<<<<< HEAD
 		if !file.IsDir() && re.MatchString(file.Name()) {
+=======
+		if !file.IsDir() && re.Match([]byte(file.Name())) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			suite := TestSuite{
 				Path:        relPath(dir),
 				PackageName: packageNameForSuite(dir),
@@ -241,7 +252,11 @@ func suitesInDir(dir string, recurse bool) TestSuites {
 	if recurse {
 		re = regexp.MustCompile(`^[._]`)
 		for _, file := range files {
+<<<<<<< HEAD
 			if file.IsDir() && !re.MatchString(file.Name()) {
+=======
+			if file.IsDir() && !re.Match([]byte(file.Name())) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 				suites = append(suites, suitesInDir(dir+"/"+file.Name(), recurse)...)
 			}
 		}
@@ -272,7 +287,11 @@ func filesHaveGinkgoSuite(dir string, files []os.DirEntry) bool {
 	reGinkgo := regexp.MustCompile(`package ginkgo|\/ginkgo"|\/ginkgo\/v2"|\/ginkgo\/v2/dsl/`)
 
 	for _, file := range files {
+<<<<<<< HEAD
 		if !file.IsDir() && reTestFile.MatchString(file.Name()) {
+=======
+		if !file.IsDir() && reTestFile.Match([]byte(file.Name())) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 			contents, _ := os.ReadFile(dir + "/" + file.Name())
 			if reGinkgo.Match(contents) {
 				return true

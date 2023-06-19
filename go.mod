@@ -6,7 +6,6 @@ require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Microsoft/hcsshim v0.10.0-rc.8 // indirect
-	github.com/MottainaiCI/lxd-compose v0.27.0
 	github.com/MottainaiCI/lxd-compose v0.34.0
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e

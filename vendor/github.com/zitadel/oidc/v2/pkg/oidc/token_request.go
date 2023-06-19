@@ -130,7 +130,11 @@ type JWTTokenRequest struct {
 	IssuedAt  Time                `json:"iat"`
 	ExpiresAt Time                `json:"exp"`
 
+<<<<<<< HEAD
 	private map[string]any
+=======
+	private map[string]interface{}
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (j *JWTTokenRequest) MarshalJSON() ([]byte, error) {
@@ -171,7 +175,11 @@ func (j *JWTTokenRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func (j *JWTTokenRequest) GetCustomClaim(key string) any {
+=======
+func (j *JWTTokenRequest) GetCustomClaim(key string) interface{} {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return j.private[key]
 }
 

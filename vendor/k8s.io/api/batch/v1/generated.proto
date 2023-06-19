@@ -415,6 +415,7 @@ message JobStatus {
   // +optional
   optional int32 failed = 6;
 
+<<<<<<< HEAD
   // The number of pods which are terminating (in phase Pending or Running
   // and have a deletionTimestamp).
   //
@@ -423,6 +424,8 @@ message JobStatus {
   // +optional
   optional int32 terminating = 11;
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // completedIndexes holds the completed indexes when .spec.completionMode =
   // "Indexed" in a text format. The indexes are represented as decimal integers
   // separated by commas. The numbers are listed in increasing order. Three or
@@ -433,6 +436,7 @@ message JobStatus {
   // +optional
   optional string completedIndexes = 7;
 
+<<<<<<< HEAD
   // FailedIndexes holds the failed indexes when spec.backoffLimitPerIndex is set.
   // The indexes are represented in the text format analogous as for the
   // `completedIndexes` field, ie. they are kept as decimal integers
@@ -448,6 +452,8 @@ message JobStatus {
   // +optional
   optional string failedIndexes = 10;
 
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // uncountedTerminatedPods holds the UIDs of Pods that have terminated but
   // the job controller hasn't yet accounted for in the status counters.
   //

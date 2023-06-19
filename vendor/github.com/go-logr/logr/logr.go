@@ -254,12 +254,15 @@ type Logger struct {
 // Enabled tests whether this Logger is enabled.  For example, commandline
 // flags might be used to set the logging verbosity and disable some info logs.
 func (l Logger) Enabled() bool {
+<<<<<<< HEAD
 	// Some implementations of LogSink look at the caller in Enabled (e.g.
 	// different verbosity levels per package or file), but we only pass one
 	// CallDepth in (via Init).  This means that all calls from Logger to the
 	// LogSink's Enabled, Info, and Error methods must have the same number of
 	// frames.  In other words, Logger methods can't call other Logger methods
 	// which call these LogSink methods unless we do it the same in all paths.
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	return l.sink != nil && l.sink.Enabled(l.level)
 }
 
@@ -269,11 +272,19 @@ func (l Logger) Enabled() bool {
 // line.  The key/value pairs can then be used to add additional variable
 // information.  The key/value pairs must alternate string keys and arbitrary
 // values.
+<<<<<<< HEAD
 func (l Logger) Info(msg string, keysAndValues ...any) {
 	if l.sink == nil {
 		return
 	}
 	if l.sink.Enabled(l.level) { // see comment in Enabled
+=======
+func (l Logger) Info(msg string, keysAndValues ...interface{}) {
+	if l.sink == nil {
+		return
+	}
+	if l.Enabled() {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		if withHelper, ok := l.sink.(CallStackHelperLogSink); ok {
 			withHelper.GetCallStackHelper()()
 		}
@@ -291,7 +302,11 @@ func (l Logger) Info(msg string, keysAndValues ...any) {
 // while the err argument should be used to attach the actual error that
 // triggered this log line, if present. The err parameter is optional
 // and nil may be passed instead of an error instance.
+<<<<<<< HEAD
 func (l Logger) Error(err error, msg string, keysAndValues ...any) {
+=======
+func (l Logger) Error(err error, msg string, keysAndValues ...interface{}) {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if l.sink == nil {
 		return
 	}
@@ -325,7 +340,11 @@ func (l Logger) GetV() int {
 
 // WithValues returns a new Logger instance with additional key/value pairs.
 // See Info for documentation on how key/value pairs work.
+<<<<<<< HEAD
 func (l Logger) WithValues(keysAndValues ...any) Logger {
+=======
+func (l Logger) WithValues(keysAndValues ...interface{}) Logger {
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	if l.sink == nil {
 		return l
 	}
@@ -404,6 +423,48 @@ func (l Logger) WithCallStackHelper() (func(), Logger) {
 // IsZero returns true if this logger is an uninitialized zero value
 func (l Logger) IsZero() bool {
 	return l.sink == nil
+<<<<<<< HEAD
+=======
+}
+
+// contextKey is how we find Loggers in a context.Context.
+type contextKey struct{}
+
+// FromContext returns a Logger from ctx or an error if no Logger is found.
+func FromContext(ctx context.Context) (Logger, error) {
+	if v, ok := ctx.Value(contextKey{}).(Logger); ok {
+		return v, nil
+	}
+
+	return Logger{}, notFoundError{}
+}
+
+// notFoundError exists to carry an IsNotFound method.
+type notFoundError struct{}
+
+func (notFoundError) Error() string {
+	return "no logr.Logger was present"
+}
+
+func (notFoundError) IsNotFound() bool {
+	return true
+}
+
+// FromContextOrDiscard returns a Logger from ctx.  If no Logger is found, this
+// returns a Logger that discards all log messages.
+func FromContextOrDiscard(ctx context.Context) Logger {
+	if v, ok := ctx.Value(contextKey{}).(Logger); ok {
+		return v
+	}
+
+	return Discard()
+}
+
+// NewContext returns a new Context, derived from ctx, which carries the
+// provided Logger.
+func NewContext(ctx context.Context, logger Logger) context.Context {
+	return context.WithValue(ctx, contextKey{}, logger)
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // RuntimeInfo holds information that the logr "core" library knows which

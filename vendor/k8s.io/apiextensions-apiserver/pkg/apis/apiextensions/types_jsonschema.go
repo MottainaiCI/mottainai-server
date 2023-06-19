@@ -241,6 +241,7 @@ type ValidationRule struct {
 	// "x must be less than max ("+string(self.max)+")"
 	// +optional
 	MessageExpression string
+<<<<<<< HEAD
 	// reason provides a machine-readable validation failure reason that is returned to the caller when a request fails this validation rule.
 	// The HTTP status code returned to the caller will match the reason of the reason of the first failed validation rule.
 	// The currently supported reasons are: "FieldValueInvalid", "FieldValueForbidden", "FieldValueRequired", "FieldValueDuplicate".
@@ -277,6 +278,8 @@ type ValidationRule struct {
 	// +featureGate=CRDValidationRatcheting
 	// +optional
 	OptionalOldSelf *bool
+=======
+>>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // JSON represents any valid JSON value.
