@@ -16,6 +16,7 @@ This package provides various compression algorithms.
 
 # changelog
 
+<<<<<<< HEAD
 * Feb 5th, 2024 - [1.17.6](https://github.com/klauspost/compress/releases/tag/v1.17.6)
 	* zstd: Fix incorrect repeat coding in best mode https://github.com/klauspost/compress/pull/923
 	* s2: Fix DecodeConcurrent deadlock on errors https://github.com/klauspost/compress/pull/925
@@ -70,6 +71,8 @@ https://github.com/klauspost/compress/pull/919 https://github.com/klauspost/comp
 	* gzhttp: Handle informational headers by @rtribotte in https://github.com/klauspost/compress/pull/815
 	* s2: Improve Better compression slightly https://github.com/klauspost/compress/pull/663
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 * Apr 16, 2023 - [v1.16.5](https://github.com/klauspost/compress/releases/tag/v1.16.5)
 	* zstd: readByte needs to use io.ReadFull by @jnoxon in https://github.com/klauspost/compress/pull/802
 	* gzip: Fix WriterTo after initial read https://github.com/klauspost/compress/pull/804
@@ -97,11 +100,15 @@ https://github.com/klauspost/compress/pull/919 https://github.com/klauspost/comp
 	* s2: Add LZ4 block converter. https://github.com/klauspost/compress/pull/748
 	* s2: Support io.ReaderAt in ReadSeeker. https://github.com/klauspost/compress/pull/747
 	* s2c/s2sx: Use concurrent decoding. https://github.com/klauspost/compress/pull/746
+<<<<<<< HEAD
 </details>
 
 <details>
 	<summary>See changes to v1.15.x</summary>
 	
+=======
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 * Jan 21st, 2023 (v1.15.15)
 	* deflate: Improve level 7-9 by @klauspost in https://github.com/klauspost/compress/pull/739
 	* zstd: Add delta encoding support by @greatroar in https://github.com/klauspost/compress/pull/728
@@ -228,8 +235,11 @@ Stream decompression is now faster on asynchronous, since the goroutine allocati
 
 While the release has been extensively tested, it is recommended to testing when upgrading.
 
+<<<<<<< HEAD
 </details>
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 <details>
 	<summary>See changes to v1.14.x</summary>
 	
@@ -565,8 +575,11 @@ the stateless compress described below.
 
 For compression performance, see: [this spreadsheet](https://docs.google.com/spreadsheets/d/1nuNE2nPfuINCZJRMt6wFWhKpToF95I47XjSsc-1rbPQ/edit?usp=sharing).
 
+<<<<<<< HEAD
 To disable all assembly add `-tags=noasm`. This works across all packages.
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 # Stateless compression
 
 This package offers stateless compression as a special option for gzip/deflate. 
@@ -585,7 +598,11 @@ For direct deflate use, NewStatelessWriter and StatelessDeflate are available. S
 
 A `bufio.Writer` can of course be used to control write sizes. For example, to use a 4KB buffer:
 
+<<<<<<< HEAD
 ```go
+=======
+```
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// replace 'ioutil.Discard' with your output.
 	gzw, err := gzip.NewWriterLevel(ioutil.Discard, gzip.StatelessCompression)
 	if err != nil {
@@ -692,8 +709,11 @@ Here are other packages of good quality and pure Go (no cgo wrappers or autoconv
 * [github.com/dsnet/compress](https://github.com/dsnet/compress) - brotli decompression, bzip2 writer.
 * [github.com/ronanh/intcomp](https://github.com/ronanh/intcomp) - Integer compression.
 * [github.com/spenczar/fpc](https://github.com/spenczar/fpc) - Float compression.
+<<<<<<< HEAD
 * [github.com/minio/zipindex](https://github.com/minio/zipindex) - External ZIP directory index.
 * [github.com/ybirader/pzip](https://github.com/ybirader/pzip) - Fast concurrent zip archiver and extractor.
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 # license
 

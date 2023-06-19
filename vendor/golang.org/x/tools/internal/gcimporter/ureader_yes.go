@@ -4,6 +4,12 @@
 
 // Derived from go/internal/gcimporter/ureader.go
 
+<<<<<<< HEAD
+=======
+//go:build go1.18
+// +build go1.18
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 package gcimporter
 
 import (
@@ -13,7 +19,10 @@ import (
 	"sort"
 	"strings"
 
+<<<<<<< HEAD
 	"golang.org/x/tools/internal/aliases"
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	"golang.org/x/tools/internal/pkgbits"
 )
 
@@ -26,7 +35,10 @@ type pkgReader struct {
 
 	ctxt    *types.Context
 	imports map[string]*types.Package // previously imported packages, indexed by path
+<<<<<<< HEAD
 	aliases bool                      // create types.Alias nodes
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 	// lazily initialized arrays corresponding to the unified IR
 	// PosBase, Pkg, and Type sections, respectively.
@@ -100,7 +112,10 @@ func readUnifiedPackage(fset *token.FileSet, ctxt *types.Context, imports map[st
 
 		ctxt:    ctxt,
 		imports: imports,
+<<<<<<< HEAD
 		aliases: aliases.Enabled(),
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 		posBases: make([]string, input.NumElems(pkgbits.RelocPosBase)),
 		pkgs:     make([]*types.Package, input.NumElems(pkgbits.RelocPkg)),
@@ -526,7 +541,11 @@ func (pr *pkgReader) objIdx(idx pkgbits.Index) (*types.Package, string) {
 		case pkgbits.ObjAlias:
 			pos := r.pos()
 			typ := r.typ()
+<<<<<<< HEAD
 			declare(aliases.NewAlias(r.p.aliases, pos, objPkg, objName, typ))
+=======
+			declare(types.NewTypeName(pos, objPkg, objName, typ))
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 		case pkgbits.ObjConst:
 			pos := r.pos()
@@ -553,7 +572,11 @@ func (pr *pkgReader) objIdx(idx pkgbits.Index) (*types.Package, string) {
 				// If the underlying type is an interface, we need to
 				// duplicate its methods so we can replace the receiver
 				// parameter's type (#49906).
+<<<<<<< HEAD
 				if iface, ok := aliases.Unalias(underlying).(*types.Interface); ok && iface.NumExplicitMethods() != 0 {
+=======
+				if iface, ok := underlying.(*types.Interface); ok && iface.NumExplicitMethods() != 0 {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 					methods := make([]*types.Func, iface.NumExplicitMethods())
 					for i := range methods {
 						fn := iface.ExplicitMethod(i)

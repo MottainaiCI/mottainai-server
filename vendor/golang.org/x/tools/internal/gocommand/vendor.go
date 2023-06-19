@@ -107,6 +107,7 @@ func getMainModuleAnd114(ctx context.Context, inv Invocation, r *Runner) (*Modul
 	}
 	return mod, lines[4] == "go1.14", nil
 }
+<<<<<<< HEAD
 
 // WorkspaceVendorEnabled reports whether workspace vendoring is enabled. It takes a *Runner to execute Go commands
 // with the supplied context.Context and Invocation. The Invocation can contain pre-defined fields,
@@ -161,3 +162,5 @@ func getWorkspaceMainModules(ctx context.Context, inv Invocation, r *Runner) ([]
 	}
 	return mods, nil
 }
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)

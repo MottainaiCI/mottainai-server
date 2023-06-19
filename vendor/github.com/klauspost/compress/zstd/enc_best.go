@@ -43,7 +43,11 @@ func (m *match) estBits(bitsPerByte int32) {
 	if m.rep < 0 {
 		ofc = ofCode(uint32(m.s-m.offset) + 3)
 	} else {
+<<<<<<< HEAD
 		ofc = ofCode(uint32(m.rep) & 3)
+=======
+		ofc = ofCode(uint32(m.rep))
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 	// Cost, excluding
 	ofTT, mlTT := fsePredefEnc[tableOffsets].ct.symbolTT[ofc], fsePredefEnc[tableMatchLengths].ct.symbolTT[mlc]
@@ -135,6 +139,7 @@ func (e *bestFastEncoder) Encode(blk *blockEnc, src []byte) {
 		break
 	}
 
+<<<<<<< HEAD
 	// Add block to history
 	s := e.addBlock(src)
 	blk.size = len(src)
@@ -149,6 +154,10 @@ func (e *bestFastEncoder) Encode(blk *blockEnc, src []byte) {
 		}
 	}
 
+=======
+	s := e.addBlock(src)
+	blk.size = len(src)
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	if len(src) < minNonLiteralBlockSize {
 		blk.extraLits = len(src)
 		blk.literals = blk.literals[:len(src)]
@@ -209,10 +218,24 @@ encodeLoop:
 
 		// Set m to a match at offset if it looks like that will improve compression.
 		improve := func(m *match, offset int32, s int32, first uint32, rep int32) {
+<<<<<<< HEAD
 			delta := s - offset
 			if delta >= e.maxMatchOff || delta <= 0 || load3232(src, offset) != first {
 				return
 			}
+=======
+			if s-offset >= e.maxMatchOff || load3232(src, offset) != first {
+				return
+			}
+			if debugAsserts {
+				if offset <= 0 {
+					panic(offset)
+				}
+				if !bytes.Equal(src[s:s+4], src[offset:offset+4]) {
+					panic(fmt.Sprintf("first match mismatch: %v != %v, first: %08x", src[s:s+4], src[offset:offset+4], first))
+				}
+			}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			// Try to quick reject if we already have a long match.
 			if m.length > 16 {
 				left := len(src) - int(m.s+m.length)
@@ -231,10 +254,15 @@ encodeLoop:
 				}
 			}
 			l := 4 + e.matchlen(s+4, offset+4, src)
+<<<<<<< HEAD
 			if m.rep <= 0 {
 				// Extend candidate match backwards as far as possible.
 				// Do not extend repeats as we can assume they are optimal
 				// and offsets change if s == nextEmit.
+=======
+			if rep < 0 {
+				// Extend candidate match backwards as far as possible.
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 				tMin := s - e.maxMatchOff
 				if tMin < 0 {
 					tMin = 0
@@ -245,6 +273,7 @@ encodeLoop:
 					l++
 				}
 			}
+<<<<<<< HEAD
 			if debugAsserts {
 				if offset >= s {
 					panic(fmt.Sprintf("offset: %d - s:%d - rep: %d - cur :%d - max: %d", offset, s, rep, e.cur, e.maxMatchOff))
@@ -253,6 +282,9 @@ encodeLoop:
 					panic(fmt.Sprintf("second match mismatch: %v != %v, first: %08x", src[s:s+4], src[offset:offset+4], first))
 				}
 			}
+=======
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			cand := match{offset: offset, s: s, length: l, rep: rep}
 			cand.estBits(bitsPerByte)
 			if m.est >= highScore || cand.est-m.est+(cand.s-m.s)*bitsPerByte>>10 < 0 {
@@ -295,7 +327,10 @@ encodeLoop:
 		// Load next and check...
 		e.longTable[nextHashL] = prevEntry{offset: s + e.cur, prev: candidateL.offset}
 		e.table[nextHashS] = prevEntry{offset: s + e.cur, prev: candidateS.offset}
+<<<<<<< HEAD
 		index0 := s + 1
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 		// Look far ahead, unless we have a really long match already...
 		if best.length < goodEnough {
@@ -349,6 +384,7 @@ encodeLoop:
 		}
 
 		if debugAsserts {
+<<<<<<< HEAD
 			if best.offset >= best.s {
 				panic(fmt.Sprintf("best.offset > s: %d >= %d", best.offset, best.s))
 			}
@@ -358,26 +394,42 @@ encodeLoop:
 			if best.offset < s-e.maxMatchOff {
 				panic(fmt.Sprintf("best.offset < s-e.maxMatchOff: %d < %d", best.offset, s-e.maxMatchOff))
 			}
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			if !bytes.Equal(src[best.s:best.s+best.length], src[best.offset:best.offset+best.length]) {
 				panic(fmt.Sprintf("match mismatch: %v != %v", src[best.s:best.s+best.length], src[best.offset:best.offset+best.length]))
 			}
 		}
 
 		// We have a match, we can store the forward value
+<<<<<<< HEAD
 		s = best.s
 		if best.rep > 0 {
 			var seq seq
 			seq.matchLen = uint32(best.length - zstdMinMatch)
+=======
+		if best.rep > 0 {
+			var seq seq
+			seq.matchLen = uint32(best.length - zstdMinMatch)
+			if debugAsserts && s <= nextEmit {
+				panic("s <= nextEmit")
+			}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			addLiterals(&seq, best.s)
 
 			// Repeat. If bit 4 is set, this is a non-lit repeat.
 			seq.offset = uint32(best.rep & 3)
 			if debugSequences {
+<<<<<<< HEAD
 				println("repeat sequence", seq, "next s:", best.s, "off:", best.s-best.offset)
+=======
+				println("repeat sequence", seq, "next s:", s)
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			}
 			blk.sequences = append(blk.sequences, seq)
 
 			// Index old s + 1 -> s - 1
+<<<<<<< HEAD
 			s = best.s + best.length
 			nextEmit = s
 
@@ -388,6 +440,21 @@ encodeLoop:
 			}
 			off := index0 + e.cur
 			for index0 < end {
+=======
+			index0 := s + 1
+			s = best.s + best.length
+
+			nextEmit = s
+			if s >= sLimit {
+				if debugEncoder {
+					println("repeat ended", s, best.length)
+				}
+				break encodeLoop
+			}
+			// Index skipped...
+			off := index0 + e.cur
+			for index0 < s {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 				cv0 := load6432(src, index0)
 				h0 := hashLen(cv0, bestLongTableBits, bestLongLen)
 				h1 := hashLen(cv0, bestShortTableBits, bestShortLen)
@@ -396,7 +463,10 @@ encodeLoop:
 				off++
 				index0++
 			}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			switch best.rep {
 			case 2, 4 | 1:
 				offset1, offset2 = offset2, offset1
@@ -405,17 +475,25 @@ encodeLoop:
 			case 4 | 3:
 				offset1, offset2, offset3 = offset1-1, offset1, offset2
 			}
+<<<<<<< HEAD
 			if s >= sLimit {
 				if debugEncoder {
 					println("repeat ended", s, best.length)
 				}
 				break encodeLoop
 			}
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			continue
 		}
 
 		// A 4-byte match has been found. Update recent offsets.
 		// We'll later see if more than 4 bytes.
+<<<<<<< HEAD
+=======
+		index0 := s + 1
+		s = best.s
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		t := best.offset
 		offset1, offset2, offset3 = s-t, offset1, offset2
 
@@ -442,6 +520,7 @@ encodeLoop:
 		}
 		blk.sequences = append(blk.sequences, seq)
 		nextEmit = s
+<<<<<<< HEAD
 
 		// Index old s + 1 -> s - 1 or sLimit
 		end := s
@@ -461,6 +540,21 @@ encodeLoop:
 		}
 		if s >= sLimit {
 			break encodeLoop
+=======
+		if s >= sLimit {
+			break encodeLoop
+		}
+
+		// Index old s + 1 -> s - 1
+		for index0 < s {
+			cv0 := load6432(src, index0)
+			h0 := hashLen(cv0, bestLongTableBits, bestLongLen)
+			h1 := hashLen(cv0, bestShortTableBits, bestShortLen)
+			off := index0 + e.cur
+			e.longTable[h0] = prevEntry{offset: off, prev: e.longTable[h0].offset}
+			e.table[h1] = prevEntry{offset: off, prev: e.table[h1].offset}
+			index0++
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		}
 	}
 

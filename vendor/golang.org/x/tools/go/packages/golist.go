@@ -9,9 +9,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+<<<<<<< HEAD
 	"log"
 	"os"
 	"os/exec"
+=======
+	"go/types"
+	"io/ioutil"
+	"log"
+	"os"
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	"path"
 	"path/filepath"
 	"reflect"
@@ -21,6 +28,10 @@ import (
 	"sync"
 	"unicode"
 
+<<<<<<< HEAD
+=======
+	exec "golang.org/x/sys/execabs"
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	"golang.org/x/tools/go/internal/packagesdriver"
 	"golang.org/x/tools/internal/gocommand"
 	"golang.org/x/tools/internal/packagesinternal"
@@ -35,23 +46,40 @@ type goTooOldError struct {
 	error
 }
 
+<<<<<<< HEAD
 // responseDeduper wraps a DriverResponse, deduplicating its contents.
 type responseDeduper struct {
 	seenRoots    map[string]bool
 	seenPackages map[string]*Package
 	dr           *DriverResponse
+=======
+// responseDeduper wraps a driverResponse, deduplicating its contents.
+type responseDeduper struct {
+	seenRoots    map[string]bool
+	seenPackages map[string]*Package
+	dr           *driverResponse
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 }
 
 func newDeduper() *responseDeduper {
 	return &responseDeduper{
+<<<<<<< HEAD
 		dr:           &DriverResponse{},
+=======
+		dr:           &driverResponse{},
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		seenRoots:    map[string]bool{},
 		seenPackages: map[string]*Package{},
 	}
 }
 
+<<<<<<< HEAD
 // addAll fills in r with a DriverResponse.
 func (r *responseDeduper) addAll(dr *DriverResponse) {
+=======
+// addAll fills in r with a driverResponse.
+func (r *responseDeduper) addAll(dr *driverResponse) {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	for _, pkg := range dr.Packages {
 		r.addPackage(pkg)
 	}
@@ -128,7 +156,11 @@ func (state *golistState) mustGetEnv() map[string]string {
 // goListDriver uses the go list command to interpret the patterns and produce
 // the build system package structure.
 // See driver for more details.
+<<<<<<< HEAD
 func goListDriver(cfg *Config, patterns ...string) (_ *DriverResponse, err error) {
+=======
+func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// Make sure that any asynchronous go commands are killed when we return.
 	parentCtx := cfg.Context
 	if parentCtx == nil {
@@ -146,6 +178,7 @@ func goListDriver(cfg *Config, patterns ...string) (_ *DriverResponse, err error
 	}
 
 	// Fill in response.Sizes asynchronously if necessary.
+<<<<<<< HEAD
 	if cfg.Mode&NeedTypesSizes != 0 || cfg.Mode&NeedTypes != 0 {
 		errCh := make(chan error)
 		go func() {
@@ -158,6 +191,18 @@ func goListDriver(cfg *Config, patterns ...string) (_ *DriverResponse, err error
 			if sizesErr := <-errCh; sizesErr != nil {
 				err = sizesErr
 			}
+=======
+	var sizeserr error
+	var sizeswg sync.WaitGroup
+	if cfg.Mode&NeedTypesSizes != 0 || cfg.Mode&NeedTypes != 0 {
+		sizeswg.Add(1)
+		go func() {
+			var sizes types.Sizes
+			sizes, sizeserr = packagesdriver.GetSizesGolist(ctx, state.cfgInvocation(), cfg.gocmdRunner)
+			// types.SizesFor always returns nil or a *types.StdSizes.
+			response.dr.Sizes, _ = sizes.(*types.StdSizes)
+			sizeswg.Done()
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		}()
 	}
 
@@ -210,10 +255,94 @@ extractQueries:
 		}
 	}
 
+<<<<<<< HEAD
 	// (We may yet return an error due to defer.)
 	return response.dr, nil
 }
 
+=======
+	// Only use go/packages' overlay processing if we're using a Go version
+	// below 1.16. Otherwise, go list handles it.
+	if goVersion, err := state.getGoVersion(); err == nil && goVersion < 16 {
+		modifiedPkgs, needPkgs, err := state.processGolistOverlay(response)
+		if err != nil {
+			return nil, err
+		}
+
+		var containsCandidates []string
+		if len(containFiles) > 0 {
+			containsCandidates = append(containsCandidates, modifiedPkgs...)
+			containsCandidates = append(containsCandidates, needPkgs...)
+		}
+		if err := state.addNeededOverlayPackages(response, needPkgs); err != nil {
+			return nil, err
+		}
+		// Check candidate packages for containFiles.
+		if len(containFiles) > 0 {
+			for _, id := range containsCandidates {
+				pkg, ok := response.seenPackages[id]
+				if !ok {
+					response.addPackage(&Package{
+						ID: id,
+						Errors: []Error{{
+							Kind: ListError,
+							Msg:  fmt.Sprintf("package %s expected but not seen", id),
+						}},
+					})
+					continue
+				}
+				for _, f := range containFiles {
+					for _, g := range pkg.GoFiles {
+						if sameFile(f, g) {
+							response.addRoot(id)
+						}
+					}
+				}
+			}
+		}
+		// Add root for any package that matches a pattern. This applies only to
+		// packages that are modified by overlays, since they are not added as
+		// roots automatically.
+		for _, pattern := range restPatterns {
+			match := matchPattern(pattern)
+			for _, pkgID := range modifiedPkgs {
+				pkg, ok := response.seenPackages[pkgID]
+				if !ok {
+					continue
+				}
+				if match(pkg.PkgPath) {
+					response.addRoot(pkg.ID)
+				}
+			}
+		}
+	}
+
+	sizeswg.Wait()
+	if sizeserr != nil {
+		return nil, sizeserr
+	}
+	return response.dr, nil
+}
+
+func (state *golistState) addNeededOverlayPackages(response *responseDeduper, pkgs []string) error {
+	if len(pkgs) == 0 {
+		return nil
+	}
+	dr, err := state.createDriverResponse(pkgs...)
+	if err != nil {
+		return err
+	}
+	for _, pkg := range dr.Packages {
+		response.addPackage(pkg)
+	}
+	_, needPkgs, err := state.processGolistOverlay(response)
+	if err != nil {
+		return err
+	}
+	return state.addNeededOverlayPackages(response, needPkgs)
+}
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 func (state *golistState) runContainsQueries(response *responseDeduper, queries []string) error {
 	for _, query := range queries {
 		// TODO(matloob): Do only one query per directory.
@@ -265,7 +394,11 @@ func (state *golistState) runContainsQueries(response *responseDeduper, queries 
 
 // adhocPackage attempts to load or construct an ad-hoc package for a given
 // query, if the original call to the driver produced inadequate results.
+<<<<<<< HEAD
 func (state *golistState) adhocPackage(pattern, query string) (*DriverResponse, error) {
+=======
+func (state *golistState) adhocPackage(pattern, query string) (*driverResponse, error) {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	response, err := state.createDriverResponse(query)
 	if err != nil {
 		return nil, err
@@ -356,7 +489,11 @@ func otherFiles(p *jsonPackage) [][]string {
 
 // createDriverResponse uses the "go list" command to expand the pattern
 // words and return a response for the specified packages.
+<<<<<<< HEAD
 func (state *golistState) createDriverResponse(words ...string) (*DriverResponse, error) {
+=======
+func (state *golistState) createDriverResponse(words ...string) (*driverResponse, error) {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// go list uses the following identifiers in ImportPath and Imports:
 	//
 	// 	"p"			-- importable package or main (command)
@@ -383,7 +520,11 @@ func (state *golistState) createDriverResponse(words ...string) (*DriverResponse
 	pkgs := make(map[string]*Package)
 	additionalErrors := make(map[string][]Error)
 	// Decode the JSON and convert it to Package form.
+<<<<<<< HEAD
 	response := &DriverResponse{
+=======
+	response := &driverResponse{
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		GoVersion: goVersion,
 	}
 	for dec := json.NewDecoder(buf); dec.More(); {
@@ -594,9 +735,12 @@ func (state *golistState) createDriverResponse(words ...string) (*DriverResponse
 		// Temporary work-around for golang/go#39986. Parse filenames out of
 		// error messages. This happens if there are unrecoverable syntax
 		// errors in the source, so we can't match on a specific error message.
+<<<<<<< HEAD
 		//
 		// TODO(rfindley): remove this heuristic, in favor of considering
 		// InvalidGoFiles from the list driver.
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		if err := p.Error; err != nil && state.shouldAddFilenameFromError(p) {
 			addFilenameFromPos := func(pos string) bool {
 				split := strings.Split(pos, ":")
@@ -1033,7 +1177,11 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 	if len(state.cfg.Overlay) == 0 {
 		return "", func() {}, nil
 	}
+<<<<<<< HEAD
 	dir, err := os.MkdirTemp("", "gopackages-*")
+=======
+	dir, err := ioutil.TempDir("", "gopackages-*")
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	if err != nil {
 		return "", nil, err
 	}
@@ -1052,7 +1200,11 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 		// Create a unique filename for the overlaid files, to avoid
 		// creating nested directories.
 		noSeparator := strings.Join(strings.Split(filepath.ToSlash(k), "/"), "")
+<<<<<<< HEAD
 		f, err := os.CreateTemp(dir, fmt.Sprintf("*-%s", noSeparator))
+=======
+		f, err := ioutil.TempFile(dir, fmt.Sprintf("*-%s", noSeparator))
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		if err != nil {
 			return "", func() {}, err
 		}
@@ -1070,7 +1222,11 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 	}
 	// Write out the overlay file that contains the filepath mappings.
 	filename = filepath.Join(dir, "overlay.json")
+<<<<<<< HEAD
 	if err := os.WriteFile(filename, b, 0665); err != nil {
+=======
+	if err := ioutil.WriteFile(filename, b, 0665); err != nil {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		return "", func() {}, err
 	}
 	return filename, cleanup, nil

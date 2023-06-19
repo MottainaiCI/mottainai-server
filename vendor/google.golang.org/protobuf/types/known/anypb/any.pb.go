@@ -142,6 +142,7 @@ import (
 //
 // Example 2: Pack and unpack a message in Java.
 //
+<<<<<<< HEAD
 //	   Foo foo = ...;
 //	   Any any = Any.pack(foo);
 //	   ...
@@ -175,6 +176,41 @@ import (
 //	    if err := any.UnmarshalTo(foo); err != nil {
 //	      ...
 //	    }
+=======
+//	Foo foo = ...;
+//	Any any = Any.pack(foo);
+//	...
+//	if (any.is(Foo.class)) {
+//	  foo = any.unpack(Foo.class);
+//	}
+//	// or ...
+//	if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+//	  foo = any.unpack(Foo.getDefaultInstance());
+//	}
+//
+// Example 3: Pack and unpack a message in Python.
+//
+//	foo = Foo(...)
+//	any = Any()
+//	any.Pack(foo)
+//	...
+//	if any.Is(Foo.DESCRIPTOR):
+//	  any.Unpack(foo)
+//	  ...
+//
+// Example 4: Pack and unpack a message in Go
+//
+//	foo := &pb.Foo{...}
+//	any, err := anypb.New(foo)
+//	if err != nil {
+//	  ...
+//	}
+//	...
+//	foo := &pb.Foo{}
+//	if err := any.UnmarshalTo(foo); err != nil {
+//	  ...
+//	}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 //
 // The pack methods provided by protobuf library will by default use
 // 'type.googleapis.com/full.type.name' as the type URL and the unpack
@@ -182,8 +218,13 @@ import (
 // in the type URL, for example "foo.bar.com/x/y.z" will yield type
 // name "y.z".
 //
+<<<<<<< HEAD
 // JSON
 // ====
+=======
+// # JSON
+//
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // The JSON representation of an `Any` value uses the regular
 // representation of the deserialized, embedded message, with an
 // additional field `@type` which contains the type URL. Example:

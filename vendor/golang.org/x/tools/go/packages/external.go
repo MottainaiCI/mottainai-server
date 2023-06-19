@@ -2,15 +2,24 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+<<<<<<< HEAD
 package packages
 
 // This file defines the protocol that enables an external "driver"
 // tool to supply package metadata in place of 'go list'.
+=======
+// This file enables an external tool to intercept package requests.
+// If the tool is present then its results are used in preference to
+// the go list command.
+
+package packages
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+<<<<<<< HEAD
 	"os"
 	"os/exec"
 	"strings"
@@ -34,11 +43,39 @@ type DriverRequest struct {
 	// Tests specifies whether the patterns should also return test packages.
 	Tests bool `json:"tests"`
 
+=======
+	exec "golang.org/x/sys/execabs"
+	"os"
+	"strings"
+)
+
+// The Driver Protocol
+//
+// The driver, given the inputs to a call to Load, returns metadata about the packages specified.
+// This allows for different build systems to support go/packages by telling go/packages how the
+// packages' source is organized.
+// The driver is a binary, either specified by the GOPACKAGESDRIVER environment variable or in
+// the path as gopackagesdriver. It's given the inputs to load in its argv. See the package
+// documentation in doc.go for the full description of the patterns that need to be supported.
+// A driver receives as a JSON-serialized driverRequest struct in standard input and will
+// produce a JSON-serialized driverResponse (see definition in packages.go) in its standard output.
+
+// driverRequest is used to provide the portion of Load's Config that is needed by a driver.
+type driverRequest struct {
+	Mode LoadMode `json:"mode"`
+	// Env specifies the environment the underlying build system should be run in.
+	Env []string `json:"env"`
+	// BuildFlags are flags that should be passed to the underlying build system.
+	BuildFlags []string `json:"build_flags"`
+	// Tests specifies whether the patterns should also return test packages.
+	Tests bool `json:"tests"`
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// Overlay maps file paths (relative to the driver's working directory) to the byte contents
 	// of overlay files.
 	Overlay map[string][]byte `json:"overlay"`
 }
 
+<<<<<<< HEAD
 // DriverResponse defines the schema of a response from an external
 // driver program, providing the results of a query for package
 // metadata. The driver program must write a JSON-encoded
@@ -81,6 +118,8 @@ type DriverResponse struct {
 // packages named by the patterns.
 type driver func(cfg *Config, patterns ...string) (*DriverResponse, error)
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // findExternalDriver returns the file path of a tool that supplies
 // the build system package structure, or "" if not found."
 // If GOPACKAGESDRIVER is set in the environment findExternalTool returns its
@@ -103,8 +142,13 @@ func findExternalDriver(cfg *Config) driver {
 			return nil
 		}
 	}
+<<<<<<< HEAD
 	return func(cfg *Config, words ...string) (*DriverResponse, error) {
 		req, err := json.Marshal(DriverRequest{
+=======
+	return func(cfg *Config, words ...string) (*driverResponse, error) {
+		req, err := json.Marshal(driverRequest{
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			Mode:       cfg.Mode,
 			Env:        cfg.Env,
 			BuildFlags: cfg.BuildFlags,
@@ -131,7 +175,11 @@ func findExternalDriver(cfg *Config) driver {
 			fmt.Fprintf(os.Stderr, "%s stderr: <<%s>>\n", cmdDebugStr(cmd), stderr)
 		}
 
+<<<<<<< HEAD
 		var response DriverResponse
+=======
+		var response driverResponse
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		if err := json.Unmarshal(buf.Bytes(), &response); err != nil {
 			return nil, err
 		}

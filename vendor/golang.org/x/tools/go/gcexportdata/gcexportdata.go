@@ -47,7 +47,11 @@ import (
 func Find(importPath, srcDir string) (filename, path string) {
 	cmd := exec.Command("go", "list", "-json", "-export", "--", importPath)
 	cmd.Dir = srcDir
+<<<<<<< HEAD
 	out, err := cmd.Output()
+=======
+	out, err := cmd.CombinedOutput()
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	if err != nil {
 		return "", ""
 	}

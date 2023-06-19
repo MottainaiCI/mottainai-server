@@ -199,8 +199,12 @@ func (s *Scratch) compress(src []byte) error {
 	c2.flush(s.actualTableLog)
 	c1.flush(s.actualTableLog)
 
+<<<<<<< HEAD
 	s.bw.close()
 	return nil
+=======
+	return s.bw.close()
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 }
 
 // writeCount will write the normalized histogram count to header.
@@ -212,7 +216,11 @@ func (s *Scratch) writeCount() error {
 		previous0 bool
 		charnum   uint16
 
+<<<<<<< HEAD
 		maxHeaderSize = ((int(s.symbolLen)*int(tableLog) + 4 + 2) >> 3) + 3
+=======
+		maxHeaderSize = ((int(s.symbolLen) * int(tableLog)) >> 3) + 3
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 		// Write Table Size
 		bitStream = uint32(tableLog - minTablelog)

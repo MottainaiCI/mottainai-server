@@ -37,6 +37,7 @@ func (token Token) Environ(inheritExisting bool) (env []string, err error) {
 		return nil, err
 	}
 	defer DestroyEnvironmentBlock(block)
+<<<<<<< HEAD
 	size := unsafe.Sizeof(*block)
 	for *block != 0 {
 		// find NUL terminator
@@ -48,6 +49,16 @@ func (token Token) Environ(inheritExisting bool) (env []string, err error) {
 		entry := unsafe.Slice(block, (uintptr(end)-uintptr(unsafe.Pointer(block)))/size)
 		env = append(env, UTF16ToString(entry))
 		block = (*uint16)(unsafe.Add(end, size))
+=======
+	blockp := unsafe.Pointer(block)
+	for {
+		entry := UTF16PtrToString((*uint16)(blockp))
+		if len(entry) == 0 {
+			break
+		}
+		env = append(env, entry)
+		blockp = unsafe.Add(blockp, 2*(len(entry)+1))
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 	return env, nil
 }

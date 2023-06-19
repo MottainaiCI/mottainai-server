@@ -361,13 +361,18 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 	if len(lits) >= 1024 {
 		// Use 4 Streams.
 		out, reUsed, err = huff0.Compress4X(lits, b.litEnc)
+<<<<<<< HEAD
 	} else if len(lits) > 16 {
+=======
+	} else if len(lits) > 32 {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		// Use 1 stream
 		single = true
 		out, reUsed, err = huff0.Compress1X(lits, b.litEnc)
 	} else {
 		err = huff0.ErrIncompressible
 	}
+<<<<<<< HEAD
 	if err == nil && len(out)+5 > len(lits) {
 		// If we are close, we may still be worse or equal to raw.
 		var lh literalsHeader
@@ -376,6 +381,9 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 			err = huff0.ErrIncompressible
 		}
 	}
+=======
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	switch err {
 	case huff0.ErrIncompressible:
 		if debugEncoder {
@@ -427,6 +435,7 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 	return nil
 }
 
+<<<<<<< HEAD
 // encodeRLE will encode an RLE block.
 func (b *blockEnc) encodeRLE(val byte, length uint32) {
 	var bh blockHeader
@@ -437,6 +446,8 @@ func (b *blockEnc) encodeRLE(val byte, length uint32) {
 	b.output = append(b.output, val)
 }
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // fuzzFseEncoder can be used to fuzz the FSE encoder.
 func fuzzFseEncoder(data []byte) int {
 	if len(data) > maxSequences || len(data) < 2 {
@@ -489,6 +500,7 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	if len(b.sequences) == 0 {
 		return b.encodeLits(b.literals, rawAllLits)
 	}
+<<<<<<< HEAD
 	if len(b.sequences) == 1 && len(org) > 0 && len(b.literals) <= 1 {
 		// Check common RLE cases.
 		seq := b.sequences[0]
@@ -499,6 +511,8 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 		}
 	}
 
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// We want some difference to at least account for the headers.
 	saved := b.size - len(b.literals) - (b.size >> 6)
 	if saved < 16 {
@@ -530,7 +544,11 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	if len(b.literals) >= 1024 && !raw {
 		// Use 4 Streams.
 		out, reUsed, err = huff0.Compress4X(b.literals, b.litEnc)
+<<<<<<< HEAD
 	} else if len(b.literals) > 16 && !raw {
+=======
+	} else if len(b.literals) > 32 && !raw {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		// Use 1 stream
 		single = true
 		out, reUsed, err = huff0.Compress1X(b.literals, b.litEnc)
@@ -538,6 +556,7 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 		err = huff0.ErrIncompressible
 	}
 
+<<<<<<< HEAD
 	if err == nil && len(out)+5 > len(b.literals) {
 		// If we are close, we may still be worse or equal to raw.
 		var lh literalsHeader
@@ -549,6 +568,8 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 			err = huff0.ErrIncompressible
 		}
 	}
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	switch err {
 	case huff0.ErrIncompressible:
 		lh.setType(literalsBlockRaw)
@@ -811,7 +832,14 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	ml.flush(mlEnc.actualTableLog)
 	of.flush(ofEnc.actualTableLog)
 	ll.flush(llEnc.actualTableLog)
+<<<<<<< HEAD
 	wr.close()
+=======
+	err = wr.close()
+	if err != nil {
+		return err
+	}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	b.output = wr.out
 
 	// Maybe even add a bigger margin.

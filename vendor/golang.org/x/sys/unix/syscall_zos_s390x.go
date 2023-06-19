@@ -477,10 +477,13 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 //sys   munmap(addr uintptr, length uintptr) (err error) = SYS_MUNMAP
 //sys   ioctl(fd int, req int, arg uintptr) (err error) = SYS_IOCTL
 //sys   ioctlPtr(fd int, req int, arg unsafe.Pointer) (err error) = SYS_IOCTL
+<<<<<<< HEAD
 //sys	shmat(id int, addr uintptr, flag int) (ret uintptr, err error) = SYS_SHMAT
 //sys	shmctl(id int, cmd int, buf *SysvShmDesc) (result int, err error) = SYS_SHMCTL64
 //sys	shmdt(addr uintptr) (err error) = SYS_SHMDT
 //sys	shmget(key int, size int, flag int) (id int, err error) = SYS_SHMGET
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 //sys   Access(path string, mode uint32) (err error) = SYS___ACCESS_A
 //sys   Chdir(path string) (err error) = SYS___CHDIR_A

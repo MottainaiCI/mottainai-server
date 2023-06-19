@@ -3,15 +3,21 @@ package ioutils // import "github.com/docker/docker/pkg/ioutils"
 import (
 	"context"
 	"io"
+<<<<<<< HEAD
 	"runtime/debug"
 	"sync/atomic"
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 	// make sure crypto.SHA256, crypto.sha512 and crypto.SHA384 are registered
 	// TODO remove once https://github.com/opencontainers/go-digest/pull/64 is merged.
 	_ "crypto/sha256"
 	_ "crypto/sha512"
+<<<<<<< HEAD
 
 	"github.com/sirupsen/logrus"
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )
 
 // ReadCloserWrapper wraps an io.Reader, and implements an io.ReadCloser

@@ -121,8 +121,11 @@ type ResourceClaimStatus struct {
 	//
 	// +listType=map
 	// +listMapKey=uid
+<<<<<<< HEAD:vendor/k8s.io/api/resource/v1alpha2/types.go
 	// +patchStrategy=merge
 	// +patchMergeKey=uid
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2):vendor/k8s.io/api/resource/v1alpha1/types.go
 	// +optional
 	ReservedFor []ResourceClaimConsumerReference `json:"reservedFor,omitempty" protobuf:"bytes,3,opt,name=reservedFor" patchStrategy:"merge" patchMergeKey:"uid"`
 

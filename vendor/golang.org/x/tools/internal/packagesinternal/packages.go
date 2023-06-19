@@ -5,6 +5,13 @@
 // Package packagesinternal exposes internal-only fields from go/packages.
 package packagesinternal
 
+<<<<<<< HEAD
+=======
+import (
+	"golang.org/x/tools/internal/gocommand"
+)
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 var GetForTest = func(p interface{}) string { return "" }
 var GetDepsErrors = func(p interface{}) []*PackageError { return nil }
 
@@ -14,6 +21,13 @@ type PackageError struct {
 	Err         string   // the error itself
 }
 
+<<<<<<< HEAD
+=======
+var GetGoCmdRunner = func(config interface{}) *gocommand.Runner { return nil }
+
+var SetGoCmdRunner = func(config interface{}, runner *gocommand.Runner) {}
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 var TypecheckCgo int
 var DepsErrors int // must be set as a LoadMode to call GetDepsErrors
 var ForTest int    // must be set as a LoadMode to call GetForTest

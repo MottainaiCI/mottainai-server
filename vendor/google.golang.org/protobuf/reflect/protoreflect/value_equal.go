@@ -24,11 +24,16 @@ import (
 //     Unlike the == operator, a NaN is equal to another NaN.
 //
 //   - Enums are equal if they contain the same number.
+<<<<<<< HEAD
 //     Since [Value] does not contain an enum descriptor,
+=======
+//     Since Value does not contain an enum descriptor,
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 //     enum values do not consider the type of the enum.
 //
 //   - Other scalar values are equal if they contain the same value.
 //
+<<<<<<< HEAD
 //   - [Message] values are equal if they belong to the same message descriptor,
 //     have the same set of populated known and extension field values,
 //     and the same set of unknown fields values.
@@ -37,6 +42,16 @@ import (
 //     each corresponding element is equal.
 //
 //   - [Map] values are equal if they have the same set of keys and
+=======
+//   - Message values are equal if they belong to the same message descriptor,
+//     have the same set of populated known and extension field values,
+//     and the same set of unknown fields values.
+//
+//   - Lists are equal if they are the same length and
+//     each corresponding element is equal.
+//
+//   - Maps are equal if they have the same set of keys and
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 //     the corresponding value for each key is equal.
 func (v1 Value) Equal(v2 Value) bool {
 	return equalValue(v1, v2)

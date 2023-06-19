@@ -227,7 +227,14 @@ func (e *Encoder) nextBlock(final bool) error {
 			DictID:        e.o.dict.ID(),
 		}
 
+<<<<<<< HEAD
 		dst := fh.appendTo(tmp[:0])
+=======
+		dst, err := fh.appendTo(tmp[:0])
+		if err != nil {
+			return err
+		}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		s.headerWritten = true
 		s.wWg.Wait()
 		var n2 int
@@ -480,7 +487,11 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 				Checksum: false,
 				DictID:   0,
 			}
+<<<<<<< HEAD
 			dst = fh.appendTo(dst)
+=======
+			dst, _ = fh.appendTo(dst)
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 			// Write raw block as last one only.
 			var blk blockHeader
@@ -515,7 +526,14 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 	if len(dst) == 0 && cap(dst) == 0 && len(src) < 1<<20 && !e.o.lowMem {
 		dst = make([]byte, 0, len(src))
 	}
+<<<<<<< HEAD
 	dst = fh.appendTo(dst)
+=======
+	dst, err := fh.appendTo(dst)
+	if err != nil {
+		panic(err)
+	}
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 	// If we can do everything in one block, prefer that.
 	if len(src) <= e.o.blockSize {
@@ -575,7 +593,10 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 	// Add padding with content from crypto/rand.Reader
 	if e.o.pad > 0 {
 		add := calcSkippableFrame(int64(len(dst)), int64(e.o.pad))
+<<<<<<< HEAD
 		var err error
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		dst, err = skippableFrame(dst, add, rand.Reader)
 		if err != nil {
 			panic(err)

@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 
 //go:build aix || solaris
+<<<<<<< HEAD
+=======
+// +build aix solaris
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 package unix
 

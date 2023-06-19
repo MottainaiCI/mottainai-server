@@ -5,6 +5,8 @@ go 1.22.0
 require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/Microsoft/hcsshim v0.10.0-rc.8 // indirect
+	github.com/MottainaiCI/lxd-compose v0.27.0
 	github.com/MottainaiCI/lxd-compose v0.34.0
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
@@ -12,10 +14,11 @@ require (
 	github.com/canonical/lxd v0.0.0-20231212113931-6b2c9592e968
 	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9 // indirect
 	github.com/codegangsta/inject v0.0.0-20140425184007-37d7f8432a3e // indirect
-	github.com/containerd/containerd v1.7.12 // indirect
-	github.com/docker/docker v24.0.9+incompatible // indirect
+	github.com/containerd/cgroups v1.1.0 // indirect
+	github.com/containerd/containerd v1.7.2 // indirect
+	github.com/docker/docker v24.0.2+incompatible // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/fsouza/go-dockerclient v1.9.4
+	github.com/fsouza/go-dockerclient v1.9.7
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-macaron/binding v1.1.1
@@ -37,7 +40,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.1
-	github.com/opencontainers/runc v1.1.5 // indirect
+	github.com/opencontainers/runc v1.1.7 // indirect
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0

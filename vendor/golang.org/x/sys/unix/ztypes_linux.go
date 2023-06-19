@@ -2745,7 +2745,10 @@ const (
 	BPF_PROG_TYPE_LSM                          = 0x1d
 	BPF_PROG_TYPE_SK_LOOKUP                    = 0x1e
 	BPF_PROG_TYPE_SYSCALL                      = 0x1f
+<<<<<<< HEAD
 	BPF_PROG_TYPE_NETFILTER                    = 0x20
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	BPF_CGROUP_INET_INGRESS                    = 0x0
 	BPF_CGROUP_INET_EGRESS                     = 0x1
 	BPF_CGROUP_INET_SOCK_CREATE                = 0x2
@@ -2790,11 +2793,14 @@ const (
 	BPF_PERF_EVENT                             = 0x29
 	BPF_TRACE_KPROBE_MULTI                     = 0x2a
 	BPF_LSM_CGROUP                             = 0x2b
+<<<<<<< HEAD
 	BPF_STRUCT_OPS                             = 0x2c
 	BPF_NETFILTER                              = 0x2d
 	BPF_TCX_INGRESS                            = 0x2e
 	BPF_TCX_EGRESS                             = 0x2f
 	BPF_TRACE_UPROBE_MULTI                     = 0x30
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	BPF_LINK_TYPE_UNSPEC                       = 0x0
 	BPF_LINK_TYPE_RAW_TRACEPOINT               = 0x1
 	BPF_LINK_TYPE_TRACING                      = 0x2
@@ -2805,6 +2811,7 @@ const (
 	BPF_LINK_TYPE_PERF_EVENT                   = 0x7
 	BPF_LINK_TYPE_KPROBE_MULTI                 = 0x8
 	BPF_LINK_TYPE_STRUCT_OPS                   = 0x9
+<<<<<<< HEAD
 	BPF_LINK_TYPE_NETFILTER                    = 0xa
 	BPF_LINK_TYPE_TCX                          = 0xb
 	BPF_LINK_TYPE_UPROBE_MULTI                 = 0xc
@@ -2817,6 +2824,8 @@ const (
 	BPF_PERF_EVENT_EVENT                       = 0x6
 	BPF_F_KPROBE_MULTI_RETURN                  = 0x1
 	BPF_F_UPROBE_MULTI_RETURN                  = 0x1
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	BPF_ANY                                    = 0x0
 	BPF_NOEXIST                                = 0x1
 	BPF_EXIST                                  = 0x2
@@ -2856,7 +2865,10 @@ const (
 	BPF_F_ZERO_CSUM_TX                         = 0x2
 	BPF_F_DONT_FRAGMENT                        = 0x4
 	BPF_F_SEQ_NUMBER                           = 0x8
+<<<<<<< HEAD
 	BPF_F_NO_TUNNEL_KEY                        = 0x10
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	BPF_F_TUNINFO_FLAGS                        = 0x10
 	BPF_F_INDEX_MASK                           = 0xffffffff
 	BPF_F_CURRENT_CPU                          = 0xffffffff
@@ -2873,8 +2885,11 @@ const (
 	BPF_F_ADJ_ROOM_ENCAP_L4_UDP                = 0x10
 	BPF_F_ADJ_ROOM_NO_CSUM_RESET               = 0x20
 	BPF_F_ADJ_ROOM_ENCAP_L2_ETH                = 0x40
+<<<<<<< HEAD
 	BPF_F_ADJ_ROOM_DECAP_L3_IPV4               = 0x80
 	BPF_F_ADJ_ROOM_DECAP_L3_IPV6               = 0x100
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	BPF_ADJ_ROOM_ENCAP_L2_MASK                 = 0xff
 	BPF_ADJ_ROOM_ENCAP_L2_SHIFT                = 0x38
 	BPF_F_SYSCTL_BASE_NAME                     = 0x1
@@ -3000,7 +3015,10 @@ const (
 	BPF_CORE_ENUMVAL_EXISTS                    = 0xa
 	BPF_CORE_ENUMVAL_VALUE                     = 0xb
 	BPF_CORE_TYPE_MATCHES                      = 0xc
+<<<<<<< HEAD
 	BPF_F_TIMER_ABS                            = 0x1
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )
 
 const (

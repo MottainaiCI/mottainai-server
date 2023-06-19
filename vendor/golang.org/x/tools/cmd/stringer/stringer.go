@@ -188,8 +188,11 @@ type Generator struct {
 
 	trimPrefix  string
 	lineComment bool
+<<<<<<< HEAD
 
 	logf func(format string, args ...interface{}) // test logging hook; nil when not testing
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 }
 
 func (g *Generator) Printf(format string, args ...interface{}) {
@@ -223,14 +226,21 @@ func (g *Generator) parsePackage(patterns []string, tags []string) {
 		// in a separate pass? For later.
 		Tests:      false,
 		BuildFlags: []string{fmt.Sprintf("-tags=%s", strings.Join(tags, " "))},
+<<<<<<< HEAD
 		Logf:       g.logf,
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 	pkgs, err := packages.Load(cfg, patterns...)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if len(pkgs) != 1 {
+<<<<<<< HEAD
 		log.Fatalf("error: %d packages matching %v", len(pkgs), strings.Join(patterns, " "))
+=======
+		log.Fatalf("error: %d packages found", len(pkgs))
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 	g.addPackage(pkgs[0])
 }

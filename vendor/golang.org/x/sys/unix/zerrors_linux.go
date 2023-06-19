@@ -3112,7 +3112,10 @@ const (
 	SOL_TIPC                                    = 0x10f
 	SOL_TLS                                     = 0x11a
 	SOL_UDP                                     = 0x11
+<<<<<<< HEAD
 	SOL_VSOCK                                   = 0x11f
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	SOL_X25                                     = 0x106
 	SOL_XDP                                     = 0x11b
 	SOMAXCONN                                   = 0x1000

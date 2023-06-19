@@ -2535,6 +2535,7 @@ func Getresgid() (rgid, egid, sgid int) {
 	return int(r), int(e), int(s)
 }
 
+<<<<<<< HEAD
 // Pselect is a wrapper around the Linux pselect6 system call.
 // This version does not modify the timeout argument.
 func Pselect(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timespec, sigmask *Sigset_t) (n int, err error) {
@@ -2592,3 +2593,101 @@ func SchedGetAttr(pid int, flags uint) (*SchedAttr, error) {
 }
 
 //sys	Cachestat(fd uint, crange *CachestatRange, cstat *Cachestat_t, flags uint) (err error)
+=======
+/*
+ * Unimplemented
+ */
+// AfsSyscall
+// ArchPrctl
+// Brk
+// ClockNanosleep
+// ClockSettime
+// Clone
+// EpollCtlOld
+// EpollPwait
+// EpollWaitOld
+// Execve
+// Fork
+// Futex
+// GetKernelSyms
+// GetMempolicy
+// GetRobustList
+// GetThreadArea
+// Getpmsg
+// IoCancel
+// IoDestroy
+// IoGetevents
+// IoSetup
+// IoSubmit
+// IoprioGet
+// IoprioSet
+// KexecLoad
+// LookupDcookie
+// Mbind
+// MigratePages
+// Mincore
+// ModifyLdt
+// Mount
+// MovePages
+// MqGetsetattr
+// MqNotify
+// MqOpen
+// MqTimedreceive
+// MqTimedsend
+// MqUnlink
+// Mremap
+// Msgctl
+// Msgget
+// Msgrcv
+// Msgsnd
+// Nfsservctl
+// Personality
+// Pselect6
+// Ptrace
+// Putpmsg
+// Quotactl
+// Readahead
+// Readv
+// RemapFilePages
+// RestartSyscall
+// RtSigaction
+// RtSigpending
+// RtSigqueueinfo
+// RtSigreturn
+// RtSigsuspend
+// RtSigtimedwait
+// SchedGetPriorityMax
+// SchedGetPriorityMin
+// SchedGetparam
+// SchedGetscheduler
+// SchedRrGetInterval
+// SchedSetparam
+// SchedYield
+// Security
+// Semctl
+// Semget
+// Semop
+// Semtimedop
+// SetMempolicy
+// SetRobustList
+// SetThreadArea
+// SetTidAddress
+// Sigaltstack
+// Swapoff
+// Swapon
+// Sysfs
+// TimerCreate
+// TimerDelete
+// TimerGetoverrun
+// TimerGettime
+// TimerSettime
+// Tkill (obsolete)
+// Tuxcall
+// Umount2
+// Uselib
+// Utimensat
+// Vfork
+// Vhangup
+// Vserver
+// _Sysctl
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)

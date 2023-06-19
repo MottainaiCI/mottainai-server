@@ -1084,7 +1084,11 @@ func (e *doubleFastEncoderDict) Reset(d *dict, singleBlock bool) {
 			}
 		}
 		e.lastDictID = d.id
+<<<<<<< HEAD
 		allDirty = true
+=======
+		e.allDirty = true
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 	// Reset table to initial state
 	e.cur = e.maxMatchOff

@@ -25,7 +25,11 @@ const (
 	VersionPatch = 0
 
 	// VersionDev indicates development branch. Releases will be empty string.
+<<<<<<< HEAD
 	VersionDev = "-rc.5"
+=======
+	VersionDev = "-rc.3"
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )
 
 // Version is the specification version that the package types support.

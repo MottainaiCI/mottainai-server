@@ -14,6 +14,14 @@ import (
 	"syscall"
 
 	"github.com/opencontainers/runc/libcontainer/user"
+<<<<<<< HEAD
+=======
+)
+
+var (
+	entOnce   sync.Once
+	getentCmd string
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )
 
 func mkdirAs(path string, mode os.FileMode, owner Identity, mkAll, chownExisting bool) error {
@@ -156,6 +164,7 @@ func getentGroup(name string) (user.Group, error) {
 }
 
 func callGetent(database, key string) (io.Reader, error) {
+<<<<<<< HEAD
 	getentCmd, err := resolveBinary("getent")
 	// if no `getent` command within the execution environment, can't do anything else
 	if err != nil {
@@ -166,6 +175,15 @@ func callGetent(database, key string) (io.Reader, error) {
 	command.Stdin = io.NopCloser(bytes.NewReader(nil))
 	out, err := command.CombinedOutput()
 	if err != nil {
+=======
+	entOnce.Do(func() { getentCmd, _ = resolveBinary("getent") })
+	// if no `getent` command on host, can't do anything else
+	if getentCmd == "" {
+		return nil, fmt.Errorf("unable to find getent command")
+	}
+	out, err := exec.Command(getentCmd, database, key).CombinedOutput()
+	if err != nil {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		exitCode, errC := getExitCode(err)
 		if errC != nil {
 			return nil, err

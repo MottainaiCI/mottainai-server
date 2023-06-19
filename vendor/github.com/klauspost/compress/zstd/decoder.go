@@ -82,7 +82,11 @@ var (
 // can run multiple concurrent stateless decodes. It is even possible to
 // use stateless decodes while a stream is being decoded.
 //
+<<<<<<< HEAD
 // The Reset function can be used to initiate a new stream, which will considerably
+=======
+// The Reset function can be used to initiate a new stream, which is will considerably
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // reduce the allocations normally caused by NewReader.
 func NewReader(r io.Reader, opts ...DOption) (*Decoder, error) {
 	initPredefined()

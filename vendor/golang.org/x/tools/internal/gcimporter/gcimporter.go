@@ -29,6 +29,10 @@ import (
 	"go/token"
 	"go/types"
 	"io"
+<<<<<<< HEAD
+=======
+	"io/ioutil"
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -220,7 +224,11 @@ func Import(packages map[string]*types.Package, path, srcDir string, lookup func
 	switch hdr {
 	case "$$B\n":
 		var data []byte
+<<<<<<< HEAD
 		data, err = io.ReadAll(buf)
+=======
+		data, err = ioutil.ReadAll(buf)
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		if err != nil {
 			break
 		}
@@ -259,6 +267,16 @@ func Import(packages map[string]*types.Package, path, srcDir string, lookup func
 	return
 }
 
+<<<<<<< HEAD
+=======
+func deref(typ types.Type) types.Type {
+	if p, _ := typ.(*types.Pointer); p != nil {
+		return p.Elem()
+	}
+	return typ
+}
+
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 type byPath []*types.Package
 
 func (a byPath) Len() int           { return len(a) }

@@ -29,7 +29,11 @@ func (s *sequenceDecs) decode(seqs []seqVals) error {
 	}
 	for i := range seqs {
 		var ll, mo, ml int
+<<<<<<< HEAD
 		if len(br.in) > 4+((maxOffsetBits+16+16)>>3) {
+=======
+		if br.off > 4+((maxOffsetBits+16+16)>>3) {
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			// inlined function:
 			// ll, mo, ml = s.nextFast(br, llState, mlState, ofState)
 

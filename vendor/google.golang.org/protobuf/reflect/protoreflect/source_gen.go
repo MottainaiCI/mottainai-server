@@ -35,7 +35,11 @@ func (p *SourcePath) appendFileDescriptorProto(b []byte) []byte {
 		b = p.appendSingularField(b, "source_code_info", (*SourcePath).appendSourceCodeInfo)
 	case 12:
 		b = p.appendSingularField(b, "syntax", nil)
+<<<<<<< HEAD
 	case 14:
+=======
+	case 13:
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		b = p.appendSingularField(b, "edition", nil)
 	}
 	return b
@@ -240,8 +244,11 @@ func (p *SourcePath) appendMessageOptions(b []byte) []byte {
 		b = p.appendSingularField(b, "map_entry", nil)
 	case 11:
 		b = p.appendSingularField(b, "deprecated_legacy_json_field_conflicts", nil)
+<<<<<<< HEAD
 	case 12:
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}
@@ -287,8 +294,11 @@ func (p *SourcePath) appendEnumOptions(b []byte) []byte {
 		b = p.appendSingularField(b, "deprecated", nil)
 	case 6:
 		b = p.appendSingularField(b, "deprecated_legacy_json_field_conflicts", nil)
+<<<<<<< HEAD
 	case 7:
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
+=======
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}
@@ -367,6 +377,7 @@ func (p *SourcePath) appendFieldOptions(b []byte) []byte {
 		b = p.appendSingularField(b, "debug_redact", nil)
 	case 17:
 		b = p.appendSingularField(b, "retention", nil)
+<<<<<<< HEAD
 	case 19:
 		b = p.appendRepeatedField(b, "targets", nil)
 	case 20:
@@ -375,6 +386,10 @@ func (p *SourcePath) appendFieldOptions(b []byte) []byte {
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
 	case 22:
 		b = p.appendSingularField(b, "feature_support", (*SourcePath).appendFieldOptions_FeatureSupport)
+=======
+	case 18:
+		b = p.appendSingularField(b, "target", nil)
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}

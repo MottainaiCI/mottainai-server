@@ -51,7 +51,11 @@ import (
 //  10. Send out the CL for review and submit it.
 const (
 	Major      = 1
+<<<<<<< HEAD
 	Minor      = 34
+=======
+	Minor      = 29
+>>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	Patch      = 1
 	PreRelease = ""
 )
