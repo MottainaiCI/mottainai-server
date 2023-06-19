@@ -1,9 +1,16 @@
 # cast
 
+<<<<<<< HEAD
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/spf13/cast/ci.yaml?branch=master&style=flat-square)](https://github.com/spf13/cast/actions/workflows/ci.yaml)
 [![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/spf13/cast)](https://pkg.go.dev/mod/github.com/spf13/cast)
 ![Go Version](https://img.shields.io/badge/go%20version-%3E=1.16-61CFDD.svg?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/spf13/cast?style=flat-square)](https://goreportcard.com/report/github.com/spf13/cast)
+=======
+[![Build Status](https://github.com/spf13/cast/actions/workflows/ci.yml/badge.svg)](https://github.com/spf13/cast/actions/workflows/ci.yml)
+[![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/spf13/cast)](https://pkg.go.dev/mod/github.com/spf13/cast)
+![Go Version](https://img.shields.io/badge/go%20version-%3E=1.16-61CFDD.svg?style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/spf13/cast)](https://goreportcard.com/report/github.com/spf13/cast)
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 
 Easy and safe casting from one type to another in Go
 

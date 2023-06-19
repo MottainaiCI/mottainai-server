@@ -208,10 +208,17 @@ type Viper struct {
 	allowEmptyEnv       bool
 
 	parents        []string
+<<<<<<< HEAD
 	config         map[string]any
 	override       map[string]any
 	defaults       map[string]any
 	kvstore        map[string]any
+=======
+	config         map[string]interface{}
+	override       map[string]interface{}
+	defaults       map[string]interface{}
+	kvstore        map[string]interface{}
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 	pflags         map[string]FlagValue
 	env            map[string][]string
 	aliases        map[string]string
@@ -233,11 +240,19 @@ func New() *Viper {
 	v.configName = "config"
 	v.configPermissions = os.FileMode(0o644)
 	v.fs = afero.NewOsFs()
+<<<<<<< HEAD
 	v.config = make(map[string]any)
 	v.parents = []string{}
 	v.override = make(map[string]any)
 	v.defaults = make(map[string]any)
 	v.kvstore = make(map[string]any)
+=======
+	v.config = make(map[string]interface{})
+	v.parents = []string{}
+	v.override = make(map[string]interface{})
+	v.defaults = make(map[string]interface{})
+	v.kvstore = make(map[string]interface{})
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 	v.pflags = make(map[string]FlagValue)
 	v.env = make(map[string][]string)
 	v.aliases = make(map[string]string)
@@ -960,8 +975,12 @@ func (v *Viper) Sub(key string) *Viper {
 	}
 
 	if reflect.TypeOf(data).Kind() == reflect.Map {
+<<<<<<< HEAD
 		subv.parents = append([]string(nil), v.parents...)
 		subv.parents = append(subv.parents, strings.ToLower(key))
+=======
+		subv.parents = append(v.parents, strings.ToLower(key))
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 		subv.automaticEnvApplied = v.automaticEnvApplied
 		subv.envPrefix = v.envPrefix
 		subv.envKeyReplacer = v.envKeyReplacer
@@ -1131,6 +1150,7 @@ func (v *Viper) Unmarshal(rawVal any, opts ...DecoderConfigOption) error {
 	return decode(v.getSettings(keys), defaultDecoderConfig(rawVal, opts...))
 }
 
+<<<<<<< HEAD
 func (v *Viper) decodeStructKeys(input any, opts ...DecoderConfigOption) ([]string, error) {
 	var structKeyMap map[string]any
 
@@ -1152,6 +1172,11 @@ func (v *Viper) decodeStructKeys(input any, opts ...DecoderConfigOption) ([]stri
 // defaultDecoderConfig returns default mapstructure.DecoderConfig with support
 // of time.Duration values & string slices.
 func defaultDecoderConfig(output any, opts ...DecoderConfigOption) *mapstructure.DecoderConfig {
+=======
+// defaultDecoderConfig returns default mapstructure.DecoderConfig with support
+// of time.Duration values & string slices
+func defaultDecoderConfig(output interface{}, opts ...DecoderConfigOption) *mapstructure.DecoderConfig {
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 	c := &mapstructure.DecoderConfig{
 		Metadata:         nil,
 		Result:           output,
@@ -1493,6 +1518,30 @@ func stringToIntConv(val string) any {
 		}
 		var err error
 		out[k], err = strconv.Atoi(vv)
+		if err != nil {
+			return nil
+		}
+	}
+	return out
+}
+
+// mostly copied from pflag's implementation of this operation here https://github.com/spf13/pflag/blob/d5e0c0615acee7028e1e2740a11102313be88de1/string_to_int.go#L68
+// alterations are: errors are swallowed, map[string]interface{} is returned in order to enable cast.ToStringMap
+func stringToIntConv(val string) interface{} {
+	val = strings.Trim(val, "[]")
+	// An empty string would cause an empty map
+	if len(val) == 0 {
+		return map[string]interface{}{}
+	}
+	ss := strings.Split(val, ",")
+	out := make(map[string]interface{}, len(ss))
+	for _, pair := range ss {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) != 2 {
+			return nil
+		}
+		var err error
+		out[kv[0]], err = strconv.Atoi(kv[1])
 		if err != nil {
 			return nil
 		}

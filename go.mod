@@ -33,7 +33,7 @@ require (
 	github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/markbates/goth v1.66.0
-	github.com/microcosm-cc/bluemonday v1.0.16
+	github.com/microcosm-cc/bluemonday v1.0.24
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f

@@ -144,9 +144,16 @@ func SetAuthURLParam(key, value string) AuthCodeOption {
 // AuthCodeURL returns a URL to OAuth 2.0 provider's consent page
 // that asks for permissions for the required scopes explicitly.
 //
+<<<<<<< HEAD
 // State is an opaque value used by the client to maintain state between the
 // request and callback. The authorization server includes this value when
 // redirecting the user agent back to the client.
+=======
+// State is a token to protect the user from CSRF attacks. You must
+// always provide a non-empty string and validate that it matches the
+// state query parameter on your redirect callback.
+// See http://tools.ietf.org/html/rfc6749#section-10.12 for more info.
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 //
 // Opts may include AccessTypeOnline or AccessTypeOffline, as well
 // as ApprovalForce.
@@ -393,7 +400,11 @@ func ReuseTokenSource(t *Token, src TokenSource) TokenSource {
 	}
 }
 
+<<<<<<< HEAD
 // ReuseTokenSourceWithExpiry returns a TokenSource that acts in the same manner as the
+=======
+// ReuseTokenSource returns a TokenSource that acts in the same manner as the
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 // TokenSource returned by ReuseTokenSource, except the expiry buffer is
 // configurable. The expiration time of a token is calculated as
 // t.Expiry.Add(-earlyExpiry).

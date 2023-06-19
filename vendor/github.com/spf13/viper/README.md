@@ -30,7 +30,10 @@ Many Go projects are built using Viper including:
 * [Meshery](https://github.com/meshery/meshery)
 * [Bearer](https://github.com/bearer/bearer)
 * [Coder](https://github.com/coder/coder)
+<<<<<<< HEAD
 * [Vitess](https://vitess.io/)
+=======
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 
 
 ## Install

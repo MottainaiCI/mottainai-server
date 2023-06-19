@@ -16,7 +16,11 @@ endif
 
 # Dependency versions
 GOTESTSUM_VERSION = 1.9.0
+<<<<<<< HEAD
 GOLANGCI_VERSION = 1.53.3
+=======
+GOLANGCI_VERSION = 1.52.2
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 
 # Add the ability to override some variables
 # Use with care

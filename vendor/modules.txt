@@ -523,8 +523,8 @@ github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.15
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
-# github.com/microcosm-cc/bluemonday v1.0.16
-## explicit; go 1.16
+# github.com/microcosm-cc/bluemonday v1.0.24
+## explicit; go 1.19
 github.com/microcosm-cc/bluemonday
 github.com/microcosm-cc/bluemonday/css
 # github.com/mitchellh/copystructure v1.2.0
@@ -634,7 +634,16 @@ github.com/opencontainers/runc/libcontainer/user
 # github.com/otiai10/copy v1.7.0
 ## explicit; go 1.14
 github.com/otiai10/copy
+<<<<<<< HEAD
 # github.com/pelletier/go-toml/v2 v2.2.2
+=======
+# github.com/pborman/uuid v1.2.1
+## explicit
+github.com/pborman/uuid
+# github.com/pelletier/go-toml v1.9.5
+## explicit; go 1.12
+# github.com/pelletier/go-toml/v2 v2.0.8
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 ## explicit; go 1.16
 github.com/pelletier/go-toml/v2
 github.com/pelletier/go-toml/v2/internal/characters
@@ -694,8 +703,13 @@ github.com/sourcegraph/conc/panics
 github.com/spf13/afero
 github.com/spf13/afero/internal/common
 github.com/spf13/afero/mem
+<<<<<<< HEAD
 # github.com/spf13/cast v1.6.0
 ## explicit; go 1.19
+=======
+# github.com/spf13/cast v1.5.1
+## explicit; go 1.18
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 github.com/spf13/cast
 <<<<<<< HEAD
 # github.com/spf13/cobra v1.8.0
@@ -707,8 +721,13 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
+<<<<<<< HEAD
 # github.com/spf13/viper v1.18.2
 ## explicit; go 1.18
+=======
+# github.com/spf13/viper v1.16.0
+## explicit; go 1.17
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 github.com/spf13/viper
 github.com/spf13/viper/internal/encoding
 github.com/spf13/viper/internal/encoding/dotenv
@@ -833,8 +852,13 @@ golang.org/x/net/idna
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
 golang.org/x/net/publicsuffix
+<<<<<<< HEAD
 # golang.org/x/oauth2 v0.20.0
 ## explicit; go 1.18
+=======
+# golang.org/x/oauth2 v0.7.0
+## explicit; go 1.17
+>>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 <<<<<<< HEAD
@@ -941,7 +965,7 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/protobuf v1.29.1
+# google.golang.org/protobuf v1.30.0
 ## explicit; go 1.11
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 google.golang.org/protobuf/encoding/prototext
