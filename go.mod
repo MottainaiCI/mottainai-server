@@ -1,6 +1,6 @@
 module github.com/MottainaiCI/mottainai-server
 
-go 1.18
+go 1.19
 
 require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
