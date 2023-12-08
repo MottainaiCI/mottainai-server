@@ -70,7 +70,8 @@ type StateRequest struct {
 // StateExecution it's used for trace execution of
 // a task. Possible states:
 // [prepare] --> [running] --> [done]
-//                  |--------> [error]
+//
+//	|--------> [error]
 type StateExecution struct {
 	Request *StateRequest
 	Status  string
@@ -354,6 +355,7 @@ func (d *TaskExecutor) Setup(docID string) error {
 	d.Report("Node: " + ID + " ( " + hostname + " ) ")
 	fetcher.RunTask()
 	fetcher.QueueAddTaskInProgress(qid, task_info.ID)
+	fetcher.QueueDelTaskInWaiting(qid, task_info.ID)
 	d.Report("> Build started!\n")
 
 	d.Context.RootTaskDir = path.Join(d.Config.GetAgent().BuildPath, task_info.ID)
