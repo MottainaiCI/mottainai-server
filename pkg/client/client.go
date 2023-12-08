@@ -157,6 +157,7 @@ type HttpClient interface {
 	QueueGetQid(name string) (string, error)
 	QueueAddTaskInProgress(qid, taskid string) (event.APIResponse, error)
 	QueueDelTaskInProgress(qid, taskid string) (event.APIResponse, error)
+	QueueDelTaskInWaiting(qid, taskid string) (event.APIResponse, error)
 }
 
 type Fetcher struct {
