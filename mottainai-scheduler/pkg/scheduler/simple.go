@@ -61,12 +61,38 @@ func (s *SimpleTaskScheduler) Schedule() error {
 			akey := s.Agents[nodeid].Key
 			nid := s.Agents[nodeid].NodeID
 
-			for q, tasks := range m {
+			for q, qtasks := range m {
 				fields := strings.Split(q, "|")
 				// fields[0] contains queue name
 				// fields[1] contains queue id
-				for _, tid := range tasks {
-					_, err := s.Fetcher.NodeQueueAddTask(akey, nid, fields[0], tid)
+				for _, tid := range qtasks {
+
+					// Ensure that the task is not completed.
+					// Retrieving task information.
+					tdata, err := s.Fetcher.GetTask(tid)
+					if err != nil {
+						return errors.New(fmt.Sprintf(
+							"Error on retrieve data of the tash task %s to queue %s (%s): %s."+
+								" Waiting next cycle.",
+							tid,
+							fields[0],
+							fields[1],
+							err.Error()))
+						goto end
+					}
+
+					taskCandidate := tasks.NewTaskFromJson(tdata)
+					if taskCandidate.Status == msetting.TASK_STATE_DONE ||
+						taskCandidate.Status == msetting.TASK_STATE_STOPPED ||
+						taskCandidate.Status == msetting.TASK_STATE_ASK_STOP {
+
+						fmt.Println("Task " + tid + " to agent " + nid + " in state " +
+							taskCandidate.Status + ". Waiting next cycle.")
+
+						goto end
+					}
+
+					_, err = s.Fetcher.NodeQueueAddTask(akey, nid, fields[0], tid)
 					if err != nil {
 						return errors.New(fmt.Sprintf(
 							"Error on add task %s to queue %s (%s): %s",
@@ -101,6 +127,7 @@ func (s *SimpleTaskScheduler) Schedule() error {
 			}
 		}
 	}
+end:
 
 	return nil
 }
@@ -535,11 +562,48 @@ func (s *DefaultTaskScheduler) elaborateQueue(queue queues.Queue, nodeQueues []q
 					break
 				}
 				tid := queue.Waiting[0]
+
+				// Check if the task is already completed.
+
+				// Ensure that the task is not completed.
+				// Retrieving task information.
+				tdata, err := s.Fetcher.GetTask(tid)
+				if err != nil {
+					return ans, errors.New(fmt.Sprintf(
+						"Error on retrieve data of the task %s to queue %s (%s): %s."+
+							" Waiting next cycle.",
+						tid,
+						queue.Name,
+						queue.Qid,
+						err.Error()))
+				}
+
+				taskCandidate := tasks.NewTaskFromJson(tdata)
+
 				queue.Waiting = queue.Waiting[1:]
-				if _, ok := ans[node.Key]; ok {
-					ans[node.Key] = append(ans[node.Key], tid)
+
+				if taskCandidate.Status == msetting.TASK_STATE_DONE ||
+					taskCandidate.Status == msetting.TASK_STATE_STOPPED ||
+					taskCandidate.Status == msetting.TASK_STATE_ASK_STOP {
+
+					// Removing task from queue.
+					_, err = s.Fetcher.QueueDelTaskInWaiting(queue.Qid, tid)
+					if err != nil {
+						return ans, errors.New(fmt.Sprintf(
+							"Error on remove the task %s already complete from queue %s (%s): %s."+
+								" Waiting next cycle.",
+							tid,
+							queue.Name,
+							queue.Qid,
+							err.Error()))
+					}
+
 				} else {
-					ans[node.Key] = []string{tid}
+					if _, ok := ans[node.Key]; ok {
+						ans[node.Key] = append(ans[node.Key], tid)
+					} else {
+						ans[node.Key] = []string{tid}
+					}
 				}
 			}
 		}
