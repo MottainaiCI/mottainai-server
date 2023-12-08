@@ -360,9 +360,17 @@ func (tm *TaskManager) RunPlayer(task_info tasks.Task) error {
 				taskNotRemoved = false
 			}
 
+		} else {
+			fmt.Println(
+				fmt.Sprintf("Error on delete task %s from node queue %s: %s",
+					task_info.ID, task_info.Queue, err.Error()))
 		}
 		op++
 	}
+
+	fmt.Println(
+		fmt.Sprintf("Execution of the task %s from node queue %s completed.",
+			task_info.ID, task_info.Queue))
 
 	return err
 }
