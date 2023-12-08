@@ -311,20 +311,58 @@ func (tm *TaskManager) RunPlayer(task_info tasks.Task) error {
 
 	// TODO: handle error
 
-	apires, err_del := tm.Fetcher.NodeQueueDelTask(
-		tm.Players.Config.GetAgent().AgentKey,
-		tm.NodeId,
-		task_info.Queue,
-		task_info.ID,
-	)
-	if err_del != nil {
-		fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
-			task_info.ID, err_del.Error()))
-	}
+	taskNotRemoved := true
+	maxRetries := 5
+	op := 1
 
-	fmt.Println(
-		fmt.Sprintf("On delete task %s from node queue %s: %s - %s",
-			task_info.ID, task_info.Queue, apires.Processed, apires.Status))
+	for taskNotRemoved && op <= maxRetries {
+
+		apires, err_del := tm.Fetcher.NodeQueueDelTask(
+			tm.Players.Config.GetAgent().AgentKey,
+			tm.NodeId,
+			task_info.Queue,
+			task_info.ID,
+		)
+		if err_del != nil {
+			fmt.Println(fmt.Sprintf("Error on delete task %s from queue: %s",
+				task_info.ID, err_del.Error()))
+		}
+
+		fmt.Println(
+			fmt.Sprintf("On delete task %s from node queue %s: %s - %s",
+				task_info.ID, task_info.Queue, apires.Processed, apires.Status))
+
+		time.Sleep(3 * time.Second)
+
+		// Check the queue to validate if the task is been removed correctly.
+		nodeQueue, err := tm.Fetcher.NodeQueueGetTasks(tm.NodeUniqueId)
+		if err == nil {
+			if len(nodeQueue.Queues) > 0 {
+				taskpresent := false
+				if tasks, present := nodeQueue.Queues[task_info.Queue]; present {
+					for _, t := range tasks {
+						if t == task_info.ID {
+							taskpresent = true
+
+							fmt.Println(
+								fmt.Sprintf("Task %s from node queue %s is yet in queue.",
+									task_info.ID, task_info.Queue))
+							break
+						}
+					}
+				}
+
+				if !taskpresent {
+					taskNotRemoved = false
+				}
+
+			} else {
+				taskNotRemoved = false
+			}
+
+		}
+		op++
+	}
 
 	return err
 }
