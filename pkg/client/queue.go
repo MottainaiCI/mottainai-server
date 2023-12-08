@@ -191,6 +191,18 @@ func (d *Fetcher) QueueDelTaskInProgress(qid, taskid string) (event.APIResponse,
 	return d.HandleAPIResponse(req)
 }
 
+func (d *Fetcher) QueueDelTaskInWaiting(qid, taskid string) (event.APIResponse, error) {
+	req := &schema.Request{
+		Route: v1.Schema.GetQueueRoute("del_task"),
+		Options: map[string]interface{}{
+			":qid": qid,
+			":tid": taskid,
+		},
+	}
+
+	return d.HandleAPIResponse(req)
+}
+
 func (d *Fetcher) NodeQueueGetTasks(id string) (queues.NodeQueues, error) {
 	var n queues.NodeQueues
 	req := &schema.Request{
