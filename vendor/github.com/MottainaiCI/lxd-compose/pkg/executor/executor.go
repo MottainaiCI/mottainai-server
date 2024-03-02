@@ -1,39 +1,20 @@
 /*
-Copyright (C) 2020-2023  Daniele Rondina <geaaru@funtoo.org>
-Credits goes also to Gogs authors, some code portions and re-implemented design
-are also coming from the Gogs project, which is using the go-macaron framework
-and was really source of ispiration. Kudos to them!
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
+Copyright © 2020-2024 Daniele Rondina <geaaru@gmail.com>
+See AUTHORS and LICENSE for the license details and contributors.
 */
 package executor
 
 import (
 	"errors"
 	"fmt"
-	"os"
-	"os/user"
-	"path"
-	"strings"
 	"time"
 
 	log "github.com/MottainaiCI/lxd-compose/pkg/logger"
 
-	lxd "github.com/lxc/lxd/client"
-	lxd_config "github.com/lxc/lxd/lxc/config"
-	lxd_utils "github.com/lxc/lxd/lxc/utils"
-	lxd_api "github.com/lxc/lxd/shared/api"
+	lxd "github.com/canonical/lxd/client"
+	lxd_config "github.com/canonical/lxd/lxc/config"
+	lxd_api "github.com/canonical/lxd/shared/api"
+	lxd_cli "github.com/canonical/lxd/shared/cmd"
 )
 
 type LxdCExecutor struct {
@@ -48,6 +29,7 @@ type LxdCExecutor struct {
 	P2PMode           bool
 	WaitSleep         int
 	LocalDisable      bool
+	LegacyApi         bool
 
 	Emitter LxdCExecutorEmitter
 }
@@ -73,27 +55,8 @@ func NewLxdCExecutorWithEmitter(endpoint, configdir string,
 		Emitter:           emitter,
 		P2PMode:           false,
 		LocalDisable:      false,
+		LegacyApi:         false,
 	}
-}
-
-func getLxcDefaultConfDir() (string, error) {
-	// Code from LXD project
-	var configDir string
-
-	if os.Getenv("LXD_CONF") != "" {
-		configDir = os.Getenv("LXD_CONF")
-	} else if os.Getenv("HOME") != "" {
-		configDir = path.Join(os.Getenv("HOME"), ".config", "lxc")
-	} else {
-		user, err := user.Current()
-		if err != nil {
-			return "", err
-		}
-
-		configDir = path.Join(user.HomeDir, ".config", "lxc")
-	}
-
-	return configDir, nil
 }
 
 func (e *LxdCExecutor) GetEmitter() LxdCExecutorEmitter        { return e.Emitter }
@@ -102,81 +65,8 @@ func (e *LxdCExecutor) SetP2PMode(m bool)                      { e.P2PMode = m }
 func (e *LxdCExecutor) GetP2PMode() bool                       { return e.P2PMode }
 func (e *LxdCExecutor) SetLocalDisable(v bool)                 { e.LocalDisable = v }
 func (e *LxdCExecutor) GetLocalDisable() bool                  { return e.LocalDisable }
-
-func (e *LxdCExecutor) Setup() error {
-	var client lxd.ContainerServer
-
-	configDir, err := getLxcDefaultConfDir()
-	if err != nil {
-		return errors.New("Error on retrieve default LXD config directory: " + err.Error())
-	}
-
-	if e.ConfigDir == "" {
-		e.ConfigDir = configDir
-	}
-	configPath := path.Join(e.ConfigDir, "/config.yml")
-	e.Emitter.DebugLog(false, "Using LXD config file", configPath)
-
-	e.LxdConfig, err = lxd_config.LoadConfig(configPath)
-	if err != nil {
-		return errors.New("Error on load LXD config: " + err.Error())
-	}
-
-	if len(e.Endpoint) > 0 {
-
-		e.Emitter.DebugLog(false, "Using endpoint "+e.Endpoint+"...")
-
-		// Unix socket
-		if strings.HasPrefix(e.Endpoint, "unix:") {
-			client, err = lxd.ConnectLXDUnix(strings.TrimPrefix(strings.TrimPrefix(e.Endpoint, "unix:"), "//"), nil)
-			if err != nil {
-				return errors.New("Endpoint:" + e.Endpoint + " Error: " + err.Error())
-			}
-
-		} else {
-			client, err = e.LxdConfig.GetInstanceServer(e.Endpoint)
-			if err != nil {
-				return errors.New("Endpoint:" + e.Endpoint + " Error: " + err.Error())
-			}
-
-			// Force use of local. Is this needed??
-			e.LxdConfig.DefaultRemote = e.Endpoint
-		}
-
-	} else {
-		if len(e.LxdConfig.DefaultRemote) > 0 {
-			// POST: If is present default I use default as main ContainerServer
-			client, err = e.LxdConfig.GetInstanceServer(e.LxdConfig.DefaultRemote)
-		} else {
-			if _, has_local := e.LxdConfig.Remotes["local"]; has_local {
-				client, err = e.LxdConfig.GetInstanceServer("local")
-				// POST: I use local if is present
-			} else {
-				// POST: I use default socket connection
-				client, err = lxd.ConnectLXDUnix("", nil)
-			}
-			e.LxdConfig.DefaultRemote = "local"
-		}
-
-		if err != nil {
-			return errors.New("Error on create LXD Connector: " + err.Error())
-		}
-
-	}
-
-	if e.LxdConfig.DefaultRemote == "local" && e.LocalDisable {
-		return errors.New("Using local default remote when lxd_local_disable is disable.")
-	}
-
-	e.LxdClient = client
-
-	e.Emitter.Emits(LxdClientSetupDone, map[string]interface{}{
-		"defaultRemote": e.LxdConfig.DefaultRemote,
-		"configPath":    configPath,
-	})
-
-	return nil
-}
+func (e *LxdCExecutor) SetLegacyApi(a bool)                    { e.LegacyApi = a }
+func (e *LxdCExecutor) GetLegacyApi() bool                     { return e.LegacyApi }
 
 func (e *LxdCExecutor) CreateContainer(name, fingerprint, imageServer string, profiles []string) error {
 	return e.CreateContainerWithConfig(name, fingerprint, imageServer, profiles, map[string]string{})
@@ -228,18 +118,32 @@ func (e *LxdCExecutor) StartContainer(name string) error {
 }
 
 func (e *LxdCExecutor) GetContainerList() ([]string, error) {
-	return e.LxdClient.GetContainerNames()
+	if e.LegacyApi {
+		return e.LxdClient.GetContainerNames()
+	} else {
+		return e.LxdClient.GetInstanceNames(lxd_api.InstanceTypeContainer)
+	}
 }
 
 func (e *LxdCExecutor) IsRunningContainer(name string) (bool, error) {
 	ans := false
+	var status string
 
-	cInfo, _, err := e.LxdClient.GetContainer(name)
-	if err != nil {
-		return ans, err
+	if e.LegacyApi {
+		cInfo, _, err := e.LxdClient.GetContainer(name)
+		if err != nil {
+			return ans, err
+		}
+		status = cInfo.Status
+	} else {
+		iInfo, _, err := e.LxdClient.GetInstance(name)
+		if err != nil {
+			return ans, err
+		}
+		status = iInfo.Status
 	}
 
-	if cInfo.Status == "Running" {
+	if status == "Running" {
 		ans = true
 	}
 
@@ -247,14 +151,19 @@ func (e *LxdCExecutor) IsRunningContainer(name string) (bool, error) {
 }
 
 func (e *LxdCExecutor) IsEphemeralContainer(containerName string) (bool, error) {
-	ans := false
-
-	cInfo, _, err := e.LxdClient.GetContainer(containerName)
-	if err != nil {
-		return ans, err
+	if e.LegacyApi {
+		cInfo, _, err := e.LxdClient.GetContainer(containerName)
+		if err != nil {
+			return false, err
+		}
+		return cInfo.ContainerPut.Ephemeral, nil
+	} else {
+		iInfo, _, err := e.LxdClient.GetInstance(containerName)
+		if err != nil {
+			return false, err
+		}
+		return iInfo.InstancePut.Ephemeral, nil
 	}
-
-	return cInfo.ContainerPut.Ephemeral, nil
 }
 
 func (e *LxdCExecutor) IsPresentContainer(containerName string) (bool, error) {
@@ -308,7 +217,7 @@ func (e *LxdCExecutor) CopyContainerOnInstance(
 	}
 
 	// Watch the background operation
-	progress := lxd_utils.ProgressRenderer{
+	progress := lxd_cli.ProgressRenderer{
 		Format: "Copy container: %s",
 		Quiet:  false,
 	}
@@ -320,7 +229,7 @@ func (e *LxdCExecutor) CopyContainerOnInstance(
 	}
 
 	// Wait the copy of the container
-	err = lxd_utils.CancelableWait(op, &progress)
+	err = lxd_cli.CancelableWait(op, &progress)
 	if err != nil {
 		progress.Done("")
 		return err
@@ -350,8 +259,16 @@ func (e *LxdCExecutor) DeleteContainer(containerName string) error {
 	}
 
 	if !ephemeral {
-		// Delete container
-		currOper, err := e.LxdClient.DeleteContainer(containerName)
+		var currOper lxd.Operation
+		var err error
+
+		if e.LegacyApi {
+			// Delete container
+			currOper, err = e.LxdClient.DeleteContainer(containerName)
+		} else {
+			// Delete container
+			currOper, err = e.LxdClient.DeleteInstance(containerName)
+		}
 		if err != nil {
 			e.Emitter.ErrorLog(false, "Error on delete container: "+err.Error())
 			return err
