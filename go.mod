@@ -14,7 +14,7 @@ require (
 	github.com/codegangsta/inject v0.0.0-20140425184007-37d7f8432a3e // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/containerd/containerd v1.6.18 // indirect
-	github.com/docker/docker v20.10.24+incompatible // indirect
+	github.com/docker/docker v20.10.27+incompatible // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fsouza/go-dockerclient v1.8.1
 	github.com/ghodss/yaml v1.0.0
