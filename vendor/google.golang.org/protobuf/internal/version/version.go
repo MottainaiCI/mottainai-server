@@ -53,6 +53,7 @@ const (
 	Major      = 1
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Minor      = 34
 =======
 	Minor      = 29
@@ -60,6 +61,9 @@ const (
 	Patch      = 1
 =======
 	Minor      = 30
+=======
+	Minor      = 32
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	Patch      = 0
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 	PreRelease = ""

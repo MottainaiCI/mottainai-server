@@ -200,11 +200,16 @@ func (s *Scratch) compress(src []byte) error {
 	c1.flush(s.actualTableLog)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	s.bw.close()
 	return nil
 =======
 	return s.bw.close()
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	s.bw.close()
+	return nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // writeCount will write the normalized histogram count to header.
@@ -217,10 +222,14 @@ func (s *Scratch) writeCount() error {
 		charnum   uint16
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		maxHeaderSize = ((int(s.symbolLen)*int(tableLog) + 4 + 2) >> 3) + 3
 =======
 		maxHeaderSize = ((int(s.symbolLen) * int(tableLog)) >> 3) + 3
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		maxHeaderSize = ((int(s.symbolLen)*int(tableLog) + 4 + 2) >> 3) + 3
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		// Write Table Size
 		bitStream = uint32(tableLog - minTablelog)

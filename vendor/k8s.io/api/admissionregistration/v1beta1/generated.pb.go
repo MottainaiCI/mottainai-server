@@ -47,10 +47,17 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (m *AuditAnnotation) Reset()      { *m = AuditAnnotation{} }
 func (*AuditAnnotation) ProtoMessage() {}
 func (*AuditAnnotation) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7f7c65a4f012fb19, []int{0}
+=======
+func (m *AuditAnnotation) Reset()      { *m = AuditAnnotation{} }
+func (*AuditAnnotation) ProtoMessage() {}
+func (*AuditAnnotation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abeea74cbc46f55a, []int{0}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *AuditAnnotation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -78,7 +85,11 @@ var xxx_messageInfo_AuditAnnotation proto.InternalMessageInfo
 func (m *ExpressionWarning) Reset()      { *m = ExpressionWarning{} }
 func (*ExpressionWarning) ProtoMessage() {}
 func (*ExpressionWarning) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{1}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{1}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ExpressionWarning) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -103,6 +114,7 @@ func (m *ExpressionWarning) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ExpressionWarning proto.InternalMessageInfo
 
+<<<<<<< HEAD
 func (m *MatchCondition) Reset()      { *m = MatchCondition{} }
 func (*MatchCondition) ProtoMessage() {}
 func (*MatchCondition) Descriptor() ([]byte, []int) {
@@ -113,6 +125,12 @@ func (*MatchCondition) ProtoMessage() {}
 func (*MatchCondition) Descriptor() ([]byte, []int) {
 	return fileDescriptor_abeea74cbc46f55a, []int{0}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (m *MatchCondition) Reset()      { *m = MatchCondition{} }
+func (*MatchCondition) ProtoMessage() {}
+func (*MatchCondition) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abeea74cbc46f55a, []int{2}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *MatchCondition) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -138,10 +156,17 @@ func (m *MatchCondition) XXX_DiscardUnknown() {
 var xxx_messageInfo_MatchCondition proto.InternalMessageInfo
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (m *MatchResources) Reset()      { *m = MatchResources{} }
 func (*MatchResources) ProtoMessage() {}
 func (*MatchResources) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7f7c65a4f012fb19, []int{3}
+=======
+func (m *MatchResources) Reset()      { *m = MatchResources{} }
+func (*MatchResources) ProtoMessage() {}
+func (*MatchResources) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abeea74cbc46f55a, []int{3}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *MatchResources) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -166,6 +191,7 @@ func (m *MatchResources) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MatchResources proto.InternalMessageInfo
 
+<<<<<<< HEAD
 func (m *MutatingWebhook) Reset()      { *m = MutatingWebhook{} }
 func (*MutatingWebhook) ProtoMessage() {}
 func (*MutatingWebhook) Descriptor() ([]byte, []int) {
@@ -176,6 +202,12 @@ func (*MutatingWebhook) ProtoMessage() {}
 func (*MutatingWebhook) Descriptor() ([]byte, []int) {
 	return fileDescriptor_abeea74cbc46f55a, []int{1}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (m *MutatingWebhook) Reset()      { *m = MutatingWebhook{} }
+func (*MutatingWebhook) ProtoMessage() {}
+func (*MutatingWebhook) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abeea74cbc46f55a, []int{4}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *MutatingWebhook) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -204,10 +236,14 @@ func (m *MutatingWebhookConfiguration) Reset()      { *m = MutatingWebhookConfig
 func (*MutatingWebhookConfiguration) ProtoMessage() {}
 func (*MutatingWebhookConfiguration) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{5}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{2}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{5}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *MutatingWebhookConfiguration) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -236,10 +272,14 @@ func (m *MutatingWebhookConfigurationList) Reset()      { *m = MutatingWebhookCo
 func (*MutatingWebhookConfigurationList) ProtoMessage() {}
 func (*MutatingWebhookConfigurationList) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{6}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{3}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{6}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *MutatingWebhookConfigurationList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -267,7 +307,11 @@ var xxx_messageInfo_MutatingWebhookConfigurationList proto.InternalMessageInfo
 func (m *NamedRuleWithOperations) Reset()      { *m = NamedRuleWithOperations{} }
 func (*NamedRuleWithOperations) ProtoMessage() {}
 func (*NamedRuleWithOperations) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{7}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{7}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *NamedRuleWithOperations) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -295,7 +339,11 @@ var xxx_messageInfo_NamedRuleWithOperations proto.InternalMessageInfo
 func (m *ParamKind) Reset()      { *m = ParamKind{} }
 func (*ParamKind) ProtoMessage() {}
 func (*ParamKind) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{8}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{8}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ParamKind) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -323,7 +371,11 @@ var xxx_messageInfo_ParamKind proto.InternalMessageInfo
 func (m *ParamRef) Reset()      { *m = ParamRef{} }
 func (*ParamRef) ProtoMessage() {}
 func (*ParamRef) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{9}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{9}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ParamRef) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -352,10 +404,14 @@ func (m *ServiceReference) Reset()      { *m = ServiceReference{} }
 func (*ServiceReference) ProtoMessage() {}
 func (*ServiceReference) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{10}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{4}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{10}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ServiceReference) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -383,7 +439,11 @@ var xxx_messageInfo_ServiceReference proto.InternalMessageInfo
 func (m *TypeChecking) Reset()      { *m = TypeChecking{} }
 func (*TypeChecking) ProtoMessage() {}
 func (*TypeChecking) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{11}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{11}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *TypeChecking) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -411,7 +471,11 @@ var xxx_messageInfo_TypeChecking proto.InternalMessageInfo
 func (m *ValidatingAdmissionPolicy) Reset()      { *m = ValidatingAdmissionPolicy{} }
 func (*ValidatingAdmissionPolicy) ProtoMessage() {}
 func (*ValidatingAdmissionPolicy) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{12}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{12}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicy) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -439,7 +503,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicy proto.InternalMessageInfo
 func (m *ValidatingAdmissionPolicyBinding) Reset()      { *m = ValidatingAdmissionPolicyBinding{} }
 func (*ValidatingAdmissionPolicyBinding) ProtoMessage() {}
 func (*ValidatingAdmissionPolicyBinding) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{13}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{13}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicyBinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -467,7 +535,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicyBinding proto.InternalMessageInfo
 func (m *ValidatingAdmissionPolicyBindingList) Reset()      { *m = ValidatingAdmissionPolicyBindingList{} }
 func (*ValidatingAdmissionPolicyBindingList) ProtoMessage() {}
 func (*ValidatingAdmissionPolicyBindingList) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{14}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{14}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicyBindingList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -495,7 +567,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicyBindingList proto.InternalMessageIn
 func (m *ValidatingAdmissionPolicyBindingSpec) Reset()      { *m = ValidatingAdmissionPolicyBindingSpec{} }
 func (*ValidatingAdmissionPolicyBindingSpec) ProtoMessage() {}
 func (*ValidatingAdmissionPolicyBindingSpec) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{15}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{15}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicyBindingSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -523,7 +599,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicyBindingSpec proto.InternalMessageIn
 func (m *ValidatingAdmissionPolicyList) Reset()      { *m = ValidatingAdmissionPolicyList{} }
 func (*ValidatingAdmissionPolicyList) ProtoMessage() {}
 func (*ValidatingAdmissionPolicyList) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{16}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{16}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicyList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -551,7 +631,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicyList proto.InternalMessageInfo
 func (m *ValidatingAdmissionPolicySpec) Reset()      { *m = ValidatingAdmissionPolicySpec{} }
 func (*ValidatingAdmissionPolicySpec) ProtoMessage() {}
 func (*ValidatingAdmissionPolicySpec) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{17}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{17}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicySpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -579,7 +663,11 @@ var xxx_messageInfo_ValidatingAdmissionPolicySpec proto.InternalMessageInfo
 func (m *ValidatingAdmissionPolicyStatus) Reset()      { *m = ValidatingAdmissionPolicyStatus{} }
 func (*ValidatingAdmissionPolicyStatus) ProtoMessage() {}
 func (*ValidatingAdmissionPolicyStatus) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{18}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{18}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingAdmissionPolicyStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -608,10 +696,14 @@ func (m *ValidatingWebhook) Reset()      { *m = ValidatingWebhook{} }
 func (*ValidatingWebhook) ProtoMessage() {}
 func (*ValidatingWebhook) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{19}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{5}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{19}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingWebhook) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -640,10 +732,14 @@ func (m *ValidatingWebhookConfiguration) Reset()      { *m = ValidatingWebhookCo
 func (*ValidatingWebhookConfiguration) ProtoMessage() {}
 func (*ValidatingWebhookConfiguration) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{20}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{6}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{20}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingWebhookConfiguration) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -672,10 +768,14 @@ func (m *ValidatingWebhookConfigurationList) Reset()      { *m = ValidatingWebho
 func (*ValidatingWebhookConfigurationList) ProtoMessage() {}
 func (*ValidatingWebhookConfigurationList) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{21}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{7}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{21}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *ValidatingWebhookConfigurationList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -703,7 +803,11 @@ var xxx_messageInfo_ValidatingWebhookConfigurationList proto.InternalMessageInfo
 func (m *Validation) Reset()      { *m = Validation{} }
 func (*Validation) ProtoMessage() {}
 func (*Validation) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{22}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{22}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *Validation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -731,7 +835,11 @@ var xxx_messageInfo_Validation proto.InternalMessageInfo
 func (m *Variable) Reset()      { *m = Variable{} }
 func (*Variable) ProtoMessage() {}
 func (*Variable) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{23}
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{23}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *Variable) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -760,10 +868,14 @@ func (m *WebhookClientConfig) Reset()      { *m = WebhookClientConfig{} }
 func (*WebhookClientConfig) ProtoMessage() {}
 func (*WebhookClientConfig) Descriptor() ([]byte, []int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return fileDescriptor_7f7c65a4f012fb19, []int{24}
 =======
 	return fileDescriptor_abeea74cbc46f55a, []int{8}
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	return fileDescriptor_abeea74cbc46f55a, []int{24}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (m *WebhookClientConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -790,13 +902,19 @@ var xxx_messageInfo_WebhookClientConfig proto.InternalMessageInfo
 
 func init() {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	proto.RegisterType((*AuditAnnotation)(nil), "k8s.io.api.admissionregistration.v1beta1.AuditAnnotation")
 	proto.RegisterType((*ExpressionWarning)(nil), "k8s.io.api.admissionregistration.v1beta1.ExpressionWarning")
 	proto.RegisterType((*MatchCondition)(nil), "k8s.io.api.admissionregistration.v1beta1.MatchCondition")
 	proto.RegisterType((*MatchResources)(nil), "k8s.io.api.admissionregistration.v1beta1.MatchResources")
+<<<<<<< HEAD
 =======
 	proto.RegisterType((*MatchCondition)(nil), "k8s.io.api.admissionregistration.v1beta1.MatchCondition")
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	proto.RegisterType((*MutatingWebhook)(nil), "k8s.io.api.admissionregistration.v1beta1.MutatingWebhook")
 	proto.RegisterType((*MutatingWebhookConfiguration)(nil), "k8s.io.api.admissionregistration.v1beta1.MutatingWebhookConfiguration")
 	proto.RegisterType((*MutatingWebhookConfigurationList)(nil), "k8s.io.api.admissionregistration.v1beta1.MutatingWebhookConfigurationList")
@@ -1018,6 +1136,7 @@ func (m *ExpressionWarning) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 =======
 var fileDescriptor_abeea74cbc46f55a = []byte{
+<<<<<<< HEAD
 	// 1041 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x4f, 0x73, 0xdb, 0xc4,
 	0x1b, 0x8e, 0xe2, 0xf8, 0x17, 0x67, 0xed, 0x24, 0xcd, 0xfe, 0x80, 0x88, 0xd0, 0xb1, 0x3c, 0x3e,
@@ -1086,6 +1205,199 @@ var fileDescriptor_abeea74cbc46f55a = []byte{
 	0x45, 0xff, 0x28, 0xff, 0x13, 0x00, 0x00, 0xff, 0xff, 0x1f, 0xf5, 0x97, 0x1c, 0x6c, 0x0f, 0x00,
 	0x00,
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	// 1973 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x1a, 0x4d, 0x6f, 0x23, 0x49,
+	0x35, 0x1d, 0xe7, 0xc3, 0x7e, 0xce, 0x97, 0x6b, 0x67, 0x89, 0x77, 0x76, 0xd6, 0x8e, 0x5a, 0x2b,
+	0x94, 0x91, 0xc0, 0xde, 0xc9, 0xae, 0x76, 0x97, 0x59, 0x21, 0x14, 0x67, 0x67, 0x86, 0x99, 0x9d,
+	0x64, 0x42, 0x65, 0x37, 0x91, 0x60, 0x57, 0x9a, 0x72, 0x77, 0xd9, 0x6e, 0x6c, 0x77, 0x37, 0x5d,
+	0x6d, 0xcf, 0x04, 0x24, 0x40, 0xe2, 0xb0, 0x57, 0x24, 0x2e, 0x48, 0x9c, 0xf8, 0x0b, 0xdc, 0x91,
+	0xe0, 0x36, 0xc7, 0xbd, 0x31, 0x12, 0xc2, 0x22, 0xe6, 0xc0, 0x89, 0x03, 0x07, 0x38, 0xe4, 0x02,
+	0xaa, 0xea, 0xea, 0x4f, 0xb7, 0x27, 0x9d, 0x90, 0x09, 0x97, 0xb9, 0xa5, 0xdf, 0x67, 0xbd, 0x57,
+	0xef, 0xab, 0x9e, 0x03, 0xdf, 0xeb, 0x7e, 0xc8, 0x6a, 0x86, 0x55, 0xef, 0x0e, 0x9a, 0xd4, 0x31,
+	0xa9, 0x4b, 0x59, 0x7d, 0x48, 0x4d, 0xdd, 0x72, 0xea, 0x12, 0x41, 0x6c, 0xa3, 0x4e, 0xf4, 0xbe,
+	0xc1, 0x98, 0x61, 0x99, 0x0e, 0x6d, 0x1b, 0xcc, 0x75, 0x88, 0x6b, 0x58, 0x66, 0x7d, 0x78, 0xab,
+	0x49, 0x5d, 0x72, 0xab, 0xde, 0xa6, 0x26, 0x75, 0x88, 0x4b, 0xf5, 0x9a, 0xed, 0x58, 0xae, 0x85,
+	0x36, 0x3d, 0xce, 0x1a, 0xb1, 0x8d, 0x5a, 0x2a, 0x67, 0x4d, 0x72, 0x5e, 0xff, 0x66, 0xdb, 0x70,
+	0x3b, 0x83, 0x66, 0x4d, 0xb3, 0xfa, 0xf5, 0xb6, 0xd5, 0xb6, 0xea, 0x42, 0x40, 0x73, 0xd0, 0x12,
+	0x5f, 0xe2, 0x43, 0xfc, 0xe5, 0x09, 0xbe, 0xfe, 0x6e, 0x86, 0x23, 0x25, 0x4f, 0x73, 0xfd, 0xbd,
+	0x90, 0xa9, 0x4f, 0xb4, 0x8e, 0x61, 0x52, 0xe7, 0xb8, 0x6e, 0x77, 0xdb, 0x1c, 0xc0, 0xea, 0x7d,
+	0xea, 0x92, 0x34, 0xae, 0xfa, 0x34, 0x2e, 0x67, 0x60, 0xba, 0x46, 0x9f, 0x4e, 0x30, 0xbc, 0x7f,
+	0x16, 0x03, 0xd3, 0x3a, 0xb4, 0x4f, 0x92, 0x7c, 0x2a, 0x83, 0xd5, 0xed, 0x81, 0x6e, 0xb8, 0xdb,
+	0xa6, 0x69, 0xb9, 0xc2, 0x08, 0xf4, 0x16, 0xe4, 0xba, 0xf4, 0xb8, 0xac, 0x6c, 0x28, 0x9b, 0x85,
+	0x46, 0xf1, 0xd9, 0xa8, 0x3a, 0x33, 0x1e, 0x55, 0x73, 0x9f, 0xd0, 0x63, 0xcc, 0xe1, 0x68, 0x1b,
+	0x56, 0x87, 0xa4, 0x37, 0xa0, 0x77, 0x9e, 0xda, 0x0e, 0x15, 0x2e, 0x28, 0xcf, 0x0a, 0xd2, 0x75,
+	0x49, 0xba, 0x7a, 0x18, 0x47, 0xe3, 0x24, 0xbd, 0xda, 0x83, 0x52, 0xf8, 0x75, 0x44, 0x1c, 0xd3,
+	0x30, 0xdb, 0xe8, 0x1b, 0x90, 0x6f, 0x19, 0xb4, 0xa7, 0x63, 0xda, 0x92, 0x02, 0xd7, 0xa4, 0xc0,
+	0xfc, 0x5d, 0x09, 0xc7, 0x01, 0x05, 0xba, 0x09, 0x8b, 0x4f, 0x3c, 0xc6, 0x72, 0x4e, 0x10, 0xaf,
+	0x4a, 0xe2, 0x45, 0x29, 0x0f, 0xfb, 0x78, 0xb5, 0x05, 0x2b, 0xbb, 0xc4, 0xd5, 0x3a, 0x3b, 0x96,
+	0xa9, 0x1b, 0xc2, 0xc2, 0x0d, 0x98, 0x33, 0x49, 0x9f, 0x4a, 0x13, 0x97, 0x24, 0xe7, 0xdc, 0x1e,
+	0xe9, 0x53, 0x2c, 0x30, 0x68, 0x0b, 0x80, 0x26, 0xed, 0x43, 0x92, 0x0e, 0x22, 0xa6, 0x45, 0xa8,
+	0xd4, 0x3f, 0xcd, 0x49, 0x45, 0x98, 0x32, 0x6b, 0xe0, 0x68, 0x94, 0xa1, 0xa7, 0x50, 0xe2, 0xe2,
+	0x98, 0x4d, 0x34, 0x7a, 0x40, 0x7b, 0x54, 0x73, 0x2d, 0x47, 0x68, 0x2d, 0x6e, 0xbd, 0x5b, 0x0b,
+	0xc3, 0x34, 0xb8, 0xb1, 0x9a, 0xdd, 0x6d, 0x73, 0x00, 0xab, 0xf1, 0xc0, 0xa8, 0x0d, 0x6f, 0xd5,
+	0x1e, 0x92, 0x26, 0xed, 0xf9, 0xac, 0x8d, 0xd7, 0xc7, 0xa3, 0x6a, 0x69, 0x2f, 0x29, 0x11, 0x4f,
+	0x2a, 0x41, 0x16, 0xac, 0x58, 0xcd, 0x1f, 0x52, 0xcd, 0x0d, 0xd4, 0xce, 0x5e, 0x5c, 0x2d, 0x1a,
+	0x8f, 0xaa, 0x2b, 0x8f, 0x62, 0xe2, 0x70, 0x42, 0x3c, 0xfa, 0x29, 0x2c, 0x3b, 0xd2, 0x6e, 0x3c,
+	0xe8, 0x51, 0x56, 0xce, 0x6d, 0xe4, 0x36, 0x8b, 0x5b, 0xdb, 0xb5, 0xac, 0xd9, 0x58, 0xe3, 0x76,
+	0xe9, 0x9c, 0xf7, 0xc8, 0x70, 0x3b, 0x8f, 0x6c, 0xea, 0xa1, 0x59, 0xe3, 0x75, 0xe9, 0xf7, 0x65,
+	0x1c, 0x95, 0x8f, 0xe3, 0xea, 0xd0, 0xaf, 0x14, 0xb8, 0x46, 0x9f, 0x6a, 0xbd, 0x81, 0x4e, 0x63,
+	0x74, 0xe5, 0xb9, 0xcb, 0x3a, 0xc7, 0x0d, 0x79, 0x8e, 0x6b, 0x77, 0x52, 0xd4, 0xe0, 0x54, 0xe5,
+	0xe8, 0x63, 0x28, 0xf6, 0x79, 0x48, 0xec, 0x5b, 0x3d, 0x43, 0x3b, 0x2e, 0x2f, 0x8a, 0x40, 0x52,
+	0xc7, 0xa3, 0x6a, 0x71, 0x37, 0x04, 0x9f, 0x8e, 0xaa, 0xab, 0x91, 0xcf, 0x4f, 0x8f, 0x6d, 0x8a,
+	0xa3, 0x6c, 0xea, 0x1f, 0xf3, 0xb0, 0xba, 0x3b, 0xe0, 0xe9, 0x69, 0xb6, 0x8f, 0x68, 0xb3, 0x63,
+	0x59, 0xdd, 0x0c, 0x31, 0xfc, 0x04, 0x96, 0xb4, 0x9e, 0x41, 0x4d, 0x77, 0xc7, 0x32, 0x5b, 0x46,
+	0x5b, 0x06, 0xc0, 0xb7, 0xb3, 0x3b, 0x42, 0xaa, 0xda, 0x89, 0x08, 0x69, 0x5c, 0x93, 0x8a, 0x96,
+	0xa2, 0x50, 0x1c, 0x53, 0x84, 0x3e, 0x87, 0x79, 0x27, 0x12, 0x02, 0x1f, 0x64, 0xd1, 0x58, 0x4b,
+	0x71, 0xf8, 0xb2, 0xd4, 0x35, 0xef, 0x79, 0xd8, 0x13, 0x8a, 0x1e, 0xc2, 0x72, 0x8b, 0x18, 0xbd,
+	0x81, 0x43, 0xa5, 0x53, 0xe7, 0x84, 0x07, 0xbe, 0xce, 0x23, 0xe4, 0x6e, 0x14, 0x71, 0x3a, 0xaa,
+	0x96, 0x62, 0x00, 0xe1, 0xd8, 0x38, 0x73, 0xf2, 0x82, 0x0a, 0x17, 0xba, 0xa0, 0xf4, 0x3c, 0x9f,
+	0xff, 0xff, 0xe4, 0x79, 0xf1, 0xe5, 0xe6, 0xf9, 0xc7, 0x50, 0x64, 0x86, 0x4e, 0xef, 0xb4, 0x5a,
+	0x54, 0x73, 0x59, 0x79, 0x21, 0x74, 0xd8, 0x41, 0x08, 0xe6, 0x0e, 0x0b, 0x3f, 0x77, 0x7a, 0x84,
+	0x31, 0x1c, 0x65, 0x43, 0xb7, 0x61, 0x85, 0x77, 0x25, 0x6b, 0xe0, 0x1e, 0x50, 0xcd, 0x32, 0x75,
+	0x26, 0x52, 0x63, 0xde, 0x3b, 0xc1, 0xa7, 0x31, 0x0c, 0x4e, 0x50, 0xa2, 0xcf, 0x60, 0x3d, 0x88,
+	0x22, 0x4c, 0x87, 0x06, 0x7d, 0x72, 0x48, 0x1d, 0xfe, 0xc1, 0xca, 0xf9, 0x8d, 0xdc, 0x66, 0xa1,
+	0xf1, 0xe6, 0x78, 0x54, 0x5d, 0xdf, 0x4e, 0x27, 0xc1, 0xd3, 0x78, 0xd1, 0x63, 0x40, 0x0e, 0x35,
+	0xcc, 0xa1, 0xa5, 0x89, 0xf0, 0x93, 0x01, 0x01, 0xc2, 0xbe, 0x77, 0xc6, 0xa3, 0x2a, 0xc2, 0x13,
+	0xd8, 0xd3, 0x51, 0xf5, 0x6b, 0x93, 0x50, 0x11, 0x1e, 0x29, 0xb2, 0xd0, 0x4f, 0x60, 0xb5, 0x1f,
+	0x6b, 0x44, 0xac, 0xbc, 0x24, 0x32, 0xe4, 0xc3, 0xec, 0x39, 0x19, 0xef, 0x64, 0x61, 0xcf, 0x8d,
+	0xc3, 0x19, 0x4e, 0x6a, 0x52, 0xff, 0xa2, 0xc0, 0x8d, 0x44, 0x0d, 0xf1, 0xd2, 0x75, 0xe0, 0x69,
+	0x40, 0x8f, 0x21, 0xcf, 0xa3, 0x42, 0x27, 0x2e, 0x91, 0x2d, 0xea, 0x9d, 0x6c, 0x31, 0xe4, 0x05,
+	0xcc, 0x2e, 0x75, 0x49, 0xd8, 0x22, 0x43, 0x18, 0x0e, 0xa4, 0xa2, 0x1f, 0x40, 0x5e, 0x6a, 0x66,
+	0xe5, 0x59, 0x61, 0xf8, 0xb7, 0xce, 0x61, 0x78, 0xfc, 0xec, 0x8d, 0x39, 0xae, 0x0a, 0x07, 0x02,
+	0xd5, 0x7f, 0x28, 0xb0, 0xf1, 0x22, 0xfb, 0x1e, 0x1a, 0xcc, 0x45, 0x9f, 0x4f, 0xd8, 0x58, 0xcb,
+	0x98, 0x27, 0x06, 0xf3, 0x2c, 0x0c, 0x66, 0x12, 0x1f, 0x12, 0xb1, 0xaf, 0x0b, 0xf3, 0x86, 0x4b,
+	0xfb, 0xbe, 0x71, 0x77, 0x2f, 0x6c, 0x5c, 0xec, 0xe0, 0x61, 0x19, 0xbc, 0xcf, 0x85, 0x63, 0x4f,
+	0x87, 0xfa, 0x5c, 0x81, 0xf5, 0x29, 0x9d, 0x0a, 0x7d, 0x10, 0xf6, 0x62, 0x51, 0x44, 0xca, 0x8a,
+	0xc8, 0x8b, 0x52, 0xb4, 0x89, 0x0a, 0x04, 0x8e, 0xd3, 0xa1, 0x5f, 0x28, 0x80, 0x9c, 0x09, 0x79,
+	0xb2, 0x73, 0x5c, 0xb8, 0x8e, 0x5f, 0x97, 0x06, 0xa0, 0x49, 0x1c, 0x4e, 0x51, 0xa7, 0x12, 0x28,
+	0xec, 0x13, 0x87, 0xf4, 0x3f, 0x31, 0x4c, 0x9d, 0x4f, 0x62, 0xc4, 0x36, 0x64, 0x96, 0xca, 0x6e,
+	0x17, 0x84, 0xd9, 0xf6, 0xfe, 0x7d, 0x89, 0xc1, 0x11, 0x2a, 0xde, 0x1b, 0xbb, 0x86, 0xa9, 0xcb,
+	0xb9, 0x2d, 0xe8, 0x8d, 0x5c, 0x1e, 0x16, 0x18, 0xf5, 0x77, 0xb3, 0x90, 0x17, 0x3a, 0xf8, 0x2c,
+	0x79, 0x76, 0x2b, 0xad, 0x43, 0x21, 0x28, 0xbd, 0x52, 0x6a, 0x49, 0x92, 0x15, 0x82, 0x32, 0x8d,
+	0x43, 0x1a, 0xf4, 0x05, 0xe4, 0x99, 0x5f, 0x90, 0x73, 0x17, 0x2f, 0xc8, 0x4b, 0x3c, 0xd2, 0x82,
+	0x52, 0x1c, 0x88, 0x44, 0x2e, 0xac, 0xdb, 0xfc, 0xf4, 0xd4, 0xa5, 0xce, 0x9e, 0xe5, 0xde, 0xb5,
+	0x06, 0xa6, 0xbe, 0xad, 0x71, 0xef, 0xc9, 0x6e, 0x78, 0x9b, 0x97, 0xc0, 0xfd, 0x74, 0x92, 0xd3,
+	0x51, 0xf5, 0xcd, 0x29, 0x28, 0x51, 0xba, 0xa6, 0x89, 0x56, 0x7f, 0xab, 0xc0, 0xda, 0x01, 0x75,
+	0x86, 0x86, 0x46, 0x31, 0x6d, 0x51, 0x87, 0x9a, 0x5a, 0xc2, 0x35, 0x4a, 0x06, 0xd7, 0xf8, 0xde,
+	0x9e, 0x9d, 0xea, 0xed, 0x1b, 0x30, 0x67, 0x13, 0xb7, 0x23, 0x07, 0xfb, 0x3c, 0xc7, 0xee, 0x13,
+	0xb7, 0x83, 0x05, 0x54, 0x60, 0x2d, 0xc7, 0x15, 0x86, 0xce, 0x4b, 0xac, 0xe5, 0xb8, 0x58, 0x40,
+	0xd5, 0x5f, 0x2b, 0xb0, 0xc4, 0xad, 0xd8, 0xe9, 0x50, 0xad, 0xcb, 0x9f, 0x15, 0x5f, 0x2a, 0x80,
+	0x68, 0xf2, 0xb1, 0xe1, 0x65, 0x44, 0x71, 0xeb, 0xa3, 0xec, 0x29, 0x3a, 0xf1, 0x60, 0x09, 0xc3,
+	0x7a, 0x02, 0xc5, 0x70, 0x8a, 0x4a, 0xf5, 0xcf, 0xb3, 0xf0, 0xc6, 0x21, 0xe9, 0x19, 0xba, 0x48,
+	0xf5, 0xa0, 0x3f, 0xc9, 0xe6, 0xf0, 0xf2, 0xcb, 0xaf, 0x01, 0x73, 0xcc, 0xa6, 0x9a, 0xcc, 0xe6,
+	0x7b, 0xd9, 0x4d, 0x9f, 0x7a, 0xe8, 0x03, 0x9b, 0x6a, 0xe1, 0x0d, 0xf2, 0x2f, 0x2c, 0x54, 0xa0,
+	0x1f, 0xc1, 0x02, 0x73, 0x89, 0x3b, 0x60, 0x32, 0xf8, 0xef, 0x5f, 0x86, 0x32, 0x21, 0xb0, 0xb1,
+	0x22, 0xd5, 0x2d, 0x78, 0xdf, 0x58, 0x2a, 0x52, 0xff, 0xad, 0xc0, 0xc6, 0x54, 0xde, 0x86, 0x61,
+	0xea, 0x3c, 0x18, 0x5e, 0xbe, 0x93, 0xed, 0x98, 0x93, 0xf7, 0x2e, 0xc1, 0x6e, 0x79, 0xf6, 0x69,
+	0xbe, 0x56, 0xff, 0xa5, 0xc0, 0xdb, 0x67, 0x31, 0x5f, 0x41, 0xf3, 0xb3, 0xe2, 0xcd, 0xef, 0xc1,
+	0xe5, 0x59, 0x3e, 0xa5, 0x01, 0x7e, 0x99, 0x3b, 0xdb, 0x6e, 0xee, 0x26, 0xde, 0x41, 0x6c, 0x01,
+	0xdc, 0x0b, 0x8b, 0x7c, 0x70, 0x89, 0xfb, 0x01, 0x06, 0x47, 0xa8, 0xb8, 0xaf, 0x6c, 0xd9, 0x1e,
+	0xe4, 0x55, 0x6e, 0x65, 0x37, 0xc8, 0x6f, 0x2c, 0x5e, 0xf9, 0xf6, 0xbf, 0x70, 0x20, 0x11, 0xb9,
+	0xb0, 0xd2, 0x8f, 0x2d, 0x0a, 0x64, 0x9a, 0x9c, 0x77, 0x0e, 0x0c, 0xf8, 0xbd, 0xb9, 0x39, 0x0e,
+	0xc3, 0x09, 0x1d, 0xe8, 0x08, 0x4a, 0x43, 0xe9, 0x2f, 0xcb, 0xf4, 0x4a, 0xba, 0xf7, 0x3a, 0x2e,
+	0x34, 0x6e, 0xf2, 0xf7, 0xc6, 0x61, 0x12, 0x79, 0x3a, 0xaa, 0xae, 0x25, 0x81, 0x78, 0x52, 0x86,
+	0xfa, 0x77, 0x05, 0xde, 0x9a, 0x7a, 0x13, 0x57, 0x10, 0x7a, 0x9d, 0x78, 0xe8, 0xed, 0x5c, 0x46,
+	0xe8, 0xa5, 0xc7, 0xdc, 0x6f, 0x16, 0x5e, 0x60, 0xa9, 0x08, 0xb6, 0xc7, 0x50, 0xb0, 0xfd, 0xd9,
+	0x25, 0x65, 0xd3, 0x93, 0x25, 0x72, 0x38, 0x6b, 0x63, 0x99, 0xf7, 0xcf, 0xe0, 0x13, 0x87, 0x42,
+	0xd1, 0x8f, 0x61, 0xcd, 0x9f, 0xed, 0x39, 0xbf, 0x61, 0xba, 0xfe, 0x80, 0x76, 0xf1, 0xf0, 0xb9,
+	0x36, 0x1e, 0x55, 0xd7, 0x76, 0x13, 0x52, 0xf1, 0x84, 0x1e, 0xd4, 0x85, 0x62, 0x78, 0xfd, 0xfe,
+	0xfb, 0xfe, 0xbd, 0xf3, 0xfb, 0xdb, 0x32, 0x1b, 0xaf, 0x49, 0x07, 0x17, 0x43, 0x18, 0xc3, 0x51,
+	0xe9, 0x97, 0xfc, 0xd0, 0xff, 0x19, 0xac, 0x91, 0xf8, 0xa2, 0x93, 0x95, 0xe7, 0xcf, 0xfb, 0x08,
+	0x49, 0xac, 0x4a, 0x1b, 0x65, 0x69, 0xc4, 0x5a, 0x02, 0xc1, 0xf0, 0x84, 0xb2, 0xb4, 0xd7, 0xdf,
+	0xc2, 0x55, 0xbd, 0xfe, 0x90, 0x06, 0x85, 0x21, 0x71, 0x0c, 0xd2, 0xec, 0x51, 0xfe, 0xd4, 0xce,
+	0x9d, 0xaf, 0xa0, 0x1d, 0x4a, 0xd6, 0x70, 0xb2, 0xf3, 0x21, 0x0c, 0x87, 0x72, 0xd5, 0x3f, 0xcc,
+	0x42, 0xf5, 0x8c, 0xf6, 0x8d, 0x1e, 0x00, 0xb2, 0x9a, 0x8c, 0x3a, 0x43, 0xaa, 0xdf, 0xf3, 0x56,
+	0xd1, 0xfe, 0x58, 0x9f, 0x0b, 0x07, 0xaa, 0x47, 0x13, 0x14, 0x38, 0x85, 0x0b, 0xf5, 0x60, 0xc9,
+	0x8d, 0x8c, 0x7a, 0x32, 0x0b, 0xde, 0xcf, 0x6e, 0x57, 0x74, 0x50, 0x6c, 0xac, 0x8d, 0x47, 0xd5,
+	0xd8, 0xe8, 0x88, 0x63, 0xd2, 0x91, 0x06, 0xa0, 0x85, 0x57, 0xe7, 0x85, 0x7e, 0x3d, 0x5b, 0x15,
+	0x0b, 0x6f, 0x2c, 0xe8, 0x3b, 0x91, 0xcb, 0x8a, 0x88, 0x55, 0x4f, 0x16, 0xa1, 0x14, 0xba, 0xf0,
+	0xd5, 0xae, 0xef, 0xd5, 0xae, 0xef, 0x85, 0xbb, 0x3e, 0x78, 0xb5, 0xeb, 0xbb, 0xd0, 0xae, 0x2f,
+	0xa5, 0x16, 0x17, 0xaf, 0x6c, 0x13, 0x77, 0xa2, 0x40, 0x65, 0x22, 0xc7, 0xaf, 0x7a, 0x17, 0xf7,
+	0xc5, 0xc4, 0x2e, 0xee, 0xa3, 0x8b, 0x8c, 0x4d, 0xd3, 0xb6, 0x71, 0xff, 0x54, 0x40, 0x7d, 0xb1,
+	0x8d, 0x57, 0x30, 0x17, 0xf6, 0xe3, 0x73, 0xe1, 0x77, 0xff, 0x07, 0x03, 0xb3, 0x6c, 0xe4, 0xfe,
+	0xa3, 0x00, 0x84, 0xc3, 0x0c, 0x7a, 0x1b, 0x22, 0x3f, 0x14, 0xca, 0xd2, 0xed, 0xb9, 0x29, 0x02,
+	0x47, 0x37, 0x61, 0xb1, 0x4f, 0x19, 0x23, 0x6d, 0x7f, 0x21, 0x12, 0xfc, 0x8e, 0xb9, 0xeb, 0x81,
+	0xb1, 0x8f, 0x47, 0x47, 0xb0, 0xe0, 0x50, 0xc2, 0x2c, 0x53, 0x2e, 0x46, 0xbe, 0xc3, 0x5f, 0xc1,
+	0x58, 0x40, 0x4e, 0x47, 0xd5, 0x5b, 0x59, 0x7e, 0x67, 0xae, 0xc9, 0x47, 0xb3, 0x60, 0xc2, 0x52,
+	0x1c, 0xba, 0x07, 0x25, 0xa9, 0x23, 0x72, 0x60, 0xaf, 0xd2, 0xbe, 0x21, 0x4f, 0x53, 0xda, 0x4d,
+	0x12, 0xe0, 0x49, 0x1e, 0xf5, 0x01, 0xe4, 0xfd, 0xc1, 0x00, 0x95, 0x61, 0x2e, 0xf2, 0xde, 0xf2,
+	0x0c, 0x17, 0x90, 0x84, 0x63, 0x66, 0xd3, 0x1d, 0xa3, 0xfe, 0x5e, 0x81, 0xd7, 0x52, 0x9a, 0x12,
+	0x7a, 0x03, 0x72, 0x03, 0xa7, 0x27, 0x5d, 0xb0, 0x38, 0x1e, 0x55, 0x73, 0x9f, 0xe1, 0x87, 0x98,
+	0xc3, 0x10, 0x81, 0x45, 0xe6, 0xad, 0xa7, 0x64, 0x30, 0xdd, 0xce, 0x7e, 0xe3, 0xc9, 0xbd, 0x56,
+	0xa3, 0xc8, 0xef, 0xc0, 0x87, 0xfa, 0x72, 0xd1, 0x26, 0xe4, 0x35, 0xd2, 0x18, 0x98, 0x7a, 0xcf,
+	0xbb, 0xaf, 0x25, 0xef, 0x8d, 0xb7, 0xb3, 0xed, 0xc1, 0x70, 0x80, 0x6d, 0xec, 0x3d, 0x3b, 0xa9,
+	0xcc, 0x7c, 0x75, 0x52, 0x99, 0x79, 0x7e, 0x52, 0x99, 0xf9, 0xf9, 0xb8, 0xa2, 0x3c, 0x1b, 0x57,
+	0x94, 0xaf, 0xc6, 0x15, 0xe5, 0xf9, 0xb8, 0xa2, 0xfc, 0x75, 0x5c, 0x51, 0x7e, 0xf9, 0xb7, 0xca,
+	0xcc, 0xf7, 0x37, 0xb3, 0xfe, 0x97, 0xc3, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x71, 0x54, 0x54,
+	0xe6, 0x29, 0x21, 0x00, 0x00,
+}
+
+func (m *AuditAnnotation) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AuditAnnotation) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AuditAnnotation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	i -= len(m.ValueExpression)
+	copy(dAtA[i:], m.ValueExpression)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.ValueExpression)))
+	i--
+	dAtA[i] = 0x12
+	i -= len(m.Key)
+	copy(dAtA[i:], m.Key)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Key)))
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *ExpressionWarning) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ExpressionWarning) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ExpressionWarning) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	i -= len(m.Warning)
+	copy(dAtA[i:], m.Warning)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Warning)))
+	i--
+	dAtA[i] = 0x1a
+	i -= len(m.FieldRef)
+	copy(dAtA[i:], m.FieldRef)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.FieldRef)))
+	i--
+	dAtA[i] = 0x12
+	return len(dAtA) - i, nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (m *MatchCondition) Marshal() (dAtA []byte, err error) {
@@ -1204,6 +1516,88 @@ func (m *MatchResources) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+}
+
+func (m *MatchResources) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MatchResources) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MatchResources) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.MatchPolicy != nil {
+		i -= len(*m.MatchPolicy)
+		copy(dAtA[i:], *m.MatchPolicy)
+		i = encodeVarintGenerated(dAtA, i, uint64(len(*m.MatchPolicy)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.ExcludeResourceRules) > 0 {
+		for iNdEx := len(m.ExcludeResourceRules) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ExcludeResourceRules[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenerated(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.ResourceRules) > 0 {
+		for iNdEx := len(m.ResourceRules) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ResourceRules[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenerated(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.ObjectSelector != nil {
+		{
+			size, err := m.ObjectSelector.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenerated(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.NamespaceSelector != nil {
+		{
+			size, err := m.NamespaceSelector.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenerated(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *MutatingWebhook) Marshal() (dAtA []byte, err error) {
@@ -2412,6 +2806,9 @@ func encodeVarintGenerated(dAtA []byte, offset int, v uint64) int {
 	return base
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *AuditAnnotation) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2438,8 +2835,11 @@ func (m *ExpressionWarning) Size() (n int) {
 	return n
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MatchCondition) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2454,6 +2854,9 @@ func (m *MatchCondition) Size() (n int) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MatchResources) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2487,8 +2890,11 @@ func (m *MatchResources) Size() (n int) {
 	return n
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MutatingWebhook) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2967,6 +3373,9 @@ func sozGenerated(x uint64) (n int) {
 	return sovGenerated(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (this *AuditAnnotation) String() string {
 	if this == nil {
 		return "nil"
@@ -2989,8 +3398,11 @@ func (this *ExpressionWarning) String() string {
 	}, "")
 	return s
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (this *MatchCondition) String() string {
 	if this == nil {
 		return "nil"
@@ -3003,6 +3415,9 @@ func (this *MatchCondition) String() string {
 	return s
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (this *MatchResources) String() string {
 	if this == nil {
 		return "nil"
@@ -3027,8 +3442,11 @@ func (this *MatchResources) String() string {
 	}, "")
 	return s
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (this *MutatingWebhook) String() string {
 	if this == nil {
 		return "nil"
@@ -3055,10 +3473,14 @@ func (this *MutatingWebhook) String() string {
 		`MatchPolicy:` + valueToStringGenerated(this.MatchPolicy) + `,`,
 		`ReinvocationPolicy:` + valueToStringGenerated(this.ReinvocationPolicy) + `,`,
 <<<<<<< HEAD
+<<<<<<< HEAD
 		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v1.LabelSelector", 1) + `,`,
 =======
 		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v11.LabelSelector", 1) + `,`,
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v1.LabelSelector", 1) + `,`,
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		`MatchConditions:` + repeatedStringForMatchConditions + `,`,
 		`}`,
 	}, "")
@@ -3305,10 +3727,14 @@ func (this *ValidatingWebhook) String() string {
 		`AdmissionReviewVersions:` + fmt.Sprintf("%v", this.AdmissionReviewVersions) + `,`,
 		`MatchPolicy:` + valueToStringGenerated(this.MatchPolicy) + `,`,
 <<<<<<< HEAD
+<<<<<<< HEAD
 		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v1.LabelSelector", 1) + `,`,
 =======
 		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v11.LabelSelector", 1) + `,`,
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		`ObjectSelector:` + strings.Replace(fmt.Sprintf("%v", this.ObjectSelector), "LabelSelector", "v1.LabelSelector", 1) + `,`,
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		`MatchConditions:` + repeatedStringForMatchConditions + `,`,
 		`}`,
 	}, "")
@@ -3391,6 +3817,9 @@ func valueToStringGenerated(v interface{}) string {
 	return fmt.Sprintf("*%v", pv)
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *AuditAnnotation) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3619,8 +4048,11 @@ func (m *ExpressionWarning) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MatchCondition) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3736,6 +4168,9 @@ func (m *MatchCondition) Unmarshal(dAtA []byte) error {
 	return nil
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MatchResources) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3959,8 +4394,11 @@ func (m *MatchResources) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (m *MutatingWebhook) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0

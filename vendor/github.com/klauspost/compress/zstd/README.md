@@ -260,10 +260,14 @@ nyc-taxi-data-10M.csv   gzkp    1   3325605752  922273214   13929   227.68
 ## Decompressor
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Status: STABLE - there may still be subtle bugs, but a wide variety of content has been tested.
 =======
 Staus: STABLE - there may still be subtle bugs, but a wide variety of content has been tested.
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+Status: STABLE - there may still be subtle bugs, but a wide variety of content has been tested.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 This library is being continuously [fuzz-tested](https://github.com/klauspost/compress-fuzz),
 kindly supplied by [fuzzit.dev](https://fuzzit.dev/). 

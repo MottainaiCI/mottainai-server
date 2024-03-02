@@ -45,15 +45,21 @@ func (matcher *HaveExactElementsMatcher) Match(actual interface{}) (success bool
 		elemMatcher := matchers[i].(omegaMatcher)
 		match, err := elemMatcher.Match(values[i])
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err != nil {
 			matcher.mismatchFailures = append(matcher.mismatchFailures, mismatchFailure{
 				index:   i,
 				failure: err.Error(),
 			})
 		} else if !match {
+<<<<<<< HEAD
 =======
 		if err != nil || !match {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			matcher.mismatchFailures = append(matcher.mismatchFailures, mismatchFailure{
 				index:   i,
 				failure: elemMatcher.FailureMessage(values[i]),

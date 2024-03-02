@@ -145,6 +145,7 @@ func SetAuthURLParam(key, value string) AuthCodeOption {
 // that asks for permissions for the required scopes explicitly.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // State is an opaque value used by the client to maintain state between the
 // request and callback. The authorization server includes this value when
 // redirecting the user agent back to the client.
@@ -154,6 +155,11 @@ func SetAuthURLParam(key, value string) AuthCodeOption {
 // state query parameter on your redirect callback.
 // See http://tools.ietf.org/html/rfc6749#section-10.12 for more info.
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
+=======
+// State is an opaque value used by the client to maintain state between the
+// request and callback. The authorization server includes this value when
+// redirecting the user agent back to the client.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 //
 // Opts may include AccessTypeOnline or AccessTypeOffline, as well
 // as ApprovalForce.

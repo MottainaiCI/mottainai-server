@@ -362,10 +362,14 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 		// Use 4 Streams.
 		out, reUsed, err = huff0.Compress4X(lits, b.litEnc)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	} else if len(lits) > 16 {
 =======
 	} else if len(lits) > 32 {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	} else if len(lits) > 16 {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		// Use 1 stream
 		single = true
 		out, reUsed, err = huff0.Compress1X(lits, b.litEnc)
@@ -373,6 +377,9 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 		err = huff0.ErrIncompressible
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err == nil && len(out)+5 > len(lits) {
 		// If we are close, we may still be worse or equal to raw.
 		var lh literalsHeader
@@ -381,9 +388,12 @@ func (b *blockEnc) encodeLits(lits []byte, raw bool) error {
 			err = huff0.ErrIncompressible
 		}
 	}
+<<<<<<< HEAD
 =======
 
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	switch err {
 	case huff0.ErrIncompressible:
 		if debugEncoder {
@@ -545,10 +555,14 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 		// Use 4 Streams.
 		out, reUsed, err = huff0.Compress4X(b.literals, b.litEnc)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	} else if len(b.literals) > 16 && !raw {
 =======
 	} else if len(b.literals) > 32 && !raw {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	} else if len(b.literals) > 16 && !raw {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		// Use 1 stream
 		single = true
 		out, reUsed, err = huff0.Compress1X(b.literals, b.litEnc)
@@ -557,6 +571,9 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err == nil && len(out)+5 > len(b.literals) {
 		// If we are close, we may still be worse or equal to raw.
 		var lh literalsHeader
@@ -568,8 +585,11 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 			err = huff0.ErrIncompressible
 		}
 	}
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	switch err {
 	case huff0.ErrIncompressible:
 		lh.setType(literalsBlockRaw)
@@ -833,6 +853,7 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	of.flush(ofEnc.actualTableLog)
 	ll.flush(llEnc.actualTableLog)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	wr.close()
 =======
 	err = wr.close()
@@ -840,6 +861,9 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 		return err
 	}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	wr.close()
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	b.output = wr.out
 
 	// Maybe even add a bigger margin.

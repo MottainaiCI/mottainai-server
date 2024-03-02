@@ -1382,6 +1382,7 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 	cancelRequest := func(cs *clientStream, err error) error {
 		cs.cc.mu.Lock()
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bodyClosed := cs.reqBodyClosed
 =======
 		cs.abortStreamLocked(err)
@@ -1401,6 +1402,9 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 			cs.cc.doNotReuse = true
 		}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		bodyClosed := cs.reqBodyClosed
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		cs.cc.mu.Unlock()
 		// Wait for the request body to be closed.
 		//
@@ -1455,9 +1459,10 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 				return handleResponseHeaders()
 			default:
 				waitDone()
-				return nil, cancelRequest(cs, cs.abortErr)
+				return nil, cs.abortErr
 			}
 		case <-ctx.Done():
+<<<<<<< HEAD
 <<<<<<< HEAD
 			err := ctx.Err()
 			cs.abortStream(err)
@@ -1468,6 +1473,13 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 			return nil, cancelRequest(cs, ctx.Err())
 		case <-cs.reqCancel:
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			err := ctx.Err()
+			cs.abortStream(err)
+			return nil, cancelRequest(cs, err)
+		case <-cs.reqCancel:
+			cs.abortStream(errRequestCanceled)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			return nil, cancelRequest(cs, errRequestCanceled)
 		}
 	}

@@ -27,10 +27,17 @@ import (
 
 	"github.com/flosch/pongo2"
 
+<<<<<<< HEAD
 	"github.com/canonical/lxd/lxd/revert"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/lxd/shared/cancel"
 	"github.com/canonical/lxd/shared/ioprogress"
+=======
+	"github.com/canonical/lxd/shared/api"
+	"github.com/canonical/lxd/shared/cancel"
+	"github.com/canonical/lxd/shared/ioprogress"
+	"github.com/canonical/lxd/shared/revert"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"github.com/canonical/lxd/shared/units"
 )
 

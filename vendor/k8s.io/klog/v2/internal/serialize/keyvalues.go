@@ -186,6 +186,7 @@ func (f Formatter) formatAny(b *bytes.Buffer, v interface{}) {
 		return
 =======
 
+<<<<<<< HEAD
 // KVFormat serializes one key/value pair into the provided buffer.
 // A space gets inserted before the pair.
 func (f Formatter) KVFormat(b *bytes.Buffer, k, v interface{}) {
@@ -269,16 +270,35 @@ func formatAsJSON(b *bytes.Buffer, v interface{}) {
 	b.Truncate(b.Len() - 1)
 }
 
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func KVFormat(b *bytes.Buffer, k, v interface{}) {
 	Formatter{}.KVFormat(b, k, v)
 }
 
-// AnyToString is the historic fallback formatter.
-func (f Formatter) AnyToString(v interface{}) string {
+// formatAny is the fallback formatter for a value. It supports a hook (for
+// example, for YAML encoding) and itself uses JSON encoding.
+func (f Formatter) formatAny(b *bytes.Buffer, v interface{}) {
+	b.WriteRune('=')
 	if f.AnyToStringHook != nil {
-		return f.AnyToStringHook(v)
+		b.WriteString(f.AnyToStringHook(v))
+		return
 	}
-	return fmt.Sprintf("%+v", v)
+	formatAsJSON(b, v)
+}
+
+func formatAsJSON(b *bytes.Buffer, v interface{}) {
+	encoder := json.NewEncoder(b)
+	l := b.Len()
+	if err := encoder.Encode(v); err != nil {
+		// This shouldn't happen. We discard whatever the encoder
+		// wrote and instead dump an error string.
+		b.Truncate(l)
+		b.WriteString(fmt.Sprintf(`"<internal error: %v>"`, err))
+		return
+	}
+	// Remove trailing newline.
+	b.Truncate(b.Len() - 1)
 }
 
 // StringerToString converts a Stringer to a string,

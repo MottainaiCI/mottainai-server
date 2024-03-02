@@ -1846,6 +1846,7 @@ func ResizePseudoConsole(pconsole Handle, size Coord) error {
 	// accept arguments that can be casted to uintptr, and Coord can't.
 	return resizePseudoConsole(pconsole, *((*uint32)(unsafe.Pointer(&size))))
 }
+<<<<<<< HEAD
 
 // DCB constants. See https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-dcb.
 const (
@@ -1916,3 +1917,5 @@ const (
 	EV_ERR     = 0x0080
 	EV_RING    = 0x0100
 )
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

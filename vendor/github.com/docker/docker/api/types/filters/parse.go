@@ -99,10 +99,14 @@ func FromJSON(p string) (Args, error) {
 	deprecated := map[string][]string{}
 	if legacyErr := json.Unmarshal(raw, &deprecated); legacyErr != nil {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return args, &invalidFilter{}
 =======
 		return args, invalidFilter{}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return args, &invalidFilter{}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	args.fields = deprecatedArgs(deprecated)
@@ -211,10 +215,14 @@ func (args Args) GetBoolOrDefault(key string, defaultValue bool) (bool, error) {
 
 	if len(fieldValues) == 0 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return defaultValue, &invalidFilter{key, nil}
 =======
 		return defaultValue, invalidFilter{key, nil}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return defaultValue, &invalidFilter{key, nil}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	isFalse := fieldValues["0"] || fieldValues["false"]
@@ -225,10 +233,14 @@ func (args Args) GetBoolOrDefault(key string, defaultValue bool) (bool, error) {
 
 	if conflicting || invalid {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return defaultValue, &invalidFilter{key, args.Get(key)}
 =======
 		return defaultValue, invalidFilter{key, args.Get(key)}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return defaultValue, &invalidFilter{key, args.Get(key)}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	} else if isFalse {
 		return false, nil
 	} else if isTrue {
@@ -237,10 +249,14 @@ func (args Args) GetBoolOrDefault(key string, defaultValue bool) (bool, error) {
 
 	// This code shouldn't be reached.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return defaultValue, &unreachableCode{Filter: key, Value: args.Get(key)}
 =======
 	return defaultValue, unreachableCode{Filter: key, Value: args.Get(key)}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	return defaultValue, &unreachableCode{Filter: key, Value: args.Get(key)}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // ExactMatch returns true if the source matches exactly one of the values.
@@ -299,10 +315,14 @@ func (args Args) Validate(accepted map[string]bool) error {
 	for name := range args.fields {
 		if !accepted[name] {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			return &invalidFilter{name, nil}
 =======
 			return invalidFilter{name, nil}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			return &invalidFilter{name, nil}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 	}
 	return nil

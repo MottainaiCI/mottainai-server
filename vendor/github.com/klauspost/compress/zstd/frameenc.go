@@ -23,10 +23,14 @@ type frameHeader struct {
 const maxHeaderSize = 14
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (f frameHeader) appendTo(dst []byte) []byte {
 =======
 func (f frameHeader) appendTo(dst []byte) ([]byte, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func (f frameHeader) appendTo(dst []byte) []byte {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	dst = append(dst, frameMagic...)
 	var fhd uint8
 	if f.Checksum {
@@ -81,10 +85,14 @@ func (f frameHeader) appendTo(dst []byte) ([]byte, error) {
 			dst = append(dst, uint8(f.ContentSize))
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// Unless SingleSegment is set, framessizes < 256 are not stored.
 =======
 		// Unless SingleSegment is set, framessizes < 256 are nto stored.
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		// Unless SingleSegment is set, framessizes < 256 are not stored.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case 1:
 		f.ContentSize -= 256
 		dst = append(dst, uint8(f.ContentSize), uint8(f.ContentSize>>8))
@@ -97,10 +105,14 @@ func (f frameHeader) appendTo(dst []byte) ([]byte, error) {
 		panic("invalid fcs")
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return dst
 =======
 	return dst, nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	return dst
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 const skippableFrameHeader = 4 + 4

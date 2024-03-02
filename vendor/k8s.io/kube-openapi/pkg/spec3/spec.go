@@ -51,6 +51,9 @@ func (o *OpenAPI) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &p)
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 func (o *OpenAPI) MarshalJSON() ([]byte, error) {
 	if internal.UseOptimizedJSONMarshalingV3 {
@@ -74,5 +77,8 @@ func (o *OpenAPI) MarshalNextJSON(opts jsonv2.MarshalOptions, enc *jsonv2.Encode
 	x := (*OpenAPIOmitZero)(o)
 	return opts.MarshalNext(enc, x)
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

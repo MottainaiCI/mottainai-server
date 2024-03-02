@@ -4,10 +4,13 @@
 
 package versions
 
+<<<<<<< HEAD
 import (
 	"strings"
 )
 
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note: If we use build tags to use go/versions when go >=1.22,
 // we run into go.dev/issue/53737. Under some operations users would see an
 // import of "go/versions" even if they would not compile the file.
@@ -49,7 +52,10 @@ func IsValid(x string) bool { return isValid(stripGo(x)) }
 // stripGo converts from a "go1.21" version to a "1.21" version.
 // If v does not start with "go", stripGo returns the empty string (a known invalid version).
 func stripGo(v string) string {
+<<<<<<< HEAD
 	v, _, _ = strings.Cut(v, "-") // strip -bigcorp suffix.
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if len(v) < 2 || v[:2] != "go" {
 		return ""
 	}

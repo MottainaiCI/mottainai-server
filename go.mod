@@ -13,8 +13,8 @@ require (
 	github.com/canonical/lxd v0.0.0-20231212113931-6b2c9592e968
 	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9 // indirect
 	github.com/codegangsta/inject v0.0.0-20140425184007-37d7f8432a3e // indirect
-	github.com/containerd/containerd v1.7.2 // indirect
-	github.com/docker/docker v24.0.2+incompatible // indirect
+	github.com/containerd/containerd v1.7.11 // indirect
+	github.com/docker/docker v24.0.7+incompatible // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fsouza/go-dockerclient v1.9.7
 	github.com/ghodss/yaml v1.0.0
@@ -31,7 +31,7 @@ require (
 	github.com/jaypipes/ghw v0.0.0-20190201192232-64063ac6bef9
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/markbates/goth v1.66.0
-	github.com/microcosm-cc/bluemonday v1.0.24
+	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
@@ -63,6 +63,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
 )
+
+require github.com/canonical/lxd v0.0.0-20240302105921-54cae4175f55
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect

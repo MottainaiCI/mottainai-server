@@ -2,7 +2,10 @@ package toml
 
 import (
 	"fmt"
+<<<<<<< HEAD
 	"math"
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"os"
 	"strconv"
 	"strings"
@@ -50,7 +53,10 @@ func parse(data string) (p *parser, err error) {
 	// it anyway.
 	if strings.HasPrefix(data, "\xff\xfe") || strings.HasPrefix(data, "\xfe\xff") { // UTF-16
 		data = data[2:]
+<<<<<<< HEAD
 		//lint:ignore S1017 https://github.com/dominikh/go-tools/issues/1447
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	} else if strings.HasPrefix(data, "\xef\xbb\xbf") { // UTF-8
 		data = data[3:]
 	}
@@ -73,7 +79,11 @@ func parse(data string) (p *parser, err error) {
 
 	p = &parser{
 		keyInfo:   make(map[string]keyInfo),
+<<<<<<< HEAD
 		mapping:   make(map[string]any),
+=======
+		mapping:   make(map[string]interface{}),
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		lx:        lex(data, tomlNext),
 		ordered:   make([]Key, 0),
 		implicits: make(map[string]struct{}),
@@ -209,8 +219,12 @@ func (p *parser) topLevel(item item) {
 		/// Set value.
 		vItem := p.next()
 		val, typ := p.value(vItem, false)
+<<<<<<< HEAD
 		p.setValue(p.currentKey, val)
 		p.setType(p.currentKey, typ, vItem.pos)
+=======
+		p.set(p.currentKey, val, typ, vItem.pos)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		/// Remove the context we added (preserving any context from [tbl] lines).
 		p.context = outerContext
@@ -428,7 +442,11 @@ func (p *parser) valueArray(it item) (any, tomlType) {
 		//
 		// Not entirely sure how to best store this; could use "key[0]",
 		// "key[1]" notation, or maybe store it on the Array type?
+<<<<<<< HEAD
 		_ = typ
+=======
+		_ = types
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	return array, tomlArray
 }
@@ -475,6 +493,7 @@ func (p *parser) valueInlineTable(it item, parentIsArray bool) (any, tomlType) {
 
 		/// Set the value.
 		val, typ := p.value(p.next(), false)
+<<<<<<< HEAD
 		p.setValue(p.currentKey, val)
 		p.setType(p.currentKey, typ, it.pos)
 
@@ -490,6 +509,9 @@ func (p *parser) valueInlineTable(it item, parentIsArray bool) (any, tomlType) {
 				p.panicf("%q is not a table", p.context)
 			}
 		}
+=======
+		p.set(p.currentKey, val, typ, it.pos)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		hash[p.currentKey] = val
 
 		/// Restore context.
@@ -601,7 +623,17 @@ func (p *parser) addContext(key Key, array bool) {
 	} else {
 		p.setValue(key.last(), make(map[string]any))
 	}
+<<<<<<< HEAD
 	p.context = append(p.context, key.last())
+=======
+	p.context = append(p.context, key[len(key)-1])
+}
+
+// set calls setValue and setType.
+func (p *parser) set(key string, val interface{}, typ tomlType, pos Position) {
+	p.setValue(key, val)
+	p.setType(key, typ, pos)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // setValue sets the given key to the given value in the current context.
@@ -715,11 +747,16 @@ func stripFirstNewline(s string) string {
 // the next newline. After a line-ending backslash, all whitespace is removed
 // until the next non-whitespace character.
 func (p *parser) stripEscapedNewlines(s string) string {
+<<<<<<< HEAD
 	var (
 		b strings.Builder
 		i int
 	)
 	b.Grow(len(s))
+=======
+	var b strings.Builder
+	var i int
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	for {
 		ix := strings.Index(s[i:], `\`)
 		if ix < 0 {
@@ -749,8 +786,14 @@ func (p *parser) stripEscapedNewlines(s string) string {
 			continue
 		}
 		if !strings.Contains(s[i:j], "\n") {
+<<<<<<< HEAD
 			// This is not a line-ending backslash. (It's a bad escape sequence,
 			// but we can let replaceEscapes catch it.)
+=======
+			// This is not a line-ending backslash.
+			// (It's a bad escape sequence, but we can let
+			// replaceEscapes catch it.)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			i++
 			continue
 		}
@@ -798,17 +841,27 @@ func (p *parser) replaceEscapes(it item, str string) string {
 			b.WriteByte(0x0c)
 			skip = 1
 		case 'r':
+<<<<<<< HEAD
 			b.WriteByte(0x0d)
 			skip = 1
 		case 'e':
 			if p.tomlNext {
 				b.WriteByte(0x1b)
 				skip = 1
+=======
+			replaced = append(replaced, rune(0x000D))
+			r += 1
+		case 'e':
+			if p.tomlNext {
+				replaced = append(replaced, rune(0x001B))
+				r += 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 		case '"':
 			b.WriteByte(0x22)
 			skip = 1
 		case '\\':
+<<<<<<< HEAD
 			b.WriteByte(0x5c)
 			skip = 1
 		// The lexer guarantees the correct number of characters are present;
@@ -818,6 +871,15 @@ func (p *parser) replaceEscapes(it item, str string) string {
 				escaped := p.asciiEscapeToUnicode(it, str[i+2:i+4])
 				b.WriteRune(escaped)
 				skip = 3
+=======
+			replaced = append(replaced, rune(0x005C))
+			r += 1
+		case 'x':
+			if p.tomlNext {
+				escaped := p.asciiEscapeToUnicode(it, s[r+1:r+3])
+				replaced = append(replaced, escaped)
+				r += 3
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 		case 'u':
 			escaped := p.asciiEscapeToUnicode(it, str[i+2:i+6])

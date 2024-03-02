@@ -39,16 +39,22 @@ type NetworkPolicy struct {
 	Spec NetworkPolicySpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Status is tombstoned to show why 3 is a reserved protobuf tag.
 	// This commented field should remain, so in the future if we decide to reimplement
 	// NetworkPolicyStatus a different protobuf name and tag SHOULD be used!
 	// Status NetworkPolicyStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+<<<<<<< HEAD
 =======
 	// status represents the current state of the NetworkPolicy.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
 	Status NetworkPolicyStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // PolicyType string describes the NetworkPolicy type
@@ -221,6 +227,7 @@ type NetworkPolicyPeer struct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // NetworkPolicyConditionType is the type for status conditions on
 // a NetworkPolicy. This type should be used with the
@@ -265,6 +272,8 @@ type NetworkPolicyStatus struct {
 }
 
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NetworkPolicyList is a list of NetworkPolicy objects.

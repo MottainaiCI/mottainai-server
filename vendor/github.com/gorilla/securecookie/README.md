@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # gorilla/securecookie
 
 ![testing](https://github.com/gorilla/securecookie/actions/workflows/test.yml/badge.svg)
@@ -14,10 +15,23 @@ securecookie
 ============
 [![GoDoc](https://godoc.org/github.com/gorilla/securecookie?status.svg)](https://godoc.org/github.com/gorilla/securecookie) [![Build Status](https://travis-ci.org/gorilla/securecookie.png?branch=master)](https://travis-ci.org/gorilla/securecookie)
 [![Sourcegraph](https://sourcegraph.com/github.com/gorilla/securecookie/-/badge.svg)](https://sourcegraph.com/github.com/gorilla/securecookie?badge)
+=======
+# gorilla/securecookie
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
+![testing](https://github.com/gorilla/securecookie/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/github/gorilla/securecookie/branch/main/graph/badge.svg)](https://codecov.io/github/gorilla/securecookie)
+[![godoc](https://godoc.org/github.com/gorilla/securecookie?status.svg)](https://godoc.org/github.com/gorilla/securecookie)
+[![sourcegraph](https://sourcegraph.com/github.com/gorilla/securecookie/-/badge.svg)](https://sourcegraph.com/github.com/gorilla/securecookie?badge)
 
+<<<<<<< HEAD
 securecookie encodes and decodes authenticated and optionally encrypted 
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+![Gorilla Logo](https://github.com/gorilla/.github/assets/53367916/d92caabf-98e0-473e-bfbf-ab554ba435e5)
+
+securecookie encodes and decodes authenticated and optionally encrypted
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 cookie values.
 
 Secure cookies can't be forged, because their values are validated using HMAC.
@@ -47,13 +61,19 @@ of the encryption algorithm. For AES, used by default, valid lengths are
 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 Strong keys can be created using the convenience function
 `GenerateRandomKey()`. Note that keys created using `GenerateRandomKey()` are not
 automatically persisted. New keys will be created when the application is
 restarted, and previously issued cookies will not be able to be decoded.
+<<<<<<< HEAD
 =======
 Strong keys can be created using the convenience function GenerateRandomKey().
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 Once a SecureCookie instance is set, use it to encode a cookie value:
 
@@ -96,6 +116,9 @@ it works out of the box. An optional JSON encoder that uses `encoding/json` is
 available for types compatible with JSON.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 ### Key Rotation
 Rotating keys is an important part of any security strategy. The `EncodeMulti` and
 `DecodeMulti` functions allow for multiple keys to be rotated in and out.
@@ -154,8 +177,11 @@ func Rotate(newCookie *securecookie.SecureCookie) {
 }
 ```
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 ## License
 
 BSD licensed. See the LICENSE file for details.

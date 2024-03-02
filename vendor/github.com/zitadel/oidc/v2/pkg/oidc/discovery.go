@@ -1,12 +1,15 @@
 package oidc
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import (
 	"golang.org/x/text/language"
 )
 
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 const (
 	DiscoveryEndpoint = "/.well-known/openid-configuration"
 )
@@ -134,6 +137,7 @@ type DiscoveryConfiguration struct {
 
 	// ClaimsLocalesSupported contains a list of BCP47 language tag values that the OP supports for values of Claims returned.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	ClaimsLocalesSupported Locales `json:"claims_locales_supported,omitempty"`
 
 	// UILocalesSupported contains a list of BCP47 language tag values that the OP supports for the user interface.
@@ -144,6 +148,12 @@ type DiscoveryConfiguration struct {
 	// UILocalesSupported contains a list of BCP47 language tag values that the OP supports for the user interface.
 	UILocalesSupported []language.Tag `json:"ui_locales_supported,omitempty"`
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	ClaimsLocalesSupported Locales `json:"claims_locales_supported,omitempty"`
+
+	// UILocalesSupported contains a list of BCP47 language tag values that the OP supports for the user interface.
+	UILocalesSupported Locales `json:"ui_locales_supported,omitempty"`
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// RequestParameterSupported specifies whether the OP supports use of the `request` parameter. If omitted, the default value is false.
 	RequestParameterSupported bool `json:"request_parameter_supported,omitempty"`

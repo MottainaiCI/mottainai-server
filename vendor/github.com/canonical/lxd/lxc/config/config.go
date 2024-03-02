@@ -6,14 +6,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/juju/persistent-cookiejar"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
 
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/config.go
 	"github.com/canonical/lxd/shared"
 =======
 	"github.com/lxc/lxd/shared"
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/config.go
+=======
+	"github.com/canonical/lxd/shared"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Config holds settings to be used by a client or daemon.
@@ -41,9 +44,6 @@ type Config struct {
 	// ProjectOverride allows overriding the default project
 	ProjectOverride string `yaml:"-"`
 
-	// Cookie jars
-	cookieJars map[string]*cookiejar.Jar
-
 	// OIDC tokens
 	oidcTokens map[string]*oidc.Tokens[*oidc.IDTokenClaims]
 }
@@ -69,11 +69,6 @@ func (c *Config) ConfigPath(paths ...string) string {
 	return filepath.Join(path...)
 }
 
-// CookiesPath returns the path for the remote's cookie jar.
-func (c *Config) CookiesPath(remote string) string {
-	return c.ConfigPath("jars", remote)
-}
-
 // ServerCertPath returns the path for the remote's server certificate.
 func (c *Config) ServerCertPath(remote string) string {
 	if c.Remotes[remote].Global {
@@ -86,13 +81,6 @@ func (c *Config) ServerCertPath(remote string) string {
 // OIDCTokenPath returns the path for the remote's OIDC tokens.
 func (c *Config) OIDCTokenPath(remote string) string {
 	return c.ConfigPath("oidctokens", fmt.Sprintf("%s.json", remote))
-}
-
-// SaveCookies saves cookies to file.
-func (c *Config) SaveCookies() {
-	for _, jar := range c.cookieJars {
-		_ = jar.Save()
-	}
 }
 
 // SaveOIDCTokens saves OIDC tokens to disk.

@@ -6,11 +6,15 @@
 Package packages loads Go packages for inspection and analysis.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 The [Load] function takes as input a list of patterns and returns a
 list of [Package] values describing individual packages matched by those
 patterns.
 A [Config] specifies configuration options, the most important of which is
 the [LoadMode], which controls the amount of detail in the loaded packages.
+<<<<<<< HEAD
 
 Load passes most patterns directly to the underlying build tool.
 The default build tool is the go command.
@@ -28,6 +32,17 @@ The LoadMode controls the amount of detail in the loaded packages.
 Load passes most patterns directly to the underlying build tool,
 but all patterns with the prefix "query=", where query is a
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+
+Load passes most patterns directly to the underlying build tool.
+The default build tool is the go command.
+Its supported patterns are described at
+https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns.
+Other build systems may be supported by providing a "driver";
+see [The driver protocol].
+
+All patterns with the prefix "query=", where query is a
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 non-empty string of letters from [a-z], are reserved and may be
 interpreted as query operators.
 
@@ -53,10 +68,14 @@ The Package struct provides basic information about the package, including
   - Types, the type information for the package's exported symbols;
   - Syntax, the parsed syntax trees for the package's source code; and
 <<<<<<< HEAD
+<<<<<<< HEAD
   - TypesInfo, the result of a complete type-check of the package syntax trees.
 =======
   - TypeInfo, the result of a complete type-check of the package syntax trees.
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+  - TypesInfo, the result of a complete type-check of the package syntax trees.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 (See the documentation for type Package for the complete list of fields
 and more detailed descriptions.)
@@ -86,6 +105,7 @@ for details.
 
 Most tools should pass their command-line arguments (after any flags)
 <<<<<<< HEAD
+<<<<<<< HEAD
 uninterpreted to [Load], so that it can interpret them
 according to the conventions of the underlying build system.
 
@@ -113,9 +133,37 @@ JSON-encoded [DriverResponse] message to its standard output. (This
 message differs from the JSON schema produced by 'go list'.)
 =======
 uninterpreted to the loader, so that the loader can interpret them
+=======
+uninterpreted to [Load], so that it can interpret them
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 according to the conventions of the underlying build system.
+
 See the Example function for typical usage.
+<<<<<<< HEAD
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+
+# The driver protocol
+
+[Load] may be used to load Go packages even in Go projects that use
+alternative build systems, by installing an appropriate "driver"
+program for the build system and specifying its location in the
+GOPACKAGESDRIVER environment variable.
+For example,
+https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
+explains how to use the driver for Bazel.
+
+The driver program is responsible for interpreting patterns in its
+preferred notation and reporting information about the packages that
+those patterns identify. Drivers must also support the special "file="
+and "pattern=" patterns described above.
+
+The patterns are provided as positional command-line arguments. A
+JSON-encoded [DriverRequest] message providing additional information
+is written to the driver's standard input. The driver must write a
+JSON-encoded [DriverResponse] message to its standard output. (This
+message differs from the JSON schema produced by 'go list'.)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 */
 package packages // import "golang.org/x/tools/go/packages"
 

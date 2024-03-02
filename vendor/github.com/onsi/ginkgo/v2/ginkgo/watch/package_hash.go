@@ -80,10 +80,14 @@ func (p *PackageHash) computeHashes() (codeHash string, codeModifiedTime time.Ti
 		}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if goTestRegExp.MatchString(info.Name()) {
 =======
 		if goTestRegExp.Match([]byte(info.Name())) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		if goTestRegExp.MatchString(info.Name()) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			testHash += p.hashForFileInfo(info)
 			if info.ModTime().After(testModifiedTime) {
 				testModifiedTime = info.ModTime()
@@ -92,10 +96,14 @@ func (p *PackageHash) computeHashes() (codeHash string, codeModifiedTime time.Ti
 		}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if p.watchRegExp.MatchString(info.Name()) {
 =======
 		if p.watchRegExp.Match([]byte(info.Name())) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		if p.watchRegExp.MatchString(info.Name()) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			codeHash += p.hashForFileInfo(info)
 			if info.ModTime().After(codeModifiedTime) {
 				codeModifiedTime = info.ModTime()

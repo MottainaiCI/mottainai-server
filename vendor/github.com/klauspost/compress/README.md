@@ -17,6 +17,9 @@ This package provides various compression algorithms.
 # changelog
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 * Feb 5th, 2024 - [1.17.6](https://github.com/klauspost/compress/releases/tag/v1.17.6)
 	* zstd: Fix incorrect repeat coding in best mode https://github.com/klauspost/compress/pull/923
 	* s2: Fix DecodeConcurrent deadlock on errors https://github.com/klauspost/compress/pull/925
@@ -56,10 +59,13 @@ https://github.com/klauspost/compress/pull/919 https://github.com/klauspost/comp
 	* s2: Do 2 overlapping match checks https://github.com/klauspost/compress/pull/839
 	* flate: Add amd64 assembly matchlen https://github.com/klauspost/compress/pull/837
 	* gzip: Copy bufio.Reader on Reset by @thatguystone in https://github.com/klauspost/compress/pull/860
+<<<<<<< HEAD
 
 <details>
 	<summary>See changes to v1.16.x</summary>
 
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
    
 * July 1st, 2023 - [v1.16.7](https://github.com/klauspost/compress/releases/tag/v1.16.7)
 	* zstd: Fix default level first dictionary encode https://github.com/klauspost/compress/pull/829
@@ -71,8 +77,11 @@ https://github.com/klauspost/compress/pull/919 https://github.com/klauspost/comp
 	* gzhttp: Handle informational headers by @rtribotte in https://github.com/klauspost/compress/pull/815
 	* s2: Improve Better compression slightly https://github.com/klauspost/compress/pull/663
 
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 * Apr 16, 2023 - [v1.16.5](https://github.com/klauspost/compress/releases/tag/v1.16.5)
 	* zstd: readByte needs to use io.ReadFull by @jnoxon in https://github.com/klauspost/compress/pull/802
 	* gzip: Fix WriterTo after initial read https://github.com/klauspost/compress/pull/804
@@ -106,9 +115,12 @@ https://github.com/klauspost/compress/pull/919 https://github.com/klauspost/comp
 <details>
 	<summary>See changes to v1.15.x</summary>
 	
+<<<<<<< HEAD
 =======
 
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 * Jan 21st, 2023 (v1.15.15)
 	* deflate: Improve level 7-9 by @klauspost in https://github.com/klauspost/compress/pull/739
 	* zstd: Add delta encoding support by @greatroar in https://github.com/klauspost/compress/pull/728
@@ -236,10 +248,15 @@ Stream decompression is now faster on asynchronous, since the goroutine allocati
 While the release has been extensively tested, it is recommended to testing when upgrading.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 </details>
 
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+</details>
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 <details>
 	<summary>See changes to v1.14.x</summary>
 	
@@ -599,10 +616,14 @@ For direct deflate use, NewStatelessWriter and StatelessDeflate are available. S
 A `bufio.Writer` can of course be used to control write sizes. For example, to use a 4KB buffer:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ```go
 =======
 ```
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+```go
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// replace 'ioutil.Discard' with your output.
 	gzw, err := gzip.NewWriterLevel(ioutil.Discard, gzip.StatelessCompression)
 	if err != nil {
@@ -710,10 +731,15 @@ Here are other packages of good quality and pure Go (no cgo wrappers or autoconv
 * [github.com/ronanh/intcomp](https://github.com/ronanh/intcomp) - Integer compression.
 * [github.com/spenczar/fpc](https://github.com/spenczar/fpc) - Float compression.
 <<<<<<< HEAD
+<<<<<<< HEAD
 * [github.com/minio/zipindex](https://github.com/minio/zipindex) - External ZIP directory index.
 * [github.com/ybirader/pzip](https://github.com/ybirader/pzip) - Fast concurrent zip archiver and extractor.
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+* [github.com/minio/zipindex](https://github.com/minio/zipindex) - External ZIP directory index.
+* [github.com/ybirader/pzip](https://github.com/ybirader/pzip) - Fast concurrent zip archiver and extractor.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 # license
 

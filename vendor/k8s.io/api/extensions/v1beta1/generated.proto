@@ -811,6 +811,7 @@ message NetworkPolicySpec {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // NetworkPolicyStatus describe the current state of the NetworkPolicy.
 message NetworkPolicyStatus {
@@ -825,6 +826,8 @@ message NetworkPolicyStatus {
 }
 
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // DEPRECATED - This group version of ReplicaSet is deprecated by apps/v1beta2/ReplicaSet. See the release notes for
 // more information.
 // ReplicaSet ensures that a specified number of pod replicas are running at any given time.

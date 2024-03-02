@@ -959,7 +959,11 @@ func (suite *Suite) runNode(node Node, specDeadline time.Time, text string) (typ
 			// tell the spec to stop.  it's important we generate the progress report first to make sure we capture where
 			// the spec is actually stuck
 			sc.cancel(fmt.Errorf("%s timeout occurred", timeoutInPlay))
+<<<<<<< HEAD
 			// and now we wait for the grace period
+=======
+			//and now we wait for the grace period
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			gracePeriodChannel = time.After(gracePeriod)
 		case <-interruptStatus.Channel:
 			interruptStatus = suite.interruptHandler.Status()

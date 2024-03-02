@@ -31,9 +31,13 @@ Many Go projects are built using Viper including:
 * [Bearer](https://github.com/bearer/bearer)
 * [Coder](https://github.com/coder/coder)
 <<<<<<< HEAD
+<<<<<<< HEAD
 * [Vitess](https://vitess.io/)
 =======
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
+=======
+* [Vitess](https://vitess.io/)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 
 ## Install

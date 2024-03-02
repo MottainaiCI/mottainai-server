@@ -120,7 +120,11 @@ status:
     type: PIDPressure
   - lastHeartbeatTime: "2019-09-20T19:32:50Z"
     lastTransitionTime: "2019-07-09T16:17:49Z"
+<<<<<<< HEAD
     message: kubelet is posting ready status
+=======
+    message: kubelet is posting ready status. AppArmor enabled
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
     reason: KubeletReady
     status: "True"
     type: Ready

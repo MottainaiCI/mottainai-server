@@ -69,6 +69,9 @@ type RetryMetric interface {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // TransportCacheMetric shows the number of entries in the internal transport cache
 type TransportCacheMetric interface {
 	Observe(value int)
@@ -80,8 +83,11 @@ type TransportCreateCallsMetric interface {
 	Increment(result string)
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 var (
 	// ClientCertExpiry is the expiry time of a client certificate
 	ClientCertExpiry ExpiryMetric = noopExpiry{}
@@ -106,14 +112,20 @@ var (
 	// retries sent to the server.
 	RequestRetry RetryMetric = noopRetry{}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// TransportCacheEntries is the metric that tracks the number of entries in the
 	// internal transport cache.
 	TransportCacheEntries TransportCacheMetric = noopTransportCache{}
 	// TransportCreateCalls is the metric that counts the number of times a new transport
 	// is created
 	TransportCreateCalls TransportCreateCallsMetric = noopTransportCreateCalls{}
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // RegisterOpts contains all the metrics to register. Metrics may be nil.
@@ -129,10 +141,15 @@ type RegisterOpts struct {
 	ExecPluginCalls       CallsMetric
 	RequestRetry          RetryMetric
 <<<<<<< HEAD
+<<<<<<< HEAD
 	TransportCacheEntries TransportCacheMetric
 	TransportCreateCalls  TransportCreateCallsMetric
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	TransportCacheEntries TransportCacheMetric
+	TransportCreateCalls  TransportCreateCallsMetric
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // Register registers metrics for the rest client to use. This can
@@ -170,14 +187,20 @@ func Register(opts RegisterOpts) {
 			RequestRetry = opts.RequestRetry
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if opts.TransportCacheEntries != nil {
 			TransportCacheEntries = opts.TransportCacheEntries
 		}
 		if opts.TransportCreateCalls != nil {
 			TransportCreateCalls = opts.TransportCreateCalls
 		}
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	})
 }
 
@@ -214,6 +237,9 @@ type noopRetry struct{}
 
 func (noopRetry) IncrementRetry(context.Context, string, string, string) {}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 type noopTransportCache struct{}
 
@@ -222,5 +248,8 @@ func (noopTransportCache) Observe(int) {}
 type noopTransportCreateCalls struct{}
 
 func (noopTransportCreateCalls) Increment(string) {}
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

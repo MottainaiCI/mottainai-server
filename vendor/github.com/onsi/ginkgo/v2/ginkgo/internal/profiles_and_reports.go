@@ -152,6 +152,7 @@ func FinalizeProfilesAndReportsForSuites(suites TestSuites, cliConfig types.CLIC
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // loads each profile, merges them, deletes them, stores them in destination
 func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
 	var merged []*cover.Profile
@@ -175,6 +176,9 @@ func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
 		return err
 =======
 //loads each profile, combines them, deletes them, stores them in destination
+=======
+// loads each profile, combines them, deletes them, stores them in destination
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func MergeAndCleanupCoverProfiles(profiles []string, destination string) error {
 	combined := &bytes.Buffer{}
 	modeRegex := regexp.MustCompile(`^mode: .*\n`)
@@ -216,10 +220,14 @@ func GetCoverageFromCoverProfile(profile string) (float64, error) {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return 0, fmt.Errorf("Could not process Coverprofile %s: %s - %s", profile, err.Error(), string(output))
 =======
 		return 0, fmt.Errorf("Could not process Coverprofile %s: %s", profile, err.Error())
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		return 0, fmt.Errorf("Could not process Coverprofile %s: %s - %s", profile, err.Error(), string(output))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	re := regexp.MustCompile(`total:\s*\(statements\)\s*(\d*\.\d*)\%`)
 	matches := re.FindStringSubmatch(string(output))

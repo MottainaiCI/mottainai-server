@@ -26,6 +26,12 @@ type ServerEnvironment struct {
 	// Example: 4.0.7 | 5.2.0
 	DriverVersion string `json:"driver_version" yaml:"driver_version"`
 
+	// List of supported instance types
+	// Example: ["container", "virtual-machine"]
+	//
+	// API extension: server_instance_type_info
+	InstanceTypes []string `json:"instance_types" yaml:"instance_types"`
+
 	// Current firewall driver
 	// Example: nftables
 	//
@@ -105,6 +111,10 @@ type ServerEnvironment struct {
 	// Example: 4.11
 	ServerVersion string `json:"server_version" yaml:"server_version"`
 
+	// Whether the version is an LTS release
+	// Example: false
+	ServerLTS bool `json:"server_lts" yaml:"server_lts"`
+
 	// List of active storage drivers (separate by " | ")
 	// Example: dir | zfs
 	Storage string `json:"storage" yaml:"storage"`
@@ -182,9 +192,9 @@ type ServerUntrusted struct {
 
 	// List of supported authentication methods
 	// Read only: true
-	// Example: ["tls", "candid"]
+	// Example: ["tls", "oidc"]
 	//
-	// API extension: macaroon_authentication
+	// API extension: oidc
 	AuthMethods []string `json:"auth_methods" yaml:"auth_methods"`
 }
 

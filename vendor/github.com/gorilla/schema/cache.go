@@ -13,10 +13,14 @@ import (
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 var errInvalidPath = errors.New("schema: invalid path")
 =======
 var invalidPath = errors.New("schema: invalid path")
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+var errInvalidPath = errors.New("schema: invalid path")
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 // newCache returns a new cache.
 func newCache() *cache {
@@ -58,6 +62,7 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 	for i := 0; i < len(keys); i++ {
 		if t.Kind() != reflect.Struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			return nil, errInvalidPath
 		}
 		if struc = c.get(t); struc == nil {
@@ -67,13 +72,20 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 			return nil, errInvalidPath
 =======
 			return nil, invalidPath
+=======
+			return nil, errInvalidPath
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		if struc = c.get(t); struc == nil {
-			return nil, invalidPath
+			return nil, errInvalidPath
 		}
 		if field = struc.get(keys[i]); field == nil {
+<<<<<<< HEAD
 			return nil, invalidPath
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+			return nil, errInvalidPath
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		// Valid field. Append index.
 		path = append(path, field.name)
@@ -87,6 +99,7 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 			i++
 			if i+1 > len(keys) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 				return nil, errInvalidPath
 			}
 			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
@@ -97,6 +110,12 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
 				return nil, invalidPath
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+				return nil, errInvalidPath
+			}
+			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
+				return nil, errInvalidPath
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 			parts = append(parts, pathPart{
 				path:  path,

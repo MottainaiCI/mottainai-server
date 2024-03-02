@@ -189,10 +189,15 @@ type Generator struct {
 	trimPrefix  string
 	lineComment bool
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 	logf func(format string, args ...interface{}) // test logging hook; nil when not testing
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+
+	logf func(format string, args ...interface{}) // test logging hook; nil when not testing
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (g *Generator) Printf(format string, args ...interface{}) {
@@ -227,9 +232,13 @@ func (g *Generator) parsePackage(patterns []string, tags []string) {
 		Tests:      false,
 		BuildFlags: []string{fmt.Sprintf("-tags=%s", strings.Join(tags, " "))},
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Logf:       g.logf,
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		Logf:       g.logf,
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	pkgs, err := packages.Load(cfg, patterns...)
 	if err != nil {
@@ -237,10 +246,14 @@ func (g *Generator) parsePackage(patterns []string, tags []string) {
 	}
 	if len(pkgs) != 1 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		log.Fatalf("error: %d packages matching %v", len(pkgs), strings.Join(patterns, " "))
 =======
 		log.Fatalf("error: %d packages found", len(pkgs))
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		log.Fatalf("error: %d packages matching %v", len(pkgs), strings.Join(patterns, " "))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	g.addPackage(pkgs[0])
 }

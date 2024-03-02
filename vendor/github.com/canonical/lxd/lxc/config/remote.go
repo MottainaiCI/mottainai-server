@@ -7,16 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"net"
+<<<<<<< HEAD
 	"net/url"
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"os"
 	"runtime"
 	"strings"
 
-	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery"
-	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery/form"
-	"github.com/juju/persistent-cookiejar"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
-	schemaform "gopkg.in/juju/environschema.v1/form"
 
 	"github.com/canonical/lxd/client"
 	"github.com/canonical/lxd/shared"
@@ -27,7 +26,6 @@ import (
 type Remote struct {
 	Addr     string `yaml:"addr"`
 	AuthType string `yaml:"auth_type,omitempty"`
-	Domain   string `yaml:"domain,omitempty"`
 	Project  string `yaml:"project,omitempty"`
 	Protocol string `yaml:"protocol,omitempty"`
 	Public   bool   `yaml:"public"`
@@ -36,7 +34,7 @@ type Remote struct {
 }
 
 // ParseRemote splits remote and object.
-func (c *Config) ParseRemote(raw string) (string, string, error) {
+func (c *Config) ParseRemote(raw string) (remoteName string, resourceName string, err error) {
 	result := strings.SplitN(raw, ":", 2)
 	if len(result) == 1 {
 		return c.DefaultRemote, raw, nil
@@ -104,11 +102,15 @@ func (c *Config) GetInstanceServer(name string) (lxd.InstanceServer, error) {
 	}
 
 	// HTTPs
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/remote.go
 	if !shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodCandid, api.AuthenticationMethodOIDC}) && (args.TLSClientCert == "" || args.TLSClientKey == "") {
 =======
 	if !shared.StringInSlice(remote.AuthType, []string{"candid", "oidc"}) && (args.TLSClientCert == "" || args.TLSClientKey == "") {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
+=======
+	if !shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodOIDC}) && (args.TLSClientCert == "" || args.TLSClientKey == "") {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return nil, fmt.Errorf("Missing TLS client certificate and key")
 	}
 
@@ -213,6 +215,7 @@ func (c *Config) getConnectionArgs(name string) (*lxd.ConnectionArgs, error) {
 		AuthType:  remote.AuthType,
 	}
 
+<<<<<<< HEAD
 	if args.AuthType == api.AuthenticationMethodCandid {
 		args.AuthInteractor = []httpbakery.Interactor{
 			form.Interactor{Filler: schemaform.IOFiller{}},
@@ -267,6 +270,9 @@ func (c *Config) getConnectionArgs(name string) (*lxd.ConnectionArgs, error) {
 =======
 	} else if args.AuthType == "oidc" {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
+=======
+	if args.AuthType == api.AuthenticationMethodOIDC {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if c.oidcTokens == nil {
 			c.oidcTokens = map[string]*oidc.Tokens[*oidc.IDTokenClaims]{}
 		}
@@ -312,11 +318,15 @@ func (c *Config) getConnectionArgs(name string) (*lxd.ConnectionArgs, error) {
 	}
 
 	// Stop here if no client certificate involved
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/lxc/config/remote.go
 	if remote.Protocol == "simplestreams" || shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodCandid, api.AuthenticationMethodOIDC}) {
 =======
 	if remote.Protocol == "simplestreams" || shared.StringInSlice(remote.AuthType, []string{"candid", "oidc"}) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/lxc/config/remote.go
+=======
+	if remote.Protocol == "simplestreams" || shared.ValueInSlice(remote.AuthType, []string{api.AuthenticationMethodOIDC}) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return &args, nil
 	}
 

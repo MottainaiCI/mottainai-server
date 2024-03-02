@@ -236,6 +236,7 @@ func newFormatter(opts Options, outfmt outputFormat) Formatter {
 // implementation. It should be constructed with NewFormatter. Some of
 // its methods directly implement logr.LogSink.
 type Formatter struct {
+<<<<<<< HEAD
 	outputFormat outputFormat
 	prefix       string
 	values       []any
@@ -247,6 +248,17 @@ type Formatter struct {
 	groups       []groupDef
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	outputFormat    outputFormat
+	prefix          string
+	values          []any
+	valuesStr       string
+	parentValuesStr string
+	depth           int
+	opts            *Options
+	group           string // for slog groups
+	groupDepth      int
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // outputFormat indicates which outputFormat to use.
@@ -275,10 +287,16 @@ func (f Formatter) render(builtins, args []any) string {
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 
 	if f.outputFormat == outputJSON {
+<<<<<<< HEAD
 		buf.WriteByte('{') // for the whole record
 	}
 
 	// Render builtins
+=======
+		buf.WriteByte('{') // for the whole line
+	}
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	vals := builtins
 	if hook := f.opts.RenderBuiltinsHook; hook != nil {
 		vals = hook(f.sanitize(vals))
@@ -286,6 +304,7 @@ func (f Formatter) render(builtins, args []any) string {
 	f.flatten(buf, vals, false) // keys are ours, no need to escape
 	continuing := len(builtins) > 0
 
+<<<<<<< HEAD
 	// Turn the inner-most group into a string
 	argsStr := func() string {
 		buf := bytes.NewBuffer(make([]byte, 0, 1024))
@@ -321,6 +340,54 @@ func (f Formatter) render(builtins, args []any) string {
 		buf.WriteByte('}') // for the whole record
 	}
 
+=======
+	if f.parentValuesStr != "" {
+		if continuing {
+			buf.WriteByte(f.comma())
+		}
+		buf.WriteString(f.parentValuesStr)
+		continuing = true
+	}
+
+	groupDepth := f.groupDepth
+	if f.group != "" {
+		if f.valuesStr != "" || len(args) != 0 {
+			if continuing {
+				buf.WriteByte(f.comma())
+			}
+			buf.WriteString(f.quoted(f.group, true)) // escape user-provided keys
+			buf.WriteByte(f.colon())
+			buf.WriteByte('{') // for the group
+			continuing = false
+		} else {
+			// The group was empty
+			groupDepth--
+		}
+	}
+
+	if f.valuesStr != "" {
+		if continuing {
+			buf.WriteByte(f.comma())
+		}
+		buf.WriteString(f.valuesStr)
+		continuing = true
+	}
+
+	vals = args
+	if hook := f.opts.RenderArgsHook; hook != nil {
+		vals = hook(f.sanitize(vals))
+	}
+	f.flatten(buf, vals, continuing, true) // escape user-provided keys
+
+	for i := 0; i < groupDepth; i++ {
+		buf.WriteByte('}') // for the groups
+	}
+
+	if f.outputFormat == outputJSON {
+		buf.WriteByte('}') // for the whole line
+	}
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return buf.String()
 }
 
@@ -368,7 +435,11 @@ func (f Formatter) renderGroup(name string, values string, args string) string {
 // This function returns a potentially modified version of kvList, which
 // ensures that there is a value for every key (adding a value if needed) and
 // that each key is a string (substituting a key if needed).
+<<<<<<< HEAD
 func (f Formatter) flatten(buf *bytes.Buffer, kvList []any, escapeKeys bool) []any {
+=======
+func (f Formatter) flatten(buf *bytes.Buffer, kvList []any, continuing bool, escapeKeys bool) []any {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// This logic overlaps with sanitize() but saves one type-cast per key,
 	// which can be measurable.
 	if len(kvList)%2 != 0 {
@@ -576,10 +647,14 @@ func (f Formatter) prettyWithFlags(value any, flags uint32, depth int) string {
 			}
 			if printComma {
 <<<<<<< HEAD
+<<<<<<< HEAD
 				buf.WriteByte(f.comma())
 =======
 				buf.WriteByte(',')
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+				buf.WriteByte(f.comma())
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 			printComma = true // if we got here, we are rendering a field
 			if fld.Anonymous && fld.Type.Kind() == reflect.Struct && name == "" {
@@ -805,6 +880,7 @@ func (f Formatter) sanitize(kvList []any) []any {
 // startGroup opens a new group scope (basically a sub-struct), which locks all
 // the current saved values and starts them anew.  This is needed to satisfy
 // slog.
+<<<<<<< HEAD
 func (f *Formatter) startGroup(name string) {
 	// Unnamed groups are just inlined.
 	if name == "" {
@@ -816,6 +892,48 @@ func (f *Formatter) startGroup(name string) {
 
 	// Start collecting new values.
 	f.groupName = name
+=======
+func (f *Formatter) startGroup(group string) {
+	// Unnamed groups are just inlined.
+	if group == "" {
+		return
+	}
+
+	// Any saved values can no longer be changed.
+	buf := bytes.NewBuffer(make([]byte, 0, 1024))
+	continuing := false
+
+	if f.parentValuesStr != "" {
+		buf.WriteString(f.parentValuesStr)
+		continuing = true
+	}
+
+	if f.group != "" && f.valuesStr != "" {
+		if continuing {
+			buf.WriteByte(f.comma())
+		}
+		buf.WriteString(f.quoted(f.group, true)) // escape user-provided keys
+		buf.WriteByte(f.colon())
+		buf.WriteByte('{') // for the group
+		continuing = false
+	}
+
+	if f.valuesStr != "" {
+		if continuing {
+			buf.WriteByte(f.comma())
+		}
+		buf.WriteString(f.valuesStr)
+	}
+
+	// NOTE: We don't close the scope here - that's done later, when a log line
+	// is actually rendered (because we have N scopes to close).
+
+	f.parentValuesStr = buf.String()
+
+	// Start collecting new values.
+	f.group = group
+	f.groupDepth++
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	f.valuesStr = ""
 	f.values = nil
 }

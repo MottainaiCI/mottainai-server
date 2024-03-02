@@ -2,13 +2,19 @@ package ginkgo
 
 import (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"testing"
 
 	"github.com/onsi/ginkgo/v2/internal/testingtproxy"
 	"github.com/onsi/ginkgo/v2/types"
+<<<<<<< HEAD
 =======
 	"github.com/onsi/ginkgo/v2/internal/testingtproxy"
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 /*
@@ -28,10 +34,14 @@ You can learn more here: https://onsi.github.io/ginkgo/#using-third-party-librar
 */
 func GinkgoT(optionalOffset ...int) FullGinkgoTInterface {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	offset := 1
 =======
 	offset := 3
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	offset := 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if len(optionalOffset) > 0 {
 		offset = optionalOffset[0]
 	}
@@ -88,6 +98,7 @@ type FullGinkgoTInterface interface {
 
 	//Prints to the GinkgoWriter
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Print(a ...any)
 	Printf(format string, a ...any)
 	Println(a ...any)
@@ -96,6 +107,11 @@ type FullGinkgoTInterface interface {
 	Printf(format string, a ...interface{})
 	Println(a ...interface{})
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	Print(a ...any)
+	Printf(format string, a ...any)
+	Println(a ...any)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	//Provides access to Ginkgo's color formatting, correctly configured to match the color settings specified in the invocation of ginkgo
 	F(format string, args ...any) string
@@ -115,6 +131,9 @@ type FullGinkgoTInterface interface {
 	AttachProgressReporter(func() string) func()
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 /*
 GinkgoTB() implements a wrapper that exactly matches the testing.TB interface.
@@ -193,5 +212,8 @@ func (g *GinkgoTBWrapper) Skipped() bool {
 func (g *GinkgoTBWrapper) TempDir() string {
 	return g.GinkgoT.TempDir()
 }
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

@@ -31,6 +31,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	openapi_v3 "github.com/google/gnostic-models/openapiv3"
 	"github.com/google/uuid"
 	"github.com/munnerz/goautoneg"
@@ -40,6 +41,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/munnerz/goautoneg"
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	openapi_v3 "github.com/google/gnostic-models/openapiv3"
+	"github.com/google/uuid"
+	"github.com/munnerz/goautoneg"
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"k8s.io/klog/v2"
 	"k8s.io/kube-openapi/pkg/cached"
 	"k8s.io/kube-openapi/pkg/common"
@@ -81,6 +88,7 @@ type timedSpec struct {
 // This type is protected by the lock on OpenAPIService.
 type openAPIV3Group struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	specCache cached.LastSuccess[*spec3.OpenAPI]
 	pbCache   cached.Value[timedSpec]
 	jsonCache cached.Value[timedSpec]
@@ -89,10 +97,16 @@ type openAPIV3Group struct {
 	pbCache   cached.Data[timedSpec]
 	jsonCache cached.Data[timedSpec]
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	specCache cached.LastSuccess[*spec3.OpenAPI]
+	pbCache   cached.Value[timedSpec]
+	jsonCache cached.Value[timedSpec]
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func newOpenAPIV3Group() *openAPIV3Group {
 	o := &openAPIV3Group{}
+<<<<<<< HEAD
 <<<<<<< HEAD
 	o.jsonCache = cached.Transform[*spec3.OpenAPI](func(spec *spec3.OpenAPI, etag string, err error) (timedSpec, string, error) {
 		if err != nil {
@@ -119,25 +133,37 @@ func newOpenAPIV3Group() *openAPIV3Group {
 			return cached.NewResultErr[timedSpec](result.Err)
 		}
 		json, err := json.Marshal(result.Data)
+=======
+	o.jsonCache = cached.Transform[*spec3.OpenAPI](func(spec *spec3.OpenAPI, etag string, err error) (timedSpec, string, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err != nil {
-			return cached.NewResultErr[timedSpec](err)
+			return timedSpec{}, "", err
 		}
-		return cached.NewResultOK(timedSpec{spec: json, lastModified: time.Now()}, computeETag(json))
+		json, err := json.Marshal(spec)
+		if err != nil {
+			return timedSpec{}, "", err
+		}
+		return timedSpec{spec: json, lastModified: time.Now()}, computeETag(json), nil
 	}, &o.specCache)
-	o.pbCache = cached.NewTransformer(func(result cached.Result[timedSpec]) cached.Result[timedSpec] {
-		if result.Err != nil {
-			return cached.NewResultErr[timedSpec](result.Err)
-		}
-		proto, err := ToV3ProtoBinary(result.Data.spec)
+	o.pbCache = cached.Transform(func(ts timedSpec, etag string, err error) (timedSpec, string, error) {
 		if err != nil {
-			return cached.NewResultErr[timedSpec](err)
+			return timedSpec{}, "", err
 		}
+<<<<<<< HEAD
 		return cached.NewResultOK(timedSpec{spec: proto, lastModified: result.Data.lastModified}, result.Etag)
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		proto, err := ToV3ProtoBinary(ts.spec)
+		if err != nil {
+			return timedSpec{}, "", err
+		}
+		return timedSpec{spec: proto, lastModified: ts.lastModified}, etag, nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}, o.jsonCache)
 	return o
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 func (o *openAPIV3Group) UpdateSpec(openapi cached.Value[*spec3.OpenAPI]) {
 	o.specCache.Store(openapi)
@@ -145,6 +171,10 @@ func (o *openAPIV3Group) UpdateSpec(openapi cached.Value[*spec3.OpenAPI]) {
 func (o *openAPIV3Group) UpdateSpec(openapi cached.Data[*spec3.OpenAPI]) {
 	o.specCache.Replace(openapi)
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (o *openAPIV3Group) UpdateSpec(openapi cached.Value[*spec3.OpenAPI]) {
+	o.specCache.Store(openapi)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // OpenAPIService is the service responsible for serving OpenAPI spec. It has
@@ -155,10 +185,14 @@ type OpenAPIService struct {
 	v3Schema map[string]*openAPIV3Group
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	discoveryCache cached.LastSuccess[timedSpec]
 =======
 	discoveryCache cached.Replaceable[timedSpec]
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	discoveryCache cached.LastSuccess[timedSpec]
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func computeETag(data []byte) string {
@@ -182,6 +216,7 @@ func NewOpenAPIService() *OpenAPIService {
 	o.v3Schema = make(map[string]*openAPIV3Group)
 	// We're not locked because we haven't shared the structure yet.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
 	return o
 }
@@ -198,20 +233,27 @@ func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Value[timedSpec] {
 				return timedSpec{}, "", result.Err
 =======
 	o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
+=======
+	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return o
 }
 
-func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Data[timedSpec] {
-	caches := make(map[string]cached.Data[timedSpec], len(o.v3Schema))
+func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Value[timedSpec] {
+	caches := make(map[string]cached.Value[timedSpec], len(o.v3Schema))
 	for gvName, group := range o.v3Schema {
 		caches[gvName] = group.jsonCache
 	}
-	return cached.NewMerger(func(results map[string]cached.Result[timedSpec]) cached.Result[timedSpec] {
+	return cached.Merge(func(results map[string]cached.Result[timedSpec]) (timedSpec, string, error) {
 		discovery := &OpenAPIV3Discovery{Paths: make(map[string]OpenAPIV3DiscoveryGroupVersion)}
 		for gvName, result := range results {
 			if result.Err != nil {
+<<<<<<< HEAD
 				return cached.NewResultErr[timedSpec](result.Err)
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+				return timedSpec{}, "", result.Err
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 			discovery.Paths[gvName] = OpenAPIV3DiscoveryGroupVersion{
 				ServerRelativeURL: constructServerRelativeURL(gvName, result.Etag),
@@ -219,6 +261,7 @@ func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Data[timedSpec] {
 		}
 		j, err := json.Marshal(discovery)
 		if err != nil {
+<<<<<<< HEAD
 <<<<<<< HEAD
 			return timedSpec{}, "", err
 		}
@@ -228,6 +271,11 @@ func (o *OpenAPIService) buildDiscoveryCacheLocked() cached.Data[timedSpec] {
 		}
 		return cached.NewResultOK(timedSpec{spec: j, lastModified: time.Now()}, computeETag(j))
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+			return timedSpec{}, "", err
+		}
+		return timedSpec{spec: j, lastModified: time.Now()}, computeETag(j), nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}, caches)
 }
 
@@ -238,6 +286,7 @@ func (o *OpenAPIService) getSingleGroupBytes(getType string, group string) ([]by
 	if !ok {
 		return nil, "", time.Now(), fmt.Errorf("Cannot find CRD group %s", group)
 	}
+<<<<<<< HEAD
 <<<<<<< HEAD
 	switch getType {
 	case subTypeJSON:
@@ -255,40 +304,55 @@ func (o *OpenAPIService) getSingleGroupBytes(getType string, group string) ([]by
 func (o *OpenAPIService) UpdateGroupVersionLazy(group string, openapi cached.Value[*spec3.OpenAPI]) {
 =======
 	result := cached.Result[timedSpec]{}
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	switch getType {
 	case subTypeJSON:
-		result = v.jsonCache.Get()
+		ts, etag, err := v.jsonCache.Get()
+		return ts.spec, etag, ts.lastModified, err
 	case subTypeProtobuf, subTypeProtobufDeprecated:
-		result = v.pbCache.Get()
+		ts, etag, err := v.pbCache.Get()
+		return ts.spec, etag, ts.lastModified, err
 	default:
 		return nil, "", time.Now(), fmt.Errorf("Invalid accept clause %s", getType)
 	}
-	return result.Data.spec, result.Etag, result.Data.lastModified, result.Err
 }
 
 // UpdateGroupVersionLazy adds or updates an existing group with the new cached.
+<<<<<<< HEAD
 func (o *OpenAPIService) UpdateGroupVersionLazy(group string, openapi cached.Data[*spec3.OpenAPI]) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (o *OpenAPIService) UpdateGroupVersionLazy(group string, openapi cached.Value[*spec3.OpenAPI]) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	if _, ok := o.v3Schema[group]; !ok {
 		o.v3Schema[group] = newOpenAPIV3Group()
 		// Since there is a new item, we need to re-build the cache map.
 <<<<<<< HEAD
+<<<<<<< HEAD
 		o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
 =======
 		o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	o.v3Schema[group].UpdateSpec(openapi)
 }
 
 func (o *OpenAPIService) UpdateGroupVersion(group string, openapi *spec3.OpenAPI) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	o.UpdateGroupVersionLazy(group, cached.Static(openapi, uuid.New().String()))
 =======
 	o.UpdateGroupVersionLazy(group, cached.NewResultOK(openapi, uuid.New().String()))
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	o.UpdateGroupVersionLazy(group, cached.Static(openapi, uuid.New().String()))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (o *OpenAPIService) DeleteGroupVersion(group string) {
@@ -296,6 +360,7 @@ func (o *OpenAPIService) DeleteGroupVersion(group string) {
 	defer o.mutex.Unlock()
 	delete(o.v3Schema, group)
 	// Rebuild the merge cache map since the items have changed.
+<<<<<<< HEAD
 <<<<<<< HEAD
 	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
 }
@@ -312,19 +377,26 @@ func (o *OpenAPIService) HandleDiscovery(w http.ResponseWriter, r *http.Request)
 	http.ServeContent(w, r, "/openapi/v3", ts.lastModified, bytes.NewReader(ts.spec))
 =======
 	o.discoveryCache.Replace(o.buildDiscoveryCacheLocked())
+=======
+	o.discoveryCache.Store(o.buildDiscoveryCacheLocked())
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (o *OpenAPIService) HandleDiscovery(w http.ResponseWriter, r *http.Request) {
-	result := o.discoveryCache.Get()
-	if result.Err != nil {
-		klog.Errorf("Error serving discovery: %s", result.Err)
+	ts, etag, err := o.discoveryCache.Get()
+	if err != nil {
+		klog.Errorf("Error serving discovery: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Etag", strconv.Quote(result.Etag))
+	w.Header().Set("Etag", strconv.Quote(etag))
 	w.Header().Set("Content-Type", "application/json")
+<<<<<<< HEAD
 	http.ServeContent(w, r, "/openapi/v3", result.Data.lastModified, bytes.NewReader(result.Data.spec))
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	http.ServeContent(w, r, "/openapi/v3", ts.lastModified, bytes.NewReader(ts.spec))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (o *OpenAPIService) HandleGroupVersion(w http.ResponseWriter, r *http.Request) {

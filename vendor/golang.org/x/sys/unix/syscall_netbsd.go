@@ -359,6 +359,9 @@ func Statvfs(path string, buf *Statvfs_t) (err error) {
 //sys	utimensat(dirfd int, path string, times *[2]Timespec, flags int) (err error)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 const (
 	mremapFixed     = MAP_FIXED
 	mremapDontunmap = 0
@@ -370,6 +373,7 @@ const (
 func mremap(oldaddr uintptr, oldlength uintptr, newlength uintptr, flags int, newaddr uintptr) (uintptr, error) {
 	return mremapNetBSD(oldaddr, oldlength, newaddr, newlength, flags)
 }
+<<<<<<< HEAD
 =======
 /*
  * Unimplemented
@@ -631,3 +635,5 @@ func mremap(oldaddr uintptr, oldlength uintptr, newlength uintptr, flags int, ne
 // vfork
 // writev
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

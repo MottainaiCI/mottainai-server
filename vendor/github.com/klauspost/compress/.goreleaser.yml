@@ -4,9 +4,12 @@ before:
   hooks:
     - ./gen.sh
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     - go install mvdan.cc/garble@v0.9.3
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 builds:
   -
@@ -36,9 +39,12 @@ builds:
     goarm:
       - 7
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     gobinary: garble
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
   -
     id: "s2d"
     binary: s2d
@@ -66,9 +72,12 @@ builds:
     goarm:
       - 7
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     gobinary: garble
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
   -
     id: "s2sx"
     binary: s2sx
@@ -97,13 +106,17 @@ builds:
     goarm:
       - 7
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     gobinary: garble
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 archives:
   -
     id: s2-binaries
+<<<<<<< HEAD
 <<<<<<< HEAD
     name_template: "s2-{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
 =======
@@ -118,6 +131,9 @@ archives:
       freebsd: FreeBSD
       netbsd: NetBSD
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+    name_template: "s2-{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
     format_overrides:
       - goos: windows
         format: zip
@@ -142,10 +158,14 @@ changelog:
 nfpms:
   -
 <<<<<<< HEAD
+<<<<<<< HEAD
     file_name_template: "s2_package__{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
 =======
     file_name_template: "s2_package_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+    file_name_template: "s2_package__{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
     vendor: Klaus Post
     homepage: https://github.com/klauspost/compress
     maintainer: Klaus Post <klauspost@gmail.com>
@@ -155,6 +175,7 @@ nfpms:
       - deb
       - rpm
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     replacements:
       darwin: Darwin
@@ -162,3 +183,5 @@ nfpms:
       freebsd: FreeBSD
       amd64: x86_64
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

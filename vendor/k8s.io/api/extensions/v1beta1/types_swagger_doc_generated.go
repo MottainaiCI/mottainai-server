@@ -409,6 +409,7 @@ func (NetworkPolicySpec) SwaggerDoc() map[string]string {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 var map_NetworkPolicyStatus = map[string]string{
 	"":           "NetworkPolicyStatus describe the current state of the NetworkPolicy.",
@@ -420,6 +421,8 @@ func (NetworkPolicyStatus) SwaggerDoc() map[string]string {
 }
 
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 var map_ReplicaSet = map[string]string{
 	"":         "DEPRECATED - This group version of ReplicaSet is deprecated by apps/v1beta2/ReplicaSet. See the release notes for more information. ReplicaSet ensures that a specified number of pod replicas are running at any given time.",
 	"metadata": "If the Labels of a ReplicaSet are empty, they are defaulted to be the same as the Pod(s) that the ReplicaSet manages. Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",

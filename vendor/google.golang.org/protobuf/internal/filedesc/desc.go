@@ -69,7 +69,11 @@ type (
 		Extensions Extensions
 		Services   Services
 
+<<<<<<< HEAD
 		EditionFeatures EditionFeatures
+=======
+		EditionFeatures FileEditionFeatures
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	FileL2 struct {
 		Options   func() protoreflect.ProtoMessage
@@ -77,6 +81,7 @@ type (
 		Locations SourceLocations
 	}
 
+<<<<<<< HEAD
 	EditionFeatures struct {
 		// IsFieldPresence is true if field_presence is EXPLICIT
 		// https://protobuf.dev/editions/features/#field_presence
@@ -84,6 +89,12 @@ type (
 		// IsFieldPresence is true if field_presence is LEGACY_REQUIRED
 		// https://protobuf.dev/editions/features/#field_presence
 		IsLegacyRequired bool
+=======
+	FileEditionFeatures struct {
+		// IsFieldPresence is true if field_presence is EXPLICIT
+		// https://protobuf.dev/editions/features/#field_presence
+		IsFieldPresence bool
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		// IsOpenEnum is true if enum_type is OPEN
 		// https://protobuf.dev/editions/features/#enum_type
 		IsOpenEnum bool
@@ -99,9 +110,12 @@ type (
 		// IsJSONCompliant is true if json_format is ALLOW
 		// https://protobuf.dev/editions/features/#json_format
 		IsJSONCompliant bool
+<<<<<<< HEAD
 		// GenerateLegacyUnmarshalJSON determines if the plugin generates the
 		// UnmarshalJSON([]byte) error method for enums.
 		GenerateLegacyUnmarshalJSON bool
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 )
 
@@ -263,7 +277,12 @@ type (
 		Enum             protoreflect.EnumDescriptor
 		Message          protoreflect.MessageDescriptor
 
+<<<<<<< HEAD
 		EditionFeatures EditionFeatures
+=======
+		// Edition features.
+		Presence bool
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	Oneof struct {
@@ -331,10 +350,17 @@ func (fd *Field) HasJSONName() bool { return fd.L1.StringName.hasJSON }
 func (fd *Field) JSONName() string  { return fd.L1.StringName.getJSON(fd) }
 func (fd *Field) TextName() string  { return fd.L1.StringName.getText(fd) }
 func (fd *Field) HasPresence() bool {
+<<<<<<< HEAD
 	if fd.L1.Cardinality == protoreflect.Repeated {
 		return false
 	}
 	return fd.IsExtension() || fd.L1.EditionFeatures.IsFieldPresence || fd.L1.Message != nil || fd.L1.ContainingOneof != nil
+=======
+	if fd.L0.ParentFile.L1.Syntax == protoreflect.Editions {
+		return fd.L1.Presence || fd.L1.Message != nil || fd.L1.ContainingOneof != nil
+	}
+	return fd.L1.Cardinality != protoreflect.Repeated && (fd.L0.ParentFile.L1.Syntax == protoreflect.Proto2 || fd.L1.Message != nil || fd.L1.ContainingOneof != nil)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 func (fd *Field) HasOptionalKeyword() bool {
 	return (fd.L0.ParentFile.L1.Syntax == protoreflect.Proto2 && fd.L1.Cardinality == protoreflect.Optional && fd.L1.ContainingOneof == nil) || fd.L1.IsProto3Optional

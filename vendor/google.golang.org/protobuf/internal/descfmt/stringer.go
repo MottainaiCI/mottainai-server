@@ -252,7 +252,10 @@ func formatDescOpt(t protoreflect.Descriptor, isRoot, allowMulti bool, record fu
 				{rv.MethodByName("Values"), "Values"},
 				{rv.MethodByName("ReservedNames"), "ReservedNames"},
 				{rv.MethodByName("ReservedRanges"), "ReservedRanges"},
+<<<<<<< HEAD
 				{rv.MethodByName("IsClosed"), "IsClosed"},
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}...)
 
 		case protoreflect.EnumValueDescriptor:

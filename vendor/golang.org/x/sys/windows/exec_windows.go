@@ -144,10 +144,14 @@ func ComposeCommandLine(args []string) string {
 // as gathered from GetCommandLine, QUERY_SERVICE_CONFIG's BinaryPathName argument, or elsewhere that
 // command lines are passed around.
 <<<<<<< HEAD
+<<<<<<< HEAD
 // DecomposeCommandLine returns an error if commandLine contains NUL.
 =======
 // DecomposeCommandLine returns error if commandLine contains NUL.
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+// DecomposeCommandLine returns an error if commandLine contains NUL.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func DecomposeCommandLine(commandLine string) ([]string, error) {
 	if len(commandLine) == 0 {
 		return []string{}, nil
@@ -158,10 +162,14 @@ func DecomposeCommandLine(commandLine string) ([]string, error) {
 	}
 	var argc int32
 <<<<<<< HEAD
+<<<<<<< HEAD
 	argv, err := commandLineToArgv(&utf16CommandLine[0], &argc)
 =======
 	argv, err := CommandLineToArgv(&utf16CommandLine[0], &argc)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	argv, err := commandLineToArgv(&utf16CommandLine[0], &argc)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err != nil {
 		return nil, err
 	}

@@ -228,6 +228,7 @@ func (e *Encoder) nextBlock(final bool) error {
 		}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		dst := fh.appendTo(tmp[:0])
 =======
 		dst, err := fh.appendTo(tmp[:0])
@@ -235,6 +236,9 @@ func (e *Encoder) nextBlock(final bool) error {
 			return err
 		}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		dst := fh.appendTo(tmp[:0])
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		s.headerWritten = true
 		s.wWg.Wait()
 		var n2 int
@@ -488,10 +492,14 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 				DictID:   0,
 			}
 <<<<<<< HEAD
+<<<<<<< HEAD
 			dst = fh.appendTo(dst)
 =======
 			dst, _ = fh.appendTo(dst)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			dst = fh.appendTo(dst)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 			// Write raw block as last one only.
 			var blk blockHeader
@@ -527,6 +535,7 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 		dst = make([]byte, 0, len(src))
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	dst = fh.appendTo(dst)
 =======
 	dst, err := fh.appendTo(dst)
@@ -534,6 +543,9 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 		panic(err)
 	}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	dst = fh.appendTo(dst)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// If we can do everything in one block, prefer that.
 	if len(src) <= e.o.blockSize {
@@ -594,9 +606,13 @@ func (e *Encoder) EncodeAll(src, dst []byte) []byte {
 	if e.o.pad > 0 {
 		add := calcSkippableFrame(int64(len(dst)), int64(e.o.pad))
 <<<<<<< HEAD
+<<<<<<< HEAD
 		var err error
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		var err error
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		dst, err = skippableFrame(dst, add, rand.Reader)
 		if err != nil {
 			panic(err)

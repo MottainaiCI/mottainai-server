@@ -163,10 +163,14 @@ encodeLoop:
 		// We allow the encoder to optionally turn off repeat offsets across blocks
 		canRepeat := len(blk.sequences) > 2
 <<<<<<< HEAD
+<<<<<<< HEAD
 		var matched, index0 int32
 =======
 		var matched int32
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		var matched, index0 int32
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		for {
 			if debugAsserts && canRepeat && offset1 == 0 {
@@ -184,9 +188,13 @@ encodeLoop:
 			e.longTable[nextHashL] = prevEntry{offset: off, prev: candidateL.offset}
 			e.table[nextHashS] = tableEntry{offset: off, val: uint32(cv)}
 <<<<<<< HEAD
+<<<<<<< HEAD
 			index0 = s + 1
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			index0 = s + 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 			if canRepeat {
 				if repIndex >= 0 && load3232(src, repIndex) == uint32(cv>>(repOff*8)) {
@@ -284,9 +292,12 @@ encodeLoop:
 					blk.sequences = append(blk.sequences, seq)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 					index0 := s + repOff2
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					s += lenght + repOff2
 					nextEmit = s
 					if s >= sLimit {
@@ -527,14 +538,19 @@ encodeLoop:
 
 		// Index match start+1 (long) -> s - 1
 <<<<<<< HEAD
+<<<<<<< HEAD
 		off := index0 + e.cur
 =======
 		index0 := s - l + 1
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		off := index0 + e.cur
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		for index0 < s-1 {
 			cv0 := load6432(src, index0)
 			cv1 := cv0 >> 8
 			h0 := hashLen(cv0, betterLongTableBits, betterLongLen)
+<<<<<<< HEAD
 <<<<<<< HEAD
 			e.longTable[h0] = prevEntry{offset: off, prev: e.longTable[h0].offset}
 			e.table[hashLen(cv1, betterShortTableBits, betterShortLen)] = tableEntry{offset: off + 1, val: uint32(cv1)}
@@ -546,6 +562,12 @@ encodeLoop:
 			e.table[hashLen(cv1, betterShortTableBits, betterShortLen)] = tableEntry{offset: off + 1, val: uint32(cv1)}
 			index0 += 2
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			e.longTable[h0] = prevEntry{offset: off, prev: e.longTable[h0].offset}
+			e.table[hashLen(cv1, betterShortTableBits, betterShortLen)] = tableEntry{offset: off + 1, val: uint32(cv1)}
+			index0 += 2
+			off += 2
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 
 		cv = load6432(src, s)
@@ -712,10 +734,14 @@ encodeLoop:
 		// We allow the encoder to optionally turn off repeat offsets across blocks
 		canRepeat := len(blk.sequences) > 2
 <<<<<<< HEAD
+<<<<<<< HEAD
 		var matched, index0 int32
 =======
 		var matched int32
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		var matched, index0 int32
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		for {
 			if debugAsserts && canRepeat && offset1 == 0 {
@@ -735,9 +761,13 @@ encodeLoop:
 			e.table[nextHashS] = tableEntry{offset: off, val: uint32(cv)}
 			e.markShortShardDirty(nextHashS)
 <<<<<<< HEAD
+<<<<<<< HEAD
 			index0 = s + 1
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			index0 = s + 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 			if canRepeat {
 				if repIndex >= 0 && load3232(src, repIndex) == uint32(cv>>(repOff*8)) {
@@ -774,9 +804,12 @@ encodeLoop:
 
 					// Index match start+1 (long) -> s - 1
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 					index0 := s + repOff
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					s += lenght + repOff
 
 					nextEmit = s
@@ -841,9 +874,12 @@ encodeLoop:
 					blk.sequences = append(blk.sequences, seq)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 					index0 := s + repOff2
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					s += lenght + repOff2
 					nextEmit = s
 					if s >= sLimit {
@@ -1078,18 +1114,25 @@ encodeLoop:
 
 		// Index match start+1 (long) -> s - 1
 <<<<<<< HEAD
+<<<<<<< HEAD
 		off := index0 + e.cur
 =======
 		index0 := s - l + 1
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		off := index0 + e.cur
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		for index0 < s-1 {
 			cv0 := load6432(src, index0)
 			cv1 := cv0 >> 8
 			h0 := hashLen(cv0, betterLongTableBits, betterLongLen)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 			off := index0 + e.cur
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			e.longTable[h0] = prevEntry{offset: off, prev: e.longTable[h0].offset}
 			e.markLongShardDirty(h0)
 			h1 := hashLen(cv1, betterShortTableBits, betterShortLen)
@@ -1097,9 +1140,13 @@ encodeLoop:
 			e.markShortShardDirty(h1)
 			index0 += 2
 <<<<<<< HEAD
+<<<<<<< HEAD
 			off += 2
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			off += 2
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 
 		cv = load6432(src, s)

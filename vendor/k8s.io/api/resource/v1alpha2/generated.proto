@@ -259,10 +259,14 @@ message PodSchedulingContextSpec {
   // future, but not reduced.
   //
 <<<<<<< HEAD
+<<<<<<< HEAD
   // +listType=atomic
 =======
   // +listType=set
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+  // +listType=atomic
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
   // +optional
   repeated string potentialNodes = 2;
 }
@@ -406,10 +410,14 @@ message ResourceClaimSchedulingStatus {
   // future, but not reduced.
   //
 <<<<<<< HEAD
+<<<<<<< HEAD
   // +listType=atomic
 =======
   // +listType=set
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+  // +listType=atomic
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
   // +optional
   repeated string unsuitableNodes = 2;
 }

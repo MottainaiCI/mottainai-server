@@ -271,10 +271,14 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 			for i := 0; i < v.NumField(); i++ {
 				field := v.Field(i)
 <<<<<<< HEAD
+<<<<<<< HEAD
 				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous {
 =======
 				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous == true {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					field.Set(reflect.New(field.Type().Elem()))
 				}
 			}

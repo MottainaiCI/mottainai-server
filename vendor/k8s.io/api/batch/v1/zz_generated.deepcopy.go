@@ -313,11 +313,14 @@ func (in *JobSpec) DeepCopyInto(out *JobSpec) {
 		*out = new(PodReplacementPolicy)
 		**out = **in
 	}
+<<<<<<< HEAD
 	if in.ManagedBy != nil {
 		in, out := &in.ManagedBy, &out.ManagedBy
 		*out = new(string)
 		**out = **in
 	}
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return
 }
 

@@ -39,6 +39,7 @@ func PollUntilContextCancel(ctx context.Context, interval time.Duration, immedia
 //
 //	deadlineCtx, deadlineCancel := context.WithTimeout(ctx, timeout)
 <<<<<<< HEAD
+<<<<<<< HEAD
 //	err := PollUntilContextCancel(deadlineCtx, interval, immediate, condition)
 //
 // The deadline context will be cancelled if the Poll succeeds before the timeout, simplifying
@@ -49,6 +50,12 @@ func PollUntilContextCancel(ctx context.Context, interval time.Duration, immedia
 // The deadline context will be cancelled if the Poll succeeds before the timeout, simplifying
 // inline usage. All other behavior is identical to PollWithContextTimeout.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+//	err := PollUntilContextCancel(deadlineCtx, interval, immediate, condition)
+//
+// The deadline context will be cancelled if the Poll succeeds before the timeout, simplifying
+// inline usage. All other behavior is identical to PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func PollUntilContextTimeout(ctx context.Context, interval, timeout time.Duration, immediate bool, condition ConditionWithContextFunc) error {
 	deadlineCtx, deadlineCancel := context.WithTimeout(ctx, timeout)
 	defer deadlineCancel()
@@ -67,10 +74,14 @@ func PollUntilContextTimeout(ctx context.Context, interval, timeout time.Duratio
 // If you want to Poll something forever, see PollInfinite.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextTimeout.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func Poll(interval, timeout time.Duration, condition ConditionFunc) error {
@@ -90,10 +101,14 @@ func Poll(interval, timeout time.Duration, condition ConditionFunc) error {
 // If you want to Poll something forever, see PollInfinite.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextTimeout.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollWithContext(ctx context.Context, interval, timeout time.Duration, condition ConditionWithContextFunc) error {
@@ -107,10 +122,14 @@ func PollWithContext(ctx context.Context, interval, timeout time.Duration, condi
 // 'condition' will always be invoked at least once.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollUntil(interval time.Duration, condition ConditionFunc, stopCh <-chan struct{}) error {
@@ -124,10 +143,14 @@ func PollUntil(interval time.Duration, condition ConditionFunc, stopCh <-chan st
 // 'condition' will always be invoked at least once.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollUntilWithContext(ctx context.Context, interval time.Duration, condition ConditionWithContextFunc) error {
@@ -142,10 +165,14 @@ func PollUntilWithContext(ctx context.Context, interval time.Duration, condition
 // window is too short.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollInfinite(interval time.Duration, condition ConditionFunc) error {
@@ -160,10 +187,14 @@ func PollInfinite(interval time.Duration, condition ConditionFunc) error {
 // window is too short.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollInfiniteWithContext(ctx context.Context, interval time.Duration, condition ConditionWithContextFunc) error {
@@ -182,10 +213,14 @@ func PollInfiniteWithContext(ctx context.Context, interval time.Duration, condit
 // If you want to immediately Poll something forever, see PollImmediateInfinite.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextTimeout.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediate(interval, timeout time.Duration, condition ConditionFunc) error {
@@ -204,10 +239,14 @@ func PollImmediate(interval, timeout time.Duration, condition ConditionFunc) err
 // If you want to immediately Poll something forever, see PollImmediateInfinite.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextTimeout.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextTimeout.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediateWithContext(ctx context.Context, interval, timeout time.Duration, condition ConditionWithContextFunc) error {
@@ -220,10 +259,14 @@ func PollImmediateWithContext(ctx context.Context, interval, timeout time.Durati
 // 'condition' will always be invoked at least once.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediateUntil(interval time.Duration, condition ConditionFunc, stopCh <-chan struct{}) error {
@@ -237,10 +280,14 @@ func PollImmediateUntil(interval time.Duration, condition ConditionFunc, stopCh 
 // 'condition' will always be invoked at least once.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediateUntilWithContext(ctx context.Context, interval time.Duration, condition ConditionWithContextFunc) error {
@@ -255,10 +302,14 @@ func PollImmediateUntilWithContext(ctx context.Context, interval time.Duration, 
 // window is too short.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediateInfinite(interval time.Duration, condition ConditionFunc) error {
@@ -274,10 +325,14 @@ func PollImmediateInfinite(interval time.Duration, condition ConditionFunc) erro
 // window is too short.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Deprecated: This method does not return errors from context, use PollUntilContextCancel.
 =======
 // Deprecated: This method does not return errors from context, use PollWithContextCancel.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// Deprecated: This method does not return errors from context, use PollUntilContextCancel.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that the new method will no longer return ErrWaitTimeout and instead return errors
 // defined by the context package. Will be removed in a future release.
 func PollImmediateInfiniteWithContext(ctx context.Context, interval time.Duration, condition ConditionWithContextFunc) error {

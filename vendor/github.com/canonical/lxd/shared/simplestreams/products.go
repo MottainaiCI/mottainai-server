@@ -10,8 +10,13 @@ import (
 	"github.com/canonical/lxd/shared/osarch"
 )
 
+<<<<<<< HEAD
 var lxdCompatCombinedItems = []string{"lxd_combined.tar.gz", "incus_combined.tar.gz"}
 var lxdCompatItems = []string{"lxd.tar.xz", "incus.tar.xz"}
+=======
+var lxdCompatCombinedItems = []string{"lxd_combined.tar.gz"}
+var lxdCompatItems = []string{"lxd.tar.xz"}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 // Products represents the base of download.json.
 type Products struct {
@@ -100,11 +105,15 @@ func (s *Products) ToLXD() ([]api.Image, map[string][][]string) {
 			addImage := func(meta *ProductVersionItem, root *ProductVersionItem) error {
 				// Look for deltas
 				deltas := []ProductVersionItem{}
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/shared/simplestreams/products.go
 				if root != nil && shared.ValueInSlice(root.FileType, []string{"squashfs", "disk-kvm.img"}) {
 =======
 				if root != nil && shared.StringInSlice(root.FileType, []string{"squashfs", "disk-kvm.img"}) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/shared/simplestreams/products.go
+=======
+				if root != nil && shared.ValueInSlice(root.FileType, []string{"squashfs", "disk-kvm.img"}) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					for _, item := range version.Items {
 						if item.FileType == fmt.Sprintf("%s.vcdiff", root.FileType) {
 							deltas = append(deltas, item)
@@ -283,8 +292,11 @@ func (s *Products) ToLXD() ([]api.Image, map[string][][]string) {
 					if err != nil {
 						continue
 					}
+<<<<<<< HEAD
 
 					break // Stop at first compatible item found.
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 				} else if shared.ValueInSlice(item.FileType, lxdCompatItems) {
 					// Locate the root files
 					for _, subItem := range version.Items {

@@ -106,6 +106,7 @@ func Succeed() types.GomegaMatcher {
 
 // MatchError succeeds if actual is a non-nil error that matches the passed in
 <<<<<<< HEAD
+<<<<<<< HEAD
 // string, error, function, or matcher.
 //
 // These are valid use-cases:
@@ -143,17 +144,48 @@ func Succeed() types.GomegaMatcher {
 func MatchError(expected interface{}, functionErrorDescription ...any) types.GomegaMatcher {
 =======
 // string, error, or matcher.
+=======
+// string, error, function, or matcher.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 //
 // These are valid use-cases:
 //
-//  Expect(err).Should(MatchError("an error")) //asserts that err.Error() == "an error"
-//  Expect(err).Should(MatchError(SomeError)) //asserts that err == SomeError (via reflect.DeepEqual)
-//  Expect(err).Should(MatchError(ContainsSubstring("sprocket not found"))) // asserts that edrr.Error() contains substring "sprocket not found"
+// When passed a string:
+//
+//	Expect(err).To(MatchError("an error"))
+//
+// asserts that err.Error() == "an error"
+//
+// When passed an error:
+//
+//	Expect(err).To(MatchError(SomeError))
+//
+// First checks if errors.Is(err, SomeError).
+// If that fails then it checks if reflect.DeepEqual(err, SomeError) repeatedly for err and any errors wrapped by err
+//
+// When passed a matcher:
+//
+//	Expect(err).To(MatchError(ContainSubstring("sprocket not found")))
+//
+// the matcher is passed err.Error().  In this case it asserts that err.Error() contains substring "sprocket not found"
+//
+// When passed a func(err) bool and a description:
+//
+//	Expect(err).To(MatchError(os.IsNotExist, "IsNotExist"))
+//
+// the function is passed err and matches if the return value is true.  The description is required to allow Gomega
+// to print a useful error message.
 //
 // It is an error for err to be nil or an object that does not implement the
 // Error interface
+<<<<<<< HEAD
 func MatchError(expected interface{}) types.GomegaMatcher {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+//
+// The optional second argument is a description of the error function, if used.  This is required when passing a function but is ignored in all other cases.
+func MatchError(expected interface{}, functionErrorDescription ...any) types.GomegaMatcher {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return &matchers.MatchErrorMatcher{
 		Expected:           expected,
 		FuncErrDescription: functionErrorDescription,
@@ -410,10 +442,14 @@ func ConsistOf(elements ...interface{}) types.GomegaMatcher {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // HaveExactElements succeeds if actual contains elements that precisely match the elemets passed into the matcher. The ordering of the elements does matter.
 =======
 // HaveExactElemets succeeds if actual contains elements that precisely match the elemets passed into the matcher. The ordering of the elements does matter.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// HaveExactElements succeeds if actual contains elements that precisely match the elemets passed into the matcher. The ordering of the elements does matter.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // By default HaveExactElements() uses Equal() to match the elements, however custom matchers can be passed in instead.  Here are some examples:
 //
 //	Expect([]string{"Foo", "FooBar"}).Should(HaveExactElements("Foo", "FooBar"))

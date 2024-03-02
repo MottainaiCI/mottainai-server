@@ -125,10 +125,14 @@ type Codec interface {
 //
 // blockKey is optional, used to encrypt values. Create it using
 <<<<<<< HEAD
+<<<<<<< HEAD
 // GenerateRandomKey(). The key length must correspond to the key size
 =======
 // GenerateRandomKey(). The key length must correspond to the block size
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// GenerateRandomKey(). The key length must correspond to the key size
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // of the encryption algorithm. For AES, used by default, valid lengths are
 // 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
 // The default encoder used for cookie serialization is encoding/gob.
@@ -146,10 +150,14 @@ func New(hashKey, blockKey []byte) *SecureCookie {
 		sz:        GobEncoder{},
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if len(hashKey) == 0 {
 =======
 	if hashKey == nil {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	if len(hashKey) == 0 {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		s.err = errHashKeyNotSet
 	}
 	if blockKey != nil {
@@ -295,10 +303,14 @@ func (s *SecureCookie) Encode(name string, value interface{}) (string, error) {
 	// 5. Check length.
 	if s.maxLength != 0 && len(b) > s.maxLength {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return "", fmt.Errorf("%s: %d", errEncodedValueTooLong, len(b))
 =======
 		return "", errEncodedValueTooLong
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		return "", fmt.Errorf("%s: %d", errEncodedValueTooLong, len(b))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	// Done.
 	return string(b), nil
@@ -323,10 +335,14 @@ func (s *SecureCookie) Decode(name, value string, dst interface{}) error {
 	// 1. Check length.
 	if s.maxLength != 0 && len(value) > s.maxLength {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return fmt.Errorf("%s: %d", errValueToDecodeTooLong, len(value))
 =======
 		return errValueToDecodeTooLong
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+		return fmt.Errorf("%s: %d", errValueToDecodeTooLong, len(value))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	// 2. Decode from base64.
 	b, err := decode([]byte(value))
@@ -408,10 +424,14 @@ func verifyMac(h hash.Hash, value []byte, mac []byte) error {
 // encrypt encrypts a value using the given block in counter mode.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // A random initialization vector ( https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV) ) with the length of the
 =======
 // A random initialization vector (http://goo.gl/zF67k) with the length of the
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// A random initialization vector ( https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV) ) with the length of the
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // block size is prepended to the resulting ciphertext.
 func encrypt(block cipher.Block, value []byte) ([]byte, error) {
 	iv := GenerateRandomKey(block.BlockSize())
@@ -429,10 +449,14 @@ func encrypt(block cipher.Block, value []byte) ([]byte, error) {
 //
 // The value to be decrypted must be prepended by a initialization vector
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ( https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV) ) with the length of the block size.
 =======
 // (http://goo.gl/zF67k) with the length of the block size.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// ( https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV) ) with the length of the block size.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func decrypt(block cipher.Block, value []byte) ([]byte, error) {
 	size := block.BlockSize()
 	if len(value) > size {
@@ -531,12 +555,18 @@ func decode(value []byte) ([]byte, error) {
 // On failure, returns nil.
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Note that keys created using `GenerateRandomKey()` are not automatically
 // persisted. New keys will be created when the application is restarted, and
 // previously issued cookies will not be able to be decoded.
 //
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Callers should explicitly check for the possibility of a nil return, treat
 // it as a failure of the system random number generator, and not continue.
 func GenerateRandomKey(length int) []byte {
@@ -557,12 +587,16 @@ func GenerateRandomKey(length int) []byte {
 // Example:
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 //	codecs := securecookie.CodecsFromPairs(
 //	     []byte("new-hash-key"),
 //	     []byte("new-block-key"),
 //	     []byte("old-hash-key"),
 //	     []byte("old-block-key"),
 //	 )
+<<<<<<< HEAD
 //
 //	// Modify each instance.
 //	for _, s := range codecs {
@@ -590,6 +624,17 @@ func GenerateRandomKey(length int) []byte {
 //         }
 //
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+//
+//	// Modify each instance.
+//	for _, s := range codecs {
+//	       if cookie, ok := s.(*securecookie.SecureCookie); ok {
+//	           cookie.MaxAge(86400 * 7)
+//	           cookie.SetSerializer(securecookie.JSONEncoder{})
+//	           cookie.HashFunc(sha512.New512_256)
+//	       }
+//	   }
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func CodecsFromPairs(keyPairs ...[]byte) []Codec {
 	codecs := make([]Codec, len(keyPairs)/2+len(keyPairs)%2)
 	for i := 0; i < len(keyPairs); i += 2 {

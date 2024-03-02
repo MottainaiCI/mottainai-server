@@ -246,10 +246,14 @@ func (s *sequenceDecs) decodeSync(hist []byte) error {
 		}
 		var ll, mo, ml int
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if len(br.in) > 4+((maxOffsetBits+16+16)>>3) {
 =======
 		if br.off > 4+((maxOffsetBits+16+16)>>3) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		if len(br.in) > 4+((maxOffsetBits+16+16)>>3) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			// inlined function:
 			// ll, mo, ml = s.nextFast(br, llState, mlState, ofState)
 
@@ -457,6 +461,7 @@ func (s *sequenceDecs) next(br *bitReader, llState, mlState, ofState decSymbol) 
 	// extra bits are stored in reverse order.
 	br.fill()
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mo += br.getBits(moB)
 	if s.maxBits > 32 {
 		br.fill()
@@ -471,13 +476,19 @@ func (s *sequenceDecs) next(br *bitReader, llState, mlState, ofState decSymbol) 
 		ll += br.getBits(llB)
 	} else {
 		mo += br.getBits(moB)
+=======
+	mo += br.getBits(moB)
+	if s.maxBits > 32 {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		br.fill()
-		// matchlength+literal length, max 32 bits
-		ml += br.getBits(mlB)
-		ll += br.getBits(llB)
-
 	}
+<<<<<<< HEAD
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	// matchlength+literal length, max 32 bits
+	ml += br.getBits(mlB)
+	ll += br.getBits(llB)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	mo = s.adjustOffset(mo, ll, moB)
 	return
 }

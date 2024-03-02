@@ -95,10 +95,14 @@ func WithEncoderConcurrency(n int) EOption {
 // A larger value will enable better compression but allocate more memory and,
 // for above-default values, take considerably longer.
 <<<<<<< HEAD
+<<<<<<< HEAD
 // The default value is determined by the compression level and max 8MB.
 =======
 // The default value is determined by the compression level.
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+// The default value is determined by the compression level and max 8MB.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func WithWindowSize(n int) EOption {
 	return func(o *encoderOptions) error {
 		switch {
@@ -237,6 +241,7 @@ func WithEncoderLevel(l EncoderLevel) EOption {
 				o.windowSize = 8 << 20
 			case SpeedBetterCompression:
 <<<<<<< HEAD
+<<<<<<< HEAD
 				o.windowSize = 8 << 20
 			case SpeedBestCompression:
 				o.windowSize = 8 << 20
@@ -245,6 +250,11 @@ func WithEncoderLevel(l EncoderLevel) EOption {
 			case SpeedBestCompression:
 				o.windowSize = 32 << 20
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+				o.windowSize = 8 << 20
+			case SpeedBestCompression:
+				o.windowSize = 8 << 20
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 		}
 		if !o.customALEntropy {

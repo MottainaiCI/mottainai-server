@@ -228,6 +228,7 @@ func EstimateSizes(in []byte, s *Scratch) (tableSz, dataSz, reuseSz int, err err
 
 func (s *Scratch) compress1X(src []byte) ([]byte, error) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	return s.compress1xDo(s.Out, src), nil
 }
 
@@ -238,6 +239,12 @@ func (s *Scratch) compress1xDo(dst, src []byte) []byte {
 
 func (s *Scratch) compress1xDo(dst, src []byte) ([]byte, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	return s.compress1xDo(s.Out, src), nil
+}
+
+func (s *Scratch) compress1xDo(dst, src []byte) []byte {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	var bw = bitWriter{out: dst}
 
 	// N is length divisible by 4.
@@ -268,12 +275,17 @@ func (s *Scratch) compress1xDo(dst, src []byte) ([]byte, error) {
 		}
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	bw.close()
 	return bw.out
 =======
 	err := bw.close()
 	return bw.out, err
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	bw.close()
+	return bw.out
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 var sixZeros [6]byte
@@ -296,6 +308,7 @@ func (s *Scratch) compress4X(src []byte) ([]byte, error) {
 		src = src[len(toDo):]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		idx := len(s.Out)
 		s.Out = s.compress1xDo(s.Out, toDo)
 =======
@@ -306,6 +319,10 @@ func (s *Scratch) compress4X(src []byte) ([]byte, error) {
 			return nil, err
 		}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		idx := len(s.Out)
+		s.Out = s.compress1xDo(s.Out, toDo)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if len(s.Out)-idx > math.MaxUint16 {
 			// We cannot store the size in the jump table
 			return nil, ErrIncompressible
@@ -333,9 +350,12 @@ func (s *Scratch) compress4Xp(src []byte) ([]byte, error) {
 	segmentSize := (len(src) + 3) / 4
 	var wg sync.WaitGroup
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	var errs [4]error
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	wg.Add(4)
 	for i := 0; i < 4; i++ {
 		toDo := src
@@ -347,21 +367,28 @@ func (s *Scratch) compress4Xp(src []byte) ([]byte, error) {
 		// Separate goroutine for each block.
 		go func(i int) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			s.tmpOut[i] = s.compress1xDo(s.tmpOut[i][:0], toDo)
 =======
 			s.tmpOut[i], errs[i] = s.compress1xDo(s.tmpOut[i][:0], toDo)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			s.tmpOut[i] = s.compress1xDo(s.tmpOut[i][:0], toDo)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
 	for i := 0; i < 4; i++ {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		if errs[i] != nil {
 			return nil, errs[i]
 		}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		o := s.tmpOut[i]
 		if len(o) > math.MaxUint16 {
 			// We cannot store the size in the jump table
@@ -386,9 +413,13 @@ func (s *Scratch) compress4Xp(src []byte) ([]byte, error) {
 func (s *Scratch) countSimple(in []byte) (max int, reuse bool) {
 	reuse = true
 <<<<<<< HEAD
+<<<<<<< HEAD
 	_ = s.count // Assert that s != nil to speed up the following loop.
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	_ = s.count // Assert that s != nil to speed up the following loop.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	for _, v := range in {
 		s.count[v]++
 	}
@@ -455,10 +486,14 @@ func (s *Scratch) validateTable(c cTable) bool {
 // minTableLog provides the minimum logSize to safely represent a distribution.
 func (s *Scratch) minTableLog() uint8 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	minBitsSrc := highBit32(uint32(s.srcLen)) + 1
 =======
 	minBitsSrc := highBit32(uint32(s.br.remain())) + 1
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	minBitsSrc := highBit32(uint32(s.srcLen)) + 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	minBitsSymbols := highBit32(uint32(s.symbolLen-1)) + 2
 	if minBitsSrc < minBitsSymbols {
 		return uint8(minBitsSrc)
@@ -471,10 +506,14 @@ func (s *Scratch) optimalTableLog() {
 	tableLog := s.TableLog
 	minBits := s.minTableLog()
 <<<<<<< HEAD
+<<<<<<< HEAD
 	maxBitsSrc := uint8(highBit32(uint32(s.srcLen-1))) - 1
 =======
 	maxBitsSrc := uint8(highBit32(uint32(s.br.remain()-1))) - 1
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	maxBitsSrc := uint8(highBit32(uint32(s.srcLen-1))) - 1
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if maxBitsSrc < tableLog {
 		// Accuracy can be reduced
 		tableLog = maxBitsSrc

@@ -894,8 +894,12 @@ type ValidatingWebhook struct {
 	//      - If failurePolicy=Ignore, the error is ignored and the webhook is skipped
 	//
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	// This is an alpha feature and managed by the AdmissionWebhookMatchConditions feature gate.
+=======
+	// This is a beta feature and managed by the AdmissionWebhookMatchConditions feature gate.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	//
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// +patchMergeKey=name
@@ -1074,8 +1078,12 @@ type MutatingWebhook struct {
 	//      - If failurePolicy=Ignore, the error is ignored and the webhook is skipped
 	//
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	// This is an alpha feature and managed by the AdmissionWebhookMatchConditions feature gate.
+=======
+	// This is a beta feature and managed by the AdmissionWebhookMatchConditions feature gate.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	//
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// +patchMergeKey=name

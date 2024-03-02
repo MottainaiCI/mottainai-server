@@ -18,6 +18,7 @@ var DefaultHTTPClient = &http.Client{
 
 type Decoder interface {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	Decode(dst any, src map[string][]string) error
 }
 
@@ -30,6 +31,13 @@ type Encoder interface {
 type Encoder interface {
 	Encode(src interface{}, dst map[string][]string) error
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+	Decode(dst any, src map[string][]string) error
+}
+
+type Encoder interface {
+	Encode(src any, dst map[string][]string) error
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 type FormAuthorization func(url.Values)
@@ -42,10 +50,14 @@ func AuthorizeBasic(user, password string) RequestAuthorization {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func FormRequest(endpoint string, request any, encoder Encoder, authFn any) (*http.Request, error) {
 =======
 func FormRequest(endpoint string, request interface{}, encoder Encoder, authFn interface{}) (*http.Request, error) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func FormRequest(endpoint string, request any, encoder Encoder, authFn any) (*http.Request, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	form := url.Values{}
 	if err := encoder.Encode(request, form); err != nil {
 		return nil, err
@@ -66,10 +78,14 @@ func FormRequest(endpoint string, request interface{}, encoder Encoder, authFn i
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func HttpRequest(client *http.Client, req *http.Request, response any) error {
 =======
 func HttpRequest(client *http.Client, req *http.Request, response interface{}) error {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func HttpRequest(client *http.Client, req *http.Request, response any) error {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -93,10 +109,14 @@ func HttpRequest(client *http.Client, req *http.Request, response interface{}) e
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func URLEncodeParams(resp any, encoder Encoder) (url.Values, error) {
 =======
 func URLEncodeParams(resp interface{}, encoder Encoder) (url.Values, error) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func URLEncodeParams(resp any, encoder Encoder) (url.Values, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	values := make(map[string][]string)
 	err := encoder.Encode(resp, values)
 	if err != nil {

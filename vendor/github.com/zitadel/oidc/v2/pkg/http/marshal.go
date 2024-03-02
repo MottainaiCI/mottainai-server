@@ -9,6 +9,7 @@ import (
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func MarshalJSON(w http.ResponseWriter, i any) {
 	MarshalJSONWithStatus(w, i, http.StatusOK)
 }
@@ -21,6 +22,13 @@ func MarshalJSON(w http.ResponseWriter, i interface{}) {
 
 func MarshalJSONWithStatus(w http.ResponseWriter, i interface{}, status int) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func MarshalJSON(w http.ResponseWriter, i any) {
+	MarshalJSONWithStatus(w, i, http.StatusOK)
+}
+
+func MarshalJSONWithStatus(w http.ResponseWriter, i any, status int) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(status)
 	if i == nil || (reflect.ValueOf(i).Kind() == reflect.Ptr && reflect.ValueOf(i).IsNil()) {

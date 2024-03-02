@@ -4,9 +4,12 @@
 
 //go:build darwin || dragonfly || freebsd || hurd || linux || netbsd || openbsd
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // +build darwin dragonfly freebsd hurd linux netbsd openbsd
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 package unix
 

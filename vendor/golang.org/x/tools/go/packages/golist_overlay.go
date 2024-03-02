@@ -7,6 +7,7 @@ package packages
 import (
 	"encoding/json"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"path/filepath"
 =======
 	"fmt"
@@ -19,10 +20,14 @@ import (
 	"strconv"
 	"strings"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	"path/filepath"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	"golang.org/x/tools/internal/gocommand"
 )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 // processGolistOverlay provides rudimentary support for adding
@@ -321,6 +326,8 @@ func hasTestFiles(p *Package) bool {
 }
 
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // determineRootDirs returns a mapping from absolute directories that could
 // contain code to their corresponding import path prefixes.
 func (state *golistState) determineRootDirs() (map[string]string, error) {
@@ -391,6 +398,7 @@ func (state *golistState) determineRootDirsGOPATH() (map[string]string, error) {
 	}
 	return m, nil
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -583,3 +591,5 @@ func replaceVendor(x, repl string) string {
 	return strings.Join(elem, "/")
 }
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

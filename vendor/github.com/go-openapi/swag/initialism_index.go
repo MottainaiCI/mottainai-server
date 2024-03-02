@@ -176,7 +176,11 @@ func (m *indexOfInitialisms) add(key string) *indexOfInitialisms {
 func (m *indexOfInitialisms) sorted() (result []string) {
 	m.sortMutex.Lock()
 	defer m.sortMutex.Unlock()
+<<<<<<< HEAD
 	m.index.Range(func(key, _ interface{}) bool {
+=======
+	m.index.Range(func(key, value interface{}) bool {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		k := key.(string)
 		result = append(result, k)
 		return true

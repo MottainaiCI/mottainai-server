@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 Copyright (c) 2023 The Gorilla Authors. All rights reserved.
 =======
 Copyright (c) 2012 Rodrigo Moraes. All rights reserved.
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+Copyright (c) 2023 The Gorilla Authors. All rights reserved.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

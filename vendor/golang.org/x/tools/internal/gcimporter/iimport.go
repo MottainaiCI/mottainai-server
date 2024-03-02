@@ -22,12 +22,16 @@ import (
 	"strings"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"golang.org/x/tools/go/types/objectpath"
 	"golang.org/x/tools/internal/aliases"
 	"golang.org/x/tools/internal/typesinternal"
 =======
 	"golang.org/x/tools/internal/typeparams"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	"golang.org/x/tools/go/types/objectpath"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 type intReader struct {
@@ -109,10 +113,14 @@ const (
 // compromised, an error is returned.
 func IImportData(fset *token.FileSet, imports map[string]*types.Package, data []byte, path string) (int, *types.Package, error) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	pkgs, err := iimportCommon(fset, GetPackagesFromMap(imports), data, false, path, false, nil)
 =======
 	pkgs, err := iimportCommon(fset, GetPackageFromMap(imports), data, false, path, nil)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	pkgs, err := iimportCommon(fset, GetPackagesFromMap(imports), data, false, path, false, nil)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -121,6 +129,7 @@ func IImportData(fset *token.FileSet, imports map[string]*types.Package, data []
 
 // IImportBundle imports a set of packages from the serialized package bundle.
 func IImportBundle(fset *token.FileSet, imports map[string]*types.Package, data []byte) ([]*types.Package, error) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	return iimportCommon(fset, GetPackagesFromMap(imports), data, true, "", false, nil)
 }
@@ -167,33 +176,56 @@ func GetPackagesFromMap(m map[string]*types.Package) GetPackagesFunc {
 func iimportCommon(fset *token.FileSet, getPackages GetPackagesFunc, data []byte, bundle bool, path string, shallow bool, reportf ReportFunc) (pkgs []*types.Package, err error) {
 =======
 	return iimportCommon(fset, GetPackageFromMap(imports), data, true, "", nil)
+=======
+	return iimportCommon(fset, GetPackagesFromMap(imports), data, true, "", false, nil)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
-// A GetPackageFunc is a function that gets the package with the given path
-// from the importer state, creating it (with the specified name) if necessary.
-// It is an abstraction of the map historically used to memoize package creation.
+// A GetPackagesFunc function obtains the non-nil symbols for a set of
+// packages, creating and recursively importing them as needed. An
+// implementation should store each package symbol is in the Pkg
+// field of the items array.
 //
-// Two calls with the same path must return the same package.
-//
-// If the given getPackage func returns nil, the import will fail.
-type GetPackageFunc = func(path, name string) *types.Package
+// Any error causes importing to fail. This can be used to quickly read
+// the import manifest of an export data file without fully decoding it.
+type GetPackagesFunc = func(items []GetPackagesItem) error
 
-// GetPackageFromMap returns a GetPackageFunc that retrieves packages from the
-// given map of package path -> package.
+// A GetPackagesItem is a request from the importer for the package
+// symbol of the specified name and path.
+type GetPackagesItem struct {
+	Name, Path string
+	Pkg        *types.Package // to be filled in by GetPackagesFunc call
+
+	// private importer state
+	pathOffset uint64
+	nameIndex  map[string]uint64
+}
+
+// GetPackagesFromMap returns a GetPackagesFunc that retrieves
+// packages from the given map of package path to package.
 //
-// The resulting func may mutate m: if a requested package is not found, a new
-// package will be inserted into m.
-func GetPackageFromMap(m map[string]*types.Package) GetPackageFunc {
-	return func(path, name string) *types.Package {
-		if _, ok := m[path]; !ok {
-			m[path] = types.NewPackage(path, name)
+// The returned function may mutate m: each requested package that is not
+// found is created with types.NewPackage and inserted into m.
+func GetPackagesFromMap(m map[string]*types.Package) GetPackagesFunc {
+	return func(items []GetPackagesItem) error {
+		for i, item := range items {
+			pkg, ok := m[item.Path]
+			if !ok {
+				pkg = types.NewPackage(item.Path, item.Name)
+				m[item.Path] = pkg
+			}
+			items[i].Pkg = pkg
 		}
-		return m[path]
+		return nil
 	}
 }
 
+<<<<<<< HEAD
 func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, bundle bool, path string, insert InsertType) (pkgs []*types.Package, err error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func iimportCommon(fset *token.FileSet, getPackages GetPackagesFunc, data []byte, bundle bool, path string, shallow bool, reportf ReportFunc) (pkgs []*types.Package, err error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	const currentVersion = iexportVersionCurrent
 	version := int64(-1)
 	if !debug {
@@ -233,10 +265,14 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 	var fLen int64
 	var fileOffset []uint64
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if shallow {
 =======
 	if insert != nil {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	if shallow {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		// Shallow mode uses a different position encoding.
 		fLen = int64(r.uint64())
 		fileOffset = make([]uint64, r.uint64())
@@ -256,12 +292,17 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 		version: int(version),
 		ipath:   path,
 <<<<<<< HEAD
+<<<<<<< HEAD
 		aliases: aliases.Enabled(),
 		shallow: shallow,
 		reportf: reportf,
 =======
 		insert:  insert,
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		shallow: shallow,
+		reportf: reportf,
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		stringData:  stringData,
 		stringCache: make(map[uint64]string),
@@ -289,14 +330,20 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Gather the relevant packages from the manifest.
 	items := make([]GetPackagesItem, r.uint64())
 	uniquePkgPaths := make(map[string]bool)
 	for i := range items {
+<<<<<<< HEAD
 =======
 	pkgList := make([]*types.Package, r.uint64())
 	for i := range pkgList {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		pkgPathOff := r.uint64()
 		pkgPath := p.stringAt(pkgPathOff)
 		pkgName := p.stringAt(r.uint64())
@@ -305,6 +352,7 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 		if pkgPath == "" {
 			pkgPath = path
 		}
+<<<<<<< HEAD
 <<<<<<< HEAD
 		items[i].Name = pkgName
 		items[i].Path = pkgPath
@@ -322,10 +370,16 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 
 		p.pkgCache[pkgPathOff] = pkg
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		items[i].Name = pkgName
+		items[i].Path = pkgPath
+		items[i].pathOffset = pkgPathOff
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		// Read index for package.
 		nameIndex := make(map[string]uint64)
 		nSyms := r.uint64()
+<<<<<<< HEAD
 <<<<<<< HEAD
 		// In shallow mode, only the current package (i=0) has an index.
 		assert(!(shallow && i > 0 && nSyms != 0))
@@ -333,12 +387,19 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 		// In shallow mode we don't expect an index for other packages.
 		assert(nSyms == 0 || p.localpkg == pkg || p.insert == nil)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		// In shallow mode, only the current package (i=0) has an index.
+		assert(!(shallow && i > 0 && nSyms != 0))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		for ; nSyms > 0; nSyms-- {
 			name := p.stringAt(r.uint64())
 			nameIndex[name] = r.uint64()
 		}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		items[i].nameIndex = nameIndex
 
 		uniquePkgPaths[pkgPath] = true
@@ -367,9 +428,12 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 		}
 		p.pkgCache[item.pathOffset] = pkg
 		p.pkgIndex[pkg] = item.nameIndex
+<<<<<<< HEAD
 =======
 		p.pkgIndex[pkg] = nameIndex
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		pkgList[i] = pkg
 	}
 
@@ -426,10 +490,14 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 	// after all types are complete.
 	for _, d := range p.later {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		d.t.SetConstraint(d.constraint)
 =======
 		typeparams.SetTypeParamConstraint(d.t, d.constraint)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		d.t.SetConstraint(d.constraint)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	for _, typ := range p.interfaceList {
@@ -437,6 +505,9 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Workaround for golang/go#61561. See the doc for instanceList for details.
 	for _, typ := range p.instanceList {
 		if iface, _ := typ.Underlying().(*types.Interface); iface != nil {
@@ -444,17 +515,24 @@ func iimportCommon(fset *token.FileSet, getPackage GetPackageFunc, data []byte, 
 		}
 	}
 
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return pkgs, nil
 }
 
 type setConstraintArgs struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	t          *types.TypeParam
 =======
 	t          *typeparams.TypeParam
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	t          *types.TypeParam
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	constraint types.Type
 }
 
@@ -463,6 +541,7 @@ type iimporter struct {
 	ipath   string
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	aliases bool
 	shallow bool
 	reportf ReportFunc // if non-nil, used to report bugs
@@ -470,6 +549,10 @@ type iimporter struct {
 	localpkg *types.Package
 	insert   func(pkg *types.Package, name string) // "shallow" mode only
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	shallow bool
+	reportf ReportFunc // if non-nil, used to report bugs
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	stringData  []byte
 	stringCache map[uint64]string
@@ -487,14 +570,20 @@ type iimporter struct {
 	interfaceList []*types.Interface
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Workaround for the go/types bug golang/go#61561: instances produced during
 	// instantiation may contain incomplete interfaces. Here we only complete the
 	// underlying type of the instance, which is the most common case but doesn't
 	// handle parameterized interface literals defined deeper in the type.
 	instanceList []types.Type // instances for later completion (see golang/go#61561)
 
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Arguments for calls to SetConstraint that are deferred due to recursive types
 	later []setConstraintArgs
 
@@ -527,6 +616,7 @@ func (p *iimporter) doDecl(pkg *types.Package, name string) {
 	off, ok := p.pkgIndex[pkg][name]
 	if !ok {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// In deep mode, the index should be complete. In shallow
 		// mode, we should have already recursively loaded necessary
 		// dependencies so the above Lookup succeeds.
@@ -539,6 +629,11 @@ func (p *iimporter) doDecl(pkg *types.Package, name string) {
 			return
 		}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		// In deep mode, the index should be complete. In shallow
+		// mode, we should have already recursively loaded necessary
+		// dependencies so the above Lookup succeeds.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		errorf("%v.%v not in index", pkg, name)
 	}
 
@@ -705,7 +800,7 @@ func (r *importReader) obj(name string) {
 		if tag == genericFuncTag {
 =======
 	case 'F', 'G':
-		var tparams []*typeparams.TypeParam
+		var tparams []*types.TypeParam
 		if tag == 'G' {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			tparams = r.tparamList()
@@ -732,8 +827,12 @@ func (r *importReader) obj(name string) {
 =======
 		if tag == 'U' {
 			tparams := r.tparamList()
+<<<<<<< HEAD
 			typeparams.SetForNamed(named, tparams)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			named.SetTypeParams(tparams)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 
 		underlying := r.p.typAt(r.uint64(), named).Underlying()
@@ -759,13 +858,17 @@ func (r *importReader) obj(name string) {
 =======
 				base := baseType(recv.Type())
 				assert(base != nil)
-				targs := typeparams.NamedTypeArgs(base)
-				var rparams []*typeparams.TypeParam
+				targs := base.TypeArgs()
+				var rparams []*types.TypeParam
 				if targs.Len() > 0 {
-					rparams = make([]*typeparams.TypeParam, targs.Len())
+					rparams = make([]*types.TypeParam, targs.Len())
 					for i := range rparams {
+<<<<<<< HEAD
 						rparams[i] = targs.At(i).(*typeparams.TypeParam)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+						rparams[i] = targs.At(i).(*types.TypeParam)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					}
 				}
 				msig := r.signature(recv, rparams, nil)
@@ -788,10 +891,14 @@ func (r *importReader) obj(name string) {
 		name0 := tparamName(name)
 		tn := types.NewTypeName(pos, r.currPkg, name0, nil)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		t := types.NewTypeParam(tn, nil)
 =======
 		t := typeparams.NewTypeParam(tn, nil)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		t := types.NewTypeParam(tn, nil)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		// To handle recursive references to the typeparam within its
 		// bound, save the partial type in tparamIndex before reading the bounds.
@@ -814,8 +921,12 @@ func (r *importReader) obj(name string) {
 			if iface == nil {
 				errorf("non-interface constraint marked implicit")
 			}
+<<<<<<< HEAD
 			typeparams.MarkImplicit(iface)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			iface.MarkImplicit()
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		// The constraint type may not be complete, if we
 		// are in the middle of a type recursion involving type
@@ -969,11 +1080,16 @@ func (r *importReader) qualifiedIdent() (*types.Package, string) {
 
 func (r *importReader) pos() token.Pos {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if r.p.shallow {
 		// precise offsets are encoded only in shallow mode
 =======
 	if r.p.insert != nil { // shallow mode
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	if r.p.shallow {
+		// precise offsets are encoded only in shallow mode
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return r.posv2()
 	}
 	if r.p.version >= iexportVersionPosCol {
@@ -1083,13 +1199,19 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 		tags := make([]string, len(fields))
 		for i := range fields {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			var field *types.Var
 			if r.p.shallow {
 				field, _ = r.objectPathObject().(*types.Var)
 			}
 
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			fpos := r.pos()
 			fname := r.ident()
 			ftyp := r.typ()
@@ -1097,6 +1219,9 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 			tag := r.string()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			// Either this is not a shallow import, the field is local, or the
 			// encoded objectPath failed to produce an object (a bug).
 			//
@@ -1108,9 +1233,12 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 			}
 
 			fields[i] = field
+<<<<<<< HEAD
 =======
 			fields[i] = types.NewField(fpos, r.currPkg, fname, ftyp, emb)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			tags[i] = tag
 		}
 		return types.NewStruct(fields, tags)
@@ -1127,13 +1255,19 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 		methods := make([]*types.Func, r.uint64())
 		for i := range methods {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			var method *types.Func
 			if r.p.shallow {
 				method, _ = r.objectPathObject().(*types.Func)
 			}
 
+<<<<<<< HEAD
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			mpos := r.pos()
 			mname := r.ident()
 
@@ -1143,6 +1277,7 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 			if base != nil {
 				recv = types.NewVar(token.NoPos, r.currPkg, "", base)
 			}
+<<<<<<< HEAD
 <<<<<<< HEAD
 			msig := r.signature(recv, nil, nil)
 
@@ -1155,6 +1290,14 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 			msig := r.signature(recv, nil, nil)
 			methods[i] = types.NewFunc(mpos, r.currPkg, mname, msig)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			msig := r.signature(recv, nil, nil)
+
+			if method == nil {
+				method = types.NewFunc(mpos, r.currPkg, mname, msig)
+			}
+			methods[i] = method
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 
 		typ := newInterface(methods, embeddeds)
@@ -1192,19 +1335,26 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 		// we must always use the methods of the base (orig) type.
 		// TODO provide a non-nil *Environment
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		t, _ := types.Instantiate(nil, baseType, targs, false)
 
 		// Workaround for golang/go#61561. See the doc for instanceList for details.
 		r.p.instanceList = append(r.p.instanceList, t)
+<<<<<<< HEAD
 =======
 		t, _ := typeparams.Instantiate(nil, baseType, targs, false)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return t
 
 	case unionType:
 		if r.p.version < iexportVersionGenerics {
 			errorf("unexpected instantiation type")
 		}
+<<<<<<< HEAD
 <<<<<<< HEAD
 		terms := make([]*types.Term, r.uint64())
 		for i := range terms {
@@ -1213,11 +1363,18 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 		return types.NewUnion(terms)
 =======
 		terms := make([]*typeparams.Term, r.uint64())
+=======
+		terms := make([]*types.Term, r.uint64())
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		for i := range terms {
-			terms[i] = typeparams.NewTerm(r.bool(), r.typ())
+			terms[i] = types.NewTerm(r.bool(), r.typ())
 		}
+<<<<<<< HEAD
 		return typeparams.NewUnion(terms)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return types.NewUnion(terms)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 }
 
@@ -1226,6 +1383,9 @@ func (r *importReader) kind() itag {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // objectPathObject is the inverse of exportWriter.objectPath.
 //
 // In shallow mode, certain fields and methods may need to be looked up in an
@@ -1247,6 +1407,7 @@ func (r *importReader) objectPathObject() types.Object {
 }
 
 func (r *importReader) signature(recv *types.Var, rparams []*types.TypeParam, tparams []*types.TypeParam) *types.Signature {
+<<<<<<< HEAD
 	params := r.paramList()
 	results := r.paramList()
 	variadic := params.Len() > 0 && r.bool()
@@ -1256,18 +1417,25 @@ func (r *importReader) signature(recv *types.Var, rparams []*types.TypeParam, tp
 func (r *importReader) tparamList() []*types.TypeParam {
 =======
 func (r *importReader) signature(recv *types.Var, rparams []*typeparams.TypeParam, tparams []*typeparams.TypeParam) *types.Signature {
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	params := r.paramList()
 	results := r.paramList()
 	variadic := params.Len() > 0 && r.bool()
-	return typeparams.NewSignatureType(recv, rparams, tparams, params, results, variadic)
+	return types.NewSignatureType(recv, rparams, tparams, params, results, variadic)
 }
 
+<<<<<<< HEAD
 func (r *importReader) tparamList() []*typeparams.TypeParam {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func (r *importReader) tparamList() []*types.TypeParam {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	n := r.uint64()
 	if n == 0 {
 		return nil
 	}
+<<<<<<< HEAD
 <<<<<<< HEAD
 	xs := make([]*types.TypeParam, n)
 	for i := range xs {
@@ -1281,6 +1449,13 @@ func (r *importReader) tparamList() []*typeparams.TypeParam {
 		// though would panic in SetTypeParams.
 		xs[i] = r.typ().(*typeparams.TypeParam)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	xs := make([]*types.TypeParam, n)
+	for i := range xs {
+		// Note: the standard library importer is tolerant of nil types here,
+		// though would panic in SetTypeParams.
+		xs[i] = r.typ().(*types.TypeParam)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	return xs
 }

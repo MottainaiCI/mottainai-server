@@ -47,12 +47,17 @@ func GetKeyIDAndAlg(jws *jose.JSONWebSignature) (string, string) {
 // will return false none or multiple match
 //
 <<<<<<< HEAD
+<<<<<<< HEAD
 // deprecated: use FindMatchingKey which will return an error (more specific) instead of just a bool
 // moved implementation already to FindMatchingKey
 =======
 //deprecated: use FindMatchingKey which will return an error (more specific) instead of just a bool
 //moved implementation already to FindMatchingKey
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+// deprecated: use FindMatchingKey which will return an error (more specific) instead of just a bool
+// moved implementation already to FindMatchingKey
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func FindKey(keyID, use, expectedAlg string, keys ...jose.JSONWebKey) (jose.JSONWebKey, bool) {
 	key, err := FindMatchingKey(keyID, use, expectedAlg, keys...)
 	return key, err == nil
@@ -97,10 +102,14 @@ func FindMatchingKey(keyID, use, expectedAlg string, keys ...jose.JSONWebKey) (k
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func algToKeyType(key any, alg string) bool {
 =======
 func algToKeyType(key interface{}, alg string) bool {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func algToKeyType(key any, alg string) bool {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	switch alg[0] {
 	case 'R', 'P':
 		_, ok := key.(*rsa.PublicKey)

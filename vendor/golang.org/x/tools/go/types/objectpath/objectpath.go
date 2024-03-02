@@ -29,12 +29,18 @@ import (
 	"strconv"
 	"strings"
 
+<<<<<<< HEAD
 	"golang.org/x/tools/internal/aliases"
 	"golang.org/x/tools/internal/typesinternal"
 )
 
 // TODO(adonovan): think about generic aliases.
 
+=======
+	"golang.org/x/tools/internal/typeparams"
+)
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // A Path is an opaque name that identifies a types.Object
 // relative to its package. Conceptually, the name consists of a
 // sequence of destructuring operations applied to the package scope
@@ -226,7 +232,11 @@ func (enc *Encoder) For(obj types.Object) (Path, error) {
 	//    Reject obviously non-viable cases.
 	switch obj := obj.(type) {
 	case *types.TypeName:
+<<<<<<< HEAD
 		if _, ok := aliases.Unalias(obj.Type()).(*types.TypeParam); !ok {
+=======
+		if _, ok := obj.Type().(*types.TypeParam); !ok {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			// With the exception of type parameters, only package-level type names
 			// have a path.
 			return "", fmt.Errorf("no path for %v", obj)
@@ -313,7 +323,11 @@ func (enc *Encoder) For(obj types.Object) (Path, error) {
 		}
 
 		// Inspect declared methods of defined types.
+<<<<<<< HEAD
 		if T, ok := aliases.Unalias(o.Type()).(*types.Named); ok {
+=======
+		if T, ok := o.Type().(*types.Named); ok {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			path = append(path, opType)
 			// The method index here is always with respect
 			// to the underlying go/types data structures,
@@ -394,12 +408,26 @@ func (enc *Encoder) concreteMethod(meth *types.Func) (Path, bool) {
 	// of objectpath will only be giving us origin methods, anyway, as referring
 	// to instantiated methods is usually not useful.
 
+<<<<<<< HEAD
 	if meth.Origin() != meth {
 		return "", false
 	}
 
 	_, named := typesinternal.ReceiverNamed(meth.Type().(*types.Signature).Recv())
 	if named == nil {
+=======
+	if typeparams.OriginMethod(meth) != meth {
+		return "", false
+	}
+
+	recvT := meth.Type().(*types.Signature).Recv().Type()
+	if ptr, ok := recvT.(*types.Pointer); ok {
+		recvT = ptr.Elem()
+	}
+
+	named, ok := recvT.(*types.Named)
+	if !ok {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return "", false
 	}
 
@@ -442,8 +470,11 @@ func (enc *Encoder) concreteMethod(meth *types.Func) (Path, bool) {
 // nil, it will be allocated as necessary.
 func find(obj types.Object, T types.Type, path []byte, seen map[*types.TypeName]bool) []byte {
 	switch T := T.(type) {
+<<<<<<< HEAD
 	case *aliases.Alias:
 		return find(obj, aliases.Unalias(T), path, seen)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case *types.Basic, *types.Named:
 		// Named types belonging to pkg were handled already,
 		// so T must belong to another package. No path.
@@ -616,7 +647,10 @@ func Object(pkg *types.Package, p Path) (types.Object, error) {
 
 		// Inv: t != nil, obj == nil
 
+<<<<<<< HEAD
 		t = aliases.Unalias(t)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		switch code {
 		case opElem:
 			hasElem, ok := t.(hasElem) // Pointer, Slice, Array, Chan, Map

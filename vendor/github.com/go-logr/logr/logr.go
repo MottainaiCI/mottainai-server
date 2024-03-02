@@ -255,14 +255,20 @@ type Logger struct {
 // flags might be used to set the logging verbosity and disable some info logs.
 func (l Logger) Enabled() bool {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Some implementations of LogSink look at the caller in Enabled (e.g.
 	// different verbosity levels per package or file), but we only pass one
 	// CallDepth in (via Init).  This means that all calls from Logger to the
 	// LogSink's Enabled, Info, and Error methods must have the same number of
 	// frames.  In other words, Logger methods can't call other Logger methods
 	// which call these LogSink methods unless we do it the same in all paths.
+<<<<<<< HEAD
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return l.sink != nil && l.sink.Enabled(l.level)
 }
 
@@ -272,6 +278,7 @@ func (l Logger) Enabled() bool {
 // line.  The key/value pairs can then be used to add additional variable
 // information.  The key/value pairs must alternate string keys and arbitrary
 // values.
+<<<<<<< HEAD
 <<<<<<< HEAD
 func (l Logger) Info(msg string, keysAndValues ...any) {
 	if l.sink == nil {
@@ -285,6 +292,13 @@ func (l Logger) Info(msg string, keysAndValues ...interface{}) {
 	}
 	if l.Enabled() {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (l Logger) Info(msg string, keysAndValues ...any) {
+	if l.sink == nil {
+		return
+	}
+	if l.sink.Enabled(l.level) { // see comment in Enabled
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if withHelper, ok := l.sink.(CallStackHelperLogSink); ok {
 			withHelper.GetCallStackHelper()()
 		}
@@ -303,10 +317,14 @@ func (l Logger) Info(msg string, keysAndValues ...interface{}) {
 // triggered this log line, if present. The err parameter is optional
 // and nil may be passed instead of an error instance.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (l Logger) Error(err error, msg string, keysAndValues ...any) {
 =======
 func (l Logger) Error(err error, msg string, keysAndValues ...interface{}) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (l Logger) Error(err error, msg string, keysAndValues ...any) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if l.sink == nil {
 		return
 	}
@@ -341,10 +359,14 @@ func (l Logger) GetV() int {
 // WithValues returns a new Logger instance with additional key/value pairs.
 // See Info for documentation on how key/value pairs work.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (l Logger) WithValues(keysAndValues ...any) Logger {
 =======
 func (l Logger) WithValues(keysAndValues ...interface{}) Logger {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
+=======
+func (l Logger) WithValues(keysAndValues ...any) Logger {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if l.sink == nil {
 		return l
 	}
@@ -427,6 +449,7 @@ func (l Logger) IsZero() bool {
 =======
 }
 
+<<<<<<< HEAD
 // contextKey is how we find Loggers in a context.Context.
 type contextKey struct{}
 
@@ -467,6 +490,8 @@ func NewContext(ctx context.Context, logger Logger) context.Context {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // RuntimeInfo holds information that the logr "core" library knows which
 // LogSinks might want to know.
 type RuntimeInfo struct {

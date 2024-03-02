@@ -4,22 +4,29 @@ package shared
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/shared/util_linux.go
 	"time"
 =======
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/shared/util_linux.go
+=======
+	"time"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"unsafe"
 
 	"github.com/pkg/xattr"
 	"golang.org/x/sys/unix"
 
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/shared/util_linux.go
 	"github.com/canonical/lxd/lxd/revert"
 	"github.com/canonical/lxd/shared/units"
@@ -27,6 +34,10 @@ import (
 	"github.com/lxc/lxd/lxd/revert"
 	"github.com/lxc/lxd/shared/units"
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/shared/util_linux.go
+=======
+	"github.com/canonical/lxd/shared/revert"
+	"github.com/canonical/lxd/shared/units"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // --- pure Go functions ---

@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 //go:build zos && s390x
+<<<<<<< HEAD
 
 // Many of the following syscalls are not available on all versions of z/OS.
 // Some missing calls have legacy implementations/simulations but others
@@ -10,6 +11,8 @@
 // legacy systems, we first test the function pointer via a safeloading
 // mechanism to see if the function exists on a given system. Then execution
 // is branched to either continue the function call, or return an error.
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 package unix
 
@@ -761,14 +764,6 @@ func Close(fd int) (err error) {
 // Dummy function: there are no semantics for Madvise on z/OS
 func Madvise(b []byte, advice int) (err error) {
 	return
-}
-
-func Mmap(fd int, offset int64, length int, prot int, flags int) (data []byte, err error) {
-	return mapper.Mmap(fd, offset, length, prot, flags)
-}
-
-func Munmap(b []byte) (err error) {
-	return mapper.Munmap(b)
 }
 
 //sys   Gethostname(buf []byte) (err error) = SYS___GETHOSTNAME_A

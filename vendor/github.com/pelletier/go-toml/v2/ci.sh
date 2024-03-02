@@ -78,10 +78,14 @@ cover() {
     pushd "$dir"
     go test -covermode=atomic  -coverpkg=./... -coverprofile=coverage.out.tmp ./...
 <<<<<<< HEAD
+<<<<<<< HEAD
     grep -Ev '(fuzz|testsuite|tomltestgen|gotoml-test-decoder|gotoml-test-encoder)' coverage.out.tmp > coverage.out
 =======
     cat coverage.out.tmp | grep -v fuzz | grep -v testsuite | grep -v tomltestgen | grep -v gotoml-test-decoder > coverage.out
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
+=======
+    grep -Ev '(fuzz|testsuite|tomltestgen|gotoml-test-decoder|gotoml-test-encoder)' coverage.out.tmp > coverage.out
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
     go tool cover -func=coverage.out
     echo "Coverage profile for ${branch}: ${dir}/coverage.out" >&2
     popd

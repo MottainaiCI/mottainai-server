@@ -96,6 +96,9 @@ type Header struct {
 // The FirstBlock.OK will indicate if enough information was available to decode the first block header.
 func (h *Header) Decode(in []byte) error {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	_, err := h.DecodeAndStrip(in)
 	return err
 }
@@ -108,6 +111,7 @@ func (h *Header) Decode(in []byte) error {
 // If there isn't enough input, io.ErrUnexpectedEOF is returned.
 // The FirstBlock.OK will indicate if enough information was available to decode the first block header.
 func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
+<<<<<<< HEAD
 	*h = Header{}
 	if len(in) < 4 {
 		return nil, io.ErrUnexpectedEOF
@@ -116,11 +120,17 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 	if len(in) < 4 {
 		return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	*h = Header{}
+	if len(in) < 4 {
+		return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	h.HeaderSize += 4
 	b, in := in[:4], in[4:]
 	if string(b) != frameMagic {
 		if string(b[1:4]) != skippableFrameMagic || b[0]&0xf0 != 0x50 {
+<<<<<<< HEAD
 <<<<<<< HEAD
 			return nil, ErrMagicMismatch
 		}
@@ -132,26 +142,40 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 		if len(in) < 4 {
 			return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			return nil, ErrMagicMismatch
+		}
+		if len(in) < 4 {
+			return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		h.HeaderSize += 4
 		h.Skippable = true
 		h.SkippableID = int(b[0] & 0xf)
 		h.SkippableSize = binary.LittleEndian.Uint32(in)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return in[4:], nil
 =======
 		return nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return in[4:], nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	// Read Window_Descriptor
 	// https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#window_descriptor
 	if len(in) < 1 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return nil, io.ErrUnexpectedEOF
 =======
 		return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	fhd, in := in[0], in[1:]
 	h.HeaderSize++
@@ -159,19 +183,27 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 	h.HasCheckSum = fhd&(1<<2) != 0
 	if fhd&(1<<3) != 0 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return nil, errors.New("reserved bit set on frame header")
 =======
 		return errors.New("reserved bit set on frame header")
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return nil, errors.New("reserved bit set on frame header")
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 
 	if !h.SingleSegment {
 		if len(in) < 1 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			return nil, io.ErrUnexpectedEOF
 =======
 			return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		var wd byte
 		wd, in = in[0], in[1:]
@@ -190,10 +222,14 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 		}
 		if len(in) < int(size) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			return nil, io.ErrUnexpectedEOF
 =======
 			return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		b, in = in[:size], in[size:]
 		h.HeaderSize += int(size)
@@ -224,10 +260,14 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 		h.HasFCS = true
 		if len(in) < fcsSize {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			return nil, io.ErrUnexpectedEOF
 =======
 			return io.ErrUnexpectedEOF
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			return nil, io.ErrUnexpectedEOF
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		b, in = in[:fcsSize], in[fcsSize:]
 		h.HeaderSize += int(fcsSize)
@@ -249,10 +289,14 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 	// Frame Header done, we will not fail from now on.
 	if len(in) < 3 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return in, nil
 =======
 		return nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return in, nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	tmp := in[:3]
 	bh := uint32(tmp[0]) | (uint32(tmp[1]) << 8) | (uint32(tmp[2]) << 16)
@@ -263,10 +307,14 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 	switch blockType {
 	case blockTypeReserved:
 <<<<<<< HEAD
+<<<<<<< HEAD
 		return in, nil
 =======
 		return nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		return in, nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case blockTypeRLE:
 		h.FirstBlock.Compressed = true
 		h.FirstBlock.DecompressedSize = cSize
@@ -283,6 +331,9 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 
 	h.FirstBlock.OK = true
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	return in, nil
 }
 
@@ -304,7 +355,10 @@ func (h *Header) AppendTo(dst []byte) ([]byte, error) {
 		DictID:        h.DictionaryID,
 	}
 	return f.appendTo(dst), nil
+<<<<<<< HEAD
 =======
 	return nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }

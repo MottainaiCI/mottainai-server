@@ -30,9 +30,12 @@ import (
 	"go/types"
 	"io"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	"io/ioutil"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -225,10 +228,14 @@ func Import(packages map[string]*types.Package, path, srcDir string, lookup func
 	case "$$B\n":
 		var data []byte
 <<<<<<< HEAD
+<<<<<<< HEAD
 		data, err = io.ReadAll(buf)
 =======
 		data, err = ioutil.ReadAll(buf)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		data, err = io.ReadAll(buf)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err != nil {
 			break
 		}

@@ -36,10 +36,14 @@ func (p *SourcePath) appendFileDescriptorProto(b []byte) []byte {
 	case 12:
 		b = p.appendSingularField(b, "syntax", nil)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	case 14:
 =======
 	case 13:
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	case 14:
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		b = p.appendSingularField(b, "edition", nil)
 	}
 	return b
@@ -245,10 +249,15 @@ func (p *SourcePath) appendMessageOptions(b []byte) []byte {
 	case 11:
 		b = p.appendSingularField(b, "deprecated_legacy_json_field_conflicts", nil)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	case 12:
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	case 12:
+		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}
@@ -295,10 +304,15 @@ func (p *SourcePath) appendEnumOptions(b []byte) []byte {
 	case 6:
 		b = p.appendSingularField(b, "deprecated_legacy_json_field_conflicts", nil)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	case 7:
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	case 7:
+		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}
@@ -378,18 +392,24 @@ func (p *SourcePath) appendFieldOptions(b []byte) []byte {
 	case 17:
 		b = p.appendSingularField(b, "retention", nil)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case 19:
 		b = p.appendRepeatedField(b, "targets", nil)
 	case 20:
 		b = p.appendRepeatedField(b, "edition_defaults", (*SourcePath).appendFieldOptions_EditionDefault)
 	case 21:
 		b = p.appendSingularField(b, "features", (*SourcePath).appendFeatureSet)
+<<<<<<< HEAD
 	case 22:
 		b = p.appendSingularField(b, "feature_support", (*SourcePath).appendFieldOptions_FeatureSupport)
 =======
 	case 18:
 		b = p.appendSingularField(b, "target", nil)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case 999:
 		b = p.appendRepeatedField(b, "uninterpreted_option", (*SourcePath).appendUninterpretedOption)
 	}
@@ -536,6 +556,7 @@ func (p *SourcePath) appendFieldOptions_EditionDefault(b []byte) []byte {
 	return b
 }
 
+<<<<<<< HEAD
 func (p *SourcePath) appendFieldOptions_FeatureSupport(b []byte) []byte {
 	if len(*p) == 0 {
 		return b
@@ -553,6 +574,8 @@ func (p *SourcePath) appendFieldOptions_FeatureSupport(b []byte) []byte {
 	return b
 }
 
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (p *SourcePath) appendUninterpretedOption_NamePart(b []byte) []byte {
 	if len(*p) == 0 {
 		return b

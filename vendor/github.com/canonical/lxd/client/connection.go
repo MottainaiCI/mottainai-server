@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery"
 	"github.com/gorilla/websocket"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
 
@@ -40,9 +39,6 @@ type ConnectionArgs struct {
 
 	// Authentication type
 	AuthType string
-
-	// Authentication interactor
-	AuthInteractor []httpbakery.Interactor
 
 	// Custom proxy
 	Proxy func(*http.Request) (*url.URL, error)
@@ -326,18 +322,21 @@ func httpsLXD(ctx context.Context, requestURL string, args *ConnectionArgs) (Ins
 		httpBaseURL:        *httpBaseURL,
 		httpProtocol:       "https",
 		httpUserAgent:      args.UserAgent,
-		bakeryInteractor:   args.AuthInteractor,
 		ctxConnected:       ctxConnected,
 		ctxConnectedCancel: ctxConnectedCancel,
 		eventConns:         make(map[string]*websocket.Conn),
 		eventListeners:     make(map[string][]*EventListener),
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/client/connection.go
 	if shared.ValueInSlice(args.AuthType, []string{api.AuthenticationMethodCandid, api.AuthenticationMethodOIDC}) {
 =======
 	if shared.StringInSlice(args.AuthType, []string{"candid", "oidc"}) {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/connection.go
+=======
+	if shared.ValueInSlice(args.AuthType, []string{api.AuthenticationMethodOIDC}) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		server.RequireAuthenticated(true)
 	}
 
@@ -352,6 +351,7 @@ func httpsLXD(ctx context.Context, requestURL string, args *ConnectionArgs) (Ins
 	}
 
 	server.http = httpClient
+<<<<<<< HEAD
 	if args.AuthType == api.AuthenticationMethodCandid {
 		server.setupBakeryClient()
 <<<<<<< HEAD:vendor/github.com/canonical/lxd/client/connection.go
@@ -359,6 +359,9 @@ func httpsLXD(ctx context.Context, requestURL string, args *ConnectionArgs) (Ins
 =======
 	} else if args.AuthType == "oidc" {
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/connection.go
+=======
+	if args.AuthType == api.AuthenticationMethodOIDC {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		server.setupOIDCClient(args.OIDCTokens)
 	}
 

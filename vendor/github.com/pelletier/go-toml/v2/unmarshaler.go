@@ -1145,6 +1145,7 @@ func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node
 		f := fieldByIndex(v, path)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if !f.CanAddr() {
 			// If the field is not addressable, need to take a slower path and
 			// make a copy of the struct itself to a new location.
@@ -1153,6 +1154,11 @@ func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node
 			// If the field is not settable, need to take a slower path and make a copy of
 			// the struct itself to a new location.
 >>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
+=======
+		if !f.CanAddr() {
+			// If the field is not addressable, need to take a slower path and
+			// make a copy of the struct itself to a new location.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			nvp := reflect.New(v.Type())
 			nvp.Elem().Set(v)
 			v = nvp.Elem()

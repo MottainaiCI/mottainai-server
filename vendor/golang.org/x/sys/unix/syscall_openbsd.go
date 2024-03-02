@@ -144,6 +144,7 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 		bufsize = unsafe.Sizeof(Statfs_t{}) * uintptr(len(buf))
 	}
 	return getfsstat(bufptr, bufsize, flags)
+<<<<<<< HEAD
 }
 
 //sysnb	getresuid(ruid *_C_int, euid *_C_int, suid *_C_int)
@@ -159,6 +160,8 @@ func Getresgid() (rgid, egid, sgid int) {
 	var r, e, s _C_int
 	getresgid(&r, &e, &s)
 	return int(r), int(e), int(s)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 //sysnb	getresuid(ruid *_C_int, euid *_C_int, suid *_C_int)
@@ -353,6 +356,7 @@ func Uname(uname *Utsname) error {
 //sys	getfsstat(stat *Statfs_t, bufsize uintptr, flags int) (n int, err error)
 //sys	utimensat(dirfd int, path string, times *[2]Timespec, flags int) (err error)
 <<<<<<< HEAD
+<<<<<<< HEAD
 //sys	pledge(promises *byte, execpromises *byte) (err error)
 //sys	unveil(path *byte, flags *byte) (err error)
 =======
@@ -429,3 +433,7 @@ func Uname(uname *Utsname) error {
 // vfork
 // writev
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+//sys	pledge(promises *byte, execpromises *byte) (err error)
+//sys	unveil(path *byte, flags *byte) (err error)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

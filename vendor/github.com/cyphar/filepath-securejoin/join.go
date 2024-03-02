@@ -52,6 +52,7 @@ func SecureJoinVFS(root, unsafePath string, vfs VFS) (string, error) {
 	}
 
 	unsafePath = filepath.FromSlash(unsafePath)
+<<<<<<< HEAD
 	var (
 		currentPath   string
 		remainingPath = unsafePath
@@ -60,6 +61,17 @@ func SecureJoinVFS(root, unsafePath string, vfs VFS) (string, error) {
 	for remainingPath != "" {
 		if v := filepath.VolumeName(remainingPath); v != "" {
 			remainingPath = remainingPath[len(v):]
+=======
+	var path bytes.Buffer
+	n := 0
+	for unsafePath != "" {
+		if n > 255 {
+			return "", &os.PathError{Op: "SecureJoin", Path: root + string(filepath.Separator) + unsafePath, Err: syscall.ELOOP}
+		}
+
+		if v := filepath.VolumeName(unsafePath); v != "" {
+			unsafePath = unsafePath[len(v):]
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 
 		// Get the next path component.

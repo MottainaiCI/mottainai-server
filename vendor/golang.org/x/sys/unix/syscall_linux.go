@@ -2536,6 +2536,9 @@ func Getresgid() (rgid, egid, sgid int) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Pselect is a wrapper around the Linux pselect6 system call.
 // This version does not modify the timeout argument.
 func Pselect(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timespec, sigmask *Sigset_t) (n int, err error) {
@@ -2593,6 +2596,7 @@ func SchedGetAttr(pid int, flags uint) (*SchedAttr, error) {
 }
 
 //sys	Cachestat(fd uint, crange *CachestatRange, cstat *Cachestat_t, flags uint) (err error)
+<<<<<<< HEAD
 =======
 /*
  * Unimplemented
@@ -2691,3 +2695,5 @@ func SchedGetAttr(pid int, flags uint) (*SchedAttr, error) {
 // Vserver
 // _Sysctl
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

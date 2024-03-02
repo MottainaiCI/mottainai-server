@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"log"
 	"os"
 	"os/exec"
@@ -19,6 +20,11 @@ import (
 	"log"
 	"os"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	"log"
+	"os"
+	"os/exec"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"path"
 	"path/filepath"
 	"reflect"
@@ -29,9 +35,12 @@ import (
 	"unicode"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	exec "golang.org/x/sys/execabs"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"golang.org/x/tools/go/internal/packagesdriver"
 	"golang.org/x/tools/internal/gocommand"
 	"golang.org/x/tools/internal/packagesinternal"
@@ -47,6 +56,7 @@ type goTooOldError struct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // responseDeduper wraps a DriverResponse, deduplicating its contents.
 type responseDeduper struct {
 	seenRoots    map[string]bool
@@ -59,20 +69,32 @@ type responseDeduper struct {
 	seenPackages map[string]*Package
 	dr           *driverResponse
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+// responseDeduper wraps a DriverResponse, deduplicating its contents.
+type responseDeduper struct {
+	seenRoots    map[string]bool
+	seenPackages map[string]*Package
+	dr           *DriverResponse
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func newDeduper() *responseDeduper {
 	return &responseDeduper{
 <<<<<<< HEAD
+<<<<<<< HEAD
 		dr:           &DriverResponse{},
 =======
 		dr:           &driverResponse{},
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		dr:           &DriverResponse{},
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		seenRoots:    map[string]bool{},
 		seenPackages: map[string]*Package{},
 	}
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // addAll fills in r with a DriverResponse.
 func (r *responseDeduper) addAll(dr *DriverResponse) {
@@ -80,6 +102,10 @@ func (r *responseDeduper) addAll(dr *DriverResponse) {
 // addAll fills in r with a driverResponse.
 func (r *responseDeduper) addAll(dr *driverResponse) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+// addAll fills in r with a DriverResponse.
+func (r *responseDeduper) addAll(dr *DriverResponse) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	for _, pkg := range dr.Packages {
 		r.addPackage(pkg)
 	}
@@ -157,10 +183,14 @@ func (state *golistState) mustGetEnv() map[string]string {
 // the build system package structure.
 // See driver for more details.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func goListDriver(cfg *Config, patterns ...string) (_ *DriverResponse, err error) {
 =======
 func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func goListDriver(cfg *Config, patterns ...string) (_ *DriverResponse, err error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Make sure that any asynchronous go commands are killed when we return.
 	parentCtx := cfg.Context
 	if parentCtx == nil {
@@ -179,6 +209,7 @@ func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 
 	// Fill in response.Sizes asynchronously if necessary.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if cfg.Mode&NeedTypesSizes != 0 || cfg.Mode&NeedTypes != 0 {
 		errCh := make(chan error)
 		go func() {
@@ -194,15 +225,29 @@ func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 =======
 	var sizeserr error
 	var sizeswg sync.WaitGroup
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if cfg.Mode&NeedTypesSizes != 0 || cfg.Mode&NeedTypes != 0 {
-		sizeswg.Add(1)
+		errCh := make(chan error)
 		go func() {
+<<<<<<< HEAD
 			var sizes types.Sizes
 			sizes, sizeserr = packagesdriver.GetSizesGolist(ctx, state.cfgInvocation(), cfg.gocmdRunner)
 			// types.SizesFor always returns nil or a *types.StdSizes.
 			response.dr.Sizes, _ = sizes.(*types.StdSizes)
 			sizeswg.Done()
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			compiler, arch, err := packagesdriver.GetSizesForArgsGolist(ctx, state.cfgInvocation(), cfg.gocmdRunner)
+			response.dr.Compiler = compiler
+			response.dr.Arch = arch
+			errCh <- err
+		}()
+		defer func() {
+			if sizesErr := <-errCh; sizesErr != nil {
+				err = sizesErr
+			}
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}()
 	}
 
@@ -255,6 +300,7 @@ extractQueries:
 		}
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	// (We may yet return an error due to defer.)
 	return response.dr, nil
@@ -343,6 +389,12 @@ func (state *golistState) addNeededOverlayPackages(response *responseDeduper, pk
 }
 
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	// (We may yet return an error due to defer.)
+	return response.dr, nil
+}
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (state *golistState) runContainsQueries(response *responseDeduper, queries []string) error {
 	for _, query := range queries {
 		// TODO(matloob): Do only one query per directory.
@@ -395,10 +447,14 @@ func (state *golistState) runContainsQueries(response *responseDeduper, queries 
 // adhocPackage attempts to load or construct an ad-hoc package for a given
 // query, if the original call to the driver produced inadequate results.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (state *golistState) adhocPackage(pattern, query string) (*DriverResponse, error) {
 =======
 func (state *golistState) adhocPackage(pattern, query string) (*driverResponse, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func (state *golistState) adhocPackage(pattern, query string) (*DriverResponse, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	response, err := state.createDriverResponse(query)
 	if err != nil {
 		return nil, err
@@ -490,10 +546,14 @@ func otherFiles(p *jsonPackage) [][]string {
 // createDriverResponse uses the "go list" command to expand the pattern
 // words and return a response for the specified packages.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (state *golistState) createDriverResponse(words ...string) (*DriverResponse, error) {
 =======
 func (state *golistState) createDriverResponse(words ...string) (*driverResponse, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+func (state *golistState) createDriverResponse(words ...string) (*DriverResponse, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// go list uses the following identifiers in ImportPath and Imports:
 	//
 	// 	"p"			-- importable package or main (command)
@@ -521,10 +581,14 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 	additionalErrors := make(map[string][]Error)
 	// Decode the JSON and convert it to Package form.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	response := &DriverResponse{
 =======
 	response := &driverResponse{
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	response := &DriverResponse{
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		GoVersion: goVersion,
 	}
 	for dec := json.NewDecoder(buf); dec.More(); {
@@ -736,11 +800,17 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 		// error messages. This happens if there are unrecoverable syntax
 		// errors in the source, so we can't match on a specific error message.
 <<<<<<< HEAD
+<<<<<<< HEAD
 		//
 		// TODO(rfindley): remove this heuristic, in favor of considering
 		// InvalidGoFiles from the list driver.
 =======
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		//
+		// TODO(rfindley): remove this heuristic, in favor of considering
+		// InvalidGoFiles from the list driver.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err := p.Error; err != nil && state.shouldAddFilenameFromError(p) {
 			addFilenameFromPos := func(pos string) bool {
 				split := strings.Split(pos, ":")
@@ -1178,10 +1248,14 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 		return "", func() {}, nil
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 	dir, err := os.MkdirTemp("", "gopackages-*")
 =======
 	dir, err := ioutil.TempDir("", "gopackages-*")
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	dir, err := os.MkdirTemp("", "gopackages-*")
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err != nil {
 		return "", nil, err
 	}
@@ -1201,10 +1275,14 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 		// creating nested directories.
 		noSeparator := strings.Join(strings.Split(filepath.ToSlash(k), "/"), "")
 <<<<<<< HEAD
+<<<<<<< HEAD
 		f, err := os.CreateTemp(dir, fmt.Sprintf("*-%s", noSeparator))
 =======
 		f, err := ioutil.TempFile(dir, fmt.Sprintf("*-%s", noSeparator))
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		f, err := os.CreateTemp(dir, fmt.Sprintf("*-%s", noSeparator))
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err != nil {
 			return "", func() {}, err
 		}
@@ -1223,10 +1301,14 @@ func (state *golistState) writeOverlays() (filename string, cleanup func(), err 
 	// Write out the overlay file that contains the filepath mappings.
 	filename = filepath.Join(dir, "overlay.json")
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if err := os.WriteFile(filename, b, 0665); err != nil {
 =======
 	if err := ioutil.WriteFile(filename, b, 0665); err != nil {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	if err := os.WriteFile(filename, b, 0665); err != nil {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return "", func() {}, err
 	}
 	return filename, cleanup, nil

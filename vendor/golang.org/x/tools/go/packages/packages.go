@@ -21,9 +21,12 @@ import (
 	"go/types"
 	"io"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	"io/ioutil"
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"log"
 	"os"
 	"path/filepath"
@@ -44,9 +47,12 @@ import (
 	"golang.org/x/tools/go/gcexportdata"
 	"golang.org/x/tools/internal/gocommand"
 	"golang.org/x/tools/internal/packagesinternal"
-	"golang.org/x/tools/internal/typeparams"
 	"golang.org/x/tools/internal/typesinternal"
+<<<<<<< HEAD
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	"golang.org/x/tools/internal/versions"
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // A LoadMode controls the amount of detail to return when loading.
@@ -230,6 +236,7 @@ type Config struct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // driver is the type for functions that query the build system for the
 // packages named by the patterns.
@@ -267,6 +274,8 @@ type driverResponse struct {
 }
 
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Load loads and returns the Go packages named by the given patterns.
 //
 // Config specifies loading options;
@@ -287,6 +296,7 @@ type driverResponse struct {
 // proceeding with further analysis. The PrintErrors function is
 // provided for convenient display of all errors.
 func Load(cfg *Config, patterns ...string) ([]*Package, error) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 	ld := newLoader(cfg)
 	response, external, err := defaultDriver(&ld.Config, patterns...)
@@ -323,12 +333,41 @@ func Load(cfg *Config, patterns ...string) ([]*Package, error) {
 	l.sizes = response.Sizes
 	return l.refine(response)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	ld := newLoader(cfg)
+	response, external, err := defaultDriver(&ld.Config, patterns...)
+	if err != nil {
+		return nil, err
+	}
+
+	ld.sizes = types.SizesFor(response.Compiler, response.Arch)
+	if ld.sizes == nil && ld.Config.Mode&(NeedTypes|NeedTypesSizes|NeedTypesInfo) != 0 {
+		// Type size information is needed but unavailable.
+		if external {
+			// An external driver may fail to populate the Compiler/GOARCH fields,
+			// especially since they are relatively new (see #63700).
+			// Provide a sensible fallback in this case.
+			ld.sizes = types.SizesFor("gc", runtime.GOARCH)
+			if ld.sizes == nil { // gccgo-only arch
+				ld.sizes = types.SizesFor("gc", "amd64")
+			}
+		} else {
+			// Go list should never fail to deliver accurate size information.
+			// Reject the whole Load since the error is the same for every package.
+			return nil, fmt.Errorf("can't determine type sizes for compiler %q on GOARCH %q",
+				response.Compiler, response.Arch)
+		}
+	}
+
+	return ld.refine(response)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // defaultDriver is a driver that implements go/packages' fallback behavior.
 // It will try to request to an external driver, if one exists. If there's
 // no external driver, or the driver returns a response with NotHandled set,
 // defaultDriver will fall back to the go list driver.
+<<<<<<< HEAD
 <<<<<<< HEAD
 // The boolean result indicates that an external driver handled the request.
 func defaultDriver(cfg *Config, patterns ...string) (*DriverResponse, bool, error) {
@@ -353,12 +392,19 @@ func defaultDriver(cfg *Config, patterns ...string) (*DriverResponse, bool, erro
 
 	if driver := findExternalDriver(cfg); driver != nil {
 		response, err := callDriverOnChunks(driver, cfg, chunks)
+=======
+// The boolean result indicates that an external driver handled the request.
+func defaultDriver(cfg *Config, patterns ...string) (*DriverResponse, bool, error) {
+	if driver := findExternalDriver(cfg); driver != nil {
+		response, err := driver(cfg, patterns...)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if err != nil {
 			return nil, false, err
 		} else if !response.NotHandled {
 			return response, true, nil
 		}
 		// (fall through)
+<<<<<<< HEAD
 	}
 
 	response, err := callDriverOnChunks(goListDriver, cfg, chunks)
@@ -442,15 +488,20 @@ func defaultDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 	driver := findExternalDriver(cfg)
 	if driver == nil {
 		driver = goListDriver
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
-	response, err := driver(cfg, patterns...)
+
+	response, err := goListDriver(cfg, patterns...)
 	if err != nil {
-		return response, err
-	} else if response.NotHandled {
-		return goListDriver(cfg, patterns...)
+		return nil, false, err
 	}
+<<<<<<< HEAD
 	return response, nil
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	return response, false, nil
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // A Package describes a loaded Go package.
@@ -587,6 +638,7 @@ func init() {
 		return p.(*Package).depsErrors
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	packagesinternal.GetGoCmdRunner = func(config interface{}) *gocommand.Runner {
 		return config.(*Config).gocmdRunner
@@ -595,6 +647,8 @@ func init() {
 		config.(*Config).gocmdRunner = runner
 	}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	packagesinternal.SetModFile = func(config interface{}, value string) {
 		config.(*Config).modFile = value
 	}
@@ -732,10 +786,14 @@ type loader struct {
 	pkgs map[string]*loaderPackage
 	Config
 <<<<<<< HEAD
+<<<<<<< HEAD
 	sizes        types.Sizes // non-nil if needed by mode
 =======
 	sizes        types.Sizes
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+	sizes        types.Sizes // non-nil if needed by mode
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	parseCache   map[string]*parseValue
 	parseCacheMu sync.Mutex
 	exportMu     sync.Mutex // enforces mutual exclusion of exportdata operations
@@ -814,6 +872,7 @@ func newLoader(cfg *Config) *loader {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // refine connects the supplied packages into a graph and then adds type
 // and syntax information as requested by the LoadMode.
 func (ld *loader) refine(response *DriverResponse) ([]*Package, error) {
@@ -822,6 +881,11 @@ func (ld *loader) refine(response *DriverResponse) ([]*Package, error) {
 // and syntax information as requested by the LoadMode.
 func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+// refine connects the supplied packages into a graph and then adds type
+// and syntax information as requested by the LoadMode.
+func (ld *loader) refine(response *DriverResponse) ([]*Package, error) {
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	roots := response.Roots
 	rootMap := make(map[string]int, len(roots))
 	for i, root := range roots {
@@ -867,6 +931,7 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if ld.Mode&NeedImports != 0 {
 		// Materialize the import graph.
 
@@ -901,13 +966,18 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 			stubs := lpkg.Imports       // the structure form has only stubs with the ID in the Imports
 =======
 	// Materialize the import graph.
+=======
+	if ld.Mode&NeedImports != 0 {
+		// Materialize the import graph.
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
-	const (
-		white = 0 // new
-		grey  = 1 // in progress
-		black = 2 // complete
-	)
+		const (
+			white = 0 // new
+			grey  = 1 // in progress
+			black = 2 // complete
+		)
 
+<<<<<<< HEAD
 	// visit traverses the import graph, depth-first,
 	// and materializes the graph as Packages.Imports.
 	//
@@ -934,6 +1004,31 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 		// If NeedImports isn't set, the imports fields will all be zeroed out.
 		if ld.Mode&NeedImports != 0 {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		// visit traverses the import graph, depth-first,
+		// and materializes the graph as Packages.Imports.
+		//
+		// Valid imports are saved in the Packages.Import map.
+		// Invalid imports (cycles and missing nodes) are saved in the importErrors map.
+		// Thus, even in the presence of both kinds of errors,
+		// the Import graph remains a DAG.
+		//
+		// visit returns whether the package needs src or has a transitive
+		// dependency on a package that does. These are the only packages
+		// for which we load source code.
+		var stack []*loaderPackage
+		var visit func(lpkg *loaderPackage) bool
+		visit = func(lpkg *loaderPackage) bool {
+			switch lpkg.color {
+			case black:
+				return lpkg.needsrc
+			case grey:
+				panic("internal error: grey node")
+			}
+			lpkg.color = grey
+			stack = append(stack, lpkg) // push
+			stubs := lpkg.Imports       // the structure form has only stubs with the ID in the Imports
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			lpkg.Imports = make(map[string]*Package, len(stubs))
 			for importPath, ipkg := range stubs {
 				var importErr error
@@ -957,6 +1052,7 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 				}
 				lpkg.Imports[importPath] = imp.Package
 			}
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 			// Complete type information is required for the
@@ -988,28 +1084,48 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 		}
 		stack = stack[:len(stack)-1] // pop
 		lpkg.color = black
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
-		return lpkg.needsrc
-	}
+			// Complete type information is required for the
+			// immediate dependencies of each source package.
+			if lpkg.needsrc && ld.Mode&NeedTypes != 0 {
+				for _, ipkg := range lpkg.Imports {
+					ld.pkgs[ipkg.ID].needtypes = true
+				}
+			}
 
-	if ld.Mode&NeedImports == 0 {
-		// We do this to drop the stub import packages that we are not even going to try to resolve.
-		for _, lpkg := range initial {
-			lpkg.Imports = nil
+			// NeedTypeSizes causes TypeSizes to be set even
+			// on packages for which types aren't needed.
+			if ld.Mode&NeedTypesSizes != 0 {
+				lpkg.TypesSizes = ld.sizes
+			}
+			stack = stack[:len(stack)-1] // pop
+			lpkg.color = black
+
+			return lpkg.needsrc
 		}
+<<<<<<< HEAD
 	} else {
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		// For each initial package, create its import DAG.
 		for _, lpkg := range initial {
 			visit(lpkg)
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	} else {
 		// !NeedImports: drop the stub (ID-only) import packages
 		// that we are not even going to try to resolve.
 		for _, lpkg := range initial {
 			lpkg.Imports = nil
+<<<<<<< HEAD
 		}
 	}
 
@@ -1026,6 +1142,11 @@ func (ld *loader) refine(response *driverResponse) ([]*Package, error) {
 		}
 	}
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		}
+	}
+
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Load type data and syntax if needed, starting at
 	// the initial packages (roots of the import DAG).
 	if ld.Mode&NeedTypes != 0 || ld.Mode&NeedSyntax != 0 {
@@ -1290,6 +1411,7 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 		Uses:       make(map[*ast.Ident]types.Object),
 		Implicits:  make(map[ast.Node]types.Object),
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Instances:  make(map[*ast.Ident]types.Instance),
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
@@ -1301,6 +1423,13 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 	}
 	typeparams.InitInstanceInfo(lpkg.TypesInfo)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		Instances:  make(map[*ast.Ident]types.Instance),
+		Scopes:     make(map[ast.Node]*types.Scope),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
+	}
+	versions.InitFileVersions(lpkg.TypesInfo)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	lpkg.TypesSizes = ld.sizes
 
 	importer := importerFunc(func(path string) (*types.Package, error) {
@@ -1339,6 +1468,7 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 
 		Error: appendError,
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Sizes: ld.sizes, // may be nil
 	}
 	if lpkg.Module != nil && lpkg.Module.GoVersion != "" {
@@ -1346,6 +1476,12 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 =======
 		Sizes: ld.sizes,
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+		Sizes: ld.sizes, // may be nil
+	}
+	if lpkg.Module != nil && lpkg.Module.GoVersion != "" {
+		typesinternal.SetGoVersion(tc, "go"+lpkg.Module.GoVersion)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	if (ld.Mode & typecheckCgo) != 0 {
 		if !typesinternal.SetUsesCgo(tc) {
@@ -1457,10 +1593,14 @@ func (ld *loader) parseFile(filename string) (*ast.File, error) {
 		if src == nil {
 			ioLimit <- true // wait
 <<<<<<< HEAD
+<<<<<<< HEAD
 			src, err = os.ReadFile(filename)
 =======
 			src, err = ioutil.ReadFile(filename)
 >>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
+=======
+			src, err = os.ReadFile(filename)
+>>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			<-ioLimit // signal
 		}
 		if err != nil {
