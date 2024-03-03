@@ -5,7 +5,7 @@ go 1.21.5
 require (
 	github.com/HouzuoGuo/tiedot v0.0.0-20200330175510-6fb216206052
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/MottainaiCI/lxd-compose v0.33.0
+	github.com/MottainaiCI/lxd-compose v0.33.1
 	github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed
 	github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e
 	github.com/arangodb/go-driver v0.0.0-20201202080739-c41c94f2de00

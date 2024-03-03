@@ -66,6 +66,8 @@ github.com/Microsoft/hcsshim v0.11.4 h1:68vKo2VN8DE9AdN4tnkWnmdhqdbpUFM8OF3Airm7
 github.com/Microsoft/hcsshim v0.11.4/go.mod h1:smjE4dvqPX9Zldna+t5FG3rnoHhaB7QYxPRqGcpAD9w=
 github.com/MottainaiCI/lxd-compose v0.33.0 h1:E9HZyIi6KshqW3WI1Fa9dyh4pYdMG5x9KIi9x+GQXhE=
 github.com/MottainaiCI/lxd-compose v0.33.0/go.mod h1:wGNgIYXk+mQ1hbenjHDxUpoDLOEp5tu6l07aB7OJaPI=
+github.com/MottainaiCI/lxd-compose v0.33.1 h1:1d1Exkul8Z+BkW+7vbybhUFiyqmyDqZnoDxrH0lvcd4=
+github.com/MottainaiCI/lxd-compose v0.33.1/go.mod h1:wGNgIYXk+mQ1hbenjHDxUpoDLOEp5tu6l07aB7OJaPI=
 github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed h1:uxP3Fj4UJI1H5GGeDHik48S6BdqOxFNkWl45Lt5jT0Q=
 github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed/go.mod h1:XpLnxYiN5STC8FbtHC01MvybTix8Ozn0bw9Hxgjvr2A=
 github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e h1:WQ8ArFv/GpnDnnEMMK0BHr/BKyrie0YCdwGlMm7c7qY=
