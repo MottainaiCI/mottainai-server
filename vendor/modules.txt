@@ -46,6 +46,7 @@ github.com/Microsoft/go-winio/pkg/guid
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # github.com/MottainaiCI/lxd-compose v0.34.0
 ## explicit; go 1.22.0
 =======
@@ -63,6 +64,9 @@ github.com/Microsoft/go-winio/pkg/guid
 >>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 =======
 # github.com/MottainaiCI/lxd-compose v0.33.0
+=======
+# github.com/MottainaiCI/lxd-compose v0.33.1
+>>>>>>> 573fdcc5 (Fix patch on vendor canonical/lxd)
 ## explicit; go 1.21
 >>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 github.com/MottainaiCI/lxd-compose/pkg/executor
