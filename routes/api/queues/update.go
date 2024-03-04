@@ -25,6 +25,7 @@ package queuesapi
 
 import (
 	"errors"
+	"time"
 
 	database "github.com/MottainaiCI/mottainai-server/pkg/db"
 
@@ -47,6 +48,21 @@ func AddTask(queue NodeQueue, ctx *context.Context, db *database.Database) error
 	if err != nil {
 		return err
 	}
+
+	// Add node id to the target task. This reduce race on reassign the task
+	// to another node.
+	mytask, err := db.Driver.GetTask(db.Config, tid)
+	if err != nil {
+		return err
+	}
+	if !ctx.CheckTaskPermissions(&mytask) {
+		return errors.New("More permissions are required for this user")
+	}
+
+	db.Driver.UpdateTask(tid, map[string]interface{}{
+		"node_id":          queue.NodeId,
+		"last_update_time": time.Now().UTC().Format("20060102150405"),
+	})
 
 	ctx.APIActionSuccess()
 	return nil

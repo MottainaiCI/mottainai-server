@@ -102,7 +102,7 @@ func SetNode(f UpdateTaskForm, ctx *context.Context, db *database.Database) erro
 		return err
 	}
 	if !ctx.CheckTaskPermissions(&mytask) {
-		return errors.New("Moar permissions are required for this user")
+		return errors.New("More permissions are required for this user")
 	}
 	node, err := db.Driver.GetNodeByKey(f.Key)
 	if err != nil {

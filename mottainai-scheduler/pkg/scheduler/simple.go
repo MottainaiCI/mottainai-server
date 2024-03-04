@@ -92,6 +92,14 @@ func (s *SimpleTaskScheduler) Schedule() error {
 						goto end
 					}
 
+					// Check if the task is already been assigned to a target node.
+					if taskCandidate.Status == msetting.TASK_STATE_WAIT && taskCandidate.Node != "" {
+						fmt.Println("Task " + tid + " assigned to agent id " + taskCandidate.Node + " in state " +
+							taskCandidate.Status + ". Nothing to do. Waiting next cycle.")
+
+						goto end
+					}
+
 					_, err = s.Fetcher.NodeQueueAddTask(akey, nid, fields[0], tid)
 					if err != nil {
 						return errors.New(fmt.Sprintf(
@@ -482,6 +490,7 @@ func (s *DefaultTaskScheduler) elaboratePipelineChain(p *tasks.Pipeline, q queue
 				}
 
 				if qTask == nil || (!qTask.HasTaskInWaiting(p.Tasks[t].ID) && !qTask.HasTaskInRunning(p.Tasks[t].ID)) {
+
 					// POST: If qTask is nil means that the queue is not present yet.
 					err = s.AddTask2Queue(p.Tasks[t].ID, p.Tasks[t].Queue)
 					if err != nil {
