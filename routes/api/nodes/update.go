@@ -64,10 +64,16 @@ func Register(nodedata NodeUpdate, ctx *context.Context, db *database.Database) 
 
 	hb := time.Now().UTC().Format("20060102150405")
 	doc := map[string]interface{}{
-		"nodeid":      nodeid,
-		"hostname":    hostname,
-		"last_report": hb,
-		"standalone":  nodedata.Standalone,
+		"nodeid":          nodeid,
+		"hostname":        hostname,
+		"last_report":     hb,
+		"standalone":      nodedata.Standalone,
+		"user":            nodefound.User,
+		"pass":            nodefound.Pass,
+		"owner":           nodefound.Owner,
+		"ID":              nodefound.ID,
+		"key":             nodefound.Key,
+		"override_queues": nodefound.OverrideQueues,
 	}
 
 	if !nodefound.OverrideQueues {
