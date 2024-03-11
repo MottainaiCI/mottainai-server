@@ -50,7 +50,7 @@ func (d *Database) DeleteNode(docID string) error {
 }
 
 func (d *Database) UpdateNode(docID string, t map[string]interface{}) error {
-	return d.UpdateDoc(NodeColl, docID, t)
+	return d.ReplaceDoc(NodeColl, docID, t)
 }
 
 func (d *Database) GetNode(docID string) (nodes.Node, error) {
