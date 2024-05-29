@@ -35,8 +35,8 @@ github.com/Microsoft/go-winio/internal/fs
 github.com/Microsoft/go-winio/internal/socket
 github.com/Microsoft/go-winio/internal/stringbuffer
 github.com/Microsoft/go-winio/pkg/guid
-# github.com/MottainaiCI/lxd-compose v0.33.1
-## explicit; go 1.21
+# github.com/MottainaiCI/lxd-compose v0.34.0
+## explicit; go 1.22.0
 github.com/MottainaiCI/lxd-compose/pkg/executor
 github.com/MottainaiCI/lxd-compose/pkg/helpers
 github.com/MottainaiCI/lxd-compose/pkg/logger
@@ -153,6 +153,8 @@ github.com/docker/go-connections/nat
 # github.com/docker/go-units v0.5.0
 ## explicit
 github.com/docker/go-units
+# github.com/dsnet/compress v0.0.1
+## explicit; go 1.9
 # github.com/emicklei/go-restful/v3 v3.12.1
 ## explicit; go 1.13
 github.com/emicklei/go-restful/v3
@@ -443,6 +445,8 @@ github.com/klauspost/compress/internal/cpuinfo
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
+# github.com/klauspost/pgzip v1.2.6
+## explicit
 # github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b
 ## explicit
 github.com/koding/logging
@@ -660,6 +664,8 @@ github.com/subosito/gotenv
 # github.com/theckman/go-flock v0.4.0
 ## explicit
 github.com/theckman/go-flock
+# github.com/ulikunitz/xz v0.5.12
+## explicit; go 1.12
 # github.com/unknwon/com v1.0.1
 ## explicit
 github.com/unknwon/com
