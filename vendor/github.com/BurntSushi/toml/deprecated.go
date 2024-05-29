@@ -15,14 +15,11 @@ type TextMarshaler encoding.TextMarshaler
 // Deprecated: use encoding.TextUnmarshaler
 type TextUnmarshaler encoding.TextUnmarshaler
 
-<<<<<<< HEAD
 // DecodeReader is an alias for NewDecoder(r).Decode(v).
 //
 // Deprecated: use NewDecoder(reader).Decode(&value).
 func DecodeReader(r io.Reader, v any) (MetaData, error) { return NewDecoder(r).Decode(v) }
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // PrimitiveDecode is an alias for MetaData.PrimitiveDecode().
 //
 // Deprecated: use MetaData.PrimitiveDecode.
@@ -30,11 +27,3 @@ func PrimitiveDecode(primValue Primitive, v any) error {
 	md := MetaData{decoded: make(map[string]struct{})}
 	return md.unify(primValue.undecoded, rvalue(v))
 }
-<<<<<<< HEAD
-=======
-
-// DecodeReader is an alias for NewDecoder(r).Decode(v).
-//
-// Deprecated: use NewDecoder(reader).Decode(&value).
-func DecodeReader(r io.Reader, v interface{}) (MetaData, error) { return NewDecoder(r).Decode(v) }
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

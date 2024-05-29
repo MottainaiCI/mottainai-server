@@ -122,18 +122,6 @@ type CertInfo struct {
 	keypair tls.Certificate
 	ca      *x509.Certificate
 	crl     *x509.RevocationList
-<<<<<<< HEAD
-=======
-}
-
-// NewCertInfo returns a CertInfo struct populated with the given TLS certificate information.
-func NewCertInfo(keypair tls.Certificate, ca *x509.Certificate, crl *x509.RevocationList) *CertInfo {
-	return &CertInfo{
-		keypair: keypair,
-		ca:      ca,
-		crl:     crl,
-	}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // KeyPair returns the public/private key pair.

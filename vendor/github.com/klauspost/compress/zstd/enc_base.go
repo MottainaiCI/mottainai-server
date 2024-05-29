@@ -144,14 +144,7 @@ func (e *fastBase) resetBase(d *dict, singleBlock bool) {
 	} else {
 		e.crc.Reset()
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
 	e.blk.dictLitEnc = nil
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	e.blk.dictLitEnc = nil
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if d != nil {
 		low := e.lowMem
 		if singleBlock {

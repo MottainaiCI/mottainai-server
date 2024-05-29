@@ -10,27 +10,12 @@ import (
 
 	"github.com/gorilla/websocket"
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/lxd/shared/cancel"
 	"github.com/canonical/lxd/shared/ioprogress"
 	"github.com/canonical/lxd/shared/units"
 	"github.com/canonical/lxd/shared/ws"
-<<<<<<< HEAD
-=======
-	"github.com/lxc/lxd/shared"
-	"github.com/lxc/lxd/shared/api"
-	"github.com/lxc/lxd/shared/cancel"
-	"github.com/lxc/lxd/shared/ioprogress"
-	"github.com/lxc/lxd/shared/units"
-	"github.com/lxc/lxd/shared/ws"
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Container handling functions
@@ -69,13 +54,12 @@ func (r *ProtocolLXD) GetContainers() ([]api.Container, error) {
 func (r *ProtocolLXD) GetContainersFull() ([]api.ContainerFull, error) {
 	containers := []api.ContainerFull{}
 
-	err := r.CheckExtension("container_full")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_full") {
+		return nil, fmt.Errorf("The server is missing the required \"container_full\" API extension")
 	}
 
 	// Fetch the raw value
-	_, err = r.queryStruct("GET", "/containers?recursion=2", nil, "", &containers)
+	_, err := r.queryStruct("GET", "/containers?recursion=2", nil, "", &containers)
 	if err != nil {
 		return nil, err
 	}
@@ -99,9 +83,8 @@ func (r *ProtocolLXD) GetContainer(name string) (*api.Container, string, error) 
 // CreateContainerFromBackup is a convenience function to make it easier to
 // create a container from a backup.
 func (r *ProtocolLXD) CreateContainerFromBackup(args ContainerBackupArgs) (Operation, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	if args.PoolName == "" {
@@ -114,9 +97,8 @@ func (r *ProtocolLXD) CreateContainerFromBackup(args ContainerBackupArgs) (Opera
 		return op, nil
 	}
 
-	err = r.CheckExtension("container_backup_override_pool")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup_override_pool") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup_override_pool\" API extension")
 	}
 
 	// Prepare the HTTP request
@@ -166,9 +148,8 @@ func (r *ProtocolLXD) CreateContainerFromBackup(args ContainerBackupArgs) (Opera
 // CreateContainer requests that LXD creates a new container.
 func (r *ProtocolLXD) CreateContainer(container api.ContainersPost) (Operation, error) {
 	if container.Source.ContainerOnly {
-		err := r.CheckExtension("container_only_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_only_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_only_migration\" API extension")
 		}
 	}
 
@@ -375,12 +356,11 @@ func (r *ProtocolLXD) CopyContainer(source InstanceServer, container api.Contain
 	}
 
 	// Optimization for the local copy case
-	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || container.Location == r.clusterTarget || r.CheckExtension("cluster_internal_copy") == nil) {
+	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || container.Location == r.clusterTarget || r.HasExtension("cluster_internal_copy")) {
 		// Project handling
 		if destInfo.Project != sourceInfo.Project {
-			err := r.CheckExtension("container_copy_project")
-			if err != nil {
-				return nil, err
+			if !r.HasExtension("container_copy_project") {
+				return nil, fmt.Errorf("The server is missing the required \"container_copy_project\" API extension")
 			}
 
 			req.Source.Project = sourceInfo.Project
@@ -606,9 +586,8 @@ func (r *ProtocolLXD) tryMigrateContainer(source InstanceServer, name string, re
 // MigrateContainer requests that LXD prepares for a container migration.
 func (r *ProtocolLXD) MigrateContainer(name string, container api.ContainerPost) (Operation, error) {
 	if container.ContainerOnly {
-		err := r.CheckExtension("container_only_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_only_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_only_migration\" API extension")
 		}
 	}
 
@@ -640,16 +619,14 @@ func (r *ProtocolLXD) DeleteContainer(name string) (Operation, error) {
 // ExecContainer requests that LXD spawns a command inside the container.
 func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExecPost, args *ContainerExecArgs) (Operation, error) {
 	if exec.RecordOutput {
-		err := r.CheckExtension("container_exec_recording")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_exec_recording") {
+			return nil, fmt.Errorf("The server is missing the required \"container_exec_recording\" API extension")
 		}
 	}
 
 	if exec.User > 0 || exec.Group > 0 || exec.Cwd != "" {
-		err := r.CheckExtension("container_exec_user_group_cwd")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_exec_user_group_cwd") {
+			return nil, fmt.Errorf("The server is missing the required \"container_exec_user_group_cwd\" API extension")
 		}
 	}
 
@@ -695,18 +672,8 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 
 				// And attach stdin and stdout to it
 				go func() {
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 					ws.MirrorRead(conn, args.Stdin)
 					<-ws.MirrorWrite(conn, args.Stdout)
-=======
-					ws.MirrorRead(context.Background(), conn, args.Stdin)
-					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-					ws.MirrorRead(conn, args.Stdin)
-					<-ws.MirrorWrite(conn, args.Stdout)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					_ = conn.Close()
 
 					if args.DataDone != nil {
@@ -720,15 +687,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 			}
 		} else {
 			// Handle non-interactive sessions
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 			dones := make(map[int]chan error)
-=======
-			dones := make(map[int]chan struct{})
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-			dones := make(map[int]chan error)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			conns := []*websocket.Conn{}
 
 			// Handle stdin
@@ -739,15 +698,7 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[0] = ws.MirrorRead(conn, args.Stdin)
-=======
-				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-				dones[0] = ws.MirrorRead(conn, args.Stdin)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 
 			waitConns := 0 // Used for keeping track of when stdout and stderr have finished.
@@ -760,17 +711,8 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[1] = ws.MirrorWrite(conn, args.Stdout)
 				waitConns++
-=======
-				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-				dones[1] = ws.MirrorWrite(conn, args.Stdout)
-				waitConns++
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 
 			// Handle stderr
@@ -781,17 +723,8 @@ func (r *ProtocolLXD) ExecContainer(containerName string, exec api.ContainerExec
 				}
 
 				conns = append(conns, conn)
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 				dones[2] = ws.MirrorWrite(conn, args.Stderr)
 				waitConns++
-=======
-				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-				dones[2] = ws.MirrorWrite(conn, args.Stderr)
-				waitConns++
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 
 			// Wait for everything to be done
@@ -904,23 +837,20 @@ func (r *ProtocolLXD) GetContainerFile(containerName string, path string) (io.Re
 // CreateContainerFile tells LXD to create a file in the container.
 func (r *ProtocolLXD) CreateContainerFile(containerName string, path string, args ContainerFileArgs) error {
 	if args.Type == "directory" {
-		err := r.CheckExtension("directory_manipulation")
-		if err != nil {
-			return err
+		if !r.HasExtension("directory_manipulation") {
+			return fmt.Errorf("The server is missing the required \"directory_manipulation\" API extension")
 		}
 	}
 
 	if args.Type == "symlink" {
-		err := r.CheckExtension("file_symlinks")
-		if err != nil {
-			return err
+		if !r.HasExtension("file_symlinks") {
+			return fmt.Errorf("The server is missing the required \"file_symlinks\" API extension")
 		}
 	}
 
 	if args.WriteMode == "append" {
-		err := r.CheckExtension("file_append")
-		if err != nil {
-			return err
+		if !r.HasExtension("file_append") {
+			return fmt.Errorf("The server is missing the required \"file_append\" API extension")
 		}
 	}
 
@@ -975,13 +905,12 @@ func (r *ProtocolLXD) CreateContainerFile(containerName string, path string, arg
 
 // DeleteContainerFile deletes a file in the container.
 func (r *ProtocolLXD) DeleteContainerFile(containerName string, path string) error {
-	err := r.CheckExtension("file_delete")
-	if err != nil {
-		return err
+	if !r.HasExtension("file_delete") {
+		return fmt.Errorf("The server is missing the required \"file_delete\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("DELETE", fmt.Sprintf("/containers/%s/files?path=%s", url.PathEscape(containerName), url.QueryEscape(path)), nil, "")
+	_, _, err := r.query("DELETE", fmt.Sprintf("/containers/%s/files?path=%s", url.PathEscape(containerName), url.QueryEscape(path)), nil, "")
 	if err != nil {
 		return err
 	}
@@ -1032,11 +961,8 @@ func (r *ProtocolLXD) GetContainerSnapshot(containerName string, name string) (*
 // CreateContainerSnapshot requests that LXD creates a new snapshot for the container.
 func (r *ProtocolLXD) CreateContainerSnapshot(containerName string, snapshot api.ContainerSnapshotsPost) (Operation, error) {
 	// Validate the request
-	if snapshot.ExpiresAt != nil {
-		err := r.CheckExtension("snapshot_expiry_creation")
-		if err != nil {
-			return nil, err
-		}
+	if snapshot.ExpiresAt != nil && !r.HasExtension("snapshot_expiry_creation") {
+		return nil, fmt.Errorf("The server is missing the required \"snapshot_expiry_creation\" API extension")
 	}
 
 	// Send the request
@@ -1068,9 +994,8 @@ func (r *ProtocolLXD) CopyContainerSnapshot(source InstanceServer, containerName
 	}
 
 	if snapshot.Stateful && args.Live {
-		err := r.CheckExtension("container_snapshot_stateful_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_snapshot_stateful_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_snapshot_stateful_migration\" API extension")
 		}
 
 		req.ContainerPut.Stateful = snapshot.Stateful
@@ -1118,12 +1043,11 @@ func (r *ProtocolLXD) CopyContainerSnapshot(source InstanceServer, containerName
 	}
 
 	// Optimization for the local copy case
-	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || container.Location == r.clusterTarget || r.CheckExtension("cluster_internal_copy") == nil) {
+	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || container.Location == r.clusterTarget || r.HasExtension("cluster_internal_copy")) {
 		// Project handling
 		if destInfo.Project != sourceInfo.Project {
-			err := r.CheckExtension("container_copy_project")
-			if err != nil {
-				return nil, err
+			if !r.HasExtension("container_copy_project") {
+				return nil, fmt.Errorf("The server is missing the required \"container_copy_project\" API extension")
 			}
 
 			req.Source.Project = sourceInfo.Project
@@ -1368,9 +1292,8 @@ func (r *ProtocolLXD) DeleteContainerSnapshot(containerName string, name string)
 
 // UpdateContainerSnapshot requests that LXD updates the container snapshot.
 func (r *ProtocolLXD) UpdateContainerSnapshot(containerName string, name string, container api.ContainerSnapshotPut, ETag string) (Operation, error) {
-	err := r.CheckExtension("snapshot_expiry")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("snapshot_expiry") {
+		return nil, fmt.Errorf("The server is missing the required \"snapshot_expiry\" API extension")
 	}
 
 	// Send the request
@@ -1468,9 +1391,8 @@ func (r *ProtocolLXD) DeleteContainerLogfile(name string, filename string) error
 
 // GetContainerMetadata returns container metadata.
 func (r *ProtocolLXD) GetContainerMetadata(name string) (*api.ImageMetadata, string, error) {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, "", fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	metadata := api.ImageMetadata{}
@@ -1486,13 +1408,12 @@ func (r *ProtocolLXD) GetContainerMetadata(name string) (*api.ImageMetadata, str
 
 // SetContainerMetadata sets the content of the container metadata file.
 func (r *ProtocolLXD) SetContainerMetadata(name string, metadata api.ImageMetadata, ETag string) error {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("/containers/%s/metadata", url.PathEscape(name))
-	_, _, err = r.query("PUT", url, metadata, ETag)
+	_, _, err := r.query("PUT", url, metadata, ETag)
 	if err != nil {
 		return err
 	}
@@ -1502,15 +1423,14 @@ func (r *ProtocolLXD) SetContainerMetadata(name string, metadata api.ImageMetada
 
 // GetContainerTemplateFiles returns the list of names of template files for a container.
 func (r *ProtocolLXD) GetContainerTemplateFiles(containerName string) ([]string, error) {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	templates := []string{}
 
 	url := fmt.Sprintf("/containers/%s/metadata/templates", url.PathEscape(containerName))
-	_, err = r.queryStruct("GET", url, nil, "", &templates)
+	_, err := r.queryStruct("GET", url, nil, "", &templates)
 	if err != nil {
 		return nil, err
 	}
@@ -1520,14 +1440,13 @@ func (r *ProtocolLXD) GetContainerTemplateFiles(containerName string) ([]string,
 
 // GetContainerTemplateFile returns the content of a template file for a container.
 func (r *ProtocolLXD) GetContainerTemplateFile(containerName string, templateName string) (io.ReadCloser, error) {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("%s/1.0/containers/%s/metadata/templates?path=%s", r.httpBaseURL.String(), url.PathEscape(containerName), url.QueryEscape(templateName))
 
-	url, err = r.setQueryAttributes(url)
+	url, err := r.setQueryAttributes(url)
 	if err != nil {
 		return nil, err
 	}
@@ -1556,14 +1475,13 @@ func (r *ProtocolLXD) GetContainerTemplateFile(containerName string, templateNam
 
 // CreateContainerTemplateFile creates an a template for a container.
 func (r *ProtocolLXD) CreateContainerTemplateFile(containerName string, templateName string, content io.ReadSeeker) error {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("%s/1.0/containers/%s/metadata/templates?path=%s", r.httpBaseURL.String(), url.PathEscape(containerName), url.QueryEscape(templateName))
 
-	url, err = r.setQueryAttributes(url)
+	url, err := r.setQueryAttributes(url)
 	if err != nil {
 		return err
 	}
@@ -1594,20 +1512,18 @@ func (r *ProtocolLXD) UpdateContainerTemplateFile(containerName string, template
 
 // DeleteContainerTemplateFile deletes a template file for a container.
 func (r *ProtocolLXD) DeleteContainerTemplateFile(name string, templateName string) error {
-	err := r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
-	_, _, err = r.query("DELETE", fmt.Sprintf("/containers/%s/metadata/templates?path=%s", url.PathEscape(name), url.QueryEscape(templateName)), nil, "")
+	_, _, err := r.query("DELETE", fmt.Sprintf("/containers/%s/metadata/templates?path=%s", url.PathEscape(name), url.QueryEscape(templateName)), nil, "")
 	return err
 }
 
 // ConsoleContainer requests that LXD attaches to the console device of a container.
 func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.ContainerConsolePost, args *ContainerConsoleArgs) (Operation, error) {
-	err := r.CheckExtension("console")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("console") {
+		return nil, fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	// Send the request
@@ -1667,18 +1583,8 @@ func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.Contain
 
 	// And attach stdin and stdout to it
 	go func() {
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_containers.go
 		_, writeDone := ws.Mirror(conn, args.Terminal)
 		<-writeDone
-=======
-		ws.MirrorRead(context.Background(), conn, args.Terminal)
-		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_containers.go
-=======
-		_, writeDone := ws.Mirror(conn, args.Terminal)
-		<-writeDone
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		_ = conn.Close()
 	}()
 
@@ -1689,15 +1595,14 @@ func (r *ProtocolLXD) ConsoleContainer(containerName string, console api.Contain
 //
 // Note that it's the caller's responsibility to close the returned ReadCloser.
 func (r *ProtocolLXD) GetContainerConsoleLog(containerName string, args *ContainerConsoleLogArgs) (io.ReadCloser, error) {
-	err := r.CheckExtension("console")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("console") {
+		return nil, fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	// Prepare the HTTP request
 	url := fmt.Sprintf("%s/1.0/containers/%s/console", r.httpBaseURL.String(), url.PathEscape(containerName))
 
-	url, err = r.setQueryAttributes(url)
+	url, err := r.setQueryAttributes(url)
 	if err != nil {
 		return nil, err
 	}
@@ -1726,13 +1631,12 @@ func (r *ProtocolLXD) GetContainerConsoleLog(containerName string, args *Contain
 
 // DeleteContainerConsoleLog deletes the requested container's console log.
 func (r *ProtocolLXD) DeleteContainerConsoleLog(containerName string, args *ContainerConsoleLogArgs) error {
-	err := r.CheckExtension("console")
-	if err != nil {
-		return err
+	if !r.HasExtension("console") {
+		return fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("DELETE", fmt.Sprintf("/containers/%s/console", url.PathEscape(containerName)), nil, "")
+	_, _, err := r.query("DELETE", fmt.Sprintf("/containers/%s/console", url.PathEscape(containerName)), nil, "")
 	if err != nil {
 		return err
 	}
@@ -1742,15 +1646,14 @@ func (r *ProtocolLXD) DeleteContainerConsoleLog(containerName string, args *Cont
 
 // GetContainerBackupNames returns a list of backup names for the container.
 func (r *ProtocolLXD) GetContainerBackupNames(containerName string) ([]string, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Fetch the raw URL values.
 	urls := []string{}
 	baseURL := fmt.Sprintf("/containers/%s/backups", url.PathEscape(containerName))
-	_, err = r.queryStruct("GET", baseURL, nil, "", &urls)
+	_, err := r.queryStruct("GET", baseURL, nil, "", &urls)
 	if err != nil {
 		return nil, err
 	}
@@ -1761,15 +1664,14 @@ func (r *ProtocolLXD) GetContainerBackupNames(containerName string) ([]string, e
 
 // GetContainerBackups returns a list of backups for the container.
 func (r *ProtocolLXD) GetContainerBackups(containerName string) ([]api.ContainerBackup, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Fetch the raw value
 	backups := []api.ContainerBackup{}
 
-	_, err = r.queryStruct("GET", fmt.Sprintf("/containers/%s/backups?recursion=1", url.PathEscape(containerName)), nil, "", &backups)
+	_, err := r.queryStruct("GET", fmt.Sprintf("/containers/%s/backups?recursion=1", url.PathEscape(containerName)), nil, "", &backups)
 	if err != nil {
 		return nil, err
 	}
@@ -1779,9 +1681,8 @@ func (r *ProtocolLXD) GetContainerBackups(containerName string) ([]api.Container
 
 // GetContainerBackup returns a Backup struct for the provided container and backup names.
 func (r *ProtocolLXD) GetContainerBackup(containerName string, name string) (*api.ContainerBackup, string, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("container_backup") {
+		return nil, "", fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Fetch the raw value
@@ -1796,9 +1697,8 @@ func (r *ProtocolLXD) GetContainerBackup(containerName string, name string) (*ap
 
 // CreateContainerBackup requests that LXD creates a new backup for the container.
 func (r *ProtocolLXD) CreateContainerBackup(containerName string, backup api.ContainerBackupsPost) (Operation, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -1813,9 +1713,8 @@ func (r *ProtocolLXD) CreateContainerBackup(containerName string, backup api.Con
 
 // RenameContainerBackup requests that LXD renames the backup.
 func (r *ProtocolLXD) RenameContainerBackup(containerName string, name string, backup api.ContainerBackupPost) (Operation, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -1830,9 +1729,8 @@ func (r *ProtocolLXD) RenameContainerBackup(containerName string, name string, b
 
 // DeleteContainerBackup requests that LXD deletes the container backup.
 func (r *ProtocolLXD) DeleteContainerBackup(containerName string, name string) (Operation, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -1847,9 +1745,8 @@ func (r *ProtocolLXD) DeleteContainerBackup(containerName string, name string) (
 
 // GetContainerBackupFile requests the container backup content.
 func (r *ProtocolLXD) GetContainerBackupFile(containerName string, name string, req *BackupFileRequest) (*BackupFileResponse, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Build the URL

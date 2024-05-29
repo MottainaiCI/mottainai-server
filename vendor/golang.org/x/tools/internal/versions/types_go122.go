@@ -12,7 +12,6 @@ import (
 	"go/types"
 )
 
-<<<<<<< HEAD
 // FileVersions returns a file's Go version.
 // The reported version is an unknown Future version if a
 // version cannot be determined.
@@ -34,12 +33,6 @@ func FileVersion(info *types.Info, file *ast.File) string {
 	// Note: we could instead return runtime.Version() [if valid].
 	// This would act as a max version on what a tool can support.
 	return Future
-=======
-// FileVersions maps a file to the file's semantic Go version.
-// The reported version is the zero version if a version cannot be determined.
-func FileVersions(info *types.Info, file *ast.File) string {
-	return info.FileVersions[file]
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // InitFileVersions initializes info to record Go versions for Go files.

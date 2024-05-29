@@ -16,15 +16,7 @@ endif
 
 # Dependency versions
 GOTESTSUM_VERSION = 1.9.0
-<<<<<<< HEAD
-<<<<<<< HEAD
 GOLANGCI_VERSION = 1.53.3
-=======
-GOLANGCI_VERSION = 1.52.2
->>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
-=======
-GOLANGCI_VERSION = 1.53.3
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 # Add the ability to override some variables
 # Use with care

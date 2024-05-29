@@ -94,15 +94,12 @@ func (p *pipe) Write(d []byte) (n int, err error) {
 	if p.err != nil || p.breakErr != nil {
 		return 0, errClosedPipeWrite
 	}
-<<<<<<< HEAD
 	// pipe.setBuffer is never invoked, leaving the buffer uninitialized.
 	// We shouldn't try to write to an uninitialized pipe,
 	// but returning an error is better than panicking.
 	if p.b == nil {
 		return 0, errUninitializedPipeWrite
 	}
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	return p.b.Write(d)
 }
 

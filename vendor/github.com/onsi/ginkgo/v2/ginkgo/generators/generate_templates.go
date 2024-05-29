@@ -1,16 +1,7 @@
 package generators
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 var specText = `{{.BuildTags}}
 package {{.Package}}
-=======
-var specText = `package {{.Package}}
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-var specText = `{{.BuildTags}}
-package {{.Package}}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 import (
 	{{.GinkgoImport}}
@@ -24,17 +15,8 @@ var _ = {{.GinkgoPackage}}Describe("{{.Subject}}", func() {
 })
 `
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 var agoutiSpecText = `{{.BuildTags}}
 package {{.Package}}
-=======
-var agoutiSpecText = `package {{.Package}}
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-var agoutiSpecText = `{{.BuildTags}}
-package {{.Package}}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 import (
 	{{.GinkgoImport}}

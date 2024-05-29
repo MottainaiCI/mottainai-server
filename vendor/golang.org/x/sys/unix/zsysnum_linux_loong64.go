@@ -313,12 +313,9 @@ const (
 	SYS_FUTEX_WAKE              = 454
 	SYS_FUTEX_WAIT              = 455
 	SYS_FUTEX_REQUEUE           = 456
-<<<<<<< HEAD
 	SYS_STATMOUNT               = 457
 	SYS_LISTMOUNT               = 458
 	SYS_LSM_GET_SELF_ATTR       = 459
 	SYS_LSM_SET_SELF_ATTR       = 460
 	SYS_LSM_LIST_MODULES        = 461
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )

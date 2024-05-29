@@ -27,20 +27,11 @@ const (
 	// More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#label-selector-and-annotation-conventions
 	labelPrefix = "batch.kubernetes.io/"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// CronJobScheduledTimestampAnnotation is the scheduled timestamp annotation for the Job.
 	// It records the original/expected scheduled timestamp for the running job, represented in RFC3339.
 	// The CronJob controller adds this annotation if the CronJobsScheduledAnnotation feature gate (beta in 1.28) is enabled.
 	CronJobScheduledTimestampAnnotation = labelPrefix + "cronjob-scheduled-timestamp"
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	JobCompletionIndexAnnotation = labelPrefix + "job-completion-index"
 	// JobTrackingFinalizer is a finalizer for Job's pods. It prevents them from
 	// being deleted before being accounted in the Job status.
@@ -59,10 +50,6 @@ const (
 	// ControllerUid is used to programatically get pods corresponding to a Job.
 	// There is a corresponding label without the batch.kubernetes.io that we support for legacy reasons.
 	ControllerUidLabel = labelPrefix + "controller-uid"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Annotation indicating the number of failures for the index corresponding
 	// to the pod, which are counted towards the backoff limit.
 	JobIndexFailureCountAnnotation = labelPrefix + "job-index-failure-count"
@@ -70,14 +57,9 @@ const (
 	// to the pod, which don't count towards the backoff limit, according to the
 	// pod failure policy. When the annotation is absent zero is implied.
 	JobIndexIgnoredFailureCountAnnotation = labelPrefix + "job-index-ignored-failure-count"
-<<<<<<< HEAD
 	// JobControllerName reserved value for the managedBy field for the built-in
 	// Job controller.
 	JobControllerName = "kubernetes.io/job-controller"
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // +genclient
@@ -487,7 +469,6 @@ type JobSpec struct {
 	// This is on by default.
 	// +optional
 	PodReplacementPolicy *PodReplacementPolicy `json:"podReplacementPolicy,omitempty" protobuf:"bytes,14,opt,name=podReplacementPolicy,casttype=podReplacementPolicy"`
-<<<<<<< HEAD
 
 	// ManagedBy field indicates the controller that manages a Job. The k8s Job
 	// controller reconciles jobs which don't have this field at all or the field
@@ -502,8 +483,6 @@ type JobSpec struct {
 	// when the feature gate JobManagedBy is enabled (disabled by default).
 	// +optional
 	ManagedBy *string `json:"managedBy,omitempty" protobuf:"bytes,15,opt,name=managedBy"`
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // JobStatus represents the current state of a Job.
@@ -564,10 +543,6 @@ type JobStatus struct {
 	// +optional
 	Failed int32 `json:"failed,omitempty" protobuf:"varint,6,opt,name=failed"`
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// The number of pods which are terminating (in phase Pending or Running
 	// and have a deletionTimestamp).
 	//
@@ -576,11 +551,6 @@ type JobStatus struct {
 	// +optional
 	Terminating *int32 `json:"terminating,omitempty" protobuf:"varint,11,opt,name=terminating"`
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// completedIndexes holds the completed indexes when .spec.completionMode =
 	// "Indexed" in a text format. The indexes are represented as decimal integers
 	// separated by commas. The numbers are listed in increasing order. Three or
@@ -591,12 +561,7 @@ type JobStatus struct {
 	// +optional
 	CompletedIndexes string `json:"completedIndexes,omitempty" protobuf:"bytes,7,opt,name=completedIndexes"`
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// FailedIndexes holds the failed indexes when spec.backoffLimitPerIndex is set.
-=======
-	// FailedIndexes holds the failed indexes when backoffLimitPerIndex=true.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// The indexes are represented in the text format analogous as for the
 	// `completedIndexes` field, ie. they are kept as decimal integers
 	// separated by commas. The numbers are listed in increasing order. Three or
@@ -604,21 +569,13 @@ type JobStatus struct {
 	// last element of the series, separated by a hyphen.
 	// For example, if the failed indexes are 1, 3, 4, 5 and 7, they are
 	// represented as "1,3-5,7".
-<<<<<<< HEAD
 	// The set of failed indexes cannot overlap with the set of completed indexes.
 	//
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// This field is beta-level. It can be used when the `JobBackoffLimitPerIndex`
 	// feature gate is enabled (enabled by default).
 	// +optional
 	FailedIndexes *string `json:"failedIndexes,omitempty" protobuf:"bytes,10,opt,name=failedIndexes"`
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// uncountedTerminatedPods holds the UIDs of Pods that have terminated but
 	// the job controller hasn't yet accounted for in the status counters.
 	//
@@ -694,25 +651,6 @@ const (
 	// https://kep.k8s.io/3998
 	// This is currently an alpha field.
 	JobReasonSuccessPolicy string = "SuccessPolicy"
-)
-
-const (
-	// JobReasonPodFailurePolicy reason indicates a job failure condition is added due to
-	// a failed pod matching a pod failure policy rule
-	// https://kep.k8s.io/3329
-	// This is currently a beta field.
-	JobReasonPodFailurePolicy string = "PodFailurePolicy"
-	// JobReasonBackOffLimitExceeded reason indicates that pods within a job have failed a number of
-	// times higher than backOffLimit times.
-	JobReasonBackoffLimitExceeded string = "BackoffLimitExceeded"
-	// JobReasponDeadlineExceeded means job duration is past ActiveDeadline
-	JobReasonDeadlineExceeded string = "DeadlineExceeded"
-	// JobReasonMaxFailedIndexesExceeded indicates that an indexed of a job failed
-	// This const is used in beta-level feature: https://kep.k8s.io/3850.
-	JobReasonMaxFailedIndexesExceeded string = "MaxFailedIndexesExceeded"
-	// JobReasonFailedIndexes means Job has failed indexes.
-	// This const is used in beta-level feature: https://kep.k8s.io/3850.
-	JobReasonFailedIndexes string = "FailedIndexes"
 )
 
 // JobCondition describes current state of a job.

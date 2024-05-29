@@ -5,25 +5,11 @@
 // func sequenceDecs_decode_amd64(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
 // Requires: CMOV
 TEXT ·sequenceDecs_decode_amd64(SB), $8-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), CX
 	MOVQ    24(CX), DX
 	MOVBQZX 32(CX), BX
 	MOVQ    (CX), AX
 	MOVQ    8(CX), SI
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), AX
-	MOVQ    32(AX), DX
-	MOVBQZX 40(AX), BX
-	MOVQ    24(AX), SI
-	MOVQ    (AX), AX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    SI, AX
 	MOVQ    AX, (SP)
 	MOVQ    ctx+16(FP), AX
@@ -171,16 +157,7 @@ sequenceDecs_decode_amd64_ll_update_zero:
 
 	// Update Literal Length State
 	MOVBQZX DI, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, DI
-=======
-	SHRQ    $0x10, DI
-	MOVWQZX DI, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, DI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -199,16 +176,7 @@ sequenceDecs_decode_amd64_ll_update_zero:
 
 	// Update Match Length State
 	MOVBQZX R8, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R8
-=======
-	SHRQ    $0x10, R8
-	MOVWQZX R8, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R8
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -227,16 +195,7 @@ sequenceDecs_decode_amd64_ll_update_zero:
 
 	// Update Offset State
 	MOVBQZX R9, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R9
-=======
-	SHRQ    $0x10, R9
-	MOVWQZX R9, R9
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R9
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -339,21 +298,9 @@ sequenceDecs_decode_amd64_match_len_ofs_ok:
 	MOVQ R12, 152(AX)
 	MOVQ R13, 160(AX)
 	MOVQ br+8(FP), AX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ DX, 24(AX)
 	MOVB BL, 32(AX)
 	MOVQ SI, 8(AX)
-=======
-	MOVQ DX, 32(AX)
-	MOVB BL, 40(AX)
-	MOVQ SI, 24(AX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ DX, 24(AX)
-	MOVB BL, 32(AX)
-	MOVQ SI, 8(AX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Return success
 	MOVQ $0x00000000, ret+24(FP)
@@ -386,25 +333,11 @@ error_overread:
 // func sequenceDecs_decode_56_amd64(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
 // Requires: CMOV
 TEXT ·sequenceDecs_decode_56_amd64(SB), $8-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), CX
 	MOVQ    24(CX), DX
 	MOVBQZX 32(CX), BX
 	MOVQ    (CX), AX
 	MOVQ    8(CX), SI
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), AX
-	MOVQ    32(AX), DX
-	MOVBQZX 40(AX), BX
-	MOVQ    24(AX), SI
-	MOVQ    (AX), AX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    SI, AX
 	MOVQ    AX, (SP)
 	MOVQ    ctx+16(FP), AX
@@ -523,16 +456,7 @@ sequenceDecs_decode_56_amd64_ll_update_zero:
 
 	// Update Literal Length State
 	MOVBQZX DI, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, DI
-=======
-	SHRQ    $0x10, DI
-	MOVWQZX DI, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, DI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -551,16 +475,7 @@ sequenceDecs_decode_56_amd64_ll_update_zero:
 
 	// Update Match Length State
 	MOVBQZX R8, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R8
-=======
-	SHRQ    $0x10, R8
-	MOVWQZX R8, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R8
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -579,16 +494,7 @@ sequenceDecs_decode_56_amd64_ll_update_zero:
 
 	// Update Offset State
 	MOVBQZX R9, R14
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R9
-=======
-	SHRQ    $0x10, R9
-	MOVWQZX R9, R9
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R9
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R14*1), CX
 	MOVQ    DX, R15
 	MOVQ    CX, BX
@@ -691,21 +597,9 @@ sequenceDecs_decode_56_amd64_match_len_ofs_ok:
 	MOVQ R12, 152(AX)
 	MOVQ R13, 160(AX)
 	MOVQ br+8(FP), AX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ DX, 24(AX)
 	MOVB BL, 32(AX)
 	MOVQ SI, 8(AX)
-=======
-	MOVQ DX, 32(AX)
-	MOVB BL, 40(AX)
-	MOVQ SI, 24(AX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ DX, 24(AX)
-	MOVB BL, 32(AX)
-	MOVQ SI, 8(AX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Return success
 	MOVQ $0x00000000, ret+24(FP)
@@ -738,25 +632,11 @@ error_overread:
 // func sequenceDecs_decode_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
 // Requires: BMI, BMI2, CMOV
 TEXT ·sequenceDecs_decode_bmi2(SB), $8-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), BX
 	MOVQ    24(BX), AX
 	MOVBQZX 32(BX), DX
 	MOVQ    (BX), CX
 	MOVQ    8(BX), BX
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), CX
-	MOVQ    32(CX), AX
-	MOVBQZX 40(CX), DX
-	MOVQ    24(CX), BX
-	MOVQ    (CX), CX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    BX, CX
 	MOVQ    CX, (SP)
 	MOVQ    ctx+16(FP), CX
@@ -886,24 +766,10 @@ sequenceDecs_decode_bmi2_fill_2_end:
 	BZHIQ   R14, R15, R15
 
 	// Update Offset State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ R8, R15, CX
 	SHRXQ R8, R15, R15
 	SHRL  $0x10, R8
 	ADDQ  CX, R8
-<<<<<<< HEAD
-=======
-	BZHIQ  R8, R15, CX
-	SHRXQ  R8, R15, R15
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, R8, R8
-	ADDQ   CX, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.ofTable
 	MOVQ ctx+16(FP), CX
@@ -911,24 +777,10 @@ sequenceDecs_decode_bmi2_fill_2_end:
 	MOVQ (CX)(R8*8), R8
 
 	// Update Match Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ DI, R15, CX
 	SHRXQ DI, R15, R15
 	SHRL  $0x10, DI
 	ADDQ  CX, DI
-<<<<<<< HEAD
-=======
-	BZHIQ  DI, R15, CX
-	SHRXQ  DI, R15, R15
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, DI, DI
-	ADDQ   CX, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.mlTable
 	MOVQ ctx+16(FP), CX
@@ -936,22 +788,9 @@ sequenceDecs_decode_bmi2_fill_2_end:
 	MOVQ (CX)(DI*8), DI
 
 	// Update Literal Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BZHIQ SI, R15, CX
 	SHRL  $0x10, SI
 	ADDQ  CX, SI
-=======
-	BZHIQ  SI, R15, CX
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, SI, SI
-	ADDQ   CX, SI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BZHIQ SI, R15, CX
-	SHRL  $0x10, SI
-	ADDQ  CX, SI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.llTable
 	MOVQ ctx+16(FP), CX
@@ -1044,21 +883,9 @@ sequenceDecs_decode_bmi2_match_len_ofs_ok:
 	MOVQ R11, 152(CX)
 	MOVQ R12, 160(CX)
 	MOVQ br+8(FP), CX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ AX, 24(CX)
 	MOVB DL, 32(CX)
 	MOVQ BX, 8(CX)
-=======
-	MOVQ AX, 32(CX)
-	MOVB DL, 40(CX)
-	MOVQ BX, 24(CX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ AX, 24(CX)
-	MOVB DL, 32(CX)
-	MOVQ BX, 8(CX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Return success
 	MOVQ $0x00000000, ret+24(FP)
@@ -1091,25 +918,11 @@ error_overread:
 // func sequenceDecs_decode_56_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
 // Requires: BMI, BMI2, CMOV
 TEXT ·sequenceDecs_decode_56_bmi2(SB), $8-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), BX
 	MOVQ    24(BX), AX
 	MOVBQZX 32(BX), DX
 	MOVQ    (BX), CX
 	MOVQ    8(BX), BX
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), CX
-	MOVQ    32(CX), AX
-	MOVBQZX 40(CX), DX
-	MOVQ    24(CX), BX
-	MOVQ    (CX), CX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    BX, CX
 	MOVQ    CX, (SP)
 	MOVQ    ctx+16(FP), CX
@@ -1210,24 +1023,10 @@ sequenceDecs_decode_56_bmi2_fill_end:
 	BZHIQ   R14, R15, R15
 
 	// Update Offset State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ R8, R15, CX
 	SHRXQ R8, R15, R15
 	SHRL  $0x10, R8
 	ADDQ  CX, R8
-<<<<<<< HEAD
-=======
-	BZHIQ  R8, R15, CX
-	SHRXQ  R8, R15, R15
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, R8, R8
-	ADDQ   CX, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.ofTable
 	MOVQ ctx+16(FP), CX
@@ -1235,24 +1034,10 @@ sequenceDecs_decode_56_bmi2_fill_end:
 	MOVQ (CX)(R8*8), R8
 
 	// Update Match Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ DI, R15, CX
 	SHRXQ DI, R15, R15
 	SHRL  $0x10, DI
 	ADDQ  CX, DI
-<<<<<<< HEAD
-=======
-	BZHIQ  DI, R15, CX
-	SHRXQ  DI, R15, R15
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, DI, DI
-	ADDQ   CX, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.mlTable
 	MOVQ ctx+16(FP), CX
@@ -1260,22 +1045,9 @@ sequenceDecs_decode_56_bmi2_fill_end:
 	MOVQ (CX)(DI*8), DI
 
 	// Update Literal Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BZHIQ SI, R15, CX
 	SHRL  $0x10, SI
 	ADDQ  CX, SI
-=======
-	BZHIQ  SI, R15, CX
-	MOVQ   $0x00001010, R14
-	BEXTRQ R14, SI, SI
-	ADDQ   CX, SI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BZHIQ SI, R15, CX
-	SHRL  $0x10, SI
-	ADDQ  CX, SI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.llTable
 	MOVQ ctx+16(FP), CX
@@ -1368,21 +1140,9 @@ sequenceDecs_decode_56_bmi2_match_len_ofs_ok:
 	MOVQ R11, 152(CX)
 	MOVQ R12, 160(CX)
 	MOVQ br+8(FP), CX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ AX, 24(CX)
 	MOVB DL, 32(CX)
 	MOVQ BX, 8(CX)
-=======
-	MOVQ AX, 32(CX)
-	MOVB DL, 40(CX)
-	MOVQ BX, 24(CX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ AX, 24(CX)
-	MOVB DL, 32(CX)
-	MOVQ BX, 8(CX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Return success
 	MOVQ $0x00000000, ret+24(FP)
@@ -2025,25 +1785,11 @@ empty_seqs:
 // func sequenceDecs_decodeSync_amd64(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 // Requires: CMOV, SSE
 TEXT ·sequenceDecs_decodeSync_amd64(SB), $64-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), CX
 	MOVQ    24(CX), DX
 	MOVBQZX 32(CX), BX
 	MOVQ    (CX), AX
 	MOVQ    8(CX), SI
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), AX
-	MOVQ    32(AX), DX
-	MOVBQZX 40(AX), BX
-	MOVQ    24(AX), SI
-	MOVQ    (AX), AX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    SI, AX
 	MOVQ    AX, (SP)
 	MOVQ    ctx+16(FP), AX
@@ -2209,16 +1955,7 @@ sequenceDecs_decodeSync_amd64_ll_update_zero:
 
 	// Update Literal Length State
 	MOVBQZX DI, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, DI
-=======
-	SHRQ    $0x10, DI
-	MOVWQZX DI, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, DI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -2237,16 +1974,7 @@ sequenceDecs_decodeSync_amd64_ll_update_zero:
 
 	// Update Match Length State
 	MOVBQZX R8, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R8
-=======
-	SHRQ    $0x10, R8
-	MOVWQZX R8, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R8
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -2265,16 +1993,7 @@ sequenceDecs_decodeSync_amd64_ll_update_zero:
 
 	// Update Offset State
 	MOVBQZX R9, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R9
-=======
-	SHRQ    $0x10, R9
-	MOVWQZX R9, R9
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R9
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -2561,21 +2280,9 @@ handle_loop:
 
 loop_finished:
 	MOVQ br+8(FP), AX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ DX, 24(AX)
 	MOVB BL, 32(AX)
 	MOVQ SI, 8(AX)
-=======
-	MOVQ DX, 32(AX)
-	MOVB BL, 40(AX)
-	MOVQ SI, 24(AX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ DX, 24(AX)
-	MOVB BL, 32(AX)
-	MOVQ SI, 8(AX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Update the context
 	MOVQ ctx+16(FP), AX
@@ -2640,25 +2347,11 @@ error_not_enough_space:
 // func sequenceDecs_decodeSync_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 // Requires: BMI, BMI2, CMOV, SSE
 TEXT ·sequenceDecs_decodeSync_bmi2(SB), $64-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), BX
 	MOVQ    24(BX), AX
 	MOVBQZX 32(BX), DX
 	MOVQ    (BX), CX
 	MOVQ    8(BX), BX
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), CX
-	MOVQ    32(CX), AX
-	MOVBQZX 40(CX), DX
-	MOVQ    24(CX), BX
-	MOVQ    (CX), CX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    BX, CX
 	MOVQ    CX, (SP)
 	MOVQ    ctx+16(FP), CX
@@ -2806,24 +2499,10 @@ sequenceDecs_decodeSync_bmi2_fill_2_end:
 	BZHIQ   R13, R14, R14
 
 	// Update Offset State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ R8, R14, CX
 	SHRXQ R8, R14, R14
 	SHRL  $0x10, R8
 	ADDQ  CX, R8
-<<<<<<< HEAD
-=======
-	BZHIQ  R8, R14, CX
-	SHRXQ  R8, R14, R14
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, R8, R8
-	ADDQ   CX, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.ofTable
 	MOVQ ctx+16(FP), CX
@@ -2831,24 +2510,10 @@ sequenceDecs_decodeSync_bmi2_fill_2_end:
 	MOVQ (CX)(R8*8), R8
 
 	// Update Match Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ DI, R14, CX
 	SHRXQ DI, R14, R14
 	SHRL  $0x10, DI
 	ADDQ  CX, DI
-<<<<<<< HEAD
-=======
-	BZHIQ  DI, R14, CX
-	SHRXQ  DI, R14, R14
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, DI, DI
-	ADDQ   CX, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.mlTable
 	MOVQ ctx+16(FP), CX
@@ -2856,22 +2521,9 @@ sequenceDecs_decodeSync_bmi2_fill_2_end:
 	MOVQ (CX)(DI*8), DI
 
 	// Update Literal Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BZHIQ SI, R14, CX
 	SHRL  $0x10, SI
 	ADDQ  CX, SI
-=======
-	BZHIQ  SI, R14, CX
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, SI, SI
-	ADDQ   CX, SI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BZHIQ SI, R14, CX
-	SHRL  $0x10, SI
-	ADDQ  CX, SI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.llTable
 	MOVQ ctx+16(FP), CX
@@ -3148,21 +2800,9 @@ handle_loop:
 
 loop_finished:
 	MOVQ br+8(FP), CX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ AX, 24(CX)
 	MOVB DL, 32(CX)
 	MOVQ BX, 8(CX)
-=======
-	MOVQ AX, 32(CX)
-	MOVB DL, 40(CX)
-	MOVQ BX, 24(CX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ AX, 24(CX)
-	MOVB DL, 32(CX)
-	MOVQ BX, 8(CX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Update the context
 	MOVQ ctx+16(FP), AX
@@ -3227,25 +2867,11 @@ error_not_enough_space:
 // func sequenceDecs_decodeSync_safe_amd64(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 // Requires: CMOV, SSE
 TEXT ·sequenceDecs_decodeSync_safe_amd64(SB), $64-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), CX
 	MOVQ    24(CX), DX
 	MOVBQZX 32(CX), BX
 	MOVQ    (CX), AX
 	MOVQ    8(CX), SI
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), AX
-	MOVQ    32(AX), DX
-	MOVBQZX 40(AX), BX
-	MOVQ    24(AX), SI
-	MOVQ    (AX), AX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    SI, AX
 	MOVQ    AX, (SP)
 	MOVQ    ctx+16(FP), AX
@@ -3411,16 +3037,7 @@ sequenceDecs_decodeSync_safe_amd64_ll_update_zero:
 
 	// Update Literal Length State
 	MOVBQZX DI, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, DI
-=======
-	SHRQ    $0x10, DI
-	MOVWQZX DI, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, DI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -3439,16 +3056,7 @@ sequenceDecs_decodeSync_safe_amd64_ll_update_zero:
 
 	// Update Match Length State
 	MOVBQZX R8, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R8
-=======
-	SHRQ    $0x10, R8
-	MOVWQZX R8, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R8
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -3467,16 +3075,7 @@ sequenceDecs_decodeSync_safe_amd64_ll_update_zero:
 
 	// Update Offset State
 	MOVBQZX R9, R13
-<<<<<<< HEAD
-<<<<<<< HEAD
 	SHRL    $0x10, R9
-=======
-	SHRQ    $0x10, R9
-	MOVWQZX R9, R9
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	SHRL    $0x10, R9
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	LEAQ    (BX)(R13*1), CX
 	MOVQ    DX, R14
 	MOVQ    CX, BX
@@ -3865,21 +3464,9 @@ handle_loop:
 
 loop_finished:
 	MOVQ br+8(FP), AX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ DX, 24(AX)
 	MOVB BL, 32(AX)
 	MOVQ SI, 8(AX)
-=======
-	MOVQ DX, 32(AX)
-	MOVB BL, 40(AX)
-	MOVQ SI, 24(AX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ DX, 24(AX)
-	MOVB BL, 32(AX)
-	MOVQ SI, 8(AX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Update the context
 	MOVQ ctx+16(FP), AX
@@ -3944,25 +3531,11 @@ error_not_enough_space:
 // func sequenceDecs_decodeSync_safe_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 // Requires: BMI, BMI2, CMOV, SSE
 TEXT ·sequenceDecs_decodeSync_safe_bmi2(SB), $64-32
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MOVQ    br+8(FP), BX
 	MOVQ    24(BX), AX
 	MOVBQZX 32(BX), DX
 	MOVQ    (BX), CX
 	MOVQ    8(BX), BX
-<<<<<<< HEAD
-=======
-	MOVQ    br+8(FP), CX
-	MOVQ    32(CX), AX
-	MOVBQZX 40(CX), DX
-	MOVQ    24(CX), BX
-	MOVQ    (CX), CX
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ADDQ    BX, CX
 	MOVQ    CX, (SP)
 	MOVQ    ctx+16(FP), CX
@@ -4110,24 +3683,10 @@ sequenceDecs_decodeSync_safe_bmi2_fill_2_end:
 	BZHIQ   R13, R14, R14
 
 	// Update Offset State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ R8, R14, CX
 	SHRXQ R8, R14, R14
 	SHRL  $0x10, R8
 	ADDQ  CX, R8
-<<<<<<< HEAD
-=======
-	BZHIQ  R8, R14, CX
-	SHRXQ  R8, R14, R14
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, R8, R8
-	ADDQ   CX, R8
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.ofTable
 	MOVQ ctx+16(FP), CX
@@ -4135,24 +3694,10 @@ sequenceDecs_decodeSync_safe_bmi2_fill_2_end:
 	MOVQ (CX)(R8*8), R8
 
 	// Update Match Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BZHIQ DI, R14, CX
 	SHRXQ DI, R14, R14
 	SHRL  $0x10, DI
 	ADDQ  CX, DI
-<<<<<<< HEAD
-=======
-	BZHIQ  DI, R14, CX
-	SHRXQ  DI, R14, R14
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, DI, DI
-	ADDQ   CX, DI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.mlTable
 	MOVQ ctx+16(FP), CX
@@ -4160,22 +3705,9 @@ sequenceDecs_decodeSync_safe_bmi2_fill_2_end:
 	MOVQ (CX)(DI*8), DI
 
 	// Update Literal Length State
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BZHIQ SI, R14, CX
 	SHRL  $0x10, SI
 	ADDQ  CX, SI
-=======
-	BZHIQ  SI, R14, CX
-	MOVQ   $0x00001010, R13
-	BEXTRQ R13, SI, SI
-	ADDQ   CX, SI
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BZHIQ SI, R14, CX
-	SHRL  $0x10, SI
-	ADDQ  CX, SI
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Load ctx.llTable
 	MOVQ ctx+16(FP), CX
@@ -4554,21 +4086,9 @@ handle_loop:
 
 loop_finished:
 	MOVQ br+8(FP), CX
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MOVQ AX, 24(CX)
 	MOVB DL, 32(CX)
 	MOVQ BX, 8(CX)
-=======
-	MOVQ AX, 32(CX)
-	MOVB DL, 40(CX)
-	MOVQ BX, 24(CX)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MOVQ AX, 24(CX)
-	MOVB DL, 32(CX)
-	MOVQ BX, 8(CX)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Update the context
 	MOVQ ctx+16(FP), AX

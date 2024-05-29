@@ -124,15 +124,9 @@ func (k Key) maybeQuoted(i int) string {
 	if k[i] == "" {
 		return `""`
 	}
-<<<<<<< HEAD
 	for _, r := range k[i] {
 		if (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' || r == '-' {
 			continue
-=======
-	for _, c := range k[i] {
-		if !isBareKeyChar(c, false) {
-			return `"` + dblQuotedReplacer.Replace(k[i]) + `"`
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		return `"` + dblQuotedReplacer.Replace(k[i]) + `"`
 	}

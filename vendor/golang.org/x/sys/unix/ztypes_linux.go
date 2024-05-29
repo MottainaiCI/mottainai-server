@@ -1560,10 +1560,7 @@ const (
 	IFLA_DEVLINK_PORT                          = 0x3e
 	IFLA_GSO_IPV4_MAX_SIZE                     = 0x3f
 	IFLA_GRO_IPV4_MAX_SIZE                     = 0x40
-<<<<<<< HEAD
 	IFLA_DPLL_PIN                              = 0x41
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	IFLA_PROTO_DOWN_REASON_UNSPEC              = 0x0
 	IFLA_PROTO_DOWN_REASON_MASK                = 0x1
 	IFLA_PROTO_DOWN_REASON_VALUE               = 0x2
@@ -2748,14 +2745,7 @@ const (
 	BPF_PROG_TYPE_LSM                          = 0x1d
 	BPF_PROG_TYPE_SK_LOOKUP                    = 0x1e
 	BPF_PROG_TYPE_SYSCALL                      = 0x1f
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BPF_PROG_TYPE_NETFILTER                    = 0x20
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BPF_PROG_TYPE_NETFILTER                    = 0x20
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_CGROUP_INET_INGRESS                    = 0x0
 	BPF_CGROUP_INET_EGRESS                     = 0x1
 	BPF_CGROUP_INET_SOCK_CREATE                = 0x2
@@ -2800,20 +2790,11 @@ const (
 	BPF_PERF_EVENT                             = 0x29
 	BPF_TRACE_KPROBE_MULTI                     = 0x2a
 	BPF_LSM_CGROUP                             = 0x2b
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_STRUCT_OPS                             = 0x2c
 	BPF_NETFILTER                              = 0x2d
 	BPF_TCX_INGRESS                            = 0x2e
 	BPF_TCX_EGRESS                             = 0x2f
 	BPF_TRACE_UPROBE_MULTI                     = 0x30
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_LINK_TYPE_UNSPEC                       = 0x0
 	BPF_LINK_TYPE_RAW_TRACEPOINT               = 0x1
 	BPF_LINK_TYPE_TRACING                      = 0x2
@@ -2824,10 +2805,6 @@ const (
 	BPF_LINK_TYPE_PERF_EVENT                   = 0x7
 	BPF_LINK_TYPE_KPROBE_MULTI                 = 0x8
 	BPF_LINK_TYPE_STRUCT_OPS                   = 0x9
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_LINK_TYPE_NETFILTER                    = 0xa
 	BPF_LINK_TYPE_TCX                          = 0xb
 	BPF_LINK_TYPE_UPROBE_MULTI                 = 0xc
@@ -2840,11 +2817,6 @@ const (
 	BPF_PERF_EVENT_EVENT                       = 0x6
 	BPF_F_KPROBE_MULTI_RETURN                  = 0x1
 	BPF_F_UPROBE_MULTI_RETURN                  = 0x1
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_ANY                                    = 0x0
 	BPF_NOEXIST                                = 0x1
 	BPF_EXIST                                  = 0x2
@@ -2884,14 +2856,7 @@ const (
 	BPF_F_ZERO_CSUM_TX                         = 0x2
 	BPF_F_DONT_FRAGMENT                        = 0x4
 	BPF_F_SEQ_NUMBER                           = 0x8
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BPF_F_NO_TUNNEL_KEY                        = 0x10
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BPF_F_NO_TUNNEL_KEY                        = 0x10
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_F_TUNINFO_FLAGS                        = 0x10
 	BPF_F_INDEX_MASK                           = 0xffffffff
 	BPF_F_CURRENT_CPU                          = 0xffffffff
@@ -2908,16 +2873,8 @@ const (
 	BPF_F_ADJ_ROOM_ENCAP_L4_UDP                = 0x10
 	BPF_F_ADJ_ROOM_NO_CSUM_RESET               = 0x20
 	BPF_F_ADJ_ROOM_ENCAP_L2_ETH                = 0x40
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BPF_F_ADJ_ROOM_DECAP_L3_IPV4               = 0x80
 	BPF_F_ADJ_ROOM_DECAP_L3_IPV6               = 0x100
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BPF_F_ADJ_ROOM_DECAP_L3_IPV4               = 0x80
-	BPF_F_ADJ_ROOM_DECAP_L3_IPV6               = 0x100
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	BPF_ADJ_ROOM_ENCAP_L2_MASK                 = 0xff
 	BPF_ADJ_ROOM_ENCAP_L2_SHIFT                = 0x38
 	BPF_F_SYSCTL_BASE_NAME                     = 0x1
@@ -3043,14 +3000,7 @@ const (
 	BPF_CORE_ENUMVAL_EXISTS                    = 0xa
 	BPF_CORE_ENUMVAL_VALUE                     = 0xb
 	BPF_CORE_TYPE_MATCHES                      = 0xc
-<<<<<<< HEAD
-<<<<<<< HEAD
 	BPF_F_TIMER_ABS                            = 0x1
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	BPF_F_TIMER_ABS                            = 0x1
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 const (
@@ -4655,11 +4605,7 @@ const (
 	NL80211_ATTR_MAC_HINT                                   = 0xc8
 	NL80211_ATTR_MAC_MASK                                   = 0xd7
 	NL80211_ATTR_MAX_AP_ASSOC_STA                           = 0xca
-<<<<<<< HEAD
 	NL80211_ATTR_MAX                                        = 0x149
-=======
-	NL80211_ATTR_MAX                                        = 0x146
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	NL80211_ATTR_MAX_CRIT_PROT_DURATION                     = 0xb4
 	NL80211_ATTR_MAX_CSA_COUNTERS                           = 0xce
 	NL80211_ATTR_MAX_MATCH_SETS                             = 0x85
@@ -5029,11 +4975,7 @@ const (
 	NL80211_CMD_LEAVE_IBSS                                  = 0x2c
 	NL80211_CMD_LEAVE_MESH                                  = 0x45
 	NL80211_CMD_LEAVE_OCB                                   = 0x6d
-<<<<<<< HEAD
 	NL80211_CMD_MAX                                         = 0x9b
-=======
-	NL80211_CMD_MAX                                         = 0x9a
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	NL80211_CMD_MICHAEL_MIC_FAILURE                         = 0x29
 	NL80211_CMD_MODIFY_LINK_STA                             = 0x97
 	NL80211_CMD_NAN_MATCH                                   = 0x78
@@ -5267,11 +5209,7 @@ const (
 	NL80211_FREQUENCY_ATTR_GO_CONCURRENT                    = 0xf
 	NL80211_FREQUENCY_ATTR_INDOOR_ONLY                      = 0xe
 	NL80211_FREQUENCY_ATTR_IR_CONCURRENT                    = 0xf
-<<<<<<< HEAD
 	NL80211_FREQUENCY_ATTR_MAX                              = 0x1f
-=======
-	NL80211_FREQUENCY_ATTR_MAX                              = 0x1c
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	NL80211_FREQUENCY_ATTR_MAX_TX_POWER                     = 0x6
 	NL80211_FREQUENCY_ATTR_NO_10MHZ                         = 0x11
 	NL80211_FREQUENCY_ATTR_NO_160MHZ                        = 0xc

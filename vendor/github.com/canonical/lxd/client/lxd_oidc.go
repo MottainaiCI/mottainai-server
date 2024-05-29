@@ -13,29 +13,14 @@ import (
 	"syscall"
 	"time"
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
-=======
-	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery"
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"github.com/zitadel/oidc/v2/pkg/client/rp"
 	httphelper "github.com/zitadel/oidc/v2/pkg/http"
 	"github.com/zitadel/oidc/v2/pkg/oidc"
 	"golang.org/x/oauth2"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // setupOIDCClient initializes the OIDC (OpenID Connect) client with given tokens if it hasn't been set up already.
 // It also assigns the protocol's http client to the oidcClient's httpClient.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-// setupOIDCClient initializes the OIDC (OpenID Connect) client with given tokens if it hasn't been set up already.
-// It also assigns the protocol's http client to the oidcClient's httpClient.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (r *ProtocolLXD) setupOIDCClient(token *oidc.Tokens[*oidc.IDTokenClaims]) {
 	if r.oidcClient != nil {
 		return
@@ -45,23 +30,14 @@ func (r *ProtocolLXD) setupOIDCClient(token *oidc.Tokens[*oidc.IDTokenClaims]) {
 	r.oidcClient.httpClient = r.http
 }
 
-// oidcTransport is a custom HTTP transport that injects the audience field into requests directed at the device
-// authorization endpoint.
+// Custom transport that modifies requests to inject the audience field.
 type oidcTransport struct {
 	deviceAuthorizationEndpoint string
 	audience                    string
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // oidcTransport is a custom HTTP transport that injects the audience field into requests directed at the device authorization endpoint.
 // RoundTrip is a method of oidcTransport that modifies the request, adds the audience parameter if appropriate, and sends it along.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-// RoundTrip the oidcTransport implementation of http.RoundTripper. It modifies the request, adds the audience parameter
-// if appropriate, and sends it along.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (o *oidcTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	// Don't modify the request if it's not to the device authorization endpoint, or there are no
 	// URL parameters which need to be set.
@@ -87,7 +63,7 @@ func (o *oidcTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 }
 
 var errRefreshAccessToken = fmt.Errorf("Failed refreshing access token")
-var oidcScopes = []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeEmail, oidc.ScopeProfile}
+var oidcScopes = []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeEmail}
 
 type oidcClient struct {
 	httpClient    *http.Client
@@ -95,16 +71,8 @@ type oidcClient struct {
 	tokens        *oidc.Tokens[*oidc.IDTokenClaims]
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // oidcClient is a structure encapsulating an HTTP client, OIDC transport, and a token for OpenID Connect (OIDC) operations.
 // newOIDCClient constructs a new oidcClient, ensuring the token field is non-nil to prevent panics during authentication.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-// oidcClient is a structure encapsulating an HTTP client, OIDC transport, and a token for OpenID Connect (OIDC) operations.
-// newOIDCClient constructs a new oidcClient, ensuring the token field is non-nil to prevent panics during authentication.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func newOIDCClient(tokens *oidc.Tokens[*oidc.IDTokenClaims]) *oidcClient {
 	client := oidcClient{
 		tokens:        tokens,
@@ -120,14 +88,7 @@ func newOIDCClient(tokens *oidc.Tokens[*oidc.IDTokenClaims]) *oidcClient {
 	return &client
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // getAccessToken returns the Access Token from the oidcClient's tokens, or an empty string if no tokens are present.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-// getAccessToken returns the Access Token from the oidcClient's tokens, or an empty string if no tokens are present.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (o *oidcClient) getAccessToken() string {
 	if o.tokens == nil || o.tokens.Token == nil {
 		return ""
@@ -136,16 +97,8 @@ func (o *oidcClient) getAccessToken() string {
 	return o.tokens.AccessToken
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // do function executes an HTTP request using the oidcClient's http client, and manages authorization by refreshing or authenticating as needed.
 // If the request fails with an HTTP Unauthorized status, it attempts to refresh the access token, or perform an OIDC authentication if refresh fails.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-// do function executes an HTTP request using the oidcClient's http client, and manages authorization by refreshing or authenticating as needed.
-// If the request fails with an HTTP Unauthorized status, it attempts to refresh the access token, or perform an OIDC authentication if refresh fails.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (o *oidcClient) do(req *http.Request) (*http.Response, error) {
 	resp, err := o.httpClient.Do(req)
 	if err != nil {
@@ -160,11 +113,10 @@ func (o *oidcClient) do(req *http.Request) (*http.Response, error) {
 	issuer := resp.Header.Get("X-LXD-OIDC-issuer")
 	clientID := resp.Header.Get("X-LXD-OIDC-clientid")
 	audience := resp.Header.Get("X-LXD-OIDC-audience")
-	groupsClaim := resp.Header.Get("X-LXD-OIDC-groups-claim")
 
-	err = o.refresh(issuer, clientID, groupsClaim)
+	err = o.refresh(issuer, clientID)
 	if err != nil {
-		err = o.authenticate(issuer, clientID, audience, groupsClaim)
+		err = o.authenticate(issuer, clientID, audience)
 		if err != nil {
 			return nil, err
 		}
@@ -181,18 +133,9 @@ func (o *oidcClient) do(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // getProvider initializes a new OpenID Connect Relying Party for a given issuer and clientID.
 // The function also creates a secure CookieHandler with random encryption and hash keys, and applies a series of configurations on the Relying Party.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
 func (o *oidcClient) getProvider(issuer string, clientID string) (rp.RelyingParty, error) {
-=======
-// getProvider initializes a new OpenID Connect Relying Party for a given issuer and clientID.
-// The function also creates a secure CookieHandler with random encryption and hash keys, and applies a series of configurations on the Relying Party.
-func (o *oidcClient) getProvider(issuer string, clientID string, groupsClaim string) (rp.RelyingParty, error) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	hashKey := make([]byte, 16)
 	encryptKey := make([]byte, 16)
 
@@ -206,7 +149,7 @@ func (o *oidcClient) getProvider(issuer string, clientID string, groupsClaim str
 		return nil, err
 	}
 
-	cookieHandler := httphelper.NewCookieHandler(hashKey, encryptKey)
+	cookieHandler := httphelper.NewCookieHandler(hashKey, encryptKey, httphelper.WithUnsecure())
 	options := []rp.Option{
 		rp.WithCookieHandler(cookieHandler),
 		rp.WithVerifierOpts(rp.WithIssuedAtOffset(5 * time.Second)),
@@ -214,12 +157,7 @@ func (o *oidcClient) getProvider(issuer string, clientID string, groupsClaim str
 		rp.WithHTTPClient(o.httpClient),
 	}
 
-	scopes := oidcScopes
-	if groupsClaim != "" {
-		scopes = append(oidcScopes, groupsClaim)
-	}
-
-	provider, err := rp.NewRelyingPartyOIDC(issuer, clientID, "", "", scopes, options...)
+	provider, err := rp.NewRelyingPartyOIDC(issuer, clientID, "", "", oidcScopes, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,23 +165,14 @@ func (o *oidcClient) getProvider(issuer string, clientID string, groupsClaim str
 	return provider, nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // refresh attempts to refresh the OpenID Connect access token for the client using the refresh token.
 // If no token is present or the refresh token is empty, it returns an error. If successful, it updates the access token and other relevant token fields.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
 func (o *oidcClient) refresh(issuer string, clientID string) error {
-=======
-// refresh attempts to refresh the OpenID Connect access token for the client using the refresh token.
-// If no token is present or the refresh token is empty, it returns an error. If successful, it updates the access token and other relevant token fields.
-func (o *oidcClient) refresh(issuer string, clientID string, groupsClaim string) error {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if o.tokens.Token == nil || o.tokens.RefreshToken == "" {
 		return errRefreshAccessToken
 	}
 
-	provider, err := o.getProvider(issuer, clientID, groupsClaim)
+	provider, err := o.getProvider(issuer, clientID)
 	if err != nil {
 		return errRefreshAccessToken
 	}
@@ -264,20 +193,10 @@ func (o *oidcClient) refresh(issuer string, clientID string, groupsClaim string)
 	return nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 // authenticate initiates the OpenID Connect device flow authentication process for the client.
 // It presents a user code for the end user to input in the device that has web access and waits for them to complete the authentication,
 // subsequently updating the client's tokens upon successful authentication.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
 func (o *oidcClient) authenticate(issuer string, clientID string, audience string) error {
-=======
-// authenticate initiates the OpenID Connect device flow authentication process for the client.
-// It presents a user code for the end user to input in the device that has web access and waits for them to complete the authentication,
-// subsequently updating the client's tokens upon successful authentication.
-func (o *oidcClient) authenticate(issuer string, clientID string, audience string, groupsClaim string) error {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Store the old transport and restore it in the end.
 	oldTransport := o.httpClient.Transport
 	o.oidcTransport.audience = audience
@@ -287,7 +206,7 @@ func (o *oidcClient) authenticate(issuer string, clientID string, audience strin
 		o.httpClient.Transport = oldTransport
 	}()
 
-	provider, err := o.getProvider(issuer, clientID, groupsClaim)
+	provider, err := o.getProvider(issuer, clientID)
 	if err != nil {
 		return err
 	}
@@ -299,32 +218,12 @@ func (o *oidcClient) authenticate(issuer string, clientID string, audience strin
 		return err
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_oidc.go
 	u, _ := url.Parse(resp.VerificationURIComplete)
 
 	fmt.Printf("URL: %s\n", u.String())
 	fmt.Printf("Code: %s\n\n", resp.UserCode)
 
 	_ = openBrowser(u.String())
-=======
-	fmt.Printf("Code: %s\n\n", resp.UserCode)
-
-	u, _ := url.Parse(resp.VerificationURIComplete)
-
-	err = httpbakery.OpenWebBrowser(u)
-	if err != nil {
-		return err
-	}
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_oidc.go
-=======
-	u, _ := url.Parse(resp.VerificationURIComplete)
-
-	fmt.Printf("URL: %s\n", u.String())
-	fmt.Printf("Code: %s\n\n", resp.UserCode)
-
-	_ = openBrowser(u.String())
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT)
 	defer stop()

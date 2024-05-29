@@ -12,15 +12,7 @@ import (
 	"sync"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 var errInvalidPath = errors.New("schema: invalid path")
-=======
-var invalidPath = errors.New("schema: invalid path")
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-var errInvalidPath = errors.New("schema: invalid path")
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 // newCache returns a new cache.
 func newCache() *cache {
@@ -61,8 +53,6 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 	keys := strings.Split(p, ".")
 	for i := 0; i < len(keys); i++ {
 		if t.Kind() != reflect.Struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
 			return nil, errInvalidPath
 		}
 		if struc = c.get(t); struc == nil {
@@ -70,22 +60,6 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 		}
 		if field = struc.get(keys[i]); field == nil {
 			return nil, errInvalidPath
-=======
-			return nil, invalidPath
-=======
-			return nil, errInvalidPath
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-		}
-		if struc = c.get(t); struc == nil {
-			return nil, errInvalidPath
-		}
-		if field = struc.get(keys[i]); field == nil {
-<<<<<<< HEAD
-			return nil, invalidPath
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-			return nil, errInvalidPath
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 		// Valid field. Append index.
 		path = append(path, field.name)
@@ -98,24 +72,10 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 			// So checking i+2 is not necessary anymore.
 			i++
 			if i+1 > len(keys) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 				return nil, errInvalidPath
 			}
 			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
 				return nil, errInvalidPath
-=======
-				return nil, invalidPath
-			}
-			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
-				return nil, invalidPath
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-				return nil, errInvalidPath
-			}
-			if index64, err = strconv.ParseInt(keys[i], 10, 0); err != nil {
-				return nil, errInvalidPath
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 			parts = append(parts, pathPart{
 				path:  path,
@@ -237,10 +197,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 		isSliceOfStructs: isSlice && isStruct,
 		isAnonymous:      field.Anonymous,
 		isRequired:       options.Contains("required"),
-<<<<<<< HEAD
 		defaultValue:     options.getDefaultOptionValue(),
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	}
 }
 
@@ -290,14 +247,9 @@ type fieldInfo struct {
 	// isSliceOfStructs indicates if the field type is a slice of structs.
 	isSliceOfStructs bool
 	// isAnonymous indicates whether the field is embedded in the struct.
-<<<<<<< HEAD
 	isAnonymous  bool
 	isRequired   bool
 	defaultValue string
-=======
-	isAnonymous bool
-	isRequired  bool
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (f *fieldInfo) paths(prefix string) []string {
@@ -353,7 +305,6 @@ func (o tagOptions) Contains(option string) bool {
 	}
 	return false
 }
-<<<<<<< HEAD
 
 func (o tagOptions) getDefaultOptionValue() string {
 	for _, s := range o {
@@ -364,5 +315,3 @@ func (o tagOptions) getDefaultOptionValue() string {
 
 	return ""
 }
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)

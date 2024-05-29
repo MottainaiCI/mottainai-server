@@ -86,15 +86,7 @@ var supportedHostKeyAlgos = []string{
 // This is based on RFC 4253, section 6.4, but with hmac-md5 variants removed
 // because they have reached the end of their useful life.
 var supportedMACs = []string{
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "hmac-sha2-256", "hmac-sha2-512", "hmac-sha1", "hmac-sha1-96",
-=======
-	"hmac-sha2-512-etm@openssh.com", "hmac-sha2-256-etm@openssh.com", "hmac-sha2-256", "hmac-sha1", "hmac-sha1-96",
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	"hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "hmac-sha2-256", "hmac-sha2-512", "hmac-sha1", "hmac-sha1-96",
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 var supportedCompressions = []string{compressionNone}

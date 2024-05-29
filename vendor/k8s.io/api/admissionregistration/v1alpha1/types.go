@@ -213,10 +213,6 @@ type ValidatingAdmissionPolicySpec struct {
 	// +listMapKey=name
 	// +optional
 	MatchConditions []MatchCondition `json:"matchConditions,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,6,rep,name=matchConditions"`
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Variables contain definitions of variables that can be used in composition of other expressions.
 	// Each variable is defined as a named CEL expression.
@@ -231,11 +227,6 @@ type ValidatingAdmissionPolicySpec struct {
 	// +listMapKey=name
 	// +optional
 	Variables []Variable `json:"variables,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=variables"`
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 type MatchCondition v1.MatchCondition
@@ -263,18 +254,9 @@ type Validation struct {
 	// - 'oldObject' - The existing object. The value is null for CREATE requests.
 	// - 'request' - Attributes of the API request([ref](/pkg/apis/admission/types.go#AdmissionRequest)).
 	// - 'params' - Parameter resource referred to by the policy binding being evaluated. Only populated if the policy has a ParamKind.
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// - 'namespaceObject' - The namespace object that the incoming object belongs to. The value is null for cluster-scoped resources.
 	// - 'variables' - Map of composited variables, from its name to its lazily evaluated value.
 	//   For example, a variable named 'foo' can be accessed as 'variables.foo'.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	// - 'namespaceObject' - The namespace object that the incoming object belongs to. The value is null for cluster-scoped resources.
-	// - 'variables' - Map of composited variables, from its name to its lazily evaluated value.
-	//   For example, a variable named 'foo' can be accessed as 'variables.foo'.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// - 'authorizer' - A CEL Authorizer. May be used to perform authorization checks for the principal (user or service account) of the request.
 	//   See https://pkg.go.dev/k8s.io/apiserver/pkg/cel/library#Authz
 	// - 'authorizer.requestResource' - A CEL ResourceCheck constructed from the 'authorizer' and configured with the
@@ -337,10 +319,6 @@ type Validation struct {
 	MessageExpression string `json:"messageExpression,omitempty" protobuf:"bytes,4,opt,name=messageExpression"`
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Variable is the definition of a variable that is used for composition.
 type Variable struct {
 	// Name is the name of the variable. The name must be a valid CEL identifier and unique among all variables.
@@ -353,11 +331,6 @@ type Variable struct {
 	Expression string `json:"expression" protobuf:"bytes,2,opt,name=Expression"`
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // AuditAnnotation describes how to produce an audit annotation for an API request.
 type AuditAnnotation struct {
 	// key specifies the audit annotation key. The audit annotation keys of

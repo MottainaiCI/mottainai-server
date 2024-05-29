@@ -62,13 +62,12 @@ func (r *ProtocolLXD) CreateCertificate(certificate api.CertificatesPost) error 
 
 // UpdateCertificate updates the certificate definition.
 func (r *ProtocolLXD) UpdateCertificate(fingerprint string, certificate api.CertificatePut, ETag string) error {
-	err := r.CheckExtension("certificate_update")
-	if err != nil {
-		return err
+	if !r.HasExtension("certificate_update") {
+		return fmt.Errorf("The server is missing the required \"certificate_update\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("PUT", fmt.Sprintf("/certificates/%s", url.PathEscape(fingerprint)), certificate, ETag)
+	_, _, err := r.query("PUT", fmt.Sprintf("/certificates/%s", url.PathEscape(fingerprint)), certificate, ETag)
 	if err != nil {
 		return err
 	}
@@ -89,9 +88,8 @@ func (r *ProtocolLXD) DeleteCertificate(fingerprint string) error {
 
 // CreateCertificateToken requests a certificate add token.
 func (r *ProtocolLXD) CreateCertificateToken(certificate api.CertificatesPost) (Operation, error) {
-	err := r.CheckExtension("certificate_token")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("certificate_token") {
+		return nil, fmt.Errorf("The server is missing the required \"certificate_token\" API extension")
 	}
 
 	if !certificate.Token {

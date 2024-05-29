@@ -163,37 +163,12 @@ func (r descsByName) initFieldsFromDescriptorProto(fds []*descriptorpb.FieldDesc
 			f.L1.StringName.InitJSON(fd.GetJsonName())
 		}
 
-<<<<<<< HEAD
 		if f.L1.EditionFeatures.IsLegacyRequired {
 			f.L1.Cardinality = protoreflect.Required
 		}
 
 		if f.L1.Kind == protoreflect.MessageKind && f.L1.EditionFeatures.IsDelimitedEncoded {
 			f.L1.Kind = protoreflect.GroupKind
-=======
-		if f.Base.L0.ParentFile.Syntax() == protoreflect.Editions {
-			f.L1.Presence = resolveFeatureHasFieldPresence(f.Base.L0.ParentFile, fd)
-			// We reuse the existing field because the old option `[packed =
-			// true]` is mutually exclusive with the editions feature.
-			if fd.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
-				f.L1.HasPacked = true
-				f.L1.IsPacked = resolveFeatureRepeatedFieldEncodingPacked(f.Base.L0.ParentFile, fd)
-			}
-
-			// We pretend this option is always explicitly set because the only
-			// use of HasEnforceUTF8 is to determine whether to use EnforceUTF8
-			// or to return the appropriate default.
-			// When using editions we either parse the option or resolve the
-			// appropriate default here (instead of later when this option is
-			// requested from the descriptor).
-			// In proto2/proto3 syntax HasEnforceUTF8 might be false.
-			f.L1.HasEnforceUTF8 = true
-			f.L1.EnforceUTF8 = resolveFeatureEnforceUTF8(f.Base.L0.ParentFile, fd)
-
-			if f.L1.Kind == protoreflect.MessageKind && resolveFeatureDelimitedEncoding(f.Base.L0.ParentFile, fd) {
-				f.L1.Kind = protoreflect.GroupKind
-			}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 	}
 	return fs, nil

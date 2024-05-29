@@ -1,10 +1,7 @@
 # A minimal logging API for Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/go-logr/logr.svg)](https://pkg.go.dev/github.com/go-logr/logr)
-<<<<<<< HEAD
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-logr/logr)](https://goreportcard.com/report/github.com/go-logr/logr)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/go-logr/logr/badge)](https://securityscorecards.dev/viewer/?platform=github.com&org=go-logr&repo=logr)
 
 logr offers an(other) opinion on how Go programs and libraries can do logging

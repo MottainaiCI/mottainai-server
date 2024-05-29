@@ -35,9 +35,8 @@ func (r *ProtocolLXD) GetImages() ([]api.Image, error) {
 
 // GetImagesWithFilter returns a filtered list of available images as Image structs.
 func (r *ProtocolLXD) GetImagesWithFilter(filters []string) ([]api.Image, error) {
-	err := r.CheckExtension("api_filtering")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("api_filtering") {
+		return nil, fmt.Errorf("The server is missing the required \"api_filtering\" API extension")
 	}
 
 	images := []api.Image{}
@@ -46,7 +45,7 @@ func (r *ProtocolLXD) GetImagesWithFilter(filters []string) ([]api.Image, error)
 	v.Set("recursion", "1")
 	v.Set("filter", parseFilters(filters))
 
-	_, err = r.queryStruct("GET", fmt.Sprintf("/images?%s", v.Encode()), nil, "", &images)
+	_, err := r.queryStruct("GET", fmt.Sprintf("/images?%s", v.Encode()), nil, "", &images)
 	if err != nil {
 		return nil, err
 	}
@@ -387,9 +386,8 @@ func (r *ProtocolLXD) GetImageAliasArchitectures(imageType string, name string) 
 // CreateImage requests that LXD creates, copies or import a new image.
 func (r *ProtocolLXD) CreateImage(image api.ImagesPost, args *ImageCreateArgs) (Operation, error) {
 	if image.CompressionAlgorithm != "" {
-		err := r.CheckExtension("image_compression_algorithm")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("image_compression_algorithm") {
+			return nil, fmt.Errorf("The server is missing the required \"image_compression_algorithm\" API extension")
 		}
 	}
 
@@ -584,7 +582,7 @@ func (r *ProtocolLXD) tryCopyImage(req api.ImagesPost, urls []string) (RemoteOpe
 	}
 
 	// For older servers, apply the aliases after copy
-	if r.CheckExtension("image_create_aliases") != nil && req.Aliases != nil {
+	if !r.HasExtension("image_create_aliases") && req.Aliases != nil {
 		rop.chPost = make(chan bool)
 
 		go func() {
@@ -680,9 +678,8 @@ func (r *ProtocolLXD) CopyImage(source ImageServer, image api.Image, args *Image
 
 	// Handle profile list overrides.
 	if args != nil && args.Profiles != nil {
-		err := r.CheckExtension("image_copy_profile")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("image_copy_profile") {
+			return nil, fmt.Errorf("The server is missing the required \"image_copy_profile\" API extension")
 		}
 
 		image.Profiles = args.Profiles
@@ -929,9 +926,8 @@ func (r *ProtocolLXD) DeleteImage(fingerprint string) (Operation, error) {
 
 // RefreshImage requests that LXD issues an image refresh.
 func (r *ProtocolLXD) RefreshImage(fingerprint string) (Operation, error) {
-	err := r.CheckExtension("image_force_refresh")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("image_force_refresh") {
+		return nil, fmt.Errorf("The server is missing the required \"image_force_refresh\" API extension")
 	}
 
 	// Send the request
@@ -1000,9 +996,8 @@ func (r *ProtocolLXD) DeleteImageAlias(name string) error {
 
 // ExportImage exports (copies) an image to a remote server.
 func (r *ProtocolLXD) ExportImage(fingerprint string, image api.ImageExportPost) (Operation, error) {
-	err := r.CheckExtension("images_push_relay")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("images_push_relay") {
+		return nil, fmt.Errorf("The server is missing the required \"images_push_relay\" API extension")
 	}
 
 	// Send the request

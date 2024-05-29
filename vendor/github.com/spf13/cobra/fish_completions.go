@@ -113,15 +113,7 @@ function __%[1]s_clear_perform_completion_once_result
     __%[1]s_debug ""
     __%[1]s_debug "========= clearing previously set __%[1]s_perform_completion_once_result variable =========="
     set --erase __%[1]s_perform_completion_once_result
-<<<<<<< HEAD
-<<<<<<< HEAD
     __%[1]s_debug "Successfully erased the variable __%[1]s_perform_completion_once_result"
-=======
-    __%[1]s_debug "Succesfully erased the variable __%[1]s_perform_completion_once_result"
->>>>>>> 7cefc8b7 (Update vendor github.com/spf13/cobra@v1.7.0)
-=======
-    __%[1]s_debug "Successfully erased the variable __%[1]s_perform_completion_once_result"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 end
 
 function __%[1]s_requires_order_preservation

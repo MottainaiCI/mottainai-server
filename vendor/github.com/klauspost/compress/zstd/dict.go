@@ -1,28 +1,13 @@
 package zstd
 
 import (
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"bytes"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	"bytes"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"math"
 	"sort"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	"math"
-	"sort"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	"github.com/klauspost/compress/huff0"
 )
@@ -32,19 +17,8 @@ type dict struct {
 
 	litEnc              *huff0.Scratch
 	llDec, ofDec, mlDec sequenceDec
-<<<<<<< HEAD
-<<<<<<< HEAD
 	offsets             [3]int
 	content             []byte
-=======
-	//llEnc, ofEnc, mlEnc []*fseEncoder
-	offsets [3]int
-	content []byte
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	offsets             [3]int
-	content             []byte
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 const dictMagic = "\x37\xa4\x30\xec"
@@ -187,10 +161,6 @@ func InspectDictionary(b []byte) (interface {
 	d, err := loadDict(b)
 	return d, err
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 type BuildDictOptions struct {
 	// Dictionary ID.
@@ -562,8 +532,3 @@ func BuildDict(o BuildDictOptions) ([]byte, error) {
 	}
 	return out.Bytes(), nil
 }
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

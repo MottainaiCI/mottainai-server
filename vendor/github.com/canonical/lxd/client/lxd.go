@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-macaroon-bakery/macaroon-bakery/v3/bakery"
+	"github.com/go-macaroon-bakery/macaroon-bakery/v3/httpbakery"
 	"github.com/gorilla/websocket"
 
 	"github.com/canonical/lxd/shared"
@@ -44,6 +46,8 @@ type ProtocolLXD struct {
 	httpProtocol    string
 	httpUserAgent   string
 
+	bakeryClient         *httpbakery.Client
+	bakeryInteractor     []httpbakery.Interactor
 	requireAuthenticated bool
 
 	clusterTarget string
@@ -143,9 +147,14 @@ func (r *ProtocolLXD) GetHTTPClient() (*http.Client, error) {
 	return r.http, nil
 }
 
-// DoHTTP performs a Request, using OIDC authentication if set.
+// DoHTTP performs a Request, using macaroon authentication if set.
 func (r *ProtocolLXD) DoHTTP(req *http.Request) (*http.Response, error) {
 	r.addClientHeaders(req)
+
+	// Send the request through
+	if r.bakeryClient != nil {
+		return r.bakeryClient.Do(req)
+	}
 
 	if r.oidcClient != nil {
 		return r.oidcClient.do(req)
@@ -157,6 +166,7 @@ func (r *ProtocolLXD) DoHTTP(req *http.Request) (*http.Response, error) {
 // addClientHeaders sets headers from client settings.
 // User-Agent (if r.httpUserAgent is set).
 // X-LXD-authenticated (if r.requireAuthenticated is set).
+// Bakery authentication header and cookie (if r.bakeryClient is set).
 // OIDC Authorization header (if r.oidcClient is set).
 func (r *ProtocolLXD) addClientHeaders(req *http.Request) {
 	if r.httpUserAgent != "" {
@@ -165,6 +175,14 @@ func (r *ProtocolLXD) addClientHeaders(req *http.Request) {
 
 	if r.requireAuthenticated {
 		req.Header.Set("X-LXD-authenticated", "true")
+	}
+
+	if r.bakeryClient != nil {
+		req.Header.Set(httpbakery.BakeryProtocolHeader, fmt.Sprint(bakery.LatestVersion))
+
+		for _, cookie := range r.http.Jar.Cookies(req.URL) {
+			req.AddCookie(cookie)
+		}
 	}
 
 	if r.oidcClient != nil {

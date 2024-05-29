@@ -172,15 +172,7 @@ type ForZone struct {
 // EndpointPort represents a Port used by an EndpointSlice
 type EndpointPort struct {
 	// name represents the name of this port. All ports in an EndpointSlice must have a unique name.
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// If the EndpointSlice is derived from a Kubernetes service, this corresponds to the Service.ports[].name.
-=======
-	// If the EndpointSlice is dervied from a Kubernetes service, this corresponds to the Service.ports[].name.
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	// If the EndpointSlice is derived from a Kubernetes service, this corresponds to the Service.ports[].name.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Name must either be an empty string or pass DNS_LABEL validation:
 	// * must be no more than 63 characters long.
 	// * must consist of lower case alphanumeric characters or '-'.

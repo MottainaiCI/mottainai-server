@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 ## 1.33.1
 
 ### Fixes
@@ -32,8 +30,6 @@
 - docs: fix typo and broken anchor link to gstruct [f460154]
 - docs: fix HaveEach matcher signature [a2862e4]
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 ## 1.31.1
 
 ### Fixes
@@ -140,11 +136,6 @@
 - Bump golang.org/x/net from 0.8.0 to 0.9.0 (#656) [29ed041]
 - Bump actions/setup-go from 3 to 4 (#651) [11b2080]
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 ## 1.27.6
 
 ### Fixes

@@ -22,27 +22,13 @@ import (
 	"strconv"
 	"strings"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"golang.org/x/tools/go/types/objectpath"
 	"golang.org/x/tools/internal/aliases"
 	"golang.org/x/tools/internal/tokeninternal"
-=======
-	"golang.org/x/tools/internal/tokeninternal"
-	"golang.org/x/tools/internal/typeparams"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	"golang.org/x/tools/go/types/objectpath"
-	"golang.org/x/tools/internal/tokeninternal"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // IExportShallow encodes "shallow" export data for the specified package.
 //
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // No promises are made about the encoding other than that it can be decoded by
 // the same version of IIExportShallow. If you plan to save export data in the
 // file system, be sure to include a cryptographic digest of the executable in
@@ -53,16 +39,6 @@ import (
 // TODO(rfindley): remove reportf when we are confident enough in the new
 // objectpath encoding.
 func IExportShallow(fset *token.FileSet, pkg *types.Package, reportf ReportFunc) ([]byte, error) {
-<<<<<<< HEAD
-=======
-// No promises are made about the encoding other than that it can be
-// decoded by the same version of IIExportShallow. If you plan to save
-// export data in the file system, be sure to include a cryptographic
-// digest of the executable in the key to avoid version skew.
-func IExportShallow(fset *token.FileSet, pkg *types.Package) ([]byte, error) {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// In principle this operation can only fail if out.Write fails,
 	// but that's impossible for bytes.Buffer---and as a matter of
 	// fact iexportCommon doesn't even check for I/O errors.
@@ -77,10 +53,6 @@ func IExportShallow(fset *token.FileSet, pkg *types.Package) ([]byte, error) {
 // IImportShallow decodes "shallow" types.Package data encoded by
 // IExportShallow in the same executable. This function cannot import data from
 // cmd/compile or gcexportdata.Write.
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 //
 // The importer calls getPackages to obtain package symbols for all
 // packages mentioned in the export data, including the one being
@@ -91,40 +63,17 @@ func IExportShallow(fset *token.FileSet, pkg *types.Package) ([]byte, error) {
 // TODO(rfindley): remove reportf when we are confident enough in the new
 // objectpath encoding.
 func IImportShallow(fset *token.FileSet, getPackages GetPackagesFunc, data []byte, path string, reportf ReportFunc) (*types.Package, error) {
-<<<<<<< HEAD
 	const bundle = false
 	const shallow = true
 	pkgs, err := iimportCommon(fset, getPackages, data, bundle, path, shallow, reportf)
-=======
-func IImportShallow(fset *token.FileSet, getPackage GetPackageFunc, data []byte, path string, insert InsertType) (*types.Package, error) {
-	const bundle = false
-	pkgs, err := iimportCommon(fset, getPackage, data, bundle, path, insert)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	const bundle = false
-	const shallow = true
-	pkgs, err := iimportCommon(fset, getPackages, data, bundle, path, shallow, reportf)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if err != nil {
 		return nil, err
 	}
 	return pkgs[0], nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // ReportFunc is the type of a function used to report formatted bugs.
 type ReportFunc = func(string, ...interface{})
-=======
-// InsertType is the type of a function that creates a types.TypeName
-// object for a named type and inserts it into the scope of the
-// specified Package.
-type InsertType = func(pkg *types.Package, name string)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// ReportFunc is the type of a function used to report formatted bugs.
-type ReportFunc = func(string, ...interface{})
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 // Current bundled export format version. Increase with each format change.
 // 0: initial implementation
@@ -378,20 +327,9 @@ type iexporter struct {
 	out     *bytes.Buffer
 	version int
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	shallow    bool                // don't put types from other packages in the index
 	objEncoder *objectpath.Encoder // encodes objects from other packages in shallow mode; lazily allocated
 	localpkg   *types.Package      // (nil in bundle mode)
-=======
-	shallow  bool           // don't put types from other packages in the index
-	localpkg *types.Package // (nil in bundle mode)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	shallow    bool                // don't put types from other packages in the index
-	objEncoder *objectpath.Encoder // encodes objects from other packages in shallow mode; lazily allocated
-	localpkg   *types.Package      // (nil in bundle mode)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// allPkgs tracks all packages that have been referenced by
 	// the export data, so we can ensure to include them in the
@@ -431,10 +369,6 @@ func (p *iexporter) trace(format string, args ...interface{}) {
 	fmt.Printf(strings.Repeat("..", p.indent)+format+"\n", args...)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // objectpathEncoder returns the lazily allocated objectpath.Encoder to use
 // when encoding objects in other packages during shallow export.
 //
@@ -446,11 +380,6 @@ func (p *iexporter) objectpathEncoder() *objectpath.Encoder {
 	return p.objEncoder
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // stringOff returns the offset of s within the string section.
 // If not already present, it's added to the end.
 func (p *iexporter) stringOff(s string) uint64 {
@@ -510,13 +439,6 @@ type exportWriter struct {
 	p *iexporter
 
 	data       intWriter
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	currPkg    *types.Package
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	prevFile   string
 	prevLine   int64
 	prevColumn int64
@@ -539,21 +461,10 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}()
 	}
 	w := p.newWriter()
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 	switch obj := obj.(type) {
 	case *types.Var:
 		w.tag(varTag)
-=======
-	w.setPkg(obj.Pkg(), false)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-
-	switch obj := obj.(type) {
-	case *types.Var:
-		w.tag('V')
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		w.pos(obj.Pos())
 		w.typ(obj.Type(), obj.Pkg())
 
@@ -570,21 +481,10 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		// Function.
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if sig.TypeParams().Len() == 0 {
 			w.tag(funcTag)
 		} else {
 			w.tag(genericFuncTag)
-=======
-		if typeparams.ForSignature(sig).Len() == 0 {
-=======
-		if sig.TypeParams().Len() == 0 {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-			w.tag('F')
-		} else {
-			w.tag('G')
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		}
 		w.pos(obj.Pos())
 		// The tparam list of the function type is the declaration of the type
@@ -594,57 +494,27 @@ func (p *iexporter) doDecl(obj types.Object) {
 		//
 		// While importing the type parameters, tparamList computes and records
 		// their export name, so that it can be later used when writing the index.
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if tparams := sig.TypeParams(); tparams.Len() > 0 {
-=======
-		if tparams := typeparams.ForSignature(sig); tparams.Len() > 0 {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		if tparams := sig.TypeParams(); tparams.Len() > 0 {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			w.tparamList(obj.Name(), tparams, obj.Pkg())
 		}
 		w.signature(sig)
 
 	case *types.Const:
-<<<<<<< HEAD
 		w.tag(constTag)
-=======
-		w.tag('C')
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		w.pos(obj.Pos())
 		w.value(obj.Type(), obj.Val())
 
 	case *types.TypeName:
 		t := obj.Type()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if tparam, ok := aliases.Unalias(t).(*types.TypeParam); ok {
 			w.tag(typeParamTag)
-=======
-		if tparam, ok := t.(*typeparams.TypeParam); ok {
-=======
-		if tparam, ok := t.(*types.TypeParam); ok {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-			w.tag('P')
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			w.pos(obj.Pos())
 			constraint := tparam.Constraint()
 			if p.version >= iexportVersionGo1_18 {
 				implicit := false
-<<<<<<< HEAD
 				if iface, _ := aliases.Unalias(constraint).(*types.Interface); iface != nil {
 					implicit = iface.IsImplicit()
-=======
-				if iface, _ := constraint.(*types.Interface); iface != nil {
-<<<<<<< HEAD
-					implicit = typeparams.IsImplicit(iface)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-					implicit = iface.IsImplicit()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 				}
 				w.bool(implicit)
 			}
@@ -653,7 +523,6 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		if obj.IsAlias() {
-<<<<<<< HEAD
 			w.tag(aliasTag)
 			w.pos(obj.Pos())
 			if alias, ok := t.(*aliases.Alias); ok {
@@ -661,10 +530,6 @@ func (p *iexporter) doDecl(obj types.Object) {
 				// even of non-exported types.
 				t = aliases.Rhs(alias)
 			}
-=======
-			w.tag('A')
-			w.pos(obj.Pos())
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 			w.typ(t, obj.Pkg())
 			break
 		}
@@ -675,8 +540,6 @@ func (p *iexporter) doDecl(obj types.Object) {
 			panic(internalErrorf("%s is not a defined type", t))
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if named.TypeParams().Len() == 0 {
 			w.tag(typeTag)
 		} else {
@@ -691,25 +554,6 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		underlying := named.Underlying()
-=======
-		if typeparams.ForNamed(named).Len() == 0 {
-=======
-		if named.TypeParams().Len() == 0 {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-			w.tag('T')
-		} else {
-			w.tag('U')
-		}
-		w.pos(obj.Pos())
-
-		if named.TypeParams().Len() > 0 {
-			// While importing the type parameters, tparamList computes and records
-			// their export name, so that it can be later used when writing the index.
-			w.tparamList(obj.Name(), named.TypeParams(), obj.Pkg())
-		}
-
-		underlying := obj.Type().Underlying()
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		w.typ(underlying, obj.Pkg())
 
 		if types.IsInterface(t) {
@@ -726,15 +570,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 
 			// Receiver type parameters are type arguments of the receiver type, so
 			// their name must be qualified before exporting recv.
-<<<<<<< HEAD
-<<<<<<< HEAD
 			if rparams := sig.RecvTypeParams(); rparams.Len() > 0 {
-=======
-			if rparams := typeparams.RecvTypeParams(sig); rparams.Len() > 0 {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			if rparams := sig.RecvTypeParams(); rparams.Len() > 0 {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 				prefix := obj.Name() + "." + m.Name()
 				for i := 0; i < rparams.Len(); i++ {
 					rparam := rparams.At(i)
@@ -866,18 +702,9 @@ func (w *exportWriter) qualifiedType(obj *types.TypeName) {
 	w.pkg(obj.Pkg())
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // TODO(rfindley): what does 'pkg' even mean here? It would be better to pass
 // it in explicitly into signatures and structs that may use it for
 // constructing fields.
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// TODO(rfindley): what does 'pkg' even mean here? It would be better to pass
-// it in explicitly into signatures and structs that may use it for
-// constructing fields.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (w *exportWriter) typ(t types.Type, pkg *types.Package) {
 	w.data.uint64(w.p.typOff(t, pkg))
 }
@@ -917,7 +744,6 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 		}()
 	}
 	switch t := t.(type) {
-<<<<<<< HEAD
 	case *aliases.Alias:
 		// TODO(adonovan): support parameterized aliases, following *types.Named.
 		w.startType(aliasType)
@@ -925,42 +751,18 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 
 	case *types.Named:
 		if targs := t.TypeArgs(); targs.Len() > 0 {
-=======
-	case *types.Named:
-<<<<<<< HEAD
-		if targs := typeparams.NamedTypeArgs(t); targs.Len() > 0 {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		if targs := t.TypeArgs(); targs.Len() > 0 {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			w.startType(instanceType)
 			// TODO(rfindley): investigate if this position is correct, and if it
 			// matters.
 			w.pos(t.Obj().Pos())
 			w.typeList(targs, pkg)
-<<<<<<< HEAD
-<<<<<<< HEAD
 			w.typ(t.Origin(), pkg)
-=======
-			w.typ(typeparams.NamedTypeOrigin(t), pkg)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			w.typ(t.Origin(), pkg)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			return
 		}
 		w.startType(definedType)
 		w.qualifiedType(t.Obj())
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	case *types.TypeParam:
-=======
-	case *typeparams.TypeParam:
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	case *types.TypeParam:
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		w.startType(typeParamType)
 		w.qualifiedType(t.Obj())
 
@@ -999,22 +801,12 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 
 	case *types.Signature:
 		w.startType(signatureType)
-<<<<<<< HEAD
-<<<<<<< HEAD
 		w.pkg(pkg)
-=======
-		w.setPkg(pkg, true)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		w.pkg(pkg)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		w.signature(t)
 
 	case *types.Struct:
 		w.startType(structType)
 		n := t.NumFields()
-<<<<<<< HEAD
-<<<<<<< HEAD
 		// Even for struct{} we must emit some qualifying package, because that's
 		// what the compiler does, and thus that's what the importer expects.
 		fieldPkg := pkg
@@ -1049,74 +841,20 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 			w.pos(f.Pos())
 			w.string(f.Name()) // unexported fields implicitly qualified by prior setPkg
 			w.typ(f.Type(), fieldPkg)
-=======
-=======
-		// Even for struct{} we must emit some qualifying package, because that's
-		// what the compiler does, and thus that's what the importer expects.
-		fieldPkg := pkg
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-		if n > 0 {
-			fieldPkg = t.Field(0).Pkg()
-		}
-		if fieldPkg == nil {
-			// TODO(rfindley): improve this very hacky logic.
-			//
-			// The importer expects a package to be set for all struct types, even
-			// those with no fields. A better encoding might be to set NumFields
-			// before pkg. setPkg panics with a nil package, which may be possible
-			// to reach with invalid packages (and perhaps valid packages, too?), so
-			// (arbitrarily) set the localpkg if available.
-			//
-			// Alternatively, we may be able to simply guarantee that pkg != nil, by
-			// reconsidering the encoding of constant values.
-			if w.p.shallow {
-				fieldPkg = w.p.localpkg
-			} else {
-				panic(internalErrorf("no package to set for empty struct"))
-			}
-		}
-		w.pkg(fieldPkg)
-		w.uint64(uint64(n))
-
-		for i := 0; i < n; i++ {
-			f := t.Field(i)
-			if w.p.shallow {
-				w.objectPath(f)
-			}
-			w.pos(f.Pos())
-			w.string(f.Name()) // unexported fields implicitly qualified by prior setPkg
-<<<<<<< HEAD
-			w.typ(f.Type(), pkg)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			w.typ(f.Type(), fieldPkg)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			w.bool(f.Anonymous())
 			w.string(t.Tag(i)) // note (or tag)
 		}
 
 	case *types.Interface:
 		w.startType(interfaceType)
-<<<<<<< HEAD
-<<<<<<< HEAD
 		w.pkg(pkg)
-=======
-		w.setPkg(pkg, true)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		w.pkg(pkg)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 		n := t.NumEmbeddeds()
 		w.uint64(uint64(n))
 		for i := 0; i < n; i++ {
 			ft := t.EmbeddedType(i)
 			tPkg := pkg
-<<<<<<< HEAD
 			if named, _ := aliases.Unalias(ft).(*types.Named); named != nil {
-=======
-			if named, _ := ft.(*types.Named); named != nil {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 				w.pos(named.Obj().Pos())
 			} else {
 				w.pos(token.NoPos)
@@ -1124,49 +862,23 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 			w.typ(ft, tPkg)
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		// See comment for struct fields. In shallow mode we change the encoding
 		// for interface methods that are promoted from other packages.
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		// See comment for struct fields. In shallow mode we change the encoding
-		// for interface methods that are promoted from other packages.
-
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		n = t.NumExplicitMethods()
 		w.uint64(uint64(n))
 		for i := 0; i < n; i++ {
 			m := t.ExplicitMethod(i)
-<<<<<<< HEAD
-<<<<<<< HEAD
 			if w.p.shallow {
 				w.objectPath(m)
 			}
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			if w.p.shallow {
-				w.objectPath(m)
-			}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			w.pos(m.Pos())
 			w.string(m.Name())
 			sig, _ := m.Type().(*types.Signature)
 			w.signature(sig)
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	case *types.Union:
-=======
-	case *typeparams.Union:
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	case *types.Union:
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		w.startType(unionType)
 		nt := t.Len()
 		w.uint64(uint64(nt))
@@ -1181,10 +893,6 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // objectPath writes the package and objectPath to use to look up obj in a
 // different package, when encoding in "shallow" mode.
 //
@@ -1213,7 +921,6 @@ func (w *exportWriter) objectPath(obj types.Object) {
 		// encode.
 		w.string("")
 		return
-<<<<<<< HEAD
 	}
 	objectPath, err := w.p.objectpathEncoder().For(obj)
 	if err != nil {
@@ -1241,43 +948,6 @@ func (w *exportWriter) objectPath(obj types.Object) {
 	}
 	w.string(string(objectPath))
 	w.pkg(obj.Pkg())
-=======
-func (w *exportWriter) setPkg(pkg *types.Package, write bool) {
-	if write {
-		w.pkg(pkg)
-	}
-
-	w.currPkg = pkg
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	}
-	objectPath, err := w.p.objectpathEncoder().For(obj)
-	if err != nil {
-		// Fall back to the empty string, which will cause the importer to create a
-		// new object, which matches earlier behavior. Creating a new object is
-		// sufficient for many purposes (such as type checking), but causes certain
-		// references algorithms to fail (golang/go#60819). However, we didn't
-		// notice this problem during months of gopls@v0.12.0 testing.
-		//
-		// TODO(golang/go#61674): this workaround is insufficient, as in the case
-		// where the field forwarded from an instantiated type that may not appear
-		// in the export data of the original package:
-		//
-		//  // package a
-		//  type A[P any] struct{ F P }
-		//
-		//  // package b
-		//  type B a.A[int]
-		//
-		// We need to update references algorithms not to depend on this
-		// de-duplication, at which point we may want to simply remove the
-		// workaround here.
-		w.string("")
-		return
-	}
-	w.string(string(objectPath))
-	w.pkg(obj.Pkg())
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (w *exportWriter) signature(sig *types.Signature) {
@@ -1288,30 +958,14 @@ func (w *exportWriter) signature(sig *types.Signature) {
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func (w *exportWriter) typeList(ts *types.TypeList, pkg *types.Package) {
-=======
-func (w *exportWriter) typeList(ts *typeparams.TypeList, pkg *types.Package) {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-func (w *exportWriter) typeList(ts *types.TypeList, pkg *types.Package) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	w.uint64(uint64(ts.Len()))
 	for i := 0; i < ts.Len(); i++ {
 		w.typ(ts.At(i), pkg)
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func (w *exportWriter) tparamList(prefix string, list *types.TypeParamList, pkg *types.Package) {
-=======
-func (w *exportWriter) tparamList(prefix string, list *typeparams.TypeParamList, pkg *types.Package) {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-func (w *exportWriter) tparamList(prefix string, list *types.TypeParamList, pkg *types.Package) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	ll := uint64(list.Len())
 	w.uint64(ll)
 	for i := 0; i < list.Len(); i++ {
@@ -1329,15 +983,7 @@ const blankMarker = "$"
 // differs from its actual object name: it is prefixed with a qualifier, and
 // blank type parameter names are disambiguated by their index in the type
 // parameter list.
-<<<<<<< HEAD
-<<<<<<< HEAD
 func tparamExportName(prefix string, tparam *types.TypeParam) string {
-=======
-func tparamExportName(prefix string, tparam *typeparams.TypeParam) string {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-func tparamExportName(prefix string, tparam *types.TypeParam) string {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	assert(prefix != "")
 	name := tparam.Obj().Name()
 	if name == "_" {
@@ -1674,10 +1320,6 @@ type internalError string
 
 func (e internalError) Error() string { return "gcimporter: " + string(e) }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // TODO(adonovan): make this call panic, so that it's symmetric with errorf.
 // Otherwise it's easy to forget to do anything with the error.
 //
@@ -1685,11 +1327,6 @@ func (e internalError) Error() string { return "gcimporter: " + string(e) }
 // "internalErrorf" as the former is used for bugs, whose cause is
 // internal inconsistency, whereas the latter is used for ordinary
 // situations like bad input, whose cause is external.
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func internalErrorf(format string, args ...interface{}) error {
 	return internalError(fmt.Sprintf(format, args...))
 }

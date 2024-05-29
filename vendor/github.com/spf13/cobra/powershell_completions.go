@@ -122,15 +122,7 @@ filter __%[1]s_escapeStringWithSpecialChars {
 
     __%[1]s_debug "Calling $RequestComp"
     # First disable ActiveHelp which is not supported for Powershell
-<<<<<<< HEAD
-<<<<<<< HEAD
     ${env:%[10]s}=0
-=======
-    $env:%[10]s=0
->>>>>>> 7cefc8b7 (Update vendor github.com/spf13/cobra@v1.7.0)
-=======
-    ${env:%[10]s}=0
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
     #call the command store the output in $out and redirect stderr and stdout to null
     # $Out is an array contains each line per element

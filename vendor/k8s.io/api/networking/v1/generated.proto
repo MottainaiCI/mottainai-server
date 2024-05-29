@@ -386,17 +386,6 @@ message NetworkPolicy {
   // spec represents the specification of the desired behavior for this NetworkPolicy.
   // +optional
   optional NetworkPolicySpec spec = 2;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-  // status represents the current state of the NetworkPolicy.
-  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
-  // +optional
-  optional NetworkPolicyStatus status = 3;
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // NetworkPolicyEgressRule describes a particular set of traffic that is allowed out of pods
@@ -551,24 +540,6 @@ message NetworkPolicySpec {
   repeated string policyTypes = 4;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// NetworkPolicyStatus describes the current state of the NetworkPolicy.
-message NetworkPolicyStatus {
-  // conditions holds an array of metav1.Condition that describe the state of the NetworkPolicy.
-  // Current service state
-  // +optional
-  // +patchMergeKey=type
-  // +patchStrategy=merge
-  // +listType=map
-  // +listMapKey=type
-  repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 1;
-}
-
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // ServiceBackendPort is the service port being referenced.
 message ServiceBackendPort {
   // name is the name of the port on the Service.

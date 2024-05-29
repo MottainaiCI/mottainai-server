@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 
 //go:build zos && s390x
-<<<<<<< HEAD
 
 // Many of the following syscalls are not available on all versions of z/OS.
 // Some missing calls have legacy implementations/simulations but others
@@ -11,8 +10,6 @@
 // legacy systems, we first test the function pointer via a safeloading
 // mechanism to see if the function exists on a given system. Then execution
 // is branched to either continue the function call, or return an error.
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 package unix
 
@@ -480,13 +477,10 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 //sys   munmap(addr uintptr, length uintptr) (err error) = SYS_MUNMAP
 //sys   ioctl(fd int, req int, arg uintptr) (err error) = SYS_IOCTL
 //sys   ioctlPtr(fd int, req int, arg unsafe.Pointer) (err error) = SYS_IOCTL
-<<<<<<< HEAD
 //sys	shmat(id int, addr uintptr, flag int) (ret uintptr, err error) = SYS_SHMAT
 //sys	shmctl(id int, cmd int, buf *SysvShmDesc) (result int, err error) = SYS_SHMCTL64
 //sys	shmdt(addr uintptr) (err error) = SYS_SHMDT
 //sys	shmget(key int, size int, flag int) (id int, err error) = SYS_SHMGET
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 
 //sys   Access(path string, mode uint32) (err error) = SYS___ACCESS_A
 //sys   Chdir(path string) (err error) = SYS___CHDIR_A
@@ -764,6 +758,14 @@ func Close(fd int) (err error) {
 // Dummy function: there are no semantics for Madvise on z/OS
 func Madvise(b []byte, advice int) (err error) {
 	return
+}
+
+func Mmap(fd int, offset int64, length int, prot int, flags int) (data []byte, err error) {
+	return mapper.Mmap(fd, offset, length, prot, flags)
+}
+
+func Munmap(b []byte) (err error) {
+	return mapper.Munmap(b)
 }
 
 //sys   Gethostname(buf []byte) (err error) = SYS___GETHOSTNAME_A

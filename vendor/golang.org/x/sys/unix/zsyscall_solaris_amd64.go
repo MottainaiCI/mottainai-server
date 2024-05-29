@@ -1639,15 +1639,7 @@ func Setregid(rgid int, egid int) (err error) {
 func Setreuid(ruid int, euid int) (err error) {
 	_, _, e1 := rawSysvicall6(uintptr(unsafe.Pointer(&procSetreuid)), 2, uintptr(ruid), uintptr(euid), 0, 0, 0, 0)
 	if e1 != 0 {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		err = errnoErr(e1)
-=======
-		err = e1
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		err = errnoErr(e1)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	}
 	return
 }

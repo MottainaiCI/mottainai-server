@@ -167,11 +167,7 @@ const (
 	UntypedNilUse
 
 	// WrongAssignCount occurs when the number of values on the right-hand side
-<<<<<<< HEAD
 	// of an assignment or initialization expression does not match the number
-=======
-	// of an assignment or or initialization expression does not match the number
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// of variables on the left-hand side.
 	//
 	// Example:
@@ -1453,17 +1449,10 @@ const (
 	NotAGenericType
 
 	// WrongTypeArgCount occurs when a type or function is instantiated with an
-<<<<<<< HEAD
 	// incorrect number of type arguments, including when a generic type or
 	// function is used without instantiation.
 	//
 	// Errors involving failed type inference are assigned other error codes.
-=======
-	// incorrent number of type arguments, including when a generic type or
-	// function is used without instantiation.
-	//
-	// Errors inolving failed type inference are assigned other error codes.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	//
 	// Example:
 	//  type T[p any] int

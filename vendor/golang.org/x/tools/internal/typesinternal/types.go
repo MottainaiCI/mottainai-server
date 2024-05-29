@@ -48,8 +48,3 @@ func ReadGo116ErrorData(err types.Error) (code ErrorCode, start, end token.Pos, 
 	}
 	return ErrorCode(data[0]), token.Pos(data[1]), token.Pos(data[2]), true
 }
-<<<<<<< HEAD
-=======
-
-var SetGoVersion = func(conf *types.Config, version string) bool { return false }
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)

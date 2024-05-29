@@ -292,11 +292,7 @@ func RunSpecs(t GinkgoTestingT, description string, args ...interface{}) bool {
 
 	err = global.Suite.BuildTree()
 	exitIfErr(err)
-<<<<<<< HEAD
 	suitePath, err := getwd()
-=======
-	suitePath, err := os.Getwd()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	exitIfErr(err)
 	suitePath, err = filepath.Abs(suitePath)
 	exitIfErr(err)
@@ -349,7 +345,6 @@ func extractSuiteConfiguration(args []interface{}) Labels {
 	return suiteLabels
 }
 
-<<<<<<< HEAD
 func getwd() (string, error) {
 	if !strings.EqualFold(os.Getenv("GINKGO_PRESERVE_CACHE"), "true") {
 		// Getwd calls os.Getenv("PWD"), which breaks test caching if the cache
@@ -359,8 +354,6 @@ func getwd() (string, error) {
 	return "", nil
 }
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 /*
 PreviewSpecs walks the testing tree and produces a report without actually invoking the specs.
 See http://onsi.github.io/ginkgo/#previewing-specs for more information.
@@ -385,11 +378,7 @@ func PreviewSpecs(description string, args ...any) Report {
 
 	err = global.Suite.BuildTree()
 	exitIfErr(err)
-<<<<<<< HEAD
 	suitePath, err := getwd()
-=======
-	suitePath, err := os.Getwd()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	exitIfErr(err)
 	suitePath, err = filepath.Abs(suitePath)
 	exitIfErr(err)

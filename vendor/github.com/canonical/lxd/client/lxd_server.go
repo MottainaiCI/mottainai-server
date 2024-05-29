@@ -82,15 +82,14 @@ func (r *ProtocolLXD) IsClustered() bool {
 
 // GetServerResources returns the resources available to a given LXD server.
 func (r *ProtocolLXD) GetServerResources() (*api.Resources, error) {
-	err := r.CheckExtension("resources")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("resources") {
+		return nil, fmt.Errorf("The server is missing the required \"resources\" API extension")
 	}
 
 	resources := api.Resources{}
 
 	// Fetch the raw value
-	_, err = r.queryStruct("GET", "/resources", nil, "", &resources)
+	_, err := r.queryStruct("GET", "/resources", nil, "", &resources)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +109,8 @@ func (r *ProtocolLXD) UseProject(name string) InstanceServer {
 		httpBaseURL:          r.httpBaseURL,
 		httpProtocol:         r.httpProtocol,
 		httpUserAgent:        r.httpUserAgent,
+		bakeryClient:         r.bakeryClient,
+		bakeryInteractor:     r.bakeryInteractor,
 		requireAuthenticated: r.requireAuthenticated,
 		clusterTarget:        r.clusterTarget,
 		project:              name,
@@ -133,6 +134,8 @@ func (r *ProtocolLXD) UseTarget(name string) InstanceServer {
 		httpBaseURL:          r.httpBaseURL,
 		httpProtocol:         r.httpProtocol,
 		httpUserAgent:        r.httpUserAgent,
+		bakeryClient:         r.bakeryClient,
+		bakeryInteractor:     r.bakeryInteractor,
 		requireAuthenticated: r.requireAuthenticated,
 		project:              r.project,
 		eventConns:           make(map[string]*websocket.Conn),  // New target specific listener conns.
@@ -150,9 +153,8 @@ func (r *ProtocolLXD) IsAgent() bool {
 // GetMetrics returns the text OpenMetrics data.
 func (r *ProtocolLXD) GetMetrics() (string, error) {
 	// Check that the server supports it.
-	err := r.CheckExtension("metrics")
-	if err != nil {
-		return "", err
+	if !r.HasExtension("metrics") {
+		return "", fmt.Errorf("The server is missing the required \"metrics\" API extension")
 	}
 
 	// Prepare the request.

@@ -1025,13 +1025,10 @@ func (enc *Encoder) encodeSliceAsArrayTable(b []byte, ctx encoderCtx, v reflect.
 
 	scratch = enc.commented(ctx.commented, scratch)
 
-<<<<<<< HEAD
 	if enc.indentTables {
 		scratch = enc.indent(ctx.indent, scratch)
 	}
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	scratch = append(scratch, "[["...)
 
 	for i, k := range ctx.parentKey {

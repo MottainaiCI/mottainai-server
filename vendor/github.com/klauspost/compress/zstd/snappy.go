@@ -95,22 +95,9 @@ func (r *SnappyConverter) Convert(in io.Reader, w io.Writer) (int64, error) {
 	var written int64
 	var readHeader bool
 	{
-<<<<<<< HEAD
-<<<<<<< HEAD
 		header := frameHeader{WindowSize: snappyMaxBlockSize}.appendTo(r.buf[:0])
 
 		var n int
-=======
-		var header []byte
-		var n int
-		header, r.err = frameHeader{WindowSize: snappyMaxBlockSize}.appendTo(r.buf[:0])
-
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		header := frameHeader{WindowSize: snappyMaxBlockSize}.appendTo(r.buf[:0])
-
-		var n int
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		n, r.err = w.Write(header)
 		if r.err != nil {
 			return written, r.err

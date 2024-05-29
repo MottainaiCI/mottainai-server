@@ -59,16 +59,4 @@ const (
 
 	// AnnotationBaseImageName is the annotation key for the image reference of the image's base image.
 	AnnotationBaseImageName = "org.opencontainers.image.base.name"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-	// AnnotationArtifactCreated is the annotation key for the date and time on which the artifact was built, conforming to RFC 3339.
-	AnnotationArtifactCreated = "org.opencontainers.artifact.created"
-
-	// AnnotationArtifactDescription is the annotation key for the human readable description for the artifact.
-	AnnotationArtifactDescription = "org.opencontainers.artifact.description"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )

@@ -54,10 +54,7 @@ type lexer struct {
 	state    stateFn
 	items    chan item
 	tomlNext bool
-<<<<<<< HEAD
 	esc      bool
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Allow for backing up up to 4 runes. This is necessary because TOML
 	// contains 3-rune tokens (""" and ''').
@@ -889,15 +886,8 @@ func lexHexEscape(lx *lexer) stateFn {
 	var r rune
 	for i := 0; i < 2; i++ {
 		r = lx.next()
-<<<<<<< HEAD
 		if !isHex(r) {
 			return lx.errorf(`expected two hexadecimal digits after '\x', but got %q instead`, lx.current())
-=======
-		if !isHexadecimal(r) {
-			return lx.errorf(
-				`expected two hexadecimal digits after '\x', but got %q instead`,
-				lx.current())
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 	}
 	return lx.pop()
@@ -1267,14 +1257,7 @@ func isControl(r rune) bool { // Control characters except \t, \r, \n
 func isDigit(r rune) bool  { return r >= '0' && r <= '9' }
 func isBinary(r rune) bool { return r == '0' || r == '1' }
 func isOctal(r rune) bool  { return r >= '0' && r <= '7' }
-<<<<<<< HEAD
 func isHex(r rune) bool    { return (r >= '0' && r <= '9') || (r|0x20 >= 'a' && r|0x20 <= 'f') }
-=======
-func isHexadecimal(r rune) bool {
-	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
-}
-
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func isBareKeyChar(r rune, tomlNext bool) bool {
 	if tomlNext {
 		return (r >= 'A' && r <= 'Z') ||

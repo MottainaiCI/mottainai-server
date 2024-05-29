@@ -259,15 +259,7 @@ func Object(object interface{}, indentation uint) string {
 	indent := strings.Repeat(Indent, int(indentation))
 	value := reflect.ValueOf(object)
 	commonRepresentation := ""
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if err, ok := object.(error); ok && !isNilValue(value) { // isNilValue check needed here to avoid nil deref due to boxed nil
-=======
-	if err, ok := object.(error); ok {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	if err, ok := object.(error); ok && !isNilValue(value) { // isNilValue check needed here to avoid nil deref due to boxed nil
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		commonRepresentation += "\n" + IndentString(err.Error(), indentation) + "\n" + indent
 	}
 	return fmt.Sprintf("%s<%s>: %s%s", indent, formatType(value), commonRepresentation, formatValue(value, indentation))

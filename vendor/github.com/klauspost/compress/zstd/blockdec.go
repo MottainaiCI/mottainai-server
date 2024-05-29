@@ -554,12 +554,9 @@ func (b *blockDec) prepareSequences(in []byte, hist *history) (err error) {
 		if debugDecoder {
 			printf("Compression modes: 0b%b", compMode)
 		}
-<<<<<<< HEAD
 		if compMode&3 != 0 {
 			return errors.New("corrupt block: reserved bits not zero")
 		}
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 		for i := uint(0); i < 3; i++ {
 			mode := seqCompMode((compMode >> (6 - i*2)) & 3)
 			if debugDecoder {

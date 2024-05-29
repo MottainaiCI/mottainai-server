@@ -690,19 +690,10 @@ func (l *loggingT) println(s severity.Severity, logger *logWriter, filter LogFil
 }
 
 func (l *loggingT) printlnDepth(s severity.Severity, logger *logWriter, filter LogFilter, depth int, args ...interface{}) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if false {
 		_ = fmt.Sprintln(args...) // cause vet to treat this function like fmt.Println
 	}
 
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	buf, file, line := l.header(s, depth)
 	// If a logger is set and doesn't support writing a formatted buffer,
 	// we clear the generated header as we rely on the backing
@@ -723,10 +714,6 @@ func (l *loggingT) print(s severity.Severity, logger *logWriter, filter LogFilte
 }
 
 func (l *loggingT) printDepth(s severity.Severity, logger *logWriter, filter LogFilter, depth int, args ...interface{}) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if false {
 		_ = fmt.Sprint(args...) //  // cause vet to treat this function like fmt.Print
 	}
@@ -736,12 +723,6 @@ func (l *loggingT) printDepth(s severity.Severity, logger *logWriter, filter Log
 }
 
 func (l *loggingT) printWithInfos(buf *buffer.Buffer, file string, line int, s severity.Severity, logger *logWriter, filter LogFilter, depth int, args ...interface{}) {
-<<<<<<< HEAD
-=======
-	buf, file, line := l.header(s, depth)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// If a logger is set and doesn't support writing a formatted buffer,
 	// we clear the generated header as we rely on the backing
 	// logger implementation to print headers.
@@ -764,19 +745,10 @@ func (l *loggingT) printf(s severity.Severity, logger *logWriter, filter LogFilt
 }
 
 func (l *loggingT) printfDepth(s severity.Severity, logger *logWriter, filter LogFilter, depth int, format string, args ...interface{}) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if false {
 		_ = fmt.Sprintf(format, args...) // cause vet to treat this function like fmt.Printf
 	}
 
-<<<<<<< HEAD
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	buf, file, line := l.header(s, depth)
 	// If a logger is set and doesn't support writing a formatted buffer,
 	// we clear the generated header as we rely on the backing
@@ -799,15 +771,7 @@ func (l *loggingT) printfDepth(s severity.Severity, logger *logWriter, filter Lo
 // alsoLogToStderr is true, the log message always appears on standard error; it
 // will also appear in the log file unless --logtostderr is set.
 func (l *loggingT) printWithFileLine(s severity.Severity, logger *logWriter, filter LogFilter, file string, line int, alsoToStderr bool, args ...interface{}) {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	buf := l.formatHeader(s, file, line, timeNow())
-=======
-	buf := l.formatHeader(s, file, line)
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	buf := l.formatHeader(s, file, line, timeNow())
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// If a logger is set and doesn't support writing a formatted buffer,
 	// we clear the generated header as we rely on the backing
 	// logger implementation to print headers.
@@ -825,15 +789,7 @@ func (l *loggingT) printWithFileLine(s severity.Severity, logger *logWriter, fil
 	l.output(s, logger, buf, 2 /* depth */, file, line, alsoToStderr)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // if logger is specified, will call logger.Error, otherwise output with logging module.
-=======
-// if loggr is specified, will call loggr.Error, otherwise output with logging module.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// if logger is specified, will call logger.Error, otherwise output with logging module.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (l *loggingT) errorS(err error, logger *logWriter, filter LogFilter, depth int, msg string, keysAndValues ...interface{}) {
 	if filter != nil {
 		msg, keysAndValues = filter.FilterS(msg, keysAndValues)
@@ -845,15 +801,7 @@ func (l *loggingT) errorS(err error, logger *logWriter, filter LogFilter, depth 
 	l.printS(err, severity.ErrorLog, depth+1, msg, keysAndValues...)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // if logger is specified, will call logger.Info, otherwise output with logging module.
-=======
-// if loggr is specified, will call loggr.Info, otherwise output with logging module.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// if logger is specified, will call logger.Info, otherwise output with logging module.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (l *loggingT) infoS(logger *logWriter, filter LogFilter, depth int, msg string, keysAndValues ...interface{}) {
 	if filter != nil {
 		msg, keysAndValues = filter.FilterS(msg, keysAndValues)
@@ -955,18 +903,9 @@ func (l *loggingT) output(s severity.Severity, logger *logWriter, buf *buffer.Bu
 		if logger.writeKlogBuffer != nil {
 			logger.writeKlogBuffer(data)
 		} else {
-<<<<<<< HEAD
-<<<<<<< HEAD
 			if len(data) > 0 && data[len(data)-1] == '\n' {
 				data = data[:len(data)-1]
 			}
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			if len(data) > 0 && data[len(data)-1] == '\n' {
-				data = data[:len(data)-1]
-			}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			// TODO: set 'severity' and caller information as structured log info
 			// keysAndValues := []interface{}{"severity", severityName[s], "file", file, "line", line}
 			if s == severity.ErrorLog {

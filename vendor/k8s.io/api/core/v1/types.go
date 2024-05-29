@@ -556,11 +556,7 @@ type PersistentVolumeClaimSpec struct {
 	// If the resource referred to by volumeAttributesClass does not exist, this PersistentVolumeClaim will be
 	// set to a Pending state, as reflected by the modifyVolumeStatus field, until such as a resource
 	// exists.
-<<<<<<< HEAD
 	// More info: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
-=======
-	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#volumeattributesclass
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// (Alpha) Using this field requires the VolumeAttributesClass feature gate to be enabled.
 	// +featureGate=VolumeAttributesClass
 	// +optional
@@ -624,10 +620,6 @@ const (
 	PersistentVolumeClaimNodeResizeFailed ClaimResourceStatus = "NodeResizeFailed"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // +enum
 // New statuses can be added in the future. Consumers should check for unknown statuses and fail appropriately
 type PersistentVolumeClaimModifyVolumeStatus string
@@ -660,11 +652,6 @@ type ModifyVolumeStatus struct {
 	Status PersistentVolumeClaimModifyVolumeStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=PersistentVolumeClaimModifyVolumeStatus"`
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // PersistentVolumeClaimCondition contains details about state of pvc
 type PersistentVolumeClaimCondition struct {
 	Type   PersistentVolumeClaimConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=PersistentVolumeClaimConditionType"`
@@ -2052,13 +2039,6 @@ type CSIPersistentVolumeSource struct {
 	// nodeExpandSecretRef is a reference to the secret object containing
 	// sensitive information to pass to the CSI driver to complete the CSI
 	// NodeExpandVolume call.
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	// This is a beta field which is enabled default by CSINodeExpandSecret feature gate.
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// This field is optional, may be omitted if no secret is required. If the
 	// secret object contains more than one secret, all secrets are passed.
 	// +optional
@@ -2739,10 +2719,6 @@ type Container struct {
 	// +optional
 	// +listType=atomic
 	ResizePolicy []ContainerResizePolicy `json:"resizePolicy,omitempty" protobuf:"bytes,23,rep,name=resizePolicy"`
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// RestartPolicy defines the restart behavior of individual containers in a pod.
 	// This field may only be set for init containers, and the only allowed value is "Always".
 	// For non-init containers or when this field is not specified,
@@ -2761,11 +2737,6 @@ type Container struct {
 	// +featureGate=SidecarContainers
 	// +optional
 	RestartPolicy *ContainerRestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,24,opt,name=restartPolicy,casttype=ContainerRestartPolicy"`
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Pod volumes to mount into the container's filesystem.
 	// Cannot be updated.
 	// +optional
@@ -3051,7 +3022,6 @@ type ContainerStatus struct {
 	// +featureGate=InPlacePodVerticalScaling
 	// +optional
 	Resources *ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,11,opt,name=resources"`
-<<<<<<< HEAD
 	// Status of volume mounts.
 	// +optional
 	// +patchMergeKey=mountPath
@@ -3060,8 +3030,6 @@ type ContainerStatus struct {
 	// +listMapKey=mountPath
 	// +featureGate=RecursiveReadOnlyMounts
 	VolumeMounts []VolumeMountStatus `json:"volumeMounts,omitempty" patchStrategy:"merge" patchMergeKey:"mountPath" protobuf:"bytes,12,rep,name=volumeMounts"`
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // PodPhase is a label for the condition of a pod at the current time.
@@ -3171,7 +3139,6 @@ const (
 	PodResizeStatusInfeasible PodResizeStatus = "Infeasible"
 )
 
-<<<<<<< HEAD
 // VolumeMountStatus shows status of volume mounts.
 type VolumeMountStatus struct {
 	// Name corresponds to the name of the original VolumeMount.
@@ -3189,8 +3156,6 @@ type VolumeMountStatus struct {
 	RecursiveReadOnly *RecursiveReadOnlyMode `json:"recursiveReadOnly,omitempty" protobuf:"bytes,4,opt,name=recursiveReadOnly,casttype=RecursiveReadOnlyMode"`
 }
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // RestartPolicy describes how the container should be restarted.
 // Only one of the following restart policies may be specified.
 // If none of the following policies is specified, the default one
@@ -3455,42 +3420,24 @@ type PodAffinityTerm struct {
 	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty" protobuf:"bytes,4,opt,name=namespaceSelector"`
 	// MatchLabelKeys is a set of pod label keys to select which pods will
 	// be taken into consideration. The keys are used to lookup values from the
-<<<<<<< HEAD
 	// incoming pod labels, those key-value labels are merged with `labelSelector` as `key in (value)`
 	// to select the group of existing pods which pods will be taken into consideration
 	// for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming
 	// pod labels will be ignored. The default value is empty.
 	// The same key is forbidden to exist in both matchLabelKeys and labelSelector.
 	// Also, matchLabelKeys cannot be set when labelSelector isn't set.
-=======
-	// incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)`
-	// to select the group of existing pods which pods will be taken into consideration
-	// for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming
-	// pod labels will be ignored. The default value is empty.
-	// The same key is forbidden to exist in both MatchLabelKeys and LabelSelector.
-	// Also, MatchLabelKeys cannot be set when LabelSelector isn't set.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.
 	// +listType=atomic
 	// +optional
 	MatchLabelKeys []string `json:"matchLabelKeys,omitempty" protobuf:"bytes,5,opt,name=matchLabelKeys"`
 	// MismatchLabelKeys is a set of pod label keys to select which pods will
 	// be taken into consideration. The keys are used to lookup values from the
-<<<<<<< HEAD
 	// incoming pod labels, those key-value labels are merged with `labelSelector` as `key notin (value)`
 	// to select the group of existing pods which pods will be taken into consideration
 	// for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming
 	// pod labels will be ignored. The default value is empty.
 	// The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
 	// Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-=======
-	// incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)`
-	// to select the group of existing pods which pods will be taken into consideration
-	// for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming
-	// pod labels will be ignored. The default value is empty.
-	// The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector.
-	// Also, MismatchLabelKeys cannot be set when LabelSelector isn't set.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.
 	// +listType=atomic
 	// +optional
@@ -3910,20 +3857,11 @@ type PodSpec struct {
 	// scheduler will not attempt to schedule the pod.
 	//
 	// SchedulingGates can only be set at pod creation time, and be removed only afterwards.
-<<<<<<< HEAD
-=======
-	//
-	// This is a beta feature enabled by the PodSchedulingReadiness feature gate.
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	//
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	// +listType=map
 	// +listMapKey=name
-<<<<<<< HEAD
-=======
-	// +featureGate=PodSchedulingReadiness
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	// +optional
 	SchedulingGates []PodSchedulingGate `json:"schedulingGates,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,38,opt,name=schedulingGates"`
 	// ResourceClaims defines which ResourceClaims must be allocated
@@ -4484,10 +4422,6 @@ type EphemeralContainerCommon struct {
 	// +optional
 	// +listType=atomic
 	ResizePolicy []ContainerResizePolicy `json:"resizePolicy,omitempty" protobuf:"bytes,23,rep,name=resizePolicy"`
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Restart policy for the container to manage the restart behavior of each
 	// container within a pod.
 	// This may only be set for init containers. You cannot set this field on
@@ -4495,11 +4429,6 @@ type EphemeralContainerCommon struct {
 	// +featureGate=SidecarContainers
 	// +optional
 	RestartPolicy *ContainerRestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,24,opt,name=restartPolicy,casttype=ContainerRestartPolicy"`
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// Pod volumes to mount into the container's filesystem. Subpath mounts are not allowed for ephemeral containers.
 	// Cannot be updated.
 	// +optional
@@ -4722,10 +4651,6 @@ type PodStatus struct {
 	// +featureGate=InPlacePodVerticalScaling
 	// +optional
 	Resize PodResizeStatus `json:"resize,omitempty" protobuf:"bytes,14,opt,name=resize,casttype=PodResizeStatus"`
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// Status of resource claims.
 	// +patchMergeKey=name
@@ -4735,11 +4660,6 @@ type PodStatus struct {
 	// +featureGate=DynamicResourceAllocation
 	// +optional
 	ResourceClaimStatuses []PodResourceClaimStatus `json:"resourceClaimStatuses,omitempty" patchStrategy:"merge,retainKeys" patchMergeKey:"name" protobuf:"bytes,15,rep,name=resourceClaimStatuses"`
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -5082,7 +5002,6 @@ type ServiceExternalTrafficPolicyType = ServiceExternalTrafficPolicy
 const (
 	ServiceExternalTrafficPolicyTypeLocal   = ServiceExternalTrafficPolicyLocal
 	ServiceExternalTrafficPolicyTypeCluster = ServiceExternalTrafficPolicyCluster
-<<<<<<< HEAD
 )
 
 // These are valid values for the TrafficDistribution field of a Service.
@@ -5095,8 +5014,6 @@ const (
 	// proximity rather than equal distribution of load. Users should not set this
 	// value if such tradeoffs are not acceptable.
 	ServiceTrafficDistributionPreferClose = "PreferClose"
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 )
 
 // These are the valid conditions of a service.
@@ -5443,7 +5360,6 @@ type ServiceSpec struct {
 	// (possibly modified by topology and other features).
 	// +optional
 	InternalTrafficPolicy *ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,22,opt,name=internalTrafficPolicy"`
-<<<<<<< HEAD
 
 	// TrafficDistribution offers a way to express preferences for how traffic is
 	// distributed to Service endpoints. Implementations can use this field as a
@@ -5455,8 +5371,6 @@ type ServiceSpec struct {
 	// +featureGate=ServiceTrafficDistribution
 	// +optional
 	TrafficDistribution *string `json:"trafficDistribution,omitempty" protobuf:"bytes,23,opt,name=trafficDistribution"`
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // ServicePort contains information on service's port.
@@ -5735,19 +5649,9 @@ type EndpointPort struct {
 	// RFC-6335 and https://www.iana.org/assignments/service-names).
 	//
 	// * Kubernetes-defined prefixed names:
-<<<<<<< HEAD
-<<<<<<< HEAD
 	//   * 'kubernetes.io/h2c' - HTTP/2 prior knowledge over cleartext as described in https://www.rfc-editor.org/rfc/rfc9113.html#name-starting-http-2-with-prior-
 	//   * 'kubernetes.io/ws'  - WebSocket over cleartext as described in https://www.rfc-editor.org/rfc/rfc6455
 	//   * 'kubernetes.io/wss' - WebSocket over TLS as described in https://www.rfc-editor.org/rfc/rfc6455
-=======
-	//   * 'kubernetes.io/h2c' - HTTP/2 over cleartext as described in https://www.rfc-editor.org/rfc/rfc7540
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	//   * 'kubernetes.io/h2c' - HTTP/2 prior knowledge over cleartext as described in https://www.rfc-editor.org/rfc/rfc9113.html#name-starting-http-2-with-prior-
-	//   * 'kubernetes.io/ws'  - WebSocket over cleartext as described in https://www.rfc-editor.org/rfc/rfc6455
-	//   * 'kubernetes.io/wss' - WebSocket over TLS as described in https://www.rfc-editor.org/rfc/rfc6455
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	//
 	// * Other protocols should use implementation-defined prefixed names such as
 	// mycompany.com/my-custom-protocol.

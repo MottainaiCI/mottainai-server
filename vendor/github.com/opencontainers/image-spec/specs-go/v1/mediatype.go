@@ -70,16 +70,6 @@ const (
 	// MediaTypeImageConfig specifies the media type for the image configuration.
 	MediaTypeImageConfig = "application/vnd.oci.image.config.v1+json"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	// MediaTypeEmptyJSON specifies the media type for an unused blob containing the value `{}`
 	MediaTypeEmptyJSON = "application/vnd.oci.empty.v1+json"
-=======
-	// MediaTypeScratch specifies the media type for an unused blob containing the value `{}`
-	MediaTypeScratch = "application/vnd.oci.scratch.v1+json"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	// MediaTypeEmptyJSON specifies the media type for an unused blob containing the value `{}`
-	MediaTypeEmptyJSON = "application/vnd.oci.empty.v1+json"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )

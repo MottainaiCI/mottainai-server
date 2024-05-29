@@ -15,10 +15,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/sftp"
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"github.com/canonical/lxd/shared"
 	"github.com/canonical/lxd/shared/api"
 	"github.com/canonical/lxd/shared/cancel"
@@ -26,18 +22,6 @@ import (
 	"github.com/canonical/lxd/shared/tcp"
 	"github.com/canonical/lxd/shared/units"
 	"github.com/canonical/lxd/shared/ws"
-<<<<<<< HEAD
-=======
-	"github.com/lxc/lxd/shared"
-	"github.com/lxc/lxd/shared/api"
-	"github.com/lxc/lxd/shared/cancel"
-	"github.com/lxc/lxd/shared/ioprogress"
-	"github.com/lxc/lxd/shared/tcp"
-	"github.com/lxc/lxd/shared/units"
-	"github.com/lxc/lxd/shared/ws"
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Instance handling functions.
@@ -50,7 +34,7 @@ func (r *ProtocolLXD) instanceTypeToPath(instanceType api.InstanceType) (string,
 
 	// If the remote server doesn't support instances extension, check that only containers
 	// or any type has been requested and then fallback to using the old /containers endpoint.
-	if r.CheckExtension("instances") != nil {
+	if !r.HasExtension("instances") {
 		if instanceType == api.InstanceTypeContainer || instanceType == api.InstanceTypeAny {
 			return "/containers", v, nil
 		}
@@ -134,9 +118,8 @@ func (r *ProtocolLXD) GetInstances(instanceType api.InstanceType) ([]api.Instanc
 
 // GetInstancesWithFilter returns a filtered list of instances.
 func (r *ProtocolLXD) GetInstancesWithFilter(instanceType api.InstanceType, filters []string) ([]api.Instance, error) {
-	err := r.CheckExtension("api_filtering")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("api_filtering") {
+		return nil, fmt.Errorf("The server is missing the required \"api_filtering\" API extension")
 	}
 
 	instances := []api.Instance{}
@@ -170,9 +153,8 @@ func (r *ProtocolLXD) GetInstancesAllProjects(instanceType api.InstanceType) ([]
 	v.Set("recursion", "1")
 	v.Set("all-projects", "true")
 
-	err = r.CheckExtension("instance_all_projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("instance_all_projects") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_all_projects\" API extension")
 	}
 
 	// Fetch the raw value
@@ -186,9 +168,8 @@ func (r *ProtocolLXD) GetInstancesAllProjects(instanceType api.InstanceType) ([]
 
 // GetInstancesAllProjectsWithFilter returns a filtered list of instances from all projects.
 func (r *ProtocolLXD) GetInstancesAllProjectsWithFilter(instanceType api.InstanceType, filters []string) ([]api.Instance, error) {
-	err := r.CheckExtension("api_filtering")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("api_filtering") {
+		return nil, fmt.Errorf("The server is missing the required \"api_filtering\" API extension")
 	}
 
 	instances := []api.Instance{}
@@ -202,9 +183,8 @@ func (r *ProtocolLXD) GetInstancesAllProjectsWithFilter(instanceType api.Instanc
 	v.Set("all-projects", "true")
 	v.Set("filter", parseFilters(filters))
 
-	err = r.CheckExtension("instance_all_projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("instance_all_projects") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_all_projects\" API extension")
 	}
 
 	// Fetch the raw value
@@ -369,9 +349,8 @@ func (r *ProtocolLXD) GetInstancesFull(instanceType api.InstanceType) ([]api.Ins
 
 	v.Set("recursion", "2")
 
-	err = r.CheckExtension("container_full")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_full") {
+		return nil, fmt.Errorf("The server is missing the required \"container_full\" API extension")
 	}
 
 	// Fetch the raw value
@@ -385,9 +364,8 @@ func (r *ProtocolLXD) GetInstancesFull(instanceType api.InstanceType) ([]api.Ins
 
 // GetInstancesFullWithFilter returns a filtered list of instances including snapshots, backups and state.
 func (r *ProtocolLXD) GetInstancesFullWithFilter(instanceType api.InstanceType, filters []string) ([]api.InstanceFull, error) {
-	err := r.CheckExtension("api_filtering")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("api_filtering") {
+		return nil, fmt.Errorf("The server is missing the required \"api_filtering\" API extension")
 	}
 
 	instances := []api.InstanceFull{}
@@ -400,9 +378,8 @@ func (r *ProtocolLXD) GetInstancesFullWithFilter(instanceType api.InstanceType, 
 	v.Set("recursion", "2")
 	v.Set("filter", parseFilters(filters))
 
-	err = r.CheckExtension("container_full")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_full") {
+		return nil, fmt.Errorf("The server is missing the required \"container_full\" API extension")
 	}
 
 	// Fetch the raw value
@@ -426,14 +403,12 @@ func (r *ProtocolLXD) GetInstancesFullAllProjects(instanceType api.InstanceType)
 	v.Set("recursion", "2")
 	v.Set("all-projects", "true")
 
-	err = r.CheckExtension("container_full")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_full") {
+		return nil, fmt.Errorf("The server is missing the required \"container_full\" API extension")
 	}
 
-	err = r.CheckExtension("instance_all_projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("instance_all_projects") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_all_projects\" API extension")
 	}
 
 	// Fetch the raw value
@@ -447,9 +422,8 @@ func (r *ProtocolLXD) GetInstancesFullAllProjects(instanceType api.InstanceType)
 
 // GetInstancesFullAllProjectsWithFilter returns a filtered list of instances including snapshots, backups and state from all projects.
 func (r *ProtocolLXD) GetInstancesFullAllProjectsWithFilter(instanceType api.InstanceType, filters []string) ([]api.InstanceFull, error) {
-	err := r.CheckExtension("api_filtering")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("api_filtering") {
+		return nil, fmt.Errorf("The server is missing the required \"api_filtering\" API extension")
 	}
 
 	instances := []api.InstanceFull{}
@@ -463,14 +437,12 @@ func (r *ProtocolLXD) GetInstancesFullAllProjectsWithFilter(instanceType api.Ins
 	v.Set("all-projects", "true")
 	v.Set("filter", parseFilters(filters))
 
-	err = r.CheckExtension("container_full")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_full") {
+		return nil, fmt.Errorf("The server is missing the required \"container_full\" API extension")
 	}
 
-	err = r.CheckExtension("instance_all_projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("instance_all_projects") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_all_projects\" API extension")
 	}
 
 	// Fetch the raw value
@@ -500,55 +472,11 @@ func (r *ProtocolLXD) GetInstance(name string) (*api.Instance, string, error) {
 	return &instance, etag, nil
 }
 
-// GetInstanceUEFIVars returns the instance UEFI variables list for the provided name.
-func (r *ProtocolLXD) GetInstanceUEFIVars(name string) (*api.InstanceUEFIVars, string, error) {
-	instanceUEFI := api.InstanceUEFIVars{}
-
-	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
-	if err != nil {
-		return nil, "", err
-	}
-
-	err = r.CheckExtension("instances_uefi_vars")
-	if err != nil {
-		return nil, "", err
-	}
-
-	// Fetch the raw value
-	etag, err := r.queryStruct("GET", fmt.Sprintf("%s/%s/uefi-vars", path, url.PathEscape(name)), nil, "", &instanceUEFI)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return &instanceUEFI, etag, nil
-}
-
-// UpdateInstanceUEFIVars updates the instance's UEFI variables.
-func (r *ProtocolLXD) UpdateInstanceUEFIVars(name string, instanceUEFI api.InstanceUEFIVars, ETag string) error {
-	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
-	if err != nil {
-		return err
-	}
-
-	err = r.CheckExtension("instances_uefi_vars")
-	if err != nil {
-		return err
-	}
-
-	// Send the request
-	_, _, err = r.query("PUT", fmt.Sprintf("%s/%s/uefi-vars", path, url.PathEscape(name)), instanceUEFI, ETag)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetInstanceFull returns the instance entry for the provided name along with snapshot information.
 func (r *ProtocolLXD) GetInstanceFull(name string) (*api.InstanceFull, string, error) {
 	instance := api.InstanceFull{}
 
-	if r.CheckExtension("instance_get_full") != nil {
+	if !r.HasExtension("instance_get_full") {
 		// Backware compatibility.
 		ct, _, err := r.GetInstance(name)
 		if err != nil {
@@ -595,9 +523,8 @@ func (r *ProtocolLXD) GetInstanceFull(name string) (*api.InstanceFull, string, e
 // CreateInstanceFromBackup is a convenience function to make it easier to
 // create a instance from a backup.
 func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operation, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
@@ -605,7 +532,7 @@ func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operati
 		return nil, err
 	}
 
-	if args.PoolName == "" && args.Name == "" && len(args.Devices) == 0 {
+	if args.PoolName == "" && args.Name == "" {
 		// Send the request
 		op, _, err := r.queryOperation("POST", path, args.BackupFile, "", true)
 		if err != nil {
@@ -615,25 +542,12 @@ func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operati
 		return op, nil
 	}
 
-	if args.PoolName != "" {
-		err := r.CheckExtension("container_backup_override_pool")
-		if err != nil {
-			return nil, err
-		}
+	if args.PoolName != "" && !r.HasExtension("container_backup_override_pool") {
+		return nil, fmt.Errorf(`The server is missing the required "container_backup_override_pool" API extension`)
 	}
 
-	if args.Name != "" {
-		err := r.CheckExtension("backup_override_name")
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if len(args.Devices) > 0 {
-		err = r.CheckExtension("import_instance_devices")
-		if err != nil {
-			return nil, fmt.Errorf("Cannot use device override: %w", err)
-		}
+	if args.Name != "" && !r.HasExtension("backup_override_name") {
+		return nil, fmt.Errorf(`The server is missing the required "backup_override_name" API extension`)
 	}
 
 	// Prepare the HTTP request
@@ -655,21 +569,6 @@ func (r *ProtocolLXD) CreateInstanceFromBackup(args InstanceBackupArgs) (Operati
 
 	if args.Name != "" {
 		req.Header.Set("X-LXD-name", args.Name)
-	}
-
-	if len(args.Devices) > 0 {
-		devProps := url.Values{}
-
-		for dev := range args.Devices {
-			props := url.Values{}
-			for k, v := range args.Devices[dev] {
-				props.Set(k, v)
-			}
-
-			devProps.Set(dev, props.Encode())
-		}
-
-		req.Header.Set("X-LXD-devices", devProps.Encode())
 	}
 
 	// Send the request
@@ -710,9 +609,8 @@ func (r *ProtocolLXD) CreateInstance(instance api.InstancesPost) (Operation, err
 	}
 
 	if instance.Source.InstanceOnly || instance.Source.ContainerOnly {
-		err := r.CheckExtension("container_only_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_only_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_only_migration\" API extension")
 		}
 	}
 
@@ -872,7 +770,7 @@ func (r *ProtocolLXD) CopyInstance(source InstanceServer, instance api.Instance,
 
 		if args.AllowInconsistent {
 			if !r.HasExtension("instance_allow_inconsistent_copy") {
-				return nil, fmt.Errorf("The target server is missing the required \"instance_allow_inconsistent_copy\" API extension")
+				return nil, fmt.Errorf("The source server is missing the required \"instance_allow_inconsistent_copy\" API extension")
 			}
 		}
 
@@ -903,12 +801,11 @@ func (r *ProtocolLXD) CopyInstance(source InstanceServer, instance api.Instance,
 	}
 
 	// Optimization for the local copy case
-	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || instance.Location == r.clusterTarget || r.CheckExtension("cluster_internal_copy") == nil) {
+	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || instance.Location == r.clusterTarget || r.HasExtension("cluster_internal_copy")) {
 		// Project handling
 		if destInfo.Project != sourceInfo.Project {
-			err := r.CheckExtension("container_copy_project")
-			if err != nil {
-				return nil, err
+			if !r.HasExtension("container_copy_project") {
+				return nil, fmt.Errorf("The server is missing the required \"container_copy_project\" API extension")
 			}
 
 			req.Source.Project = sourceInfo.Project
@@ -1153,31 +1050,21 @@ func (r *ProtocolLXD) MigrateInstance(name string, instance api.InstancePost) (O
 	}
 
 	if instance.InstanceOnly || instance.ContainerOnly {
-		err := r.CheckExtension("container_only_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_only_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_only_migration\" API extension")
 		}
 	}
 
-	if instance.Pool != "" {
-		err := r.CheckExtension("instance_pool_move")
-		if err != nil {
-			return nil, err
-		}
+	if instance.Pool != "" && !r.HasExtension("instance_pool_move") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_pool_move\" API extension")
 	}
 
-	if instance.Project != "" {
-		err := r.CheckExtension("instance_project_move")
-		if err != nil {
-			return nil, err
-		}
+	if instance.Project != "" && !r.HasExtension("instance_project_move") {
+		return nil, fmt.Errorf("The server is missing the required \"instance_project_move\" API extension")
 	}
 
-	if instance.AllowInconsistent {
-		err := r.CheckExtension("cluster_migration_inconsistent_copy")
-		if err != nil {
-			return nil, err
-		}
+	if instance.AllowInconsistent && !r.HasExtension("cluster_migration_inconsistent_copy") {
+		return nil, fmt.Errorf("The server is missing the required \"cluster_migration_inconsistent_copy\" API extension")
 	}
 
 	// Quick check.
@@ -1218,16 +1105,14 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 	}
 
 	if exec.RecordOutput {
-		err := r.CheckExtension("container_exec_recording")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_exec_recording") {
+			return nil, fmt.Errorf("The server is missing the required \"container_exec_recording\" API extension")
 		}
 	}
 
 	if exec.User > 0 || exec.Group > 0 || exec.Cwd != "" {
-		err := r.CheckExtension("container_exec_user_group_cwd")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_exec_user_group_cwd") {
+			return nil, fmt.Errorf("The server is missing the required \"container_exec_user_group_cwd\" API extension")
 		}
 	}
 
@@ -1280,10 +1165,6 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 			}
 		}
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		if outputFiles["1"] != "" {
 			reader, _ := r.getInstanceExecOutputLogFile(instanceName, filepath.Base(outputFiles["1"]))
 			if args.Stdout != nil {
@@ -1347,92 +1228,11 @@ func (r *ProtocolLXD) ExecInstance(instanceName string, exec api.InstanceExecPos
 		if args.Stdin != nil && args.Stdout != nil {
 			// Connect to the websocket
 			conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
-<<<<<<< HEAD
-=======
-		// Call the control handler with a connection to the control socket
-		if args.Control != nil && fds[api.SecretNameControl] != "" {
-			conn, err := r.GetOperationWebsocket(opAPI.ID, fds[api.SecretNameControl])
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			if err != nil {
 				return nil, err
 			}
 
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 			// And attach stdin and stdout to it
-=======
-			go args.Control(conn)
-		}
-
-		if exec.Interactive {
-			// Handle interactive sections
-			if args.Stdin != nil && args.Stdout != nil {
-				// Connect to the websocket
-				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
-				if err != nil {
-					return nil, err
-				}
-
-				// And attach stdin and stdout to it
-				go func() {
-					ws.MirrorRead(context.Background(), conn, args.Stdin)
-					<-ws.MirrorWrite(context.Background(), conn, args.Stdout)
-					_ = conn.Close()
-
-					if args.DataDone != nil {
-						close(args.DataDone)
-					}
-				}()
-			} else {
-				if args.DataDone != nil {
-					close(args.DataDone)
-				}
-			}
-		} else {
-			// Handle non-interactive sessions
-			dones := make(map[int]chan struct{})
-			conns := []*websocket.Conn{}
-
-			// Handle stdin
-			if fds["0"] != "" {
-				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["0"])
-				if err != nil {
-					return nil, err
-				}
-
-				conns = append(conns, conn)
-				dones[0] = ws.MirrorRead(context.Background(), conn, args.Stdin)
-			}
-
-			// Handle stdout
-			if fds["1"] != "" {
-				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["1"])
-				if err != nil {
-					return nil, err
-				}
-
-				conns = append(conns, conn)
-				dones[1] = ws.MirrorWrite(context.Background(), conn, args.Stdout)
-			}
-
-			// Handle stderr
-			if fds["2"] != "" {
-				conn, err := r.GetOperationWebsocket(opAPI.ID, fds["2"])
-				if err != nil {
-					return nil, err
-				}
-
-				conns = append(conns, conn)
-				dones[2] = ws.MirrorWrite(context.Background(), conn, args.Stderr)
-			}
-
-			// Wait for everything to be done
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
-=======
-			// And attach stdin and stdout to it
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			go func() {
 				ws.MirrorRead(conn, args.Stdin)
 				<-ws.MirrorWrite(conn, args.Stdout)
@@ -1629,23 +1429,20 @@ func (r *ProtocolLXD) GetInstanceFile(instanceName string, filePath string) (io.
 // CreateInstanceFile tells LXD to create a file in the instance.
 func (r *ProtocolLXD) CreateInstanceFile(instanceName string, filePath string, args InstanceFileArgs) error {
 	if args.Type == "directory" {
-		err := r.CheckExtension("directory_manipulation")
-		if err != nil {
-			return err
+		if !r.HasExtension("directory_manipulation") {
+			return fmt.Errorf("The server is missing the required \"directory_manipulation\" API extension")
 		}
 	}
 
 	if args.Type == "symlink" {
-		err := r.CheckExtension("file_symlinks")
-		if err != nil {
-			return err
+		if !r.HasExtension("file_symlinks") {
+			return fmt.Errorf("The server is missing the required \"file_symlinks\" API extension")
 		}
 	}
 
 	if args.WriteMode == "append" {
-		err := r.CheckExtension("file_append")
-		if err != nil {
-			return err
+		if !r.HasExtension("file_append") {
+			return fmt.Errorf("The server is missing the required \"file_append\" API extension")
 		}
 	}
 
@@ -1711,9 +1508,8 @@ func (r *ProtocolLXD) CreateInstanceFile(instanceName string, filePath string, a
 
 // DeleteInstanceFile deletes a file in the instance.
 func (r *ProtocolLXD) DeleteInstanceFile(instanceName string, filePath string) error {
-	err := r.CheckExtension("file_delete")
-	if err != nil {
-		return err
+	if !r.HasExtension("file_delete") {
+		return fmt.Errorf("The server is missing the required \"file_delete\" API extension")
 	}
 
 	var requestURL string
@@ -1730,7 +1526,7 @@ func (r *ProtocolLXD) DeleteInstanceFile(instanceName string, filePath string) e
 		requestURL = fmt.Sprintf("%s/%s/files?path=%s", path, url.PathEscape(instanceName), url.QueryEscape(filePath))
 	}
 
-	requestURL, err = r.setQueryAttributes(requestURL)
+	requestURL, err := r.setQueryAttributes(requestURL)
 	if err != nil {
 		return err
 	}
@@ -1908,11 +1704,8 @@ func (r *ProtocolLXD) CreateInstanceSnapshot(instanceName string, snapshot api.I
 	}
 
 	// Validate the request
-	if snapshot.ExpiresAt != nil {
-		err := r.CheckExtension("snapshot_expiry_creation")
-		if err != nil {
-			return nil, err
-		}
+	if snapshot.ExpiresAt != nil && !r.HasExtension("snapshot_expiry_creation") {
+		return nil, fmt.Errorf("The server is missing the required \"snapshot_expiry_creation\" API extension")
 	}
 
 	// Send the request
@@ -1944,9 +1737,8 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 	}
 
 	if snapshot.Stateful && args.Live {
-		err := r.CheckExtension("container_snapshot_stateful_migration")
-		if err != nil {
-			return nil, err
+		if !r.HasExtension("container_snapshot_stateful_migration") {
+			return nil, fmt.Errorf("The server is missing the required \"container_snapshot_stateful_migration\" API extension")
 		}
 
 		req.InstancePut.Stateful = snapshot.Stateful
@@ -1959,14 +1751,8 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 	if args != nil {
 		// Quick checks.
 		if shared.ValueInSlice(args.Mode, []string{"push", "relay"}) {
-<<<<<<< HEAD
 			if !r.HasExtension("container_push") {
 				return nil, fmt.Errorf("The target server is missing the required \"container_push\" API extension")
-=======
-			err := r.CheckExtension("container_push")
-			if err != nil {
-				return nil, err
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			}
 
 			if !source.HasExtension("container_push") {
@@ -2000,12 +1786,11 @@ func (r *ProtocolLXD) CopyInstanceSnapshot(source InstanceServer, instanceName s
 	}
 
 	// Optimization for the local copy case
-	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || instance.Location == r.clusterTarget || r.CheckExtension("cluster_internal_copy") == nil) {
+	if destInfo.URL == sourceInfo.URL && destInfo.SocketPath == sourceInfo.SocketPath && (!r.IsClustered() || instance.Location == r.clusterTarget || r.HasExtension("cluster_internal_copy")) {
 		// Project handling
 		if destInfo.Project != sourceInfo.Project {
-			err := r.CheckExtension("container_copy_project")
-			if err != nil {
-				return nil, err
+			if !r.HasExtension("container_copy_project") {
+				return nil, fmt.Errorf("The server is missing the required \"container_copy_project\" API extension")
 			}
 
 			req.Source.Project = sourceInfo.Project
@@ -2278,9 +2063,8 @@ func (r *ProtocolLXD) UpdateInstanceSnapshot(instanceName string, name string, i
 		return nil, err
 	}
 
-	err = r.CheckExtension("snapshot_expiry")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("snapshot_expiry") {
+		return nil, fmt.Errorf("The server is missing the required \"snapshot_expiry\" API extension")
 	}
 
 	// Send the request
@@ -2480,9 +2264,8 @@ func (r *ProtocolLXD) GetInstanceMetadata(name string) (*api.ImageMetadata, stri
 		return nil, "", err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, "", fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	metadata := api.ImageMetadata{}
@@ -2503,9 +2286,8 @@ func (r *ProtocolLXD) UpdateInstanceMetadata(name string, metadata api.ImageMeta
 		return err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("%s/%s/metadata", path, url.PathEscape(name))
@@ -2524,9 +2306,8 @@ func (r *ProtocolLXD) GetInstanceTemplateFiles(instanceName string) ([]string, e
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	templates := []string{}
@@ -2547,9 +2328,8 @@ func (r *ProtocolLXD) GetInstanceTemplateFile(instanceName string, templateName 
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_edit_metadata") {
+		return nil, fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("%s/1.0%s/%s/metadata/templates?path=%s", r.httpBaseURL.String(), path, url.PathEscape(instanceName), url.QueryEscape(templateName))
@@ -2588,9 +2368,8 @@ func (r *ProtocolLXD) CreateInstanceTemplateFile(instanceName string, templateNa
 		return err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	url := fmt.Sprintf("%s/1.0%s/%s/metadata/templates?path=%s", r.httpBaseURL.String(), path, url.PathEscape(instanceName), url.QueryEscape(templateName))
@@ -2626,9 +2405,8 @@ func (r *ProtocolLXD) DeleteInstanceTemplateFile(name string, templateName strin
 		return err
 	}
 
-	err = r.CheckExtension("container_edit_metadata")
-	if err != nil {
-		return err
+	if !r.HasExtension("container_edit_metadata") {
+		return fmt.Errorf("The server is missing the required \"container_edit_metadata\" API extension")
 	}
 
 	_, _, err = r.query("DELETE", fmt.Sprintf("%s/%s/metadata/templates?path=%s", path, url.PathEscape(name), url.QueryEscape(templateName)), nil, "")
@@ -2642,20 +2420,16 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 		return nil, err
 	}
 
-	err = r.CheckExtension("console")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("console") {
+		return nil, fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	if console.Type == "" {
 		console.Type = "console"
 	}
 
-	if console.Type == "vga" {
-		err = r.CheckExtension("console_vga_type")
-		if err != nil {
-			return nil, err
-		}
+	if console.Type == "vga" && !r.HasExtension("console_vga_type") {
+		return nil, fmt.Errorf("The server is missing the required \"console_vga_type\" API extension")
 	}
 
 	// Send the request
@@ -2716,18 +2490,8 @@ func (r *ProtocolLXD) ConsoleInstance(instanceName string, console api.InstanceC
 
 	// And attach stdin and stdout to it
 	go func() {
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 		_, writeDone := ws.Mirror(conn, args.Terminal)
 		<-writeDone
-=======
-		ws.MirrorRead(context.Background(), conn, args.Terminal)
-		<-ws.MirrorWrite(context.Background(), conn, args.Terminal)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
-=======
-		_, writeDone := ws.Mirror(conn, args.Terminal)
-		<-writeDone
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		_ = conn.Close()
 	}()
 
@@ -2745,20 +2509,16 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 		return nil, nil, err
 	}
 
-	err = r.CheckExtension("console")
-	if err != nil {
-		return nil, nil, err
+	if !r.HasExtension("console") {
+		return nil, nil, fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	if console.Type == "" {
 		console.Type = "console"
 	}
 
-	if console.Type == "vga" {
-		err = r.CheckExtension("console_vga_type")
-		if err != nil {
-			return nil, nil, err
-		}
+	if console.Type == "vga" && !r.HasExtension("console_vga_type") {
+		return nil, nil, fmt.Errorf("The server is missing the required \"console_vga_type\" API extension")
 	}
 
 	// Send the request.
@@ -2817,16 +2577,7 @@ func (r *ProtocolLXD) ConsoleInstanceDynamic(instanceName string, console api.In
 		}
 
 		// Attach reader/writer.
-<<<<<<< HEAD
-<<<<<<< HEAD:vendor/github.com/canonical/lxd/client/lxd_instances.go
 		_, writeDone := ws.Mirror(conn, rwc)
-=======
-		readDone, writeDone := ws.Mirror(context.Background(), conn, rwc)
-		<-readDone
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c):vendor/github.com/lxc/lxd/client/lxd_instances.go
-=======
-		_, writeDone := ws.Mirror(conn, rwc)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		<-writeDone
 		_ = conn.Close()
 
@@ -2845,9 +2596,8 @@ func (r *ProtocolLXD) GetInstanceConsoleLog(instanceName string, args *InstanceC
 		return nil, err
 	}
 
-	err = r.CheckExtension("console")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("console") {
+		return nil, fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	// Prepare the HTTP request
@@ -2887,9 +2637,8 @@ func (r *ProtocolLXD) DeleteInstanceConsoleLog(instanceName string, args *Instan
 		return err
 	}
 
-	err = r.CheckExtension("console")
-	if err != nil {
-		return err
+	if !r.HasExtension("console") {
+		return fmt.Errorf("The server is missing the required \"console\" API extension")
 	}
 
 	// Send the request
@@ -2903,9 +2652,8 @@ func (r *ProtocolLXD) DeleteInstanceConsoleLog(instanceName string, args *Instan
 
 // GetInstanceBackupNames returns a list of backup names for the instance.
 func (r *ProtocolLXD) GetInstanceBackupNames(instanceName string) ([]string, error) {
-	err := r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	path, _, err := r.instanceTypeToPath(api.InstanceTypeAny)
@@ -2932,9 +2680,8 @@ func (r *ProtocolLXD) GetInstanceBackups(instanceName string) ([]api.InstanceBac
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Fetch the raw value
@@ -2955,9 +2702,8 @@ func (r *ProtocolLXD) GetInstanceBackup(instanceName string, name string) (*api.
 		return nil, "", err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("container_backup") {
+		return nil, "", fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Fetch the raw value
@@ -2977,9 +2723,8 @@ func (r *ProtocolLXD) CreateInstanceBackup(instanceName string, backup api.Insta
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -2998,9 +2743,8 @@ func (r *ProtocolLXD) RenameInstanceBackup(instanceName string, name string, bac
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -3019,9 +2763,8 @@ func (r *ProtocolLXD) DeleteInstanceBackup(instanceName string, name string) (Op
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Send the request
@@ -3040,9 +2783,8 @@ func (r *ProtocolLXD) GetInstanceBackupFile(instanceName string, name string, re
 		return nil, err
 	}
 
-	err = r.CheckExtension("container_backup")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("container_backup") {
+		return nil, fmt.Errorf("The server is missing the required \"container_backup\" API extension")
 	}
 
 	// Build the URL

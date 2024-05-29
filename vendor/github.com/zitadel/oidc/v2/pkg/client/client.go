@@ -48,27 +48,11 @@ type TokenEndpointCaller interface {
 	HttpClient() *http.Client
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func CallTokenEndpoint(request any, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
 	return callTokenEndpoint(request, nil, caller)
 }
 
 func callTokenEndpoint(request any, authFn any, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
-=======
-func CallTokenEndpoint(request interface{}, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
-	return callTokenEndpoint(request, nil, caller)
-}
-
-func callTokenEndpoint(request interface{}, authFn interface{}, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-func CallTokenEndpoint(request any, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
-	return callTokenEndpoint(request, nil, caller)
-}
-
-func callTokenEndpoint(request any, authFn any, caller TokenEndpointCaller) (newToken *oauth2.Token, err error) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	req, err := httphelper.FormRequest(caller.TokenEndpoint(), request, Encoder, authFn)
 	if err != nil {
 		return nil, err
@@ -96,15 +80,7 @@ type EndSessionCaller interface {
 	HttpClient() *http.Client
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func CallEndSessionEndpoint(request any, authFn any, caller EndSessionCaller) (*url.URL, error) {
-=======
-func CallEndSessionEndpoint(request interface{}, authFn interface{}, caller EndSessionCaller) (*url.URL, error) {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-func CallEndSessionEndpoint(request any, authFn any, caller EndSessionCaller) (*url.URL, error) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	req, err := httphelper.FormRequest(caller.GetEndSessionEndpoint(), request, Encoder, authFn)
 	if err != nil {
 		return nil, err
@@ -147,15 +123,7 @@ type RevokeRequest struct {
 	ClientSecret  string `schema:"client_secret"`
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func CallRevokeEndpoint(request any, authFn any, caller RevokeCaller) error {
-=======
-func CallRevokeEndpoint(request interface{}, authFn interface{}, caller RevokeCaller) error {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-func CallRevokeEndpoint(request any, authFn any, caller RevokeCaller) error {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	req, err := httphelper.FormRequest(caller.GetRevokeEndpoint(), request, Encoder, authFn)
 	if err != nil {
 		return err
@@ -183,15 +151,7 @@ func CallRevokeEndpoint(request any, authFn any, caller RevokeCaller) error {
 	return nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func CallTokenExchangeEndpoint(request any, authFn any, caller TokenEndpointCaller) (resp *oidc.TokenExchangeResponse, err error) {
-=======
-func CallTokenExchangeEndpoint(request interface{}, authFn interface{}, caller TokenEndpointCaller) (resp *oidc.TokenExchangeResponse, err error) {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-func CallTokenExchangeEndpoint(request any, authFn any, caller TokenEndpointCaller) (resp *oidc.TokenExchangeResponse, err error) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	req, err := httphelper.FormRequest(caller.TokenEndpoint(), request, Encoder, authFn)
 	if err != nil {
 		return nil, err

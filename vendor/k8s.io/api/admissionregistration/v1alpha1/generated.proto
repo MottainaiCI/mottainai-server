@@ -280,18 +280,6 @@ message ParamRef {
   // Default to `Deny`
   // +optional
   optional string parameterNotFoundAction = 4;
-<<<<<<< HEAD
-}
-
-// TypeChecking contains results of type checking the expressions in the
-// ValidatingAdmissionPolicy
-message TypeChecking {
-  // The type checking warnings for each expression.
-  // +optional
-  // +listType=atomic
-  repeated ExpressionWarning expressionWarnings = 1;
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // TypeChecking contains results of type checking the expressions in the
@@ -495,10 +483,6 @@ message ValidatingAdmissionPolicySpec {
   // +listMapKey=name
   // +optional
   repeated MatchCondition matchConditions = 6;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
   // Variables contain definitions of variables that can be used in composition of other expressions.
   // Each variable is defined as a named CEL expression.
@@ -513,11 +497,6 @@ message ValidatingAdmissionPolicySpec {
   // +listMapKey=name
   // +optional
   repeated Variable variables = 7;
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // ValidatingAdmissionPolicyStatus represents the status of a ValidatingAdmissionPolicy.
@@ -548,18 +527,9 @@ message Validation {
   // - 'oldObject' - The existing object. The value is null for CREATE requests.
   // - 'request' - Attributes of the API request([ref](/pkg/apis/admission/types.go#AdmissionRequest)).
   // - 'params' - Parameter resource referred to by the policy binding being evaluated. Only populated if the policy has a ParamKind.
-<<<<<<< HEAD
-<<<<<<< HEAD
   // - 'namespaceObject' - The namespace object that the incoming object belongs to. The value is null for cluster-scoped resources.
   // - 'variables' - Map of composited variables, from its name to its lazily evaluated value.
   //   For example, a variable named 'foo' can be accessed as 'variables.foo'.
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-  // - 'namespaceObject' - The namespace object that the incoming object belongs to. The value is null for cluster-scoped resources.
-  // - 'variables' - Map of composited variables, from its name to its lazily evaluated value.
-  //   For example, a variable named 'foo' can be accessed as 'variables.foo'.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
   // - 'authorizer' - A CEL Authorizer. May be used to perform authorization checks for the principal (user or service account) of the request.
   //   See https://pkg.go.dev/k8s.io/apiserver/pkg/cel/library#Authz
   // - 'authorizer.requestResource' - A CEL ResourceCheck constructed from the 'authorizer' and configured with the
@@ -623,21 +593,6 @@ message Validation {
   // "object.x must be less than max ("+string(params.max)+")"
   // +optional
   optional string messageExpression = 4;
-<<<<<<< HEAD
-}
-
-// Variable is the definition of a variable that is used for composition.
-message Variable {
-  // Name is the name of the variable. The name must be a valid CEL identifier and unique among all variables.
-  // The variable can be accessed in other expressions through `variables`
-  // For example, if name is "foo", the variable will be available as `variables.foo`
-  optional string Name = 1;
-
-  // Expression is the expression that will be evaluated as the value of the variable.
-  // The CEL expression has access to the same identifiers as the CEL expressions in Validation.
-  optional string Expression = 2;
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 // Variable is the definition of a variable that is used for composition.

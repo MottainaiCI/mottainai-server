@@ -54,18 +54,9 @@ const (
 	// SeccompLocalhostProfileNamePrefix is the prefix for specifying profiles loaded from the node's disk.
 	SeccompLocalhostProfileNamePrefix = "localhost/"
 
-<<<<<<< HEAD
 	// DeprecatedAppArmorBetaContainerAnnotationKeyPrefix is the prefix to an annotation key specifying a container's apparmor profile.
 	// Deprecated: use a pod or container security context `appArmorProfile` field instead.
 	DeprecatedAppArmorBetaContainerAnnotationKeyPrefix = "container.apparmor.security.beta.kubernetes.io/"
-=======
-	// AppArmorBetaContainerAnnotationKeyPrefix is the prefix to an annotation key specifying a container's apparmor profile.
-	AppArmorBetaContainerAnnotationKeyPrefix = "container.apparmor.security.beta.kubernetes.io/"
-	// AppArmorBetaDefaultProfileAnnotationKey is the annotation key specifying the default AppArmor profile.
-	AppArmorBetaDefaultProfileAnnotationKey = "apparmor.security.beta.kubernetes.io/defaultProfileName"
-	// AppArmorBetaAllowedProfilesAnnotationKey is the annotation key specifying the allowed AppArmor profiles.
-	AppArmorBetaAllowedProfilesAnnotationKey = "apparmor.security.beta.kubernetes.io/allowedProfileNames"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	// DeprecatedAppArmorBetaProfileRuntimeDefault is the profile specifying the runtime default.
 	DeprecatedAppArmorBetaProfileRuntimeDefault = "runtime/default"

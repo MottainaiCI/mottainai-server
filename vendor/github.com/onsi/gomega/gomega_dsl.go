@@ -22,15 +22,7 @@ import (
 	"github.com/onsi/gomega/types"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 const GOMEGA_VERSION = "1.33.1"
-=======
-const GOMEGA_VERSION = "1.27.6"
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-const GOMEGA_VERSION = "1.31.1"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 const nilGomegaPanic = `You are trying to make an assertion, but haven't registered Gomega's fail handler.
 If you're using Ginkgo then you probably forgot to put your assertion in an It().

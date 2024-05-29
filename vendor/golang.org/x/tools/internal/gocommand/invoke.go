@@ -13,14 +13,7 @@ import (
 	"io"
 	"log"
 	"os"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"os/exec"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	"os/exec"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"reflect"
 	"regexp"
 	"runtime"
@@ -29,21 +22,9 @@ import (
 	"sync"
 	"time"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"golang.org/x/tools/internal/event"
 	"golang.org/x/tools/internal/event/keys"
 	"golang.org/x/tools/internal/event/label"
-=======
-	exec "golang.org/x/sys/execabs"
-
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-	"golang.org/x/tools/internal/event"
-	"golang.org/x/tools/internal/event/keys"
-	"golang.org/x/tools/internal/event/label"
-	"golang.org/x/tools/internal/event/tag"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )
 
 // An Runner will run go command invocations and serialize
@@ -73,7 +54,6 @@ func (runner *Runner) initialize() {
 // 1.14: go: updating go.mod: existing contents have changed since last read
 var modConcurrencyError = regexp.MustCompile(`go:.*go.mod.*contents have changed`)
 
-<<<<<<< HEAD
 // event keys for go command invocations
 var (
 	verb      = keys.NewString("verb", "go command verb")
@@ -82,13 +62,6 @@ var (
 
 func invLabels(inv Invocation) []label.Label {
 	return []label.Label{verb.Of(inv.Verb), directory.Of(inv.WorkingDir)}
-=======
-// verb is an event label for the go command verb.
-var verb = keys.NewString("verb", "go command verb")
-
-func invLabels(inv Invocation) []label.Label {
-	return []label.Label{verb.Of(inv.Verb), tag.Directory.Of(inv.WorkingDir)}
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 }
 
 // Run is a convenience wrapper around RunRaw.
@@ -113,14 +86,7 @@ func (runner *Runner) RunPiped(ctx context.Context, inv Invocation, stdout, stde
 
 // RunRaw runs the invocation, serializing requests only if they fight over
 // go.mod changes.
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Postcondition: both error results have same nilness.
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Postcondition: both error results have same nilness.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (runner *Runner) RunRaw(ctx context.Context, inv Invocation) (*bytes.Buffer, *bytes.Buffer, error, error) {
 	ctx, done := event.Start(ctx, "gocommand.Runner.RunRaw", invLabels(inv)...)
 	defer done()
@@ -131,10 +97,6 @@ func (runner *Runner) RunRaw(ctx context.Context, inv Invocation) (*bytes.Buffer
 	stdout, stderr, friendlyErr, err := runner.runConcurrent(ctx, inv)
 
 	// If we encounter a load concurrency error, we need to retry serially.
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	if friendlyErr != nil && modConcurrencyError.MatchString(friendlyErr.Error()) {
 		event.Error(ctx, "Load concurrency error, will retry serially", err)
 
@@ -143,41 +105,16 @@ func (runner *Runner) RunRaw(ctx context.Context, inv Invocation) (*bytes.Buffer
 		stderr.Reset()
 		friendlyErr, err = runner.runPiped(ctx, inv, stdout, stderr)
 	}
-<<<<<<< HEAD
 
 	return stdout, stderr, friendlyErr, err
 }
 
 // Postcondition: both error results have same nilness.
-=======
-	if friendlyErr == nil || !modConcurrencyError.MatchString(friendlyErr.Error()) {
-		return stdout, stderr, friendlyErr, err
-	}
-	event.Error(ctx, "Load concurrency error, will retry serially", err)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-
-	return stdout, stderr, friendlyErr, err
-}
-
-<<<<<<< HEAD
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Postcondition: both error results have same nilness.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (runner *Runner) runConcurrent(ctx context.Context, inv Invocation) (*bytes.Buffer, *bytes.Buffer, error, error) {
 	// Wait for 1 worker to become available.
 	select {
 	case <-ctx.Done():
-<<<<<<< HEAD
-<<<<<<< HEAD
 		return nil, nil, ctx.Err(), ctx.Err()
-=======
-		return nil, nil, nil, ctx.Err()
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		return nil, nil, ctx.Err(), ctx.Err()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case runner.inFlight <- struct{}{}:
 		defer func() { <-runner.inFlight }()
 	}
@@ -187,14 +124,7 @@ func (runner *Runner) runConcurrent(ctx context.Context, inv Invocation) (*bytes
 	return stdout, stderr, friendlyErr, err
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Postcondition: both error results have same nilness.
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Postcondition: both error results have same nilness.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (runner *Runner) runPiped(ctx context.Context, inv Invocation, stdout, stderr io.Writer) (error, error) {
 	// Make sure the runner is always initialized.
 	runner.initialize()
@@ -203,15 +133,7 @@ func (runner *Runner) runPiped(ctx context.Context, inv Invocation, stdout, stde
 	// runPiped commands.
 	select {
 	case <-ctx.Done():
-<<<<<<< HEAD
-<<<<<<< HEAD
 		return ctx.Err(), ctx.Err()
-=======
-		return nil, ctx.Err()
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		return ctx.Err(), ctx.Err()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case runner.serialized <- struct{}{}:
 		defer func() { <-runner.serialized }()
 	}
@@ -221,15 +143,7 @@ func (runner *Runner) runPiped(ctx context.Context, inv Invocation, stdout, stde
 	for i := 0; i < maxInFlight; i++ {
 		select {
 		case <-ctx.Done():
-<<<<<<< HEAD
-<<<<<<< HEAD
 			return ctx.Err(), ctx.Err()
-=======
-			return nil, ctx.Err()
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			return ctx.Err(), ctx.Err()
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		case runner.inFlight <- struct{}{}:
 			// Make sure we always "return" any workers we took.
 			defer func() { <-runner.inFlight }()
@@ -246,7 +160,6 @@ type Invocation struct {
 	BuildFlags []string
 
 	// If ModFlag is set, the go command is invoked with -mod=ModFlag.
-<<<<<<< HEAD
 	// TODO(rfindley): remove, in favor of Args.
 	ModFlag string
 
@@ -256,14 +169,6 @@ type Invocation struct {
 
 	// If Overlay is set, the go command is invoked with -overlay=Overlay.
 	// TODO(rfindley): remove, in favor of Args.
-=======
-	ModFlag string
-
-	// If ModFile is set, the go command is invoked with -modfile=ModFile.
-	ModFile string
-
-	// If Overlay is set, the go command is invoked with -overlay=Overlay.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	Overlay string
 
 	// If CleanEnv is set, the invocation will run only with the environment
@@ -274,14 +179,7 @@ type Invocation struct {
 	Logf       func(format string, args ...interface{})
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Postcondition: both error results have same nilness.
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Postcondition: both error results have same nilness.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (i *Invocation) runWithFriendlyError(ctx context.Context, stdout, stderr io.Writer) (friendlyError error, rawError error) {
 	rawError = i.run(ctx, stdout, stderr)
 	if rawError != nil {
@@ -429,15 +327,7 @@ func runCmdContext(ctx context.Context, cmd *exec.Cmd) (err error) {
 					// Per https://pkg.go.dev/os#File.Close, the call to stdoutR.Close
 					// should cause the Read call in io.Copy to unblock and return
 					// immediately, but we still need to receive from stdoutErr to confirm
-<<<<<<< HEAD
-<<<<<<< HEAD
 					// that it has happened.
-=======
-					// that that has happened.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-					// that it has happened.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 					<-stdoutErr
 					err2 = ctx.Err()
 				}
@@ -451,15 +341,7 @@ func runCmdContext(ctx context.Context, cmd *exec.Cmd) (err error) {
 			// one goroutine at a time will call Write.”
 			//
 			// Since we're starting a goroutine that writes to cmd.Stdout, we must
-<<<<<<< HEAD
-<<<<<<< HEAD
 			// also update cmd.Stderr so that it still holds.
-=======
-			// also update cmd.Stderr so that that still holds.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			// also update cmd.Stderr so that it still holds.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			func() {
 				defer func() { recover() }()
 				if cmd.Stderr == prevStdout {

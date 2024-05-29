@@ -20,14 +20,6 @@ Vulnerabilities resulting from compiler/assembler errors should be reported upst
 
 If you have discovered a security vulnerability in this project, please report it privately. **Do not disclose it as a public issue.** This gives us time to work with you to fix the issue before public exposure, reducing the chance that the exploit will be used before a patch is released.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 Please disclose it at [security advisory](https://github.com/klauspost/compress/security/advisories/new). If possible please provide a minimal reproducer. If the issue only applies to a single platform, it would be helpful to provide access to that.
-=======
-Please disclose it at [security advisory](https://github.com/klaupost/compress/security/advisories/new). If possible please provide a minimal reproducer. If the issue only applies to a single platform, it would be helpful to provide access to that.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-Please disclose it at [security advisory](https://github.com/klauspost/compress/security/advisories/new). If possible please provide a minimal reproducer. If the issue only applies to a single platform, it would be helpful to provide access to that.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 This project is maintained by a team of volunteers on a reasonable-effort basis. As such, vulnerabilities will be disclosed in a best effort base.

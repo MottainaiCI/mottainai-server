@@ -51,11 +51,7 @@ func emitCopy(dst []byte, offset, length int) int {
 	i := 0
 	// The maximum length for a single tagCopy1 or tagCopy2 op is 64 bytes. The
 	// threshold for this loop is a little higher (at 68 = 64 + 4), and the
-<<<<<<< HEAD
 	// length emitted down below is a little lower (at 60 = 64 - 4), because
-=======
-	// length emitted down below is is a little lower (at 60 = 64 - 4), because
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// it's shorter to encode a length 67 copy as a length 60 tagCopy2 followed
 	// by a length 7 tagCopy1 (which encodes as 3+2 bytes) than to encode it as
 	// a length 64 tagCopy2 followed by a length 3 tagCopy2 (which encodes as

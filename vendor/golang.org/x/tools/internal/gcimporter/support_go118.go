@@ -2,12 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-<<<<<<< HEAD
-=======
-//go:build go1.18
-// +build go1.18
-
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 package gcimporter
 
 import "go/types"

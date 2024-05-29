@@ -23,12 +23,9 @@ type PkgDecoder struct {
 	// version is the file format version.
 	version uint32
 
-<<<<<<< HEAD
 	// aliases determines whether types.Aliases should be created
 	aliases bool
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	// sync indicates whether the file uses sync markers.
 	sync bool
 
@@ -79,10 +76,7 @@ func (pr *PkgDecoder) SyncMarkers() bool { return pr.sync }
 func NewPkgDecoder(pkgPath, input string) PkgDecoder {
 	pr := PkgDecoder{
 		pkgPath: pkgPath,
-<<<<<<< HEAD
 		//aliases: aliases.Enabled(),
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	}
 
 	// TODO(mdempsky): Implement direct indexing of input string to

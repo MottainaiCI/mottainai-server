@@ -39,20 +39,12 @@ import (
 )
 
 type buffer struct {
-<<<<<<< HEAD
 	field    int // field tag
 	typ      int // proto wire type code for field
 	u64      uint64
 	data     []byte
 	tmp      [16]byte
 	tmpLines []Line // temporary storage used while decoding "repeated Line".
-=======
-	field int // field tag
-	typ   int // proto wire type code for field
-	u64   uint64
-	data  []byte
-	tmp   [16]byte
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 type decoder func(*buffer, message) error
@@ -295,10 +287,6 @@ func decodeInt64s(b *buffer, x *[]int64) error {
 	if b.typ == 2 {
 		// Packed encoding
 		data := b.data
-<<<<<<< HEAD
-=======
-		tmp := make([]int64, 0, len(data)) // Maximally sized
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		for len(data) > 0 {
 			var u uint64
 			var err error
@@ -306,14 +294,8 @@ func decodeInt64s(b *buffer, x *[]int64) error {
 			if u, data, err = decodeVarint(data); err != nil {
 				return err
 			}
-<<<<<<< HEAD
 			*x = append(*x, int64(u))
 		}
-=======
-			tmp = append(tmp, int64(u))
-		}
-		*x = append(*x, tmp...)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return nil
 	}
 	var i int64
@@ -336,10 +318,6 @@ func decodeUint64s(b *buffer, x *[]uint64) error {
 	if b.typ == 2 {
 		data := b.data
 		// Packed encoding
-<<<<<<< HEAD
-=======
-		tmp := make([]uint64, 0, len(data)) // Maximally sized
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		for len(data) > 0 {
 			var u uint64
 			var err error
@@ -347,14 +325,8 @@ func decodeUint64s(b *buffer, x *[]uint64) error {
 			if u, data, err = decodeVarint(data); err != nil {
 				return err
 			}
-<<<<<<< HEAD
 			*x = append(*x, u)
 		}
-=======
-			tmp = append(tmp, u)
-		}
-		*x = append(*x, tmp...)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 		return nil
 	}
 	var u uint64

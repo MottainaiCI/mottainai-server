@@ -11,15 +11,14 @@ import (
 
 // GetWarningUUIDs returns a list of operation uuids.
 func (r *ProtocolLXD) GetWarningUUIDs() ([]string, error) {
-	err := r.CheckExtension("warnings")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("warnings") {
+		return nil, fmt.Errorf("The server is missing the required \"warnings\" API extension")
 	}
 
 	// Fetch the raw values.
 	urls := []string{}
 	baseURL := "/warnings"
-	_, err = r.queryStruct("GET", baseURL, nil, "", &urls)
+	_, err := r.queryStruct("GET", baseURL, nil, "", &urls)
 	if err != nil {
 		return nil, err
 	}
@@ -30,14 +29,13 @@ func (r *ProtocolLXD) GetWarningUUIDs() ([]string, error) {
 
 // GetWarnings returns a list of warnings.
 func (r *ProtocolLXD) GetWarnings() ([]api.Warning, error) {
-	err := r.CheckExtension("warnings")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("warnings") {
+		return nil, fmt.Errorf("The server is missing the required \"warnings\" API extension")
 	}
 
 	warnings := []api.Warning{}
 
-	_, err = r.queryStruct("GET", "/warnings?recursion=1", nil, "", &warnings)
+	_, err := r.queryStruct("GET", "/warnings?recursion=1", nil, "", &warnings)
 	if err != nil {
 		return nil, err
 	}
@@ -47,9 +45,8 @@ func (r *ProtocolLXD) GetWarnings() ([]api.Warning, error) {
 
 // GetWarning returns the warning with the given UUID.
 func (r *ProtocolLXD) GetWarning(UUID string) (*api.Warning, string, error) {
-	err := r.CheckExtension("warnings")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("warnings") {
+		return nil, "", fmt.Errorf("The server is missing the required \"warnings\" API extension")
 	}
 
 	warning := api.Warning{}
@@ -64,13 +61,12 @@ func (r *ProtocolLXD) GetWarning(UUID string) (*api.Warning, string, error) {
 
 // UpdateWarning updates the warning with the given UUID.
 func (r *ProtocolLXD) UpdateWarning(UUID string, warning api.WarningPut, ETag string) error {
-	err := r.CheckExtension("warnings")
-	if err != nil {
-		return err
+	if !r.HasExtension("warnings") {
+		return fmt.Errorf("The server is missing the required \"warnings\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("PUT", fmt.Sprintf("/warnings/%s", url.PathEscape(UUID)), warning, "")
+	_, _, err := r.query("PUT", fmt.Sprintf("/warnings/%s", url.PathEscape(UUID)), warning, "")
 	if err != nil {
 		return err
 	}
@@ -80,13 +76,12 @@ func (r *ProtocolLXD) UpdateWarning(UUID string, warning api.WarningPut, ETag st
 
 // DeleteWarning deletes the provided warning.
 func (r *ProtocolLXD) DeleteWarning(UUID string) error {
-	err := r.CheckExtension("warnings")
-	if err != nil {
-		return err
+	if !r.HasExtension("warnings") {
+		return fmt.Errorf("The server is missing the required \"warnings\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("DELETE", fmt.Sprintf("/warnings/%s", url.PathEscape(UUID)), nil, "")
+	_, _, err := r.query("DELETE", fmt.Sprintf("/warnings/%s", url.PathEscape(UUID)), nil, "")
 	if err != nil {
 		return err
 	}

@@ -35,14 +35,9 @@ func Format(m proto.Message) string {
 }
 
 // Marshal writes the given [proto.Message] in textproto format using default
-<<<<<<< HEAD
 // options. Do not depend on the output being stable. Its output will change
 // across different builds of your program, even when using the same version of
 // the protobuf module.
-=======
-// options. Do not depend on the output being stable. It may change over time
-// across different versions of the program.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func Marshal(m proto.Message) ([]byte, error) {
 	return MarshalOptions{}.Marshal(m)
 }
@@ -106,14 +101,9 @@ func (o MarshalOptions) Format(m proto.Message) string {
 }
 
 // Marshal writes the given [proto.Message] in textproto format using options in
-<<<<<<< HEAD
 // MarshalOptions object. Do not depend on the output being stable. Its output
 // will change across different builds of your program, even when using the
 // same version of the protobuf module.
-=======
-// MarshalOptions object. Do not depend on the output being stable. It may
-// change over time across different versions of the program.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (o MarshalOptions) Marshal(m proto.Message) ([]byte, error) {
 	return o.marshal(nil, m)
 }

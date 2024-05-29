@@ -3,7 +3,6 @@ package schema
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strconv"
 )
@@ -94,24 +93,11 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		// Encode struct pointer types if the field is a valid pointer and a struct.
-<<<<<<< HEAD
-<<<<<<< HEAD
 		if isValidStructPointer(v.Field(i)) && !e.hasCustomEncoder(v.Field(i).Type()) {
 			err := e.encode(v.Field(i).Elem(), dst)
 			if err != nil {
 				errors[v.Field(i).Elem().Type().String()] = err
 			}
-=======
-		if isValidStructPointer(v.Field(i)) {
-			e.encode(v.Field(i).Elem(), dst)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-		if isValidStructPointer(v.Field(i)) && !e.hasCustomEncoder(v.Field(i).Type()) {
-			err := e.encode(v.Field(i).Elem(), dst)
-			if err != nil {
-				log.Fatal(err)
-			}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			continue
 		}
 
@@ -129,21 +115,10 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		if v.Field(i).Type().Kind() == reflect.Struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
 			err := e.encode(v.Field(i), dst)
 			if err != nil {
 				errors[v.Field(i).Type().String()] = err
 			}
-=======
-			e.encode(v.Field(i), dst)
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-			err := e.encode(v.Field(i), dst)
-			if err != nil {
-				log.Fatal(err)
-			}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			continue
 		}
 
@@ -173,20 +148,11 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func (e *Encoder) hasCustomEncoder(t reflect.Type) bool {
 	_, exists := e.regenc[t]
 	return exists
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	if f, ok := reg[t]; ok {
 		return f

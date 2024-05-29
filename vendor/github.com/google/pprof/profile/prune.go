@@ -62,7 +62,6 @@ func (p *Profile) Prune(dropRx, keepRx *regexp.Regexp) {
 	prune := make(map[uint64]bool)
 	pruneBeneath := make(map[uint64]bool)
 
-<<<<<<< HEAD
 	// simplifyFunc can be expensive, so cache results.
 	// Note that the same function name can be encountered many times due
 	// different lines and addresses in the same function.
@@ -82,22 +81,12 @@ func (p *Profile) Prune(dropRx, keepRx *regexp.Regexp) {
 		return false
 	}
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 	for _, loc := range p.Location {
 		var i int
 		for i = len(loc.Line) - 1; i >= 0; i-- {
 			if fn := loc.Line[i].Function; fn != nil && fn.Name != "" {
-<<<<<<< HEAD
 				if pruneFromHere(fn.Name) {
 					break
-=======
-				funcName := simplifyFunc(fn.Name)
-				if dropRx.MatchString(funcName) {
-					if keepRx == nil || !keepRx.MatchString(funcName) {
-						break
-					}
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 				}
 			}
 		}

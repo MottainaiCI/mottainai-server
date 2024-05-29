@@ -20,22 +20,9 @@ func (s *fseDecoder) buildDtable() error {
 			if v == -1 {
 				s.dt[highThreshold].setAddBits(uint8(i))
 				highThreshold--
-<<<<<<< HEAD
-<<<<<<< HEAD
 				v = 1
 			}
 			symbolNext[i] = uint16(v)
-=======
-				symbolNext[i] = 1
-			} else {
-				symbolNext[i] = uint16(v)
-			}
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-				v = 1
-			}
-			symbolNext[i] = uint16(v)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		}
 	}
 
@@ -47,28 +34,12 @@ func (s *fseDecoder) buildDtable() error {
 		for ss, v := range s.norm[:s.symbolLen] {
 			for i := 0; i < int(v); i++ {
 				s.dt[position].setAddBits(uint8(ss))
-<<<<<<< HEAD
-<<<<<<< HEAD
 				for {
 					// lowprob area
 					position = (position + step) & tableMask
 					if position <= highThreshold {
 						break
 					}
-=======
-				position = (position + step) & tableMask
-				for position > highThreshold {
-					// lowprob area
-					position = (position + step) & tableMask
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-				for {
-					// lowprob area
-					position = (position + step) & tableMask
-					if position <= highThreshold {
-						break
-					}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 				}
 			}
 		}

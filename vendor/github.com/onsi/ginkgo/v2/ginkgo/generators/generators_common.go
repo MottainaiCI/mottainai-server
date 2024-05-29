@@ -1,14 +1,7 @@
 package generators
 
 import (
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"fmt"
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	"fmt"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	"go/build"
 	"os"
 	"path/filepath"
@@ -22,14 +15,7 @@ type GeneratorsConfig struct {
 	Agouti, NoDot, Internal bool
 	CustomTemplate          string
 	CustomTemplateData      string
-<<<<<<< HEAD
-<<<<<<< HEAD
 	Tags                    string
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-	Tags                    string
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func getPackageAndFormattedName() (string, string, string) {
@@ -78,10 +64,6 @@ func determinePackageName(name string, internal bool) string {
 
 	return name + "_test"
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 // getBuildTags returns the resultant string to be added.
 // If the input string is not empty, then returns a `//go:build {}` string,
@@ -92,8 +74,3 @@ func getBuildTags(tags string) string {
 	}
 	return ""
 }
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)

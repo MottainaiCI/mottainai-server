@@ -642,11 +642,7 @@ func (t *Transport) RoundTripOpt(req *http.Request, opt RoundTripOpt) (*http.Res
 					tm = newTimeTimer(d)
 				}
 				select {
-<<<<<<< HEAD
 				case <-tm.C():
-=======
-				case <-timer.C:
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 					t.vlogf("RoundTrip retrying after failure: %v", roundTripErr)
 					continue
 				case <-req.Context().Done():
@@ -1381,30 +1377,7 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 
 	cancelRequest := func(cs *clientStream, err error) error {
 		cs.cc.mu.Lock()
-<<<<<<< HEAD
-<<<<<<< HEAD
 		bodyClosed := cs.reqBodyClosed
-=======
-		cs.abortStreamLocked(err)
-		bodyClosed := cs.reqBodyClosed
-		if cs.ID != 0 {
-			// This request may have failed because of a problem with the connection,
-			// or for some unrelated reason. (For example, the user might have canceled
-			// the request without waiting for a response.) Mark the connection as
-			// not reusable, since trying to reuse a dead connection is worse than
-			// unnecessarily creating a new one.
-			//
-			// If cs.ID is 0, then the request was never allocated a stream ID and
-			// whatever went wrong was unrelated to the connection. We might have
-			// timed out waiting for a stream slot when StrictMaxConcurrentStreams
-			// is set, for example, in which case retrying on a different connection
-			// will not help.
-			cs.cc.doNotReuse = true
-		}
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-		bodyClosed := cs.reqBodyClosed
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		cs.cc.mu.Unlock()
 		// Wait for the request body to be closed.
 		//
@@ -1425,13 +1398,10 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 		return err
 	}
 
-<<<<<<< HEAD
 	if streamf != nil {
 		streamf(cs)
 	}
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	for {
 		if cc.syncHooks != nil {
 			cc.syncHooks.blockUntil(func() bool {
@@ -1462,24 +1432,11 @@ func (cc *ClientConn) roundTrip(req *http.Request, streamf func(*clientStream)) 
 				return nil, cs.abortErr
 			}
 		case <-ctx.Done():
-<<<<<<< HEAD
-<<<<<<< HEAD
 			err := ctx.Err()
 			cs.abortStream(err)
 			return nil, cancelRequest(cs, err)
 		case <-cs.reqCancel:
 			cs.abortStream(errRequestCanceled)
-=======
-			return nil, cancelRequest(cs, ctx.Err())
-		case <-cs.reqCancel:
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-			err := ctx.Err()
-			cs.abortStream(err)
-			return nil, cancelRequest(cs, err)
-		case <-cs.reqCancel:
-			cs.abortStream(errRequestCanceled)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 			return nil, cancelRequest(cs, errRequestCanceled)
 		}
 	}

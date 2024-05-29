@@ -38,7 +38,6 @@ func (AllocationResult) SwaggerDoc() map[string]string {
 	return map_AllocationResult
 }
 
-<<<<<<< HEAD
 var map_AllocationResultModel = map[string]string{
 	"":               "AllocationResultModel must have one and only one field set.",
 	"namedResources": "NamedResources describes the allocation result when using the named resources model.",
@@ -68,8 +67,6 @@ func (DriverRequests) SwaggerDoc() map[string]string {
 	return map_DriverRequests
 }
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 var map_PodSchedulingContext = map[string]string{
 	"":         "PodSchedulingContext objects hold information that is needed to schedule a Pod with ResourceClaims that use \"WaitForFirstConsumer\" allocation mode.\n\nThis is an alpha type and requires enabling the DynamicResourceAllocation feature gate.",
 	"metadata": "Standard object metadata",
@@ -143,7 +140,6 @@ func (ResourceClaimList) SwaggerDoc() map[string]string {
 	return map_ResourceClaimList
 }
 
-<<<<<<< HEAD
 var map_ResourceClaimParameters = map[string]string{
 	"":               "ResourceClaimParameters defines resource requests for a ResourceClaim in an in-tree format understood by Kubernetes.",
 	"metadata":       "Standard object metadata",
@@ -166,8 +162,6 @@ func (ResourceClaimParametersList) SwaggerDoc() map[string]string {
 	return map_ResourceClaimParametersList
 }
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 var map_ResourceClaimParametersReference = map[string]string{
 	"":         "ResourceClaimParametersReference contains enough information to let you locate the parameters for a ResourceClaim. The object must be in the same namespace as the ResourceClaim.",
 	"apiGroup": "APIGroup is the group for the resource being referenced. It is empty for the core API. This matches the group in the APIVersion that is used when creating the resources.",
@@ -243,20 +237,12 @@ func (ResourceClaimTemplateSpec) SwaggerDoc() map[string]string {
 }
 
 var map_ResourceClass = map[string]string{
-<<<<<<< HEAD
 	"":                     "ResourceClass is used by administrators to influence how resources are allocated.\n\nThis is an alpha type and requires enabling the DynamicResourceAllocation feature gate.",
 	"metadata":             "Standard object metadata",
 	"driverName":           "DriverName defines the name of the dynamic resource driver that is used for allocation of a ResourceClaim that uses this class.\n\nResource drivers have a unique name in forward domain order (acme.example.com).",
 	"parametersRef":        "ParametersRef references an arbitrary separate object that may hold parameters that will be used by the driver when allocating a resource that uses this class. A dynamic resource driver can distinguish between parameters stored here and and those stored in ResourceClaimSpec.",
 	"suitableNodes":        "Only nodes matching the selector will be considered by the scheduler when trying to find a Node that fits a Pod when that Pod uses a ResourceClaim that has not been allocated yet.\n\nSetting this field is optional. If null, all nodes are candidates.",
 	"structuredParameters": "If and only if allocation of claims using this class is handled via structured parameters, then StructuredParameters must be set to true.",
-=======
-	"":              "ResourceClass is used by administrators to influence how resources are allocated.\n\nThis is an alpha type and requires enabling the DynamicResourceAllocation feature gate.",
-	"metadata":      "Standard object metadata",
-	"driverName":    "DriverName defines the name of the dynamic resource driver that is used for allocation of a ResourceClaim that uses this class.\n\nResource drivers have a unique name in forward domain order (acme.example.com).",
-	"parametersRef": "ParametersRef references an arbitrary separate object that may hold parameters that will be used by the driver when allocating a resource that uses this class. A dynamic resource driver can distinguish between parameters stored here and and those stored in ResourceClaimSpec.",
-	"suitableNodes": "Only nodes matching the selector will be considered by the scheduler when trying to find a Node that fits a Pod when that Pod uses a ResourceClaim that has not been allocated yet.\n\nSetting this field is optional. If null, all nodes are candidates.",
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (ResourceClass) SwaggerDoc() map[string]string {
@@ -273,7 +259,6 @@ func (ResourceClassList) SwaggerDoc() map[string]string {
 	return map_ResourceClassList
 }
 
-<<<<<<< HEAD
 var map_ResourceClassParameters = map[string]string{
 	"":                 "ResourceClassParameters defines resource requests for a ResourceClass in an in-tree format understood by Kubernetes.",
 	"metadata":         "Standard object metadata",
@@ -296,8 +281,6 @@ func (ResourceClassParametersList) SwaggerDoc() map[string]string {
 	return map_ResourceClassParametersList
 }
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 var map_ResourceClassParametersReference = map[string]string{
 	"":          "ResourceClassParametersReference contains enough information to let you locate the parameters for a ResourceClass.",
 	"apiGroup":  "APIGroup is the group for the resource being referenced. It is empty for the core API. This matches the group in the APIVersion that is used when creating the resources.",
@@ -310,7 +293,6 @@ func (ResourceClassParametersReference) SwaggerDoc() map[string]string {
 	return map_ResourceClassParametersReference
 }
 
-<<<<<<< HEAD
 var map_ResourceFilter = map[string]string{
 	"":           "ResourceFilter is a filter for resources from one particular driver.",
 	"driverName": "DriverName is the name used by the DRA driver kubelet plugin.",
@@ -334,19 +316,12 @@ var map_ResourceHandle = map[string]string{
 	"driverName":     "DriverName specifies the name of the resource driver whose kubelet plugin should be invoked to process this ResourceHandle's data once it lands on a node. This may differ from the DriverName set in ResourceClaimStatus this ResourceHandle is embedded in.",
 	"data":           "Data contains the opaque data associated with this ResourceHandle. It is set by the controller component of the resource driver whose name matches the DriverName set in the ResourceClaimStatus this ResourceHandle is embedded in. It is set at allocation time and is intended for processing by the kubelet plugin whose name matches the DriverName set in this ResourceHandle.\n\nThe maximum size of this field is 16KiB. This may get increased in the future, but not reduced.",
 	"structuredData": "If StructuredData is set, then it needs to be used instead of Data.",
-=======
-var map_ResourceHandle = map[string]string{
-	"":           "ResourceHandle holds opaque resource data for processing by a specific kubelet plugin.",
-	"driverName": "DriverName specifies the name of the resource driver whose kubelet plugin should be invoked to process this ResourceHandle's data once it lands on a node. This may differ from the DriverName set in ResourceClaimStatus this ResourceHandle is embedded in.",
-	"data":       "Data contains the opaque data associated with this ResourceHandle. It is set by the controller component of the resource driver whose name matches the DriverName set in the ResourceClaimStatus this ResourceHandle is embedded in. It is set at allocation time and is intended for processing by the kubelet plugin whose name matches the DriverName set in this ResourceHandle.\n\nThe maximum size of this field is 16KiB. This may get increased in the future, but not reduced.",
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 }
 
 func (ResourceHandle) SwaggerDoc() map[string]string {
 	return map_ResourceHandle
 }
 
-<<<<<<< HEAD
 var map_ResourceModel = map[string]string{
 	"":               "ResourceModel must have one and only one field set.",
 	"namedResources": "NamedResources describes available resources using the named resources model.",
@@ -417,6 +392,4 @@ func (VendorParameters) SwaggerDoc() map[string]string {
 	return map_VendorParameters
 }
 
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
 // AUTO-GENERATED FUNCTIONS END HERE

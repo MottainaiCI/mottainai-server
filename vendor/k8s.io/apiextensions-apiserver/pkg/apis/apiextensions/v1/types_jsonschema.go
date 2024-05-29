@@ -286,10 +286,6 @@ type ValidationRule struct {
 	// "x must be less than max ("+string(self.max)+")"
 	// +optional
 	MessageExpression string `json:"messageExpression,omitempty" protobuf:"bytes,3,opt,name=messageExpression"`
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// reason provides a machine-readable validation failure reason that is returned to the caller when a request fails this validation rule.
 	// The HTTP status code returned to the caller will match the reason of the reason of the first failed validation rule.
 	// The currently supported reasons are: "FieldValueInvalid", "FieldValueForbidden", "FieldValueRequired", "FieldValueDuplicate".
@@ -326,11 +322,6 @@ type ValidationRule struct {
 	// +featureGate=CRDValidationRatcheting
 	// +optional
 	OptionalOldSelf *bool `json:"optionalOldSelf,omitempty" protobuf:"bytes,6,opt,name=optionalOldSelf"`
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 // JSON represents any valid JSON value.

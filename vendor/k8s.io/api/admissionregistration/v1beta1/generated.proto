@@ -29,10 +29,6 @@ import "k8s.io/apimachinery/pkg/runtime/schema/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "k8s.io/api/admissionregistration/v1beta1";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // AuditAnnotation describes how to produce an audit annotation for an API request.
 message AuditAnnotation {
   // key specifies the audit annotation key. The audit annotation keys of
@@ -83,11 +79,6 @@ message ExpressionWarning {
   optional string warning = 3;
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // MatchCondition represents a condition which must be fulfilled for a request to be sent to a webhook.
 message MatchCondition {
   // Name is an identifier for this match condition, used for strategic merging of MatchConditions,
@@ -117,10 +108,6 @@ message MatchCondition {
   optional string expression = 2;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // MatchResources decides whether to run the admission control policy on an object based
 // on whether it meets the match criteria.
 // The exclude rules take precedence over include rules (if a resource matches both, it is excluded)
@@ -216,11 +203,6 @@ message MatchResources {
   optional string matchPolicy = 7;
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // MutatingWebhook describes an admission webhook and the resources and operations it applies to.
 message MutatingWebhook {
   // The name of the admission webhook.
@@ -384,23 +366,10 @@ message MutatingWebhook {
   //      - If failurePolicy=Fail, reject the request
   //      - If failurePolicy=Ignore, the error is ignored and the webhook is skipped
   //
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // This is an alpha feature and managed by the AdmissionWebhookMatchConditions feature gate.
-=======
-  // This is a beta feature and managed by the AdmissionWebhookMatchConditions feature gate.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-  //
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // +patchMergeKey=name
   // +patchStrategy=merge
   // +listType=map
   // +listMapKey=name
-<<<<<<< HEAD
-=======
-  // +featureGate=AdmissionWebhookMatchConditions
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // +optional
   repeated MatchCondition matchConditions = 12;
 }
@@ -924,23 +893,10 @@ message ValidatingWebhook {
   //      - If failurePolicy=Fail, reject the request
   //      - If failurePolicy=Ignore, the error is ignored and the webhook is skipped
   //
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // This is an alpha feature and managed by the AdmissionWebhookMatchConditions feature gate.
-=======
-  // This is a beta feature and managed by the AdmissionWebhookMatchConditions feature gate.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-  //
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // +patchMergeKey=name
   // +patchStrategy=merge
   // +listType=map
   // +listMapKey=name
-<<<<<<< HEAD
-=======
-  // +featureGate=AdmissionWebhookMatchConditions
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
   // +optional
   repeated MatchCondition matchConditions = 11;
 }

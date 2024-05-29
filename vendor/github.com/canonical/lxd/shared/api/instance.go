@@ -317,7 +317,7 @@ type InstanceSource struct {
 	Properties map[string]string `json:"properties,omitempty" yaml:"properties,omitempty"`
 
 	// Remote server URL (for remote images)
-	// Example: https://cloud-images.ubuntu.com/releases
+	// Example: https://images.linuxcontainers.org
 	Server string `json:"server,omitempty" yaml:"server,omitempty"`
 
 	// Remote server secret (for remote private images)
@@ -373,37 +373,4 @@ type InstanceSource struct {
 	//
 	// API extension: instance_allow_inconsistent_copy
 	AllowInconsistent bool `json:"allow_inconsistent" yaml:"allow_inconsistent"`
-}
-
-// InstanceUEFIVars represents the UEFI variables of a LXD virtual machine.
-//
-// swagger:model
-//
-// API extension: instances_uefi_vars.
-type InstanceUEFIVars struct {
-	// UEFI variables map
-	// Hashmap key format is <uefi-variable-name>-<UUID>
-	// Example: { "SecureBootEnable-f0a30bc7-af08-4556-99c4-001009c93a44": { "data": "01", "attr": 3 } }
-	Variables map[string]InstanceUEFIVariable `json:"variables" yaml:"variables"`
-}
-
-// InstanceUEFIVariable represents an EFI variable entry
-//
-// swagger:model
-//
-// API extension: instances_uefi_vars.
-type InstanceUEFIVariable struct {
-	// UEFI variable data (HEX-encoded)
-	// example: 01
-	Data string `json:"data" yaml:"data"`
-
-	// UEFI variable attributes
-	// example: 7
-	Attr uint32 `json:"attr" yaml:"attr"`
-
-	// UEFI variable timestamp (HEX-encoded)
-	Timestamp string `json:"timestamp" yaml:"timestamp"`
-
-	// UEFI variable digest (HEX-encoded)
-	Digest string `json:"digest" yaml:"digest"`
 }

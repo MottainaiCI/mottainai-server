@@ -12,7 +12,6 @@ import (
 	"go/types"
 )
 
-<<<<<<< HEAD
 // FileVersion returns a language version (<=1.21) derived from runtime.Version()
 // or an unknown future version.
 func FileVersion(info *types.Info, file *ast.File) string {
@@ -28,11 +27,4 @@ func FileVersion(info *types.Info, file *ast.File) string {
 }
 
 // InitFileVersions is a noop when compiled with this Go version.
-=======
-// FileVersions always reports the a file's Go version as the
-// zero version at this Go version.
-func FileVersions(info *types.Info, file *ast.File) string { return "" }
-
-// InitFileVersions is a noop at this Go version.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func InitFileVersions(*types.Info) {}

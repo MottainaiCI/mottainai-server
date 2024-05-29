@@ -51,21 +51,8 @@ import (
 //  10. Send out the CL for review and submit it.
 const (
 	Major      = 1
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	Minor      = 34
-=======
-	Minor      = 29
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 	Patch      = 1
-=======
-	Minor      = 30
-=======
-	Minor      = 32
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
-	Patch      = 0
->>>>>>> b4ef97b2 (Update vendor github.com/spf13/viper@v1.16.0)
 	PreRelease = ""
 )
 

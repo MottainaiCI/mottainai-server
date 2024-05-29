@@ -151,15 +151,7 @@ func (e *Error) WithParent(err error) *Error {
 	return e
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 func (e *Error) WithDescription(desc string, args ...any) *Error {
-=======
-func (e *Error) WithDescription(desc string, args ...interface{}) *Error {
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-func (e *Error) WithDescription(desc string, args ...any) *Error {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	e.Description = fmt.Sprintf(desc, args...)
 	return e
 }

@@ -162,18 +162,9 @@ func (buf *Buffer) SprintHeader(s severity.Severity, now time.Time) string {
 
 	// Avoid Fprintf, for speed. The format is so simple that we can do it quickly by hand.
 	// It's worth about 3X. Fprintf is hard.
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if Time != nil {
 		now = *Time
 	}
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	if Time != nil {
-		now = *Time
-	}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	_, month, day := now.Date()
 	hour, minute, second := now.Clock()
 	// Lmmdd hh:mm:ss.uuuuuu threadid file:line]

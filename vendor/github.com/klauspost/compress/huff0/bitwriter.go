@@ -94,24 +94,9 @@ func (b *bitWriter) flushAlign() {
 
 // close will write the alignment bit and write the final byte(s)
 // to the output.
-<<<<<<< HEAD
-<<<<<<< HEAD
 func (b *bitWriter) close() {
-=======
-func (b *bitWriter) close() error {
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-func (b *bitWriter) close() {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	// End mark
 	b.addBits16Clean(1, 1)
 	// flush until next byte.
 	b.flushAlign()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	return nil
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }

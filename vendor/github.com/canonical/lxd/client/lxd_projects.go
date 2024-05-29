@@ -11,15 +11,14 @@ import (
 
 // GetProjectNames returns a list of available project names.
 func (r *ProtocolLXD) GetProjectNames() ([]string, error) {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("projects") {
+		return nil, fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	// Fetch the raw URL values.
 	urls := []string{}
 	baseURL := "/projects"
-	_, err = r.queryStruct("GET", baseURL, nil, "", &urls)
+	_, err := r.queryStruct("GET", baseURL, nil, "", &urls)
 	if err != nil {
 		return nil, err
 	}
@@ -30,15 +29,14 @@ func (r *ProtocolLXD) GetProjectNames() ([]string, error) {
 
 // GetProjects returns a list of available Project structs.
 func (r *ProtocolLXD) GetProjects() ([]api.Project, error) {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("projects") {
+		return nil, fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	projects := []api.Project{}
 
 	// Fetch the raw value
-	_, err = r.queryStruct("GET", "/projects?recursion=1", nil, "", &projects)
+	_, err := r.queryStruct("GET", "/projects?recursion=1", nil, "", &projects)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +46,8 @@ func (r *ProtocolLXD) GetProjects() ([]api.Project, error) {
 
 // GetProject returns a Project entry for the provided name.
 func (r *ProtocolLXD) GetProject(name string) (*api.Project, string, error) {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return nil, "", err
+	if !r.HasExtension("projects") {
+		return nil, "", fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	project := api.Project{}
@@ -66,15 +63,14 @@ func (r *ProtocolLXD) GetProject(name string) (*api.Project, string, error) {
 
 // GetProjectState returns a Project state for the provided name.
 func (r *ProtocolLXD) GetProjectState(name string) (*api.ProjectState, error) {
-	err := r.CheckExtension("project_usage")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("project_usage") {
+		return nil, fmt.Errorf("The server is missing the required \"project_usage\" API extension")
 	}
 
 	projectState := api.ProjectState{}
 
 	// Fetch the raw value
-	_, err = r.queryStruct("GET", fmt.Sprintf("/projects/%s/state", url.PathEscape(name)), nil, "", &projectState)
+	_, err := r.queryStruct("GET", fmt.Sprintf("/projects/%s/state", url.PathEscape(name)), nil, "", &projectState)
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +80,12 @@ func (r *ProtocolLXD) GetProjectState(name string) (*api.ProjectState, error) {
 
 // CreateProject defines a new container project.
 func (r *ProtocolLXD) CreateProject(project api.ProjectsPost) error {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return err
+	if !r.HasExtension("projects") {
+		return fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("POST", "/projects", project, "")
+	_, _, err := r.query("POST", "/projects", project, "")
 	if err != nil {
 		return err
 	}
@@ -100,13 +95,12 @@ func (r *ProtocolLXD) CreateProject(project api.ProjectsPost) error {
 
 // UpdateProject updates the project to match the provided Project struct.
 func (r *ProtocolLXD) UpdateProject(name string, project api.ProjectPut, ETag string) error {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return err
+	if !r.HasExtension("projects") {
+		return fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("PUT", fmt.Sprintf("/projects/%s", url.PathEscape(name)), project, ETag)
+	_, _, err := r.query("PUT", fmt.Sprintf("/projects/%s", url.PathEscape(name)), project, ETag)
 	if err != nil {
 		return err
 	}
@@ -116,9 +110,8 @@ func (r *ProtocolLXD) UpdateProject(name string, project api.ProjectPut, ETag st
 
 // RenameProject renames an existing project entry.
 func (r *ProtocolLXD) RenameProject(name string, project api.ProjectPost) (Operation, error) {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return nil, err
+	if !r.HasExtension("projects") {
+		return nil, fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	// Send the request
@@ -132,13 +125,12 @@ func (r *ProtocolLXD) RenameProject(name string, project api.ProjectPost) (Opera
 
 // DeleteProject deletes a project.
 func (r *ProtocolLXD) DeleteProject(name string) error {
-	err := r.CheckExtension("projects")
-	if err != nil {
-		return err
+	if !r.HasExtension("projects") {
+		return fmt.Errorf("The server is missing the required \"projects\" API extension")
 	}
 
 	// Send the request
-	_, _, err = r.query("DELETE", fmt.Sprintf("/projects/%s", url.PathEscape(name)), nil, "")
+	_, _, err := r.query("DELETE", fmt.Sprintf("/projects/%s", url.PathEscape(name)), nil, "")
 	if err != nil {
 		return err
 	}

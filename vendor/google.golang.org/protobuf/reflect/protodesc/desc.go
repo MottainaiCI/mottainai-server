@@ -95,21 +95,14 @@ func (o FileOptions) New(fd *descriptorpb.FileDescriptorProto, r Resolver) (prot
 		f.L1.Edition = filedesc.EditionProto2
 	case "proto3":
 		f.L1.Syntax = protoreflect.Proto3
-<<<<<<< HEAD
 		f.L1.Edition = filedesc.EditionProto3
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	case "editions":
 		f.L1.Syntax = protoreflect.Editions
 		f.L1.Edition = fromEditionProto(fd.GetEdition())
 	default:
 		return nil, errors.New("invalid syntax: %q", fd.GetSyntax())
 	}
-<<<<<<< HEAD
 	if f.L1.Syntax == protoreflect.Editions && (fd.GetEdition() < editionssupport.Minimum || fd.GetEdition() > editionssupport.Maximum) {
-=======
-	if f.L1.Syntax == protoreflect.Editions && (fd.GetEdition() < SupportedEditionsMinimum || fd.GetEdition() > SupportedEditionsMaximum) {
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 		return nil, errors.New("use of edition %v not yet supported by the Go Protobuf runtime", fd.GetEdition())
 	}
 	f.L1.Path = fd.GetName()
@@ -124,13 +117,7 @@ func (o FileOptions) New(fd *descriptorpb.FileDescriptorProto, r Resolver) (prot
 		opts = proto.Clone(opts).(*descriptorpb.FileOptions)
 		f.L2.Options = func() protoreflect.ProtoMessage { return opts }
 	}
-<<<<<<< HEAD
 	initFileDescFromFeatureSet(f, fd.GetOptions().GetFeatures())
-=======
-	if f.L1.Syntax == protoreflect.Editions {
-		initFileDescFromFeatureSet(f, fd.GetOptions().GetFeatures())
-	}
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 
 	f.L2.Imports = make(filedesc.FileImports, len(fd.GetDependency()))
 	for _, i := range fd.GetPublicDependency() {

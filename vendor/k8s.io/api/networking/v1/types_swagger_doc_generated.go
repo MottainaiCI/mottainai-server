@@ -224,13 +224,6 @@ var map_NetworkPolicy = map[string]string{
 	"":         "NetworkPolicy describes what network traffic is allowed for a set of Pods",
 	"metadata": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
 	"spec":     "spec represents the specification of the desired behavior for this NetworkPolicy.",
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	"status":   "status represents the current state of the NetworkPolicy. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 func (NetworkPolicy) SwaggerDoc() map[string]string {
@@ -301,21 +294,6 @@ func (NetworkPolicySpec) SwaggerDoc() map[string]string {
 	return map_NetworkPolicySpec
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-var map_NetworkPolicyStatus = map[string]string{
-	"":           "NetworkPolicyStatus describes the current state of the NetworkPolicy.",
-	"conditions": "conditions holds an array of metav1.Condition that describe the state of the NetworkPolicy. Current service state",
-}
-
-func (NetworkPolicyStatus) SwaggerDoc() map[string]string {
-	return map_NetworkPolicyStatus
-}
-
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 var map_ServiceBackendPort = map[string]string{
 	"":       "ServiceBackendPort is the service port being referenced.",
 	"name":   "name is the name of the port on the Service. This is a mutually exclusive setting with \"Number\".",

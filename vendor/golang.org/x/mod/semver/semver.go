@@ -140,15 +140,7 @@ func Compare(v, w string) int {
 // Max canonicalizes its arguments and then returns the version string
 // that compares greater.
 //
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Deprecated: use [Compare] instead. In most cases, returning a canonicalized
-=======
-// Deprecated: use Compare instead. In most cases, returning a canonicalized
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Deprecated: use [Compare] instead. In most cases, returning a canonicalized
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // version is not expected or desired.
 func Max(v, w string) string {
 	v = Canonical(v)
@@ -159,15 +151,7 @@ func Max(v, w string) string {
 	return w
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // ByVersion implements [sort.Interface] for sorting semantic version strings.
-=======
-// ByVersion implements sort.Interface for sorting semantic version strings.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// ByVersion implements [sort.Interface] for sorting semantic version strings.
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 type ByVersion []string
 
 func (vs ByVersion) Len() int      { return len(vs) }
@@ -180,15 +164,7 @@ func (vs ByVersion) Less(i, j int) bool {
 	return vs[i] < vs[j]
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Sort sorts a list of semantic version strings using [ByVersion].
-=======
-// Sort sorts a list of semantic version strings using ByVersion.
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-// Sort sorts a list of semantic version strings using [ByVersion].
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 func Sort(list []string) {
 	sort.Sort(ByVersion(list))
 }

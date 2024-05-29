@@ -52,24 +52,10 @@ var (
 // Adds the list of known types to the given scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-<<<<<<< HEAD
-<<<<<<< HEAD
 		&IPAddress{},
 		&IPAddressList{},
 		&ServiceCIDR{},
 		&ServiceCIDRList{},
-=======
-		&ClusterCIDR{},
-		&ClusterCIDRList{},
-		&IPAddress{},
-		&IPAddressList{},
->>>>>>> fe31cef4 (Update vendor github.com/MottainaiCI/lxd-compose@d928eed0eddfde18d58fe3a8ae780328c1b0d55c)
-=======
-		&IPAddress{},
-		&IPAddressList{},
-		&ServiceCIDR{},
-		&ServiceCIDRList{},
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

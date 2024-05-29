@@ -18,7 +18,6 @@ const (
 	Edition_enum_name     = "Edition"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.Edition.
 const (
 	Edition_EDITION_UNKNOWN_enum_value         = 0
@@ -35,8 +34,6 @@ const (
 	Edition_EDITION_MAX_enum_value             = 2147483647
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Names for google.protobuf.FileDescriptorSet.
 const (
 	FileDescriptorSet_message_name     protoreflect.Name     = "FileDescriptorSet"
@@ -106,15 +103,7 @@ const (
 	FileDescriptorProto_Options_field_number          protoreflect.FieldNumber = 8
 	FileDescriptorProto_SourceCodeInfo_field_number   protoreflect.FieldNumber = 9
 	FileDescriptorProto_Syntax_field_number           protoreflect.FieldNumber = 12
-<<<<<<< HEAD
-<<<<<<< HEAD
 	FileDescriptorProto_Edition_field_number          protoreflect.FieldNumber = 14
-=======
-	FileDescriptorProto_Edition_field_number          protoreflect.FieldNumber = 13
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	FileDescriptorProto_Edition_field_number          protoreflect.FieldNumber = 14
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Names for google.protobuf.DescriptorProto.
@@ -240,15 +229,12 @@ const (
 	ExtensionRangeOptions_VerificationState_enum_name     = "VerificationState"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.ExtensionRangeOptions.VerificationState.
 const (
 	ExtensionRangeOptions_DECLARATION_enum_value = 0
 	ExtensionRangeOptions_UNVERIFIED_enum_value  = 1
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Names for google.protobuf.ExtensionRangeOptions.Declaration.
 const (
 	ExtensionRangeOptions_Declaration_message_name     protoreflect.Name     = "Declaration"
@@ -625,14 +611,7 @@ const (
 	MessageOptions_Deprecated_field_name                         protoreflect.Name = "deprecated"
 	MessageOptions_MapEntry_field_name                           protoreflect.Name = "map_entry"
 	MessageOptions_DeprecatedLegacyJsonFieldConflicts_field_name protoreflect.Name = "deprecated_legacy_json_field_conflicts"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MessageOptions_Features_field_name                           protoreflect.Name = "features"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MessageOptions_Features_field_name                           protoreflect.Name = "features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MessageOptions_UninterpretedOption_field_name                protoreflect.Name = "uninterpreted_option"
 
 	MessageOptions_MessageSetWireFormat_field_fullname               protoreflect.FullName = "google.protobuf.MessageOptions.message_set_wire_format"
@@ -640,14 +619,7 @@ const (
 	MessageOptions_Deprecated_field_fullname                         protoreflect.FullName = "google.protobuf.MessageOptions.deprecated"
 	MessageOptions_MapEntry_field_fullname                           protoreflect.FullName = "google.protobuf.MessageOptions.map_entry"
 	MessageOptions_DeprecatedLegacyJsonFieldConflicts_field_fullname protoreflect.FullName = "google.protobuf.MessageOptions.deprecated_legacy_json_field_conflicts"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MessageOptions_Features_field_fullname                           protoreflect.FullName = "google.protobuf.MessageOptions.features"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MessageOptions_Features_field_fullname                           protoreflect.FullName = "google.protobuf.MessageOptions.features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MessageOptions_UninterpretedOption_field_fullname                protoreflect.FullName = "google.protobuf.MessageOptions.uninterpreted_option"
 )
 
@@ -658,14 +630,7 @@ const (
 	MessageOptions_Deprecated_field_number                         protoreflect.FieldNumber = 3
 	MessageOptions_MapEntry_field_number                           protoreflect.FieldNumber = 7
 	MessageOptions_DeprecatedLegacyJsonFieldConflicts_field_number protoreflect.FieldNumber = 11
-<<<<<<< HEAD
-<<<<<<< HEAD
 	MessageOptions_Features_field_number                           protoreflect.FieldNumber = 12
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	MessageOptions_Features_field_number                           protoreflect.FieldNumber = 12
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	MessageOptions_UninterpretedOption_field_number                protoreflect.FieldNumber = 999
 )
 
@@ -686,20 +651,10 @@ const (
 	FieldOptions_Weak_field_name                protoreflect.Name = "weak"
 	FieldOptions_DebugRedact_field_name         protoreflect.Name = "debug_redact"
 	FieldOptions_Retention_field_name           protoreflect.Name = "retention"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	FieldOptions_Targets_field_name             protoreflect.Name = "targets"
 	FieldOptions_EditionDefaults_field_name     protoreflect.Name = "edition_defaults"
 	FieldOptions_Features_field_name            protoreflect.Name = "features"
 	FieldOptions_FeatureSupport_field_name      protoreflect.Name = "feature_support"
-=======
-	FieldOptions_Target_field_name              protoreflect.Name = "target"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	FieldOptions_Targets_field_name             protoreflect.Name = "targets"
-	FieldOptions_EditionDefaults_field_name     protoreflect.Name = "edition_defaults"
-	FieldOptions_Features_field_name            protoreflect.Name = "features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	FieldOptions_UninterpretedOption_field_name protoreflect.Name = "uninterpreted_option"
 
 	FieldOptions_Ctype_field_fullname               protoreflect.FullName = "google.protobuf.FieldOptions.ctype"
@@ -711,20 +666,10 @@ const (
 	FieldOptions_Weak_field_fullname                protoreflect.FullName = "google.protobuf.FieldOptions.weak"
 	FieldOptions_DebugRedact_field_fullname         protoreflect.FullName = "google.protobuf.FieldOptions.debug_redact"
 	FieldOptions_Retention_field_fullname           protoreflect.FullName = "google.protobuf.FieldOptions.retention"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	FieldOptions_Targets_field_fullname             protoreflect.FullName = "google.protobuf.FieldOptions.targets"
 	FieldOptions_EditionDefaults_field_fullname     protoreflect.FullName = "google.protobuf.FieldOptions.edition_defaults"
 	FieldOptions_Features_field_fullname            protoreflect.FullName = "google.protobuf.FieldOptions.features"
 	FieldOptions_FeatureSupport_field_fullname      protoreflect.FullName = "google.protobuf.FieldOptions.feature_support"
-=======
-	FieldOptions_Target_field_fullname              protoreflect.FullName = "google.protobuf.FieldOptions.target"
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	FieldOptions_Targets_field_fullname             protoreflect.FullName = "google.protobuf.FieldOptions.targets"
-	FieldOptions_EditionDefaults_field_fullname     protoreflect.FullName = "google.protobuf.FieldOptions.edition_defaults"
-	FieldOptions_Features_field_fullname            protoreflect.FullName = "google.protobuf.FieldOptions.features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	FieldOptions_UninterpretedOption_field_fullname protoreflect.FullName = "google.protobuf.FieldOptions.uninterpreted_option"
 )
 
@@ -739,20 +684,10 @@ const (
 	FieldOptions_Weak_field_number                protoreflect.FieldNumber = 10
 	FieldOptions_DebugRedact_field_number         protoreflect.FieldNumber = 16
 	FieldOptions_Retention_field_number           protoreflect.FieldNumber = 17
-<<<<<<< HEAD
-<<<<<<< HEAD
 	FieldOptions_Targets_field_number             protoreflect.FieldNumber = 19
 	FieldOptions_EditionDefaults_field_number     protoreflect.FieldNumber = 20
 	FieldOptions_Features_field_number            protoreflect.FieldNumber = 21
 	FieldOptions_FeatureSupport_field_number      protoreflect.FieldNumber = 22
-=======
-	FieldOptions_Target_field_number              protoreflect.FieldNumber = 18
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	FieldOptions_Targets_field_number             protoreflect.FieldNumber = 19
-	FieldOptions_EditionDefaults_field_number     protoreflect.FieldNumber = 20
-	FieldOptions_Features_field_number            protoreflect.FieldNumber = 21
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	FieldOptions_UninterpretedOption_field_number protoreflect.FieldNumber = 999
 )
 
@@ -775,7 +710,6 @@ const (
 	FieldOptions_JSType_enum_name     = "JSType"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FieldOptions.JSType.
 const (
 	FieldOptions_JS_NORMAL_enum_value = 0
@@ -783,15 +717,12 @@ const (
 	FieldOptions_JS_NUMBER_enum_value = 2
 )
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // Full and short names for google.protobuf.FieldOptions.OptionRetention.
 const (
 	FieldOptions_OptionRetention_enum_fullname = "google.protobuf.FieldOptions.OptionRetention"
 	FieldOptions_OptionRetention_enum_name     = "OptionRetention"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FieldOptions.OptionRetention.
 const (
 	FieldOptions_RETENTION_UNKNOWN_enum_value = 0
@@ -799,16 +730,12 @@ const (
 	FieldOptions_RETENTION_SOURCE_enum_value  = 2
 )
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 // Full and short names for google.protobuf.FieldOptions.OptionTargetType.
 const (
 	FieldOptions_OptionTargetType_enum_fullname = "google.protobuf.FieldOptions.OptionTargetType"
 	FieldOptions_OptionTargetType_enum_name     = "OptionTargetType"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // Enum values for google.protobuf.FieldOptions.OptionTargetType.
 const (
 	FieldOptions_TARGET_TYPE_UNKNOWN_enum_value         = 0
@@ -823,8 +750,6 @@ const (
 	FieldOptions_TARGET_TYPE_METHOD_enum_value          = 9
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Names for google.protobuf.FieldOptions.EditionDefault.
 const (
 	FieldOptions_EditionDefault_message_name     protoreflect.Name     = "EditionDefault"
@@ -846,7 +771,6 @@ const (
 	FieldOptions_EditionDefault_Value_field_number   protoreflect.FieldNumber = 2
 )
 
-<<<<<<< HEAD
 // Names for google.protobuf.FieldOptions.FeatureSupport.
 const (
 	FieldOptions_FeatureSupport_message_name     protoreflect.Name     = "FeatureSupport"
@@ -874,10 +798,6 @@ const (
 	FieldOptions_FeatureSupport_EditionRemoved_field_number     protoreflect.FieldNumber = 4
 )
 
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Names for google.protobuf.OneofOptions.
 const (
 	OneofOptions_message_name     protoreflect.Name     = "OneofOptions"
@@ -910,27 +830,13 @@ const (
 	EnumOptions_AllowAlias_field_name                         protoreflect.Name = "allow_alias"
 	EnumOptions_Deprecated_field_name                         protoreflect.Name = "deprecated"
 	EnumOptions_DeprecatedLegacyJsonFieldConflicts_field_name protoreflect.Name = "deprecated_legacy_json_field_conflicts"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	EnumOptions_Features_field_name                           protoreflect.Name = "features"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	EnumOptions_Features_field_name                           protoreflect.Name = "features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	EnumOptions_UninterpretedOption_field_name                protoreflect.Name = "uninterpreted_option"
 
 	EnumOptions_AllowAlias_field_fullname                         protoreflect.FullName = "google.protobuf.EnumOptions.allow_alias"
 	EnumOptions_Deprecated_field_fullname                         protoreflect.FullName = "google.protobuf.EnumOptions.deprecated"
 	EnumOptions_DeprecatedLegacyJsonFieldConflicts_field_fullname protoreflect.FullName = "google.protobuf.EnumOptions.deprecated_legacy_json_field_conflicts"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	EnumOptions_Features_field_fullname                           protoreflect.FullName = "google.protobuf.EnumOptions.features"
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	EnumOptions_Features_field_fullname                           protoreflect.FullName = "google.protobuf.EnumOptions.features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	EnumOptions_UninterpretedOption_field_fullname                protoreflect.FullName = "google.protobuf.EnumOptions.uninterpreted_option"
 )
 
@@ -939,14 +845,7 @@ const (
 	EnumOptions_AllowAlias_field_number                         protoreflect.FieldNumber = 2
 	EnumOptions_Deprecated_field_number                         protoreflect.FieldNumber = 3
 	EnumOptions_DeprecatedLegacyJsonFieldConflicts_field_number protoreflect.FieldNumber = 6
-<<<<<<< HEAD
-<<<<<<< HEAD
 	EnumOptions_Features_field_number                           protoreflect.FieldNumber = 7
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-	EnumOptions_Features_field_number                           protoreflect.FieldNumber = 7
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 	EnumOptions_UninterpretedOption_field_number                protoreflect.FieldNumber = 999
 )
 
@@ -1137,7 +1036,6 @@ const (
 	FeatureSet_FieldPresence_enum_name     = "FieldPresence"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.FieldPresence.
 const (
 	FeatureSet_FIELD_PRESENCE_UNKNOWN_enum_value = 0
@@ -1146,15 +1044,12 @@ const (
 	FeatureSet_LEGACY_REQUIRED_enum_value        = 3
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Full and short names for google.protobuf.FeatureSet.EnumType.
 const (
 	FeatureSet_EnumType_enum_fullname = "google.protobuf.FeatureSet.EnumType"
 	FeatureSet_EnumType_enum_name     = "EnumType"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.EnumType.
 const (
 	FeatureSet_ENUM_TYPE_UNKNOWN_enum_value = 0
@@ -1162,15 +1057,12 @@ const (
 	FeatureSet_CLOSED_enum_value            = 2
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Full and short names for google.protobuf.FeatureSet.RepeatedFieldEncoding.
 const (
 	FeatureSet_RepeatedFieldEncoding_enum_fullname = "google.protobuf.FeatureSet.RepeatedFieldEncoding"
 	FeatureSet_RepeatedFieldEncoding_enum_name     = "RepeatedFieldEncoding"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.RepeatedFieldEncoding.
 const (
 	FeatureSet_REPEATED_FIELD_ENCODING_UNKNOWN_enum_value = 0
@@ -1178,15 +1070,12 @@ const (
 	FeatureSet_EXPANDED_enum_value                        = 2
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Full and short names for google.protobuf.FeatureSet.Utf8Validation.
 const (
 	FeatureSet_Utf8Validation_enum_fullname = "google.protobuf.FeatureSet.Utf8Validation"
 	FeatureSet_Utf8Validation_enum_name     = "Utf8Validation"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.Utf8Validation.
 const (
 	FeatureSet_UTF8_VALIDATION_UNKNOWN_enum_value = 0
@@ -1194,15 +1083,12 @@ const (
 	FeatureSet_NONE_enum_value                    = 3
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Full and short names for google.protobuf.FeatureSet.MessageEncoding.
 const (
 	FeatureSet_MessageEncoding_enum_fullname = "google.protobuf.FeatureSet.MessageEncoding"
 	FeatureSet_MessageEncoding_enum_name     = "MessageEncoding"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.MessageEncoding.
 const (
 	FeatureSet_MESSAGE_ENCODING_UNKNOWN_enum_value = 0
@@ -1210,15 +1096,12 @@ const (
 	FeatureSet_DELIMITED_enum_value                = 2
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Full and short names for google.protobuf.FeatureSet.JsonFormat.
 const (
 	FeatureSet_JsonFormat_enum_fullname = "google.protobuf.FeatureSet.JsonFormat"
 	FeatureSet_JsonFormat_enum_name     = "JsonFormat"
 )
 
-<<<<<<< HEAD
 // Enum values for google.protobuf.FeatureSet.JsonFormat.
 const (
 	FeatureSet_JSON_FORMAT_UNKNOWN_enum_value = 0
@@ -1226,8 +1109,6 @@ const (
 	FeatureSet_LEGACY_BEST_EFFORT_enum_value  = 2
 )
 
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 // Names for google.protobuf.FeatureSetDefaults.
 const (
 	FeatureSetDefaults_message_name     protoreflect.Name     = "FeatureSetDefaults"
@@ -1260,7 +1141,6 @@ const (
 
 // Field names for google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.
 const (
-<<<<<<< HEAD
 	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_name             protoreflect.Name = "edition"
 	FeatureSetDefaults_FeatureSetEditionDefault_OverridableFeatures_field_name protoreflect.Name = "overridable_features"
 	FeatureSetDefaults_FeatureSetEditionDefault_FixedFeatures_field_name       protoreflect.Name = "fixed_features"
@@ -1268,25 +1148,13 @@ const (
 	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_fullname             protoreflect.FullName = "google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.edition"
 	FeatureSetDefaults_FeatureSetEditionDefault_OverridableFeatures_field_fullname protoreflect.FullName = "google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.overridable_features"
 	FeatureSetDefaults_FeatureSetEditionDefault_FixedFeatures_field_fullname       protoreflect.FullName = "google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.fixed_features"
-=======
-	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_name  protoreflect.Name = "edition"
-	FeatureSetDefaults_FeatureSetEditionDefault_Features_field_name protoreflect.Name = "features"
-
-	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_fullname  protoreflect.FullName = "google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.edition"
-	FeatureSetDefaults_FeatureSetEditionDefault_Features_field_fullname protoreflect.FullName = "google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.features"
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Field numbers for google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault.
 const (
-<<<<<<< HEAD
 	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_number             protoreflect.FieldNumber = 3
 	FeatureSetDefaults_FeatureSetEditionDefault_OverridableFeatures_field_number protoreflect.FieldNumber = 4
 	FeatureSetDefaults_FeatureSetEditionDefault_FixedFeatures_field_number       protoreflect.FieldNumber = 5
-=======
-	FeatureSetDefaults_FeatureSetEditionDefault_Edition_field_number  protoreflect.FieldNumber = 3
-	FeatureSetDefaults_FeatureSetEditionDefault_Features_field_number protoreflect.FieldNumber = 2
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 )
 
 // Names for google.protobuf.SourceCodeInfo.
@@ -1389,7 +1257,6 @@ const (
 const (
 	GeneratedCodeInfo_Annotation_Semantic_enum_fullname = "google.protobuf.GeneratedCodeInfo.Annotation.Semantic"
 	GeneratedCodeInfo_Annotation_Semantic_enum_name     = "Semantic"
-<<<<<<< HEAD
 )
 
 // Enum values for google.protobuf.GeneratedCodeInfo.Annotation.Semantic.
@@ -1397,6 +1264,4 @@ const (
 	GeneratedCodeInfo_Annotation_NONE_enum_value  = 0
 	GeneratedCodeInfo_Annotation_SET_enum_value   = 1
 	GeneratedCodeInfo_Annotation_ALIAS_enum_value = 2
-=======
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
 )

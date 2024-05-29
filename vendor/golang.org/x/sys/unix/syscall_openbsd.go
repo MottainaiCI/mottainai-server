@@ -144,24 +144,6 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 		bufsize = unsafe.Sizeof(Statfs_t{}) * uintptr(len(buf))
 	}
 	return getfsstat(bufptr, bufsize, flags)
-<<<<<<< HEAD
-}
-
-//sysnb	getresuid(ruid *_C_int, euid *_C_int, suid *_C_int)
-//sysnb	getresgid(rgid *_C_int, egid *_C_int, sgid *_C_int)
-
-func Getresuid() (ruid, euid, suid int) {
-	var r, e, s _C_int
-	getresuid(&r, &e, &s)
-	return int(r), int(e), int(s)
-}
-
-func Getresgid() (rgid, egid, sgid int) {
-	var r, e, s _C_int
-	getresgid(&r, &e, &s)
-	return int(r), int(e), int(s)
-=======
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
 }
 
 //sysnb	getresuid(ruid *_C_int, euid *_C_int, suid *_C_int)
@@ -355,85 +337,5 @@ func Uname(uname *Utsname) error {
 //sys	munmap(addr uintptr, length uintptr) (err error)
 //sys	getfsstat(stat *Statfs_t, bufsize uintptr, flags int) (n int, err error)
 //sys	utimensat(dirfd int, path string, times *[2]Timespec, flags int) (err error)
-<<<<<<< HEAD
-<<<<<<< HEAD
 //sys	pledge(promises *byte, execpromises *byte) (err error)
 //sys	unveil(path *byte, flags *byte) (err error)
-=======
-
-/*
- * Unimplemented
- */
-// __getcwd
-// __semctl
-// __syscall
-// __sysctl
-// adjfreq
-// break
-// clock_getres
-// clock_gettime
-// clock_settime
-// closefrom
-// execve
-// fhopen
-// fhstat
-// fhstatfs
-// fork
-// futimens
-// getfh
-// getgid
-// getitimer
-// getlogin
-// getthrid
-// ktrace
-// lfs_bmapv
-// lfs_markv
-// lfs_segclean
-// lfs_segwait
-// mincore
-// minherit
-// mount
-// mquery
-// msgctl
-// msgget
-// msgrcv
-// msgsnd
-// nfssvc
-// nnpfspioctl
-// preadv
-// profil
-// pwritev
-// quotactl
-// readv
-// reboot
-// renameat
-// rfork
-// sched_yield
-// semget
-// semop
-// setgroups
-// setitimer
-// setsockopt
-// shmat
-// shmctl
-// shmdt
-// shmget
-// sigaction
-// sigaltstack
-// sigpending
-// sigprocmask
-// sigreturn
-// sigsuspend
-// sysarch
-// syscall
-// threxit
-// thrsigdivert
-// thrsleep
-// thrwakeup
-// vfork
-// writev
->>>>>>> 59b7cc43 (Update vendor github.com/docker/docker@v23.0.2+incompatible, k8s.io/api@v0.26.2)
-=======
-//sys	pledge(promises *byte, execpromises *byte) (err error)
-//sys	unveil(path *byte, flags *byte) (err error)
->>>>>>> d5bb6cf2 (Upgrade vendor github.com/MottainaiCI/lxd-compose@v0.33.0)
