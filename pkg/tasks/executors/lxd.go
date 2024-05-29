@@ -41,7 +41,7 @@ import (
 	lxd_compose_log "github.com/MottainaiCI/lxd-compose/pkg/logger"
 	lxd_compose_specs "github.com/MottainaiCI/lxd-compose/pkg/specs"
 
-	lxd "github.com/lxc/lxd/client"
+	lxd "github.com/canonical/lxd/client"
 	viper "github.com/spf13/viper"
 )
 
