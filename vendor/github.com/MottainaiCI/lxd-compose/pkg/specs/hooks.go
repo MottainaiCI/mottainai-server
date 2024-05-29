@@ -1,5 +1,4 @@
 /*
-
 Copyright (C) 2020  Daniele Rondina <geaaru@sabayonlinux.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
@@ -17,13 +16,32 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 */
 package specs
 
 import (
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	HookPreProject          = "pre-project"
+	HookPreGroup            = "pre-group"
+	HookPreNodeCreation     = "pre-node-creation"
+	HookPostNodeCreation    = "post-node-creation"
+	HookPreNodeSync         = "pre-node-sync"
+	HookPostNodeSync        = "post-node-sync"
+	HookPostGroup           = "post-group"
+	HookPostProject         = "post-project"
+	HookPreProjectShutdown  = "pre-project-shutdown"
+	HookPostProjectShutdown = "post-project-shutdown"
+	HookPreGroupShutdown    = "pre-group-shutdown"
+	HookPostGroupShutdown   = "post-group-shutdown"
+	HookPreNodeShutdown     = "pre-node-shutdown"
+	HookPostNodeShutdown    = "post-node-shutdown"
+
+	HookPreNodeUpgrade  = "pre-node-upgrade"
+	HookPostNodeUpgrade = "post-node-upgrade"
 )
 
 func getHooks(hooks *[]LxdCHook, event string) []LxdCHook {
