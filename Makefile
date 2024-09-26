@@ -28,7 +28,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 all: deps build
 
-build-test: test multiarch-build
+build-test: test
 
 help:
 	# make all => deps test lint build
@@ -43,8 +43,6 @@ clean:
 deps:
 	go env
 	# Installing dependencies...
-	GO111MODULE=off go get golang.org/x/lint/golint
-	GO111MODULE=off go get github.com/mitchellh/gox
 	GO111MODULE=on go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
 	GO111MODULE=off go get github.com/onsi/gomega/...
 	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
@@ -100,6 +98,7 @@ lint:
 test:
 	GO111MODULE=off go get github.com/onsi/ginkgo/v2/ginkgo
 	GO111MODULE=off go get github.com/onsi/gomega/...
+	go get github.com/onsi/gomega/...
 	ginkgo -r -flake-attempts 3 ./...
 
 .PHONY: test-coverage
@@ -155,10 +154,6 @@ install:
 
 gen-fakes:
 	counterfeiter -o tests/fakes/http_client.go pkg/client/client.go HttpClient
-
-.PHONY: multiarch-build
-multiarch-build:
-	CGO_ENABLED=0 gox $(BUILD_PLATFORMS) -ldflags '$(LDFLAGS)' -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}"
 
 .PHONY: goreleaser-snapshot
 goreleaser-snapshot:
