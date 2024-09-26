@@ -93,7 +93,9 @@ func (s *SimpleTaskScheduler) Schedule() error {
 					}
 
 					// Check if the task is already been assigned to a target node.
-					if taskCandidate.Status == msetting.TASK_STATE_WAIT && taskCandidate.Node != "" {
+					if (taskCandidate.Status == msetting.TASK_STATE_WAIT ||
+						taskCandidate.Status == msetting.TASK_STATE_RUNNING) &&
+						taskCandidate.Node != "" {
 						fmt.Println("Task " + tid + " assigned to agent id " + taskCandidate.Node + " in state " +
 							taskCandidate.Status + ". Nothing to do. Waiting next cycle.")
 
