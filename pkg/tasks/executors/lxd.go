@@ -540,6 +540,8 @@ func (l *LxdExecutor) ExecCommand(execution *StateExecution, targetHomeDir strin
 		l, // output writecloser
 		l, // err write closer
 		instruction.EntrypointList(),
+		// For the moment ignore uid,gid and cwd.
+		nil, nil, "",
 	)
 
 	// NOTE: If I stop a running container for interrupt execution
