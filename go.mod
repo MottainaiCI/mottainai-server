@@ -43,7 +43,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/sethvargo/go-password v0.1.2
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/theckman/go-flock v0.4.0
 	github.com/unknwon/com v1.0.1
