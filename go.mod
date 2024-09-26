@@ -35,8 +35,8 @@ require (
 	github.com/mudler/anagent v0.0.0-20180810152608-626d9ac35e3e
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/ginkgo/v2 v2.17.2
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/ginkgo/v2 v2.20.2
+	github.com/onsi/gomega v1.34.1
 	github.com/opencontainers/runc v1.1.14 // indirect
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
@@ -112,7 +112,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6 // indirect
+	github.com/google/pprof v0.0.0-20240925223930-fa3061bff0bc // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/schema v1.3.0 // indirect
