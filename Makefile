@@ -154,4 +154,4 @@ gen-fakes:
 .PHONY: goreleaser-snapshot
 goreleaser-snapshot:
 	rm -rf dist/ || true
-	GOVERSION=$(GOLANG_VERSION) goreleaser release --debug --skip-publish  --skip-validate --snapshot
+	GOVERSION=$(GOLANG_VERSION) goreleaser release --skip=validate,publish --snapshot --verbose
