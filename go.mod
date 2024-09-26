@@ -37,7 +37,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.1
-	github.com/opencontainers/runc v1.1.7 // indirect
+	github.com/opencontainers/runc v1.1.14 // indirect
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
