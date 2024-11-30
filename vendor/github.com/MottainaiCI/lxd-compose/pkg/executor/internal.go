@@ -436,6 +436,10 @@ func (e *LxdCExecutor) PullImage(imageAlias, imageRemoteServer string) (string, 
 			"For image "+imageAlias+" found fingerprint "+imageFingerprint)
 	}
 
+	if e.LxdClient == nil {
+		return "", fmt.Errorf("Something goes wrong on initialize client.")
+	}
+
 	// Check if image is already present locally else we receive an error.
 	image, _, _ := e.LxdClient.GetImage(imageFingerprint)
 	if image == nil {
@@ -489,6 +493,12 @@ func (e *LxdCExecutor) FindImage(image, imageRemoteServer string) (string, lxd.I
 
 			e.Emitter.DebugLog(false, fmt.Sprintf(
 				"Skipping remote %s. I will use %s.", remote, imageRemoteServer))
+			continue
+		}
+
+		if e.IsRemoteExcluded(remote) {
+			e.Emitter.DebugLog(false, fmt.Sprintf(
+				"Skipping remote %s. Remote excluded.", remote))
 			continue
 		}
 
