@@ -153,6 +153,7 @@ type AgentConfig struct {
 	LxdEndpoint            string            `mapstructure:"lxd_endpoint" json:"lxd_endpoint,omitempty" yaml:"lxd_endpoint,omitempty"`
 	LxdConfigDir           string            `mapstructure:"lxd_config_dir" json:"lxd_config_dir,omitempty" yaml:"lxd_config_dir,omitempty"`
 	LxdDisableLocal        bool              `mapstructure:"lxd_disable_local" json:"lxd_disable_local,omitempty" yaml:"lxd_disable_local,omitempty"`
+	LxdExcludedRemotes     []string          `mapstructure:"lxd_excluded_remotes" json:"lxd_excluded_remotes,omitempty" yaml:"lxd_excluded_remotes,omitempty"`
 	LxdProfiles            []string          `mapstructure:"lxd_profiles" json:"lxd_profiles,omitempty" yaml:"lxd_profiles,omitempty"`
 	LxdEphemeralContainers bool              `mapstructure:"lxd_ephemeral_containers" json:"lxd_ephemeral_containers,omitempty" yaml:"lxd_ephemeral_containers,omitempty"`
 	LxdCacheRegistry       map[string]string `mapstructure:"lxd_cache_registry" json:"lxd_cache_registry,omitempty" yaml:"lxd_cache_registry,omitempty"`
@@ -296,6 +297,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("agent.lxd_ephemeral_containers", true)
 	viper.SetDefault("agent.lxd_disable_local", false)
 	viper.SetDefault("agent.lxd_profiles", []string{})
+	viper.SetDefault("agent.lxd_excluded_remotes", []string{})
 	viper.SetDefault("agent.lxd_cache_registry", map[string]int{})
 
 	viper.SetDefault("agent.health_check_clean_path", []string{})

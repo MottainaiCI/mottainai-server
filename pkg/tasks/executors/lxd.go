@@ -105,6 +105,7 @@ func (l *LxdExecutor) Setup(docID string) error {
 	// remote name in task specs
 	l.Executor.SetP2PMode(true)
 	l.Executor.SetLocalDisable(l.Config.GetAgent().LxdDisableLocal)
+	l.Executor.SetExcludedRemotes(l.Config.GetAgent().LxdExcludedRemotes)
 
 	err = l.Executor.Setup()
 	if err != nil {
