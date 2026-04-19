@@ -85,6 +85,8 @@ github.com/MottainaiCI/lxd-compose v0.35.2 h1:eOhhc6wwUvK/QCI5dcFtKv0dgwMPm3eLK5
 github.com/MottainaiCI/lxd-compose v0.35.2/go.mod h1:klz/cLD/QCzr/G3iFzo10xK6Cqri/xI0jkjzachOPEc=
 github.com/MottainaiCI/lxd-compose v0.38.1-0.20260419090403-f879b5b5c06b h1:YQfMbhgqBLDL8i89s1xq7BhY5QzhQAUC8Iryi0+pIO8=
 github.com/MottainaiCI/lxd-compose v0.38.1-0.20260419090403-f879b5b5c06b/go.mod h1:wlY5z12nsDJcj3Uho5kObIAMU3hqQdteiKt9Zy6urkc=
+github.com/MottainaiCI/lxd-compose v0.38.1-0.20260419100615-cc64fa4a5d6b h1:6ccp3KX+guU1omd5I2ab72iPsm25PMn7FaNr7Lf/ZTY=
+github.com/MottainaiCI/lxd-compose v0.38.1-0.20260419100615-cc64fa4a5d6b/go.mod h1:wlY5z12nsDJcj3Uho5kObIAMU3hqQdteiKt9Zy6urkc=
 github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed h1:uxP3Fj4UJI1H5GGeDHik48S6BdqOxFNkWl45Lt5jT0Q=
 github.com/MottainaiCI/passlib v1.0.11-0.20180705154449-f6527380e5ed/go.mod h1:XpLnxYiN5STC8FbtHC01MvybTix8Ozn0bw9Hxgjvr2A=
 github.com/MottainaiCI/vagrantutil v0.0.0-20181027083936-c8f45988a24e h1:WQ8ArFv/GpnDnnEMMK0BHr/BKyrie0YCdwGlMm7c7qY=
