@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020-2022  Daniele Rondina <geaaru@funtoo.org>
+Copyright (C) 2020-2025  Daniele Rondina <geaaru@macaronios.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -34,6 +34,8 @@ type LxdCEnvironment struct {
 	Commands             []LxdCCommand `json:"commands,omitempty" yaml:"commands,omitempty"`
 	IncludeCommandsFiles []string      `json:"include_commands_files,omitempty" yaml:"include_commands_files,omitempty"`
 
+	Certificates []LxdCCertificate `json:"certificates,omitempty" yaml:"certificates,omitempty"`
+
 	Profiles             []LxdCProfile `json:"profiles,omitempty" yaml:"profiles,omitempty"`
 	IncludeProfilesFiles []string      `json:"include_profiles_files,omitempty" yaml:"include_profiles_files,omitempty"`
 	Networks             []LxdCNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
@@ -57,6 +59,40 @@ type LxdCProfile struct {
 	Description string                       `json:"description" yaml:"description"`
 	Config      map[string]string            `json:"config" yaml:"config"`
 	Devices     map[string]map[string]string `json:"devices" yaml:"devices"`
+}
+
+type LxdCCertificate struct {
+	// Name associated with the certificate
+	// Example: castiana
+	Name string `json:"name" yaml:"name"`
+
+	// Usage type for the certificate
+	// Example: client
+	Type string `json:"type,omitempty" yaml:"type,omitempty"`
+
+	// Whether to limit the certificate to listed projects
+	// Example: true
+	//
+	// API extension: certificate_project
+	Restricted bool `json:"restricted,omitempty" yaml:"restricted,omitempty"`
+
+	// List of allowed projects (applies when restricted)
+	// Example: ["default", "foo", "bar"]
+	//
+	// API extension: certificate_project
+	Projects []string `json:"projects,omitempty" yaml:"projects,omitempty"`
+
+	// The certificate itself, as PEM encoded X509 certificate
+	// Example: X509 PEM certificate
+	//
+	// API extension: certificate_self_renewal
+	Certificate     string `json:"certificate,omitempty" yaml:"certificate,omitempty"`
+	CertificatePath string `json:"certificate_path,omitempty" yaml:"certificate_path,omitempty"`
+
+	// SHA256 fingerprint of the certificate
+	// Read only: true
+	// Example: fd200419b271f1dc2a5591b693cc5774b7f234e1ff8c6b78ad703b6888fe2b69
+	Fingerprint string `json:"fingerprint,omitempty" yaml:"fingerprint,omitempty"`
 }
 
 type LxdCNetworkForwardPort struct {
@@ -248,7 +284,9 @@ type LxdCGroup struct {
 }
 
 type LxdCEnvVars struct {
-	EnvVars map[string]interface{} `json:"envs,omitempty" yaml:"envs,omitempty"`
+	EnvVars          map[string]interface{} `json:"envs,omitempty" yaml:"envs,omitempty"`
+	Encrypted        bool                   `json:"encrypted,omitempty" yaml:"encrypted,omitempty"`
+	EncryptedContent string                 `json:"enc_content,omitempty" yaml:"enc_content,omitempty"`
 }
 
 type LxdCNode struct {

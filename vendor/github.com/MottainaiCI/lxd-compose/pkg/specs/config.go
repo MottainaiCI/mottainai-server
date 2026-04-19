@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020-2023  Daniele Rondina <geaaru@funtoo.org>
+Copyright (C) 2020-2025  Daniele Rondina <geaaru@macaronios.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -20,8 +20,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package specs
 
 import (
-	v "github.com/spf13/viper"
+	"encoding/base64"
+	"fmt"
+	"os"
 
+	helpers_sec "github.com/MottainaiCI/lxd-compose/pkg/helpers/security"
+
+	v "github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,12 +38,14 @@ const (
 type LxdComposeConfig struct {
 	Viper *v.Viper `yaml:"-" json:"-"`
 
-	General         LxdCGeneral `mapstructure:"general" json:"general,omitempty" yaml:"general,omitempty"`
-	Logging         LxdCLogging `mapstructure:"logging" json:"logging,omitempty" yaml:"logging,omitempty"`
-	EnvironmentDirs []string    `mapstructure:"env_dirs,omitempty" json:"env_dirs,omitempty" yaml:"env_dirs,omitempty"`
+	General         LxdCGeneral  `mapstructure:"general" json:"general,omitempty" yaml:"general,omitempty"`
+	Logging         LxdCLogging  `mapstructure:"logging" json:"logging,omitempty" yaml:"logging,omitempty"`
+	Security        LxdCSecurity `mapstructure:"security" json:"security,omitempty" yaml:"security,omitempty"`
+	EnvironmentDirs []string     `mapstructure:"env_dirs,omitempty" json:"env_dirs,omitempty" yaml:"env_dirs,omitempty"`
 
 	RenderDefaultFile   string                 `mapstructure:"render_default_file,omitempty" json:"render_default_file,omitempty" yaml:"render_default_file,omitempty"`
 	RenderValuesFile    string                 `mapstructure:"render_values_file,omitempty" json:"render_values_file,omitempty" yaml:"render_values_file,omitempty"`
+	RenderSecretFile    string                 `mapstructure:"render_secrets_file,omitempty" json:"render_secrets_file,omitempty" yaml:"render_secrets_file,omitempty"`
 	RenderEnvsVars      map[string]interface{} `mapstructure:"-" json:"-" yaml:"-"`
 	RenderTemplatesDirs []string               `mapstructure:"render_templates_dirs,omitempty" json:"render_templates_dirs,omitempty" yaml:"render_templates_dirs,omitempty"`
 }
@@ -49,6 +56,21 @@ type LxdCGeneral struct {
 	LxdLocalDisable bool   `mapstructure:"lxd_local_disable,omitempty" json:"lxd_local_disable,omitempty" yaml:"lxd_local_disable,omitempty"`
 	P2PMode         bool   `mapstructure:"p2pmode,omitempty" json:"p2pmode,omitempty" yaml:"p2pmode,omitempty"`
 	LegacyApi       bool   `mapstructure:"legacyapi,omitempty" json:"legacyapi,omitempty" yaml:"legacyapi,omitempty"`
+}
+
+type LxdCSecurity struct {
+	Keyfile        string `mapstructure:"keyfile" json:"keyfile,omitempty" yaml:"keyfile,omitempty"`
+	Key            string `mapstructure:"key" json:"key,omitempty" yaml:"key,omitempty"`
+	EncryptSecrets *bool  `mapstructure:"encrypted_secrets" json:"encrypted_secrets,omitempty" yaml:"encrypted_secrets,omitempty"`
+
+	DKAOpts *LxdCDKAOpts `mapstructure:"dka_opts" json:"dka_opts,omitempty" yaml:"dka_opts,omitempty"`
+}
+
+type LxdCDKAOpts struct {
+	TimeIterations *uint32 `mapstructure:"time_iterations" json:"time_iterations,omitempty" yaml:"time_iterations,omitempty"`
+	MemoryUsage    *uint32 `mapstructure:"memory_usage" json:"memory_usage,omitempty" yaml:"memory_usage,omitempty"`
+	KeyLength      *uint32 `mapstructure:"key_length" json:"key_length,omitempty" yaml:"key_length,omitempty"`
+	Parallelism    *uint8  `mapstructure:"parallelism" json:"parallelism,omitempty" yaml:"parallelism,omitempty"`
 }
 
 type LxdCLogging struct {
@@ -88,6 +110,7 @@ func (c *LxdComposeConfig) Clone() *LxdComposeConfig {
 	ans.EnvironmentDirs = c.EnvironmentDirs
 	ans.RenderDefaultFile = c.RenderDefaultFile
 	ans.RenderValuesFile = c.RenderValuesFile
+	ans.RenderSecretFile = c.RenderSecretFile
 	ans.RenderTemplatesDirs = c.RenderTemplatesDirs
 
 	ans.General.Debug = c.General.Debug
@@ -106,6 +129,39 @@ func (c *LxdComposeConfig) Clone() *LxdComposeConfig {
 	ans.Logging.CmdsOutput = c.Logging.CmdsOutput
 	ans.Logging.PushProgressBar = c.Logging.PushProgressBar
 
+	ans.Security.Keyfile = c.Security.Keyfile
+	ans.Security.Key = c.Security.Key
+
+	if c.Security.EncryptSecrets != nil {
+		es := *c.Security.EncryptSecrets
+		ans.Security.EncryptSecrets = &es
+	}
+
+	if ans.Security.DKAOpts != nil {
+		ans.Security.DKAOpts = &LxdCDKAOpts{}
+
+		if c.Security.DKAOpts.TimeIterations != nil {
+			ti := *c.Security.DKAOpts.TimeIterations
+			ans.Security.DKAOpts.TimeIterations = &ti
+		}
+
+		if c.Security.DKAOpts.MemoryUsage != nil {
+			mu := *c.Security.DKAOpts.MemoryUsage
+			ans.Security.DKAOpts.MemoryUsage = &mu
+		}
+
+		if c.Security.DKAOpts.KeyLength != nil {
+			kl := *c.Security.DKAOpts.KeyLength
+			ans.Security.DKAOpts.KeyLength = &kl
+		}
+
+		if c.Security.DKAOpts.Parallelism != nil {
+			par := *c.Security.DKAOpts.Parallelism
+			ans.Security.DKAOpts.Parallelism = &par
+		}
+
+	}
+
 	return ans
 }
 
@@ -121,11 +177,72 @@ func (c *LxdComposeConfig) GetLogging() *LxdCLogging {
 	return &c.Logging
 }
 
+func (c *LxdComposeConfig) GetSecurity() *LxdCSecurity {
+	return &c.Security
+}
+
 func (c *LxdComposeConfig) IsEnableRenderEngine() bool {
 	if c.RenderValuesFile != "" || c.RenderDefaultFile != "" {
 		return true
 	}
 	return false
+}
+
+func (c *LxdComposeConfig) GetSecrets() (*map[string]interface{}, error) {
+	ans := make(map[string]interface{}, 0)
+
+	if c.RenderSecretFile != "" {
+		data, err := os.ReadFile(c.RenderSecretFile)
+		if err != nil {
+			return nil, fmt.Errorf("error on read file %s: %s", c.RenderSecretFile, err.Error())
+		}
+
+		if c.Security.EncryptSecrets != nil && *c.Security.EncryptSecrets {
+
+			keyBytes := []byte{}
+
+			if c.GetSecurity().Key != "" {
+				keyBytes, err = base64.StdEncoding.DecodeString(c.GetSecurity().Key)
+				if err != nil {
+					return nil, fmt.Errorf("error on decode base64 key: %s", err.Error())
+				}
+			}
+
+			dkaOpts := helpers_sec.NewDKAOptsDefault()
+			if c.GetSecurity().DKAOpts != nil {
+				if c.GetSecurity().DKAOpts.TimeIterations != nil {
+					dkaOpts.TimeIterations = *c.GetSecurity().DKAOpts.TimeIterations
+				}
+				if c.GetSecurity().DKAOpts.MemoryUsage != nil {
+					dkaOpts.MemoryUsage = *c.GetSecurity().DKAOpts.MemoryUsage
+				}
+				if c.GetSecurity().DKAOpts.KeyLength != nil {
+					dkaOpts.KeyLength = *c.GetSecurity().DKAOpts.KeyLength
+				}
+				if c.GetSecurity().DKAOpts.Parallelism != nil {
+					dkaOpts.Parallelism = *c.GetSecurity().DKAOpts.Parallelism
+				}
+			}
+
+			data, err = base64.StdEncoding.DecodeString(string(data))
+			if err != nil {
+				return nil, fmt.Errorf("error on decode base64 data: %s", err.Error())
+			}
+
+			decodedBytes, err := helpers_sec.Decrypt(data, keyBytes, dkaOpts)
+			if err != nil {
+				return nil, fmt.Errorf("error on decrypt secrets: %s", err.Error())
+			}
+
+			data = decodedBytes
+		}
+
+		if err = yaml.Unmarshal(data, &ans); err != nil {
+			return nil, fmt.Errorf("error on unmarshal secrets: %s", err.Error())
+		}
+	}
+
+	return &ans, nil
 }
 
 func (c *LxdComposeConfig) Unmarshal() error {
@@ -176,6 +293,7 @@ func GenDefault(viper *v.Viper) {
 	viper.SetDefault("general.lxd_confdir", "")
 	viper.SetDefault("render_default_file", "")
 	viper.SetDefault("render_values_file", "")
+	viper.SetDefault("render_secret_file", "")
 	viper.SetDefault("render_templates_dirs", []string{})
 
 	viper.SetDefault("logging.level", "info")

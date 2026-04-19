@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020-2023  Daniele Rondina <geaaru@funtoo.org>
+Copyright (C) 2020-2025  Daniele Rondina <geaaru@macaronios.org>
 Credits goes also to Gogs authors, some code portions and re-implemented design
 are also coming from the Gogs project, which is using the go-macaron framework
 and was really source of ispiration. Kudos to them!
@@ -72,84 +72,43 @@ func (e *LxdCExecutor) RunCommandWithOutput(containerName, command string,
 	var currOper lxd.Operation
 	var dataChan chan bool
 
-	if e.LegacyApi {
-		// Prepare the command
-		req := lxd_api.ContainerExecPost{
-			Command:     cmdList,
-			WaitForWS:   true,
-			Interactive: false,
-			Environment: envs,
-			Width:       width,
-			Height:      height,
-		}
-
-		if uid != nil && gid != nil {
-			req.User = *uid
-			req.Group = *gid
-		}
-
-		if cwd != "" {
-			req.Cwd = cwd
-		}
-
-		execArgs := lxd.ContainerExecArgs{
-			// Disable stdin
-			Stdin:   io.NopCloser(bytes.NewReader(nil)),
-			Stdout:  outBuffer,
-			Stderr:  errBuffer,
-			Control: nil,
-			//Control:  handler,
-			DataDone: make(chan bool),
-		}
-
-		// Run the command in the container
-		currOper, err = e.LxdClient.ExecContainer(containerName, req, &execArgs)
-		if err != nil {
-			logger.Error("Error on exec command: " + err.Error())
-			return 1, err
-		}
-
-		dataChan = execArgs.DataDone
-
-	} else {
-		// Prepare the command
-		req := lxd_api.InstanceExecPost{
-			Command:     cmdList,
-			WaitForWS:   true,
-			Interactive: false,
-			Environment: envs,
-			Width:       width,
-			Height:      height,
-		}
-
-		if uid != nil && gid != nil {
-			req.User = *uid
-			req.Group = *gid
-		}
-
-		if cwd != "" {
-			req.Cwd = cwd
-		}
-
-		execArgs := lxd.InstanceExecArgs{
-			// Disable stdin
-			Stdin:   io.NopCloser(bytes.NewReader(nil)),
-			Stdout:  outBuffer,
-			Stderr:  errBuffer,
-			Control: nil,
-			//Control:  handler,
-			DataDone: make(chan bool),
-		}
-
-		// Run the command in the container
-		currOper, err = e.LxdClient.ExecInstance(containerName, req, &execArgs)
-		if err != nil {
-			logger.Error("Error on exec command: " + err.Error())
-			return 1, err
-		}
-
-		dataChan = execArgs.DataDone
+	// Prepare the command
+	req := lxd_api.InstanceExecPost{
+		Command:     cmdList,
+		WaitForWS:   true,
+		Interactive: false,
+		Environment: envs,
+		Width:       width,
+		Height:      height,
 	}
+
+	if uid != nil && gid != nil {
+		req.User = *uid
+		req.Group = *gid
+	}
+
+	if cwd != "" {
+		req.Cwd = cwd
+	}
+
+	execArgs := lxd.InstanceExecArgs{
+		// Disable stdin
+		Stdin:   io.NopCloser(bytes.NewReader(nil)),
+		Stdout:  outBuffer,
+		Stderr:  errBuffer,
+		Control: nil,
+		//Control:  handler,
+		DataDone: make(chan bool),
+	}
+
+	// Run the command in the container
+	currOper, err = e.LxdClient.ExecInstance(containerName, req, &execArgs)
+	if err != nil {
+		logger.Error("Error on exec command: " + err.Error())
+		return 1, err
+	}
+
+	dataChan = execArgs.DataDone
 
 	// Wait for the operation to complete
 	err = e.WaitOperation(currOper, nil)
