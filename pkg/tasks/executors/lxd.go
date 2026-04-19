@@ -354,7 +354,7 @@ func (l *LxdExecutor) Handle(exec *StateExecution, mapping ArtefactMapping) (int
 func (l *LxdExecutor) PushImage(fingerprint string, alias string) error {
 
 	var err error
-	var image_server lxd.ContainerServer
+	var image_server lxd.InstanceServer
 
 	remote, okremote := l.Config.GetAgent().LxdCacheRegistry["remote"]
 	if !okremote {
